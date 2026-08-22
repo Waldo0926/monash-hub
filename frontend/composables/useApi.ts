@@ -15,11 +15,24 @@ export function apiUrl(path: string): string {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`
 }
 
-/** SSR-friendly GET. Errors surface to the caller so pages can show a real
- *  error state instead of a blank screen. */
+/**
+ * SSR-friendly GET.
+ *
+ * The key is derived from the API *path*, never from the resolved URL. Those
+ * two are not the same string on both sides - the server calls
+ * `http://api:8000/api/...` over the private network while the browser calls
+ * `/api/...` on the same origin - and a URL-derived key means the server's
+ * payload is filed under a name the client never looks up. The client then
+ * hydrates with `data` still null, renders a different tree than the server
+ * sent, and Vue throws the server's markup away.
+ *
+ * Errors surface to the caller so pages can show a real error state rather than
+ * a blank screen.
+ */
 export function useApiFetch<T>(path: string | (() => string), options: Record<string, any> = {}) {
-  const url = typeof path === 'function' ? computed(() => apiUrl(path())) : apiUrl(path)
-  return useFetch<T>(url as any, { ...options, key: typeof path === 'function' ? undefined : path })
+  const resolve = typeof path === 'function' ? path : () => path
+  const key = options.key ?? `api:${resolve()}`
+  return useFetch<T>(() => apiUrl(resolve()), { ...options, key })
 }
 
 /** Imperative call, for form submissions and other browser-side actions. */
