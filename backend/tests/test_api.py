@@ -98,6 +98,16 @@ def test_official_search_finds_the_seed_page(client, loaded):
     assert body["results"][0]["last_checked"] is not None
 
 
+def test_guides_paginate(client, loaded):
+    # The sitemap walks this endpoint a page at a time, so offset has to work.
+    first = client.get("/api/v1/guides", params={"limit": 1, "offset": 0}).json()
+    second = client.get("/api/v1/guides", params={"limit": 1, "offset": 1}).json()
+    assert first["total"] == second["total"]
+    assert first["offset"] == 0 and second["offset"] == 1
+    assert len(first["results"]) == 1
+    assert not second["results"], "only one page is indexed in this fixture"
+
+
 def test_unified_search_groups_results_by_source(client, loaded):
     body = client.get("/api/v1/search", params={"q": "special consideration"}).json()
     kinds = {g["kind"]: g for g in body["groups"]}

@@ -72,18 +72,40 @@ Monash Hub adds one server block and binds its own containers to loopback only.
    That backs up, pulls, builds, migrates, restarts, and waits for
    `/api/health`. It is safe to re-run.
 
-4. **nginx and TLS**
+4. **TLS first, then nginx**
+
+   The site config references the certificate, so the certificate has to exist
+   before nginx will load it. Serve the ACME challenge from a throwaway block:
 
    ```bash
+   cat > /etc/nginx/sites-available/monash-hub-bootstrap <<'EOF'
+   server {
+       listen 80;
+       listen [::]:80;
+       server_name monashhub.secureview.tech;
+       location ^~ /.well-known/acme-challenge/ { allow all; root /var/www/html; }
+       location / { return 503; }
+   }
+   EOF
+   ln -sf /etc/nginx/sites-available/monash-hub-bootstrap /etc/nginx/sites-enabled/
+   nginx -t && systemctl reload nginx
+
+   certbot certonly --webroot -w /var/www/html -d monashhub.secureview.tech
+   ```
+
+   Then swap in the real config:
+
+   ```bash
+   rm -f /etc/nginx/sites-enabled/monash-hub-bootstrap
    cp deployment/nginx/monash-hub-limits.conf /etc/nginx/conf.d/
    cp deployment/nginx/monash-hub.conf /etc/nginx/sites-available/monash-hub
    ln -s /etc/nginx/sites-available/monash-hub /etc/nginx/sites-enabled/
    nginx -t && systemctl reload nginx
-   certbot --nginx -d monashhub.secureview.tech
    ```
 
-   Certbot rewrites the port-80 block into a redirect and adds the certificate
-   lines. The existing `certbot.timer` handles renewal.
+   `certonly` is used rather than `certbot --nginx` so the server block stays
+   exactly what is in Git instead of something certbot rewrote. The existing
+   `certbot.timer` renews it.
 
 5. **Load data**
 
@@ -92,6 +114,23 @@ Monash Hub adds one server block and binds its own containers to loopback only.
    ./deployment/crawl.sh official --all # 40 seed pages
    ./deployment/crawl.sh seed           # curated FAQ
    ```
+
+## Creating the first moderator
+
+Reports and hidden posts need someone who can act on them. The seed script
+creates that account, and only when both variables are present - so a default
+password can never end up on a public server:
+
+```bash
+cd /opt/monash-hub/repo
+docker compose -p monash-hub run --rm \
+  -e ADMIN_EMAIL='you@example.com' \
+  -e ADMIN_NICKNAME='moderator' \
+  -e ADMIN_PASSWORD='<a password you choose>' \
+  crawler python -m app.knowledge.seed
+```
+
+Use a password manager. Do not put it in `.env`.
 
 ## Routine deploys
 

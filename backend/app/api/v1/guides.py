@@ -18,9 +18,10 @@ def list_guides(
     q: str = "",
     category: str | None = None,
     limit: int = Query(50, le=200),
+    offset: int = 0,
     db: Session = Depends(get_db),
 ) -> dict:
-    pages, total = service.search_official(db, q, limit=limit, category=category)
+    pages, total = service.search_official(db, q, limit=limit, offset=offset, category=category)
     categories = db.execute(
         select(OfficialPage.category, func.count(OfficialPage.id))
         .where(OfficialPage.status == "ok")
@@ -29,6 +30,8 @@ def list_guides(
     ).all()
     return {
         "total": total,
+        "limit": limit,
+        "offset": offset,
         "categories": [{"key": key, "count": count} for key, count in categories],
         "results": [official_brief(p) for p in pages],
     }

@@ -11,7 +11,7 @@ const route = useRoute()
 const query = ref((route.query.q as string) || '')
 
 const { data, pending, error, refresh } = await useApiFetch<any>(
-  () => `/v1/search?q=${encodeURIComponent((useRoute().query.q as string) || '')}`,
+  () => `/v1/search?q=${encodeURIComponent((route.query.q as string) || '')}`,
   { watch: [() => route.query.q] }
 )
 
