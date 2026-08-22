@@ -12,11 +12,21 @@ export default defineEventHandler(async event => {
 
   const urls: string[] = ['/', '/units', '/guides', '/community', '/exchange']
 
+  // The API caps a page at 100 results, so walk it rather than asking for
+  // everything at once - which silently 422s and leaves the sitemap empty.
+  const PAGE = 100
+
   try {
-    const units = await $fetch<any>(`${api}/v1/units?limit=1000&sort=code`)
-    for (const unit of units.results || []) urls.push(`/units/${unit.unit_code}`)
-    const guides = await $fetch<any>(`${api}/v1/guides?limit=200`)
-    for (const page of guides.results || []) urls.push(`/guides/${page.slug}`)
+    for (let offset = 0; ; offset += PAGE) {
+      const units = await $fetch<any>(`${api}/v1/units?limit=${PAGE}&offset=${offset}&sort=code`)
+      for (const unit of units.results || []) urls.push(`/units/${unit.unit_code}`)
+      if (offset + PAGE >= (units.total || 0)) break
+    }
+    for (let offset = 0; ; offset += PAGE) {
+      const guides = await $fetch<any>(`${api}/v1/guides?limit=${PAGE}&offset=${offset}`)
+      for (const page of guides.results || []) urls.push(`/guides/${page.slug}`)
+      if (offset + PAGE >= (guides.total || 0)) break
+    }
   } catch {
     // A sitemap with the static routes beats a 500 if the API is briefly down.
   }
