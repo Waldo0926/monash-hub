@@ -1,0 +1,4 @@
+# The crawler image is the API image plus a browser engine. www.monash.edu sits
+# behind a WAF that scores the HTTP client itself, so plain httpx gets a 403
+# where a real browser does not - see docs/CRAWLING.md.
+playwright==1.56.0

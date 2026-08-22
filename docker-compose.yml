@@ -1,0 +1,117 @@
+# Monash Hub stack.
+#
+# Deliberately isolated from anything else on the host: its own compose project
+# (`-p monash-hub`), its own network, its own volume. Nothing here touches the
+# FYP platform or the Monash Abroad Tracker that share the same server.
+#
+# Only the web and api containers publish a port, and both bind to 127.0.0.1 -
+# the host's existing nginx is what faces the internet. PostgreSQL publishes
+# nothing at all.
+
+name: monash-hub
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-monashhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-monashhub}
+      # Deterministic collation, so index ordering does not depend on the host.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-monashhub} -d ${POSTGRES_DB:-monashhub}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # A crawler must never be able to starve the database.
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://monashhub.secureview.tech}
+      CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
+    ports:
+      - "127.0.0.1:${API_PORT:-8100}:8000"
+    networks: [internal]
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      # Server-side rendering talks to the API container directly; the browser
+      # uses the same origin through nginx.
+      NUXT_API_BASE: http://api:8000/api
+      NUXT_PUBLIC_API_BASE: /api
+      NUXT_PUBLIC_SITE_URL: ${SITE_URL:-https://monashhub.secureview.tech}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8101}:3000"
+    networks: [internal]
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  crawler:
+    build:
+      context: .
+      dockerfile: crawler/Dockerfile
+    # Started on demand (`docker compose run --rm crawler ...`), never left
+    # running. The first production crawls are watched, not scheduled.
+    profiles: [tools]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub}
+      CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
+    networks: [internal]
+    # A crawler that can take the box down is worse than a slow crawler.
+    cpus: 1.5
+    mem_limit: 2g
+
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    profiles: [tools]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub}
+      SECRET_KEY: ${SECRET_KEY:-migration-only}
+    command: ["alembic", "upgrade", "head"]
+    networks: [internal]
+
+volumes:
+  postgres-data:
+    name: monash-hub-postgres-data
+
+networks:
+  internal:
+    name: monash-hub-internal

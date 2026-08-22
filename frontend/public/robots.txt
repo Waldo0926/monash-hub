@@ -1,0 +1,7 @@
+# Public pages are meant to be indexed; account and search pages are not.
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /search
+
+Sitemap: https://monashhub.secureview.tech/sitemap.xml

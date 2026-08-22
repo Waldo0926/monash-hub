@@ -1,0 +1,31 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv-crawler/
+.pytest_cache/
+.ruff_cache/
+
+# Node / Nuxt
+node_modules/
+.nuxt/
+.output/
+.data/
+
+# Crawl output and databases never belong in Git
+*.sqlite
+*.db
+*.dump
+*.sql.gz
+crawl-output/
+backups/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/

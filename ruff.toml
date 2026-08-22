@@ -1,0 +1,16 @@
+# Shared by backend/ and crawler/.
+line-length = 100
+target-version = "py312"
+exclude = [".venv", ".venv-crawler", "frontend", "backend/migrations/versions"]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "B008",    # FastAPI's Depends() in defaults is the framework's own idiom
+    "RUF001",  # curly quotes and CJK punctuation are intentional in seed text
+    "RUF002",
+    "RUF003",
+]
+
+[lint.per-file-ignores]
+"backend/tests/*" = ["E501"]

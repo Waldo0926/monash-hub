@@ -1,0 +1,10 @@
+**/.venv
+**/.venv-crawler
+**/node_modules
+**/.nuxt
+**/.output
+**/__pycache__
+**/*.pyc
+.git
+docs
+*.md

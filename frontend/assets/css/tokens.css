@@ -1,0 +1,73 @@
+/*
+ * Design tokens.
+ *
+ * One place for colour, spacing, radius and type. Components reference these
+ * and never hard-code a hex value, so the palette can move without a hunt
+ * through the templates.
+ *
+ * The palette is deliberately Monash Hub's own. It does not reuse the
+ * university's brand: this is an independent student platform and it should
+ * never look like an official Monash site.
+ */
+:root {
+  /* Brand */
+  --navy: #17365d;
+  --navy-700: #102845;
+  --blue: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-50: #eff6ff;
+
+  /* Surfaces */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* Text */
+  --text: #0f172a;
+  --muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Semantic */
+  --success: #047857;
+  --success-bg: #ecfdf5;
+  --warning: #b45309;
+  --warning-bg: #fffbeb;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+
+  /* Source badges. The three tiers of trust must be told apart at a glance,
+     and never by colour alone - each badge carries its own label too. */
+  --badge-handbook: #17365d;
+  --badge-handbook-bg: #e8eef6;
+  --badge-official: #047857;
+  --badge-official-bg: #ecfdf5;
+  --badge-community: #6d28d9;
+  --badge-community-bg: #f5f3ff;
+  --badge-sponsored: #b45309;
+  --badge-sponsored-bg: #fffbeb;
+
+  /* 8px grid */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px -12px rgba(15, 23, 42, 0.12);
+
+  --font: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+
+  --container: 1220px;
+  --header-h: 64px;
+}
