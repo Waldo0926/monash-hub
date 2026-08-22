@@ -15,13 +15,23 @@ const { data, pending, error, refresh } = await useApiFetch<any>(
   { watch: [() => route.query.q] }
 )
 
-// The zero-AI router runs alongside search, so a question gets an answer and a
-// result list from one submission.
-const answer = ref<any>(null)
-async function loadAnswer(q: string) {
-  answer.value = q ? await apiFetch<any>('/v1/ask', { method: 'POST', body: { query: q } }).catch(() => null) : null
-}
-watch(() => route.query.q, q => { query.value = (q as string) || ''; loadAnswer(query.value) }, { immediate: true })
+// The zero-AI router runs alongside search, so one submission produces both an
+// answer and a result list.
+//
+// This resolves during SSR rather than on mount. Filling it in afterwards left
+// the server and client markup disagreeing, and the hydration mismatch that
+// followed threw out the result groups underneath it.
+const { data: answer } = await useAsyncData<any>(
+  'ask-answer',
+  () => {
+    const q = ((route.query.q as string) || '').trim()
+    if (!q) return Promise.resolve(null)
+    return $fetch<any>(apiUrl('/v1/ask'), { method: 'POST', body: { query: q } }).catch(() => null)
+  },
+  { watch: [() => route.query.q] }
+)
+
+watch(() => route.query.q, q => { query.value = (q as string) || '' }, { immediate: true })
 
 function search(value: string) {
   navigateTo({ path: '/search', query: value ? { q: value } : {} })
