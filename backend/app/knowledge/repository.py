@@ -63,6 +63,7 @@ def record_fetch(db: Session, page: OfficialPage, cleaned: dict) -> str:
     previous_hash = page.content_hash
     page.title = cleaned["title"] or page.title
     page.clean_text = cleaned["clean_text"]
+    page.blocks = cleaned["blocks"]
     page.summary = cleaned["summary"]
     page.headings = cleaned["headings"]
     page.content_hash = cleaned["content_hash"]
@@ -74,6 +75,7 @@ def record_fetch(db: Session, page: OfficialPage, cleaned: dict) -> str:
             content_hash=cleaned["content_hash"],
             title=cleaned["title"],
             clean_text=cleaned["clean_text"],
+            blocks=cleaned["blocks"],
             headings=cleaned["headings"],
         )
     )

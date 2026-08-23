@@ -64,7 +64,12 @@ class OfficialPage(Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list)
 
     summary: Mapped[str | None] = mapped_column(Text)
+    # ``clean_text`` is what the search vector reads; ``blocks`` is what a person
+    # reads. They come from the same extraction and must not be written apart -
+    # see app/knowledge/cleaner.py for the shape and for why one string was not
+    # enough.
     clean_text: Mapped[str | None] = mapped_column(Text)
+    blocks: Mapped[list] = mapped_column(JSONB, default=list)
     headings: Mapped[list] = mapped_column(JSONB, default=list)
 
     # ``dynamic`` pages (dates, deadlines) are re-checked far more often than
@@ -103,6 +108,7 @@ class OfficialPageVersion(Base):
     content_hash: Mapped[str] = mapped_column(String(64))
     title: Mapped[str | None] = mapped_column(String(400))
     clean_text: Mapped[str | None] = mapped_column(Text)
+    blocks: Mapped[list] = mapped_column(JSONB, default=list)
     headings: Mapped[list] = mapped_column(JSONB, default=list)
     captured_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
