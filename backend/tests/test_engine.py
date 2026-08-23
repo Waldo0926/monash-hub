@@ -187,3 +187,34 @@ def test_a_space_before_a_digit_is_kept():
     from crawler.translate.engine import _tidy
 
     assert _tidy("财务会计 1", "zh") == "财务会计 1"
+
+
+def test_a_costly_term_still_holds_the_sentence_back():
+    """census date is the reason the glossary exists. No guessing at it."""
+    def stub(text):
+        if "Zq" in text:
+            return "在兹卡之前付款。"
+        if text == "census date":
+            return "人口普查日期"
+        return "在某个日子之前付款。"          # rendered a third way
+
+    engine = translator(stub)
+    assert engine.text("Pay before the census date.") is None
+
+
+def test_an_ordinary_term_does_not():
+    """"results" rendered some other way is not worth an English page.
+
+    159 sentences across the guides were being held back by terms like this
+    one - results, Moodle, teaching period - none of which decides anything a
+    student spends money on.
+    """
+    def stub(text):
+        if "Zq" in text:
+            return "兹卡在周五公布。"
+        if text == "results":
+            return "结果"
+        return "成绩在周五公布。"              # 成绩, not the 结果 we look for
+
+    engine = translator(stub)
+    assert engine.text("Results are released on Friday.") == "成绩在周五公布。"

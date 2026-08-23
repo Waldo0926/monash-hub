@@ -1367,6 +1367,49 @@ KEEP_IN_ENGLISH = frozenset({"handbook", "Moodle"})
 
 
 # Sorted longest-first so "weighted average mark" is matched before "mark".
+# The terms that are allowed to stop a sentence being published.
+#
+# Every term here is substituted the same way. The difference is what happens
+# when the substitution cannot be made - when the model rendered the term some
+# third way in context and there is nothing to find and replace. For a term on
+# this list the sentence keeps its English, because a student acting on a wrong
+# census date or a reversed unit/course pays for it. For anything else the
+# model's own wording stands: Moodle read as 面条 is embarrassing, and a page
+# left in English because of it is worse.
+#
+# 159 sentences across the guides were being held back by a term off this list
+# - results, teaching period, Moodle, enrolment - none of which decides
+# anything a student spends money on.
+CRITICAL: frozenset[str] = frozenset({
+    # deadlines and money - the whole section
+    "census date", "census dates", "withdraw", "withdrawal", "discontinue",
+    "intermission", "tuition fees", "fee liability", "HECS-HELP", "FEE-HELP",
+    "Commonwealth supported place",
+    # what decides progression
+    "weighted average mark", "WAM", "grade point average", "GPA",
+    "hurdle requirement", "hurdle", "pass mark", "academic progress",
+    "unsatisfactory progress", "exclusion", "academic integrity", "plagiarism",
+    "collusion",
+    # a second chance, or not
+    "special consideration", "deferred assessment", "supplementary assessment",
+    "final assessment", "extension",
+    # the pair every general translator reverses, and what enrolment turns on
+    "unit", "units", "course", "courses", "credit points", "credit point",
+    "credit transfer", "prerequisites", "prerequisite", "corequisite",
+    "prohibition", "prohibitions", "enrolment rules",
+    # a visa depends on these being right
+    "student visa", "Confirmation of Enrolment", "CoE",
+    "Overseas Student Health Cover", "OSHC", "full-time study load",
+    "international student", "domestic student",
+})
+
+
+def is_critical(written: str) -> bool:
+    """Whether getting this term wrong is worse than leaving the page English."""
+    canonical = _LOOKUP.get(written.lower())
+    return canonical in CRITICAL
+
+
 _SORTED = sorted(TERMS, key=lambda t: (-len(t), t))
 _PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in _SORTED) + r")(?![A-Za-z0-9])",
