@@ -163,3 +163,29 @@ def test_template_plumbing_is_not_content(official_html):
 
     assert "Not Configured" not in result["clean_text"]
     assert not any("Not Configured" in str(block) for block in result["blocks"])
+
+
+def test_html_comments_are_not_page_text():
+    """BeautifulSoup hands Comment nodes back from get_text().
+
+    Monash's CMS leaves plenty of them - a real fees page arrived carrying
+    "endnoindex", "@@ WIP @@" and "/.call-to-action__wrapper" as paragraphs,
+    which were then indexed, translated and shown to a student as content.
+    """
+    html = """
+    <html><body><main>
+      <h1>Fees and payments</h1>
+      <!-- endnoindex -->
+      <!-- @@ WIP @@ -->
+      <p>Find out when and how to pay your fees, and plan your payments.</p>
+      <!-- /.call-to-action__wrapper -->
+      <!-- Feature Box 1: Show -->
+      <p>Use the fee calculator to work out your course fees for the year ahead.</p>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://example.invalid/fees")
+
+    rendered = str(result["blocks"]) + (result["clean_text"] or "")
+    for leak in ("endnoindex", "WIP", "call-to-action", "Feature Box"):
+        assert leak not in rendered
+    assert "plan your payments" in result["clean_text"]

@@ -88,6 +88,21 @@ holds three trimmed Handbook payloads for parser tests and one synthetic
 official page written by hand — that is all.
 
 
+## After the extractor changes
+
+`EXTRACTOR_VERSION` is part of the content hash, so bumping it is what makes the
+next crawl re-extract instead of skipping. Two things have to follow it:
+
+```bash
+deployment/crawl.sh official --all     # re-extract with the new version
+deployment/crawl.sh seed               # re-stamp the hand-written translations
+deployment/translate.sh zh short       # re-translate against the new text
+```
+
+The seed step matters: a hand-written translation is stored against the hash of
+the English it was made from, so after a re-extraction every seeded page would
+otherwise show "this may be out of date" about text Monash never touched.
+
 ## Translating what has been crawled
 
 ```bash
