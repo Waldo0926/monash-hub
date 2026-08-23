@@ -12,8 +12,8 @@ const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
 const query = ref('')
 
-const { data: units } = await useApiFetch<any>('/v1/units?limit=8&sort=code')
-const { data: guides } = await useApiFetch<any>('/v1/guides?limit=8')
+const { data: units } = await useLocalisedApiFetch<any>('/v1/units?limit=8&sort=code')
+const { data: guides } = await useLocalisedApiFetch<any>('/v1/guides?limit=8')
 const { data: posts } = await useApiFetch<any>('/v1/community/posts?limit=4')
 
 const trending = ['FIT2102', 'Special consideration', 'WAM', 'Census dates', 'Student visa']

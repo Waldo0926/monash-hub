@@ -24,7 +24,13 @@ import re
 import threading
 from collections.abc import Iterable
 
-from app.knowledge.glossary import is_only_placeholders, protect, restore, whole_value
+from app.knowledge.glossary import (
+    is_only_placeholders,
+    placeholders_survived,
+    protect,
+    restore,
+    whole_value,
+)
 
 log = logging.getLogger(__name__)
 
@@ -92,6 +98,14 @@ class Translator:
                 translated = self._translate(masked)
             except Exception as exc:  # one bad string must not end a batch of 5,000
                 log.warning("translation failed (%s): %s", exc, source[:60])
+                self._cache[source] = ""
+                return None
+            if not placeholders_survived(translated, len(terms)):
+                # The model rewrote one of the tokens instead of copying it -
+                # "What is Zqa?" came back as 什么是兹卡?. Restoring cannot find
+                # it, so the reader would get a transliterated nonsense word
+                # where a term should be. English is the better answer.
+                log.debug("placeholder lost, keeping English: %s", source[:60])
                 self._cache[source] = ""
                 return None
             # Tidy after restoring, not before: with the placeholders still in

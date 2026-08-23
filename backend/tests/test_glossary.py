@@ -14,6 +14,7 @@ from app.knowledge.glossary import (
     TERMS,
     is_only_placeholders,
     placeholder,
+    placeholders_survived,
     protect,
     restore,
     whole_value,
@@ -128,3 +129,15 @@ def test_an_unknown_value_has_no_agreed_wording():
 def test_institution_names_are_left_in_english():
     # A student looking for the building needs the name on the building.
     assert whole_value("Bendigo", "zh") == "Bendigo"
+
+
+def test_a_lost_placeholder_is_detectable():
+    """The model sometimes transliterates the token instead of copying it.
+
+    "What is Zqa?" came back as 什么是兹卡? on a live page. Restoring cannot find
+    the token, so the reader was shown a nonsense word where a term should be.
+    The engine checks for this and keeps the English instead.
+    """
+    assert placeholders_survived("学业进度审查是什么东西? Zqa", 1) is True
+    assert placeholders_survived("什么是兹卡?", 1) is False
+    assert placeholders_survived("Zqa 和 兹卡b", 2) is False

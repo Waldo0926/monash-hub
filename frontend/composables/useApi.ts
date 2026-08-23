@@ -31,6 +31,9 @@ export function apiUrl(path: string): string {
  */
 export function useApiFetch<T>(path: string | (() => string), options: Record<string, any> = {}) {
   const resolve = typeof path === 'function' ? path : () => path
+  // The key includes whatever the path resolves to right now, locale and all,
+  // so two languages never share one cache entry. Changes after setup are what
+  // the caller's `watch` is for.
   const key = options.key ?? `api:${resolve()}`
   return useFetch<T>(() => apiUrl(resolve()), { ...options, key })
 }
@@ -45,9 +48,11 @@ export function useApiFetch<T>(path: string | (() => string), options: Record<st
  * cache key for a page that is otherwise identical for everyone. The third is
  * that it makes a translated page linkable.
  *
- * Reading `locale.value` inside the getter is what makes the switcher work: the
- * URL is a reactive dependency, so changing language refetches rather than
- * leaving Chinese chrome around English content.
+ * The locale is also watched explicitly. Putting `locale.value` in the URL getter
+ * is not enough on its own: the cache key is fixed when the composable is set
+ * up, so Nuxt keeps handing back the payload it already has and the page ends
+ * up with English chrome around Chinese content - which is exactly what a
+ * reader sees when they switch language and nothing happens.
  */
 export function useLocalisedApiFetch<T>(
   path: string | (() => string),
@@ -55,10 +60,14 @@ export function useLocalisedApiFetch<T>(
 ) {
   const { locale } = useLocale()
   const resolve = typeof path === 'function' ? path : () => path
-  return useApiFetch<T>(() => {
-    const resolved = resolve()
-    return `${resolved}${resolved.includes('?') ? '&' : '?'}locale=${locale.value}`
-  }, options)
+  const watch = options.watch === false ? false : [locale, ...(options.watch ?? [])]
+  return useApiFetch<T>(
+    () => {
+      const resolved = resolve()
+      return `${resolved}${resolved.includes('?') ? '&' : '?'}locale=${locale.value}`
+    },
+    { ...options, watch },
+  )
 }
 
 /** Imperative call, for form submissions and other browser-side actions. */

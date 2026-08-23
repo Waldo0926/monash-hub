@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { $t } = useNuxtApp()
-const { data } = await useApiFetch<any>('/v1/exchange')
+const { data } = await useLocalisedApiFetch<any>('/v1/exchange')
 
 useSeoMeta({
   title: () => $t('exchange.metaTitle'),
