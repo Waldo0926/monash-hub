@@ -30,6 +30,13 @@ here because breaking it costs money, trust, or someone else's server.
   internal Docker network.
 - **Do not copy third-party code with an incompatible licence.** Implement it,
   and record where an idea came from.
+- **Do not translate source content.** The interface has four languages; the
+  Handbook fields, official page text and student posts inside it have one — the
+  one they were written in. Translating a quotation silently turns someone
+  else's statement into ours.
+- **Do not read the counters and write them back.** `answer_count`,
+  `vote_count`, `view_count`: `UPDATE ... SET x = x + 1`, always. A
+  read-modify-write loses one of two concurrent updates.
 
 ## Do
 
@@ -46,6 +53,12 @@ here because breaking it costs money, trust, or someone else's server.
   exponential backoff, a retry cap. The floor is not configurable away.
 - **Say when you last checked.** Any official value shown to a student carries
   its source link and its check date.
+- **Keep account endpoints uninformative.** Requesting a code, signing in and
+  resetting a password must not reveal whether an address has an account. The
+  wording on screen has to match, or the UI undoes the precaution.
+- **Index the ordering, not just the filter.** A new community sort or filter
+  needs a composite index that matches it, or it is a sequential scan the day
+  the forum gets busy.
 - **State uncertainty as uncertainty.** "The Handbook does not list an exam" is
   true. "There is no exam" is not ours to say. `has_exam` is nullable for
   exactly this reason.
@@ -75,4 +88,7 @@ here because breaking it costs money, trust, or someone else's server.
 | Curated FAQ answers | `backend/app/knowledge/faq_seed.py` |
 | Rate limits and retries | `crawler/throttling/limiter.py` |
 | Colours, spacing, type | `frontend/assets/css/tokens.css` |
+| Interface translations | `frontend/i18n/index.ts` |
+| Registration and reset rules | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |
+| What sends a notification | `backend/app/community/notifications.py` |
 | Production topology | `docker-compose.yml`, `deployment/` |

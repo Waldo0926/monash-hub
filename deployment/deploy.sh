@@ -42,7 +42,9 @@ git reset --hard origin/main
 echo "    now at $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
 
 echo "==> Building images"
-"${COMPOSE[@]}" build
+# --profile tools is not optional here: crawler and migrate live behind it, and
+# without it a deploy silently ships yesterday's crawler.
+"${COMPOSE[@]}" --profile tools build
 
 echo "==> Running migrations"
 "${COMPOSE[@]}" run --rm migrate

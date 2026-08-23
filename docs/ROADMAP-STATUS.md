@@ -11,10 +11,10 @@ have working first versions.**
 | Stage | State | Notes |
 | --- | --- | --- |
 | 0 · Foundation | Done | Repo, Docker Compose, PostgreSQL, FastAPI, Nuxt shell, design tokens, CI, production deploy |
-| 1A · Handbook Core | Done at fixture scale | Parser + 20 fixture units, Unit Search and Unit Detail. Expanding to all 2026 units is the next data step |
+| 1A · Handbook Core | Done | Parser, discovery through the Handbook's own search endpoint, and all 5,228 published 2026 units |
 | 1B · Official Knowledge Seed | Done at seed scale | 40 curated pages, clean text, hashes, Official Search |
 | 2 · Unified Search + Zero-AI QA | First version | Grouped search, bilingual intent router, answer templates |
-| 3 · Community | First version | Posts, answers, tags, votes, bookmarks, reports, moderation |
+| 3 · Community | First version | Posts, answers, tags, votes, bookmarks, reports, moderation, verified accounts, password recovery, notifications |
 | 4 · Public Beta | In progress | Deployed and public at monashhub.secureview.tech; no promotion yet |
 | 5 · Knowledge Expansion | Not started | Driven by real search queries, not by crawling more |
 | 6 · Monetise | Not started | Needs real traffic first |
@@ -33,11 +33,15 @@ have working first versions.**
 - [x] Anonymous reading; sign-in only for writing
 - [x] PostgreSQL not exposed; API same-origin under `/api`; crawler has no port
 - [x] Basic SEO: titles, meta, canonical, sitemap, robots
+- [x] Registration and password recovery through an emailed code
+- [x] An answer reaches the person who asked, on the home page and in the header
+- [x] Interface in English, 简体中文, 日本語 and 한국어
 
 ## Next, in order
 
-1. **Widen the Handbook crawl.** Spot-check the fixture units first, then one
-   faculty, then all 2026 units. Do not skip the spot check.
+1. **Spot-check the full crawl.** 5,228 units landed from one backfill; sample
+   across faculties and confirm the fields against the Handbook pages before
+   trusting the breadth.
 2. **Watch real queries.** Log searches that return nothing and let that decide
    the next official seed pages.
 3. **Seed the community.** An empty forum stays empty. A handful of genuinely

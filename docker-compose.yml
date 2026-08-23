@@ -48,6 +48,15 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://monashhub.secureview.tech}
       CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-no-reply@monashhub.secureview.tech}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Monash Hub}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     ports:
       - "127.0.0.1:${API_PORT:-8100}:8000"
     networks: [internal]
@@ -89,6 +98,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub}
       CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
     networks: [internal]
     # A crawler that can take the box down is worse than a slow crawler.
     cpus: 1.5

@@ -8,11 +8,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import current_admin, current_user, current_user_optional
 from app.api.serializers import answer_brief, post_brief, post_detail
+from app.community import notifications
 from app.core.db import get_db
 from app.models.community import (
     CommunityAnswer,
@@ -78,7 +79,12 @@ def list_posts(
         posts, total = service.search_community(
             db, q, limit=limit, offset=offset, unit_code=unit_code
         )
-        return {"total": total, "results": [post_brief(p) for p in posts]}
+        return {
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "results": [post_brief(p) for p in posts],
+        }
 
     stmt = select(CommunityPost).where(CommunityPost.is_hidden.is_(False))
     count_stmt = select(func.count(CommunityPost.id)).where(CommunityPost.is_hidden.is_(False))
@@ -157,7 +163,14 @@ def get_post(post_id: int, db: Session = Depends(get_db)) -> dict:
     )
     if post is None:
         raise HTTPException(404, "Post not found")
-    post.view_count += 1
+    # Counted with an atomic UPDATE rather than read-modify-write: two people
+    # opening the same thread at once would otherwise each read the same number
+    # and write it back, losing one of the views.
+    db.execute(
+        update(CommunityPost)
+        .where(CommunityPost.id == post_id)
+        .values(view_count=CommunityPost.view_count + 1)
+    )
     db.commit()
     return post_detail(post)
 
@@ -184,7 +197,13 @@ def create_answer(
         raise HTTPException(404, "Post not found")
     answer = CommunityAnswer(post_id=post.id, author_id=user.id, body=payload.body.strip())
     db.add(answer)
-    post.answer_count += 1
+    db.flush()
+    db.execute(
+        update(CommunityPost)
+        .where(CommunityPost.id == post.id)
+        .values(answer_count=CommunityPost.answer_count + 1, updated_at=func.now())
+    )
+    notifications.notify_answer(db, post=post, answer=answer, actor=user)
     db.commit()
     db.refresh(answer)
     return answer_brief(answer)
@@ -205,6 +224,7 @@ def accept_answer(
     for other in post.answers:
         other.is_accepted = other.id == answer.id
     post.is_solved = True
+    notifications.notify_accepted(db, post=post, answer=answer, actor=user)
     db.commit()
     return {"post_id": post.id, "accepted_answer_id": answer.id, "is_solved": True}
 
@@ -229,16 +249,23 @@ def vote(
     if target is None:
         raise HTTPException(404, "Nothing to vote on")
 
+    # Same reasoning as the view counter: the unique constraint stops one person
+    # voting twice, but two different people voting at once would still lose a
+    # count if this were a read-modify-write.
+    delta = -1 if existing else 1
     if existing:
         db.delete(existing)
-        target.vote_count = max(0, target.vote_count - 1)
-        voted = False
     else:
         db.add(CommunityVote(user_id=user.id, target_type=target_type, target_id=target_id))
-        target.vote_count += 1
-        voted = True
+    db.flush()
+    db.execute(
+        update(model)
+        .where(model.id == target_id)
+        .values(vote_count=func.greatest(model.vote_count + delta, 0))
+    )
     db.commit()
-    return {"voted": voted, "vote_count": target.vote_count}
+    db.refresh(target)
+    return {"voted": delta > 0, "vote_count": target.vote_count}
 
 
 @router.post("/bookmarks/{post_id}")

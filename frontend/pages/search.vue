@@ -8,6 +8,7 @@
  * avoid.
  */
 const route = useRoute()
+const { $t } = useNuxtApp()
 const query = ref((route.query.q as string) || '')
 
 const { data, pending, error, refresh } = await useApiFetch<any>(
@@ -39,7 +40,10 @@ function search(value: string) {
 
 const hasResults = computed(() => (data.value?.groups || []).some((g: any) => g.results?.length))
 
-useSeoMeta({ title: () => (query.value ? `${query.value} — Monash Hub search` : 'Search — Monash Hub'), robots: 'noindex' })
+useSeoMeta({
+  title: () => (query.value ? `${query.value} — Monash Hub` : $t('search.title')),
+  robots: 'noindex'
+})
 </script>
 
 <template>
@@ -56,11 +60,8 @@ useSeoMeta({ title: () => (query.value ? `${query.value} — Monash Hub search` 
       <Skeleton v-if="pending" :lines="6" class="mt" />
 
       <div v-else-if="query && !hasResults" class="mt">
-        <EmptyState
-          title="Nothing matched that"
-          hint="Check the spelling of the unit code, try fewer words, or ask the community."
-        >
-          <NuxtLink to="/community" class="btn">Ask the community</NuxtLink>
+        <EmptyState :title="$t('search.nothing')" :hint="$t('search.nothingHint')">
+          <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
         </EmptyState>
       </div>
 
@@ -68,10 +69,12 @@ useSeoMeta({ title: () => (query.value ? `${query.value} — Monash Hub search` 
         <section v-for="group in data.groups" :key="group.kind" class="group">
           <div v-if="group.results.length" class="section-head">
             <h2>
-              {{ group.label }}
+              {{ $t(`search.group${group.kind.charAt(0).toUpperCase()}${group.kind.slice(1)}`) }}
               <SourceBadge :kind="group.badge" />
             </h2>
-            <span class="tiny muted">{{ group.total }} result{{ group.total === 1 ? '' : 's' }}</span>
+            <span class="tiny muted">
+              {{ group.total === 1 ? $t('search.resultsOne') : $t('search.results', { count: group.total }) }}
+            </span>
           </div>
 
           <div v-if="group.kind === 'handbook' && group.results.length" class="grid">
@@ -85,9 +88,13 @@ useSeoMeta({ title: () => (query.value ? `${query.value} — Monash Hub search` 
               <SourceBadge kind="official" />
               <h3>{{ faq.question }}</h3>
               <p class="small">{{ faq.answer }}</p>
-              <a v-if="faq.official_url" :href="faq.official_url" rel="noopener external" target="_blank" class="small">
-                Open the official page ↗
-              </a>
+              <a
+                v-if="faq.official_url"
+                :href="faq.official_url"
+                rel="noopener external"
+                target="_blank"
+                class="small"
+              >{{ $t('search.openOfficial') }}</a>
               <LastChecked :value="faq.last_checked" />
             </article>
           </div>
@@ -97,12 +104,7 @@ useSeoMeta({ title: () => (query.value ? `${query.value} — Monash Hub search` 
         </section>
       </div>
 
-      <EmptyState
-        v-else
-        class="mt"
-        title="Search Monash Hub"
-        hint="Try a unit code like FIT2102, a policy phrase like special consideration, or a question."
-      />
+      <EmptyState v-else class="mt" :title="$t('search.title')" :hint="$t('search.hint')" />
     </template>
   </div>
 </template>

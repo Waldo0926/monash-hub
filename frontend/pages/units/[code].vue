@@ -6,6 +6,7 @@
  */
 const route = useRoute()
 const config = useRuntimeConfig()
+const { $t } = useNuxtApp()
 const code = computed(() => String(route.params.code).toUpperCase())
 
 const { data: unit, error } = await useApiFetch<any>(() => `/v1/units/${code.value}`)
@@ -30,9 +31,9 @@ async function ask(text?: string) {
 }
 
 const suggestions = computed(() => [
-  `Does ${code.value} have a final exam?`,
-  `What are the prerequisites for ${code.value}?`,
-  `Is ${code.value} offered in Malaysia?`
+  $t('unit.suggestExam', { code: code.value }),
+  $t('unit.suggestPrereq', { code: code.value }),
+  $t('unit.suggestMalaysia', { code: code.value })
 ])
 
 const requisitesByType = computed(() => {
@@ -64,14 +65,18 @@ useHead(() => ({
       <header class="head card">
         <div class="head-top">
           <div>
-            <p class="tiny muted"><NuxtLink to="/units">Units</NuxtLink> / {{ unit.unit_code }}</p>
+            <p class="tiny muted">
+              <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink> / {{ unit.unit_code }}
+            </p>
             <h1><span class="mono">{{ unit.unit_code }}</span> · {{ unit.title }}</h1>
           </div>
           <SourceBadge kind="handbook" />
         </div>
         <p class="chips">
-          <span class="chip">{{ unit.academic_year }} Handbook</span>
-          <span v-if="unit.credit_points" class="chip">{{ unit.credit_points }} credit points</span>
+          <span class="chip">{{ $t('unit.handbookYear', { year: unit.academic_year }) }}</span>
+          <span v-if="unit.credit_points" class="chip">
+            {{ unit.credit_points }} {{ $t('units.creditPoints') }}
+          </span>
           <span v-if="unit.level" class="chip">{{ unit.level }}</span>
           <span v-if="unit.faculty" class="chip">{{ unit.faculty }}</span>
         </p>
@@ -81,17 +86,23 @@ useHead(() => ({
       <div class="body">
         <div class="content stack">
           <section v-if="unit.overview" id="overview" class="card section">
-            <h2>Overview</h2>
+            <h2>{{ $t('unit.overview') }}</h2>
             <p class="pre">{{ unit.overview }}</p>
-            <p v-if="unit.areas_of_study" class="small muted">Areas of study: {{ unit.areas_of_study }}</p>
+            <p v-if="unit.areas_of_study" class="small muted">
+              {{ $t('unit.areasOfStudy') }}: {{ unit.areas_of_study }}
+            </p>
           </section>
 
           <section id="offerings" class="card section">
-            <h2>Offerings</h2>
+            <h2>{{ $t('unit.offerings') }}</h2>
             <div v-if="unit.offerings.length" class="scroll-x">
               <table>
                 <thead>
-                  <tr><th>Campus</th><th>Teaching period</th><th>Mode</th></tr>
+                  <tr>
+                    <th>{{ $t('unit.colCampus') }}</th>
+                    <th>{{ $t('unit.colPeriod') }}</th>
+                    <th>{{ $t('unit.colMode') }}</th>
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(offering, i) in unit.offerings" :key="i">
@@ -102,23 +113,26 @@ useHead(() => ({
                 </tbody>
               </table>
             </div>
-            <p v-else class="muted small">The Handbook publishes no offerings for this unit.</p>
+            <p v-else class="muted small">{{ $t('unit.noOfferingsPublished') }}</p>
           </section>
 
           <section id="assessment" class="card section">
-            <h2>Assessment</h2>
+            <h2>{{ $t('unit.assessment') }}</h2>
             <p class="verdict small">
-              <template v-if="unit.has_exam === true">The Handbook lists an examination for this unit.</template>
-              <template v-else-if="unit.has_exam === false">
-                The Handbook does not list a final examination among the assessment items. That is
-                not a guarantee there is none.
-              </template>
-              <template v-else>The Handbook publishes no assessment items for this unit yet.</template>
+              <template v-if="unit.has_exam === true">{{ $t('unit.examYes') }}</template>
+              <template v-else-if="unit.has_exam === false">{{ $t('unit.examNo') }}</template>
+              <template v-else>{{ $t('unit.examUnknown') }}</template>
             </p>
             <div v-if="unit.assessments.length" class="scroll-x">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Assessment</th><th>Type</th><th>Weight</th><th>Hurdle</th></tr>
+                  <tr>
+                    <th>{{ $t('unit.colNumber') }}</th>
+                    <th>{{ $t('unit.colAssessment') }}</th>
+                    <th>{{ $t('unit.colType') }}</th>
+                    <th>{{ $t('unit.colWeight') }}</th>
+                    <th>{{ $t('unit.colHurdle') }}</th>
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="item in unit.assessments" :key="item.number">
@@ -136,7 +150,7 @@ useHead(() => ({
           </section>
 
           <section id="requisites" class="card section">
-            <h2>Requisites</h2>
+            <h2>{{ $t('unit.requisites') }}</h2>
             <template v-if="unit.requisites.length">
               <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
                 <h3 class="req-type">{{ type }}</h3>
@@ -149,18 +163,16 @@ useHead(() => ({
                     </li>
                   </ul>
                   <p v-if="group.connector && group.items.length > 1" class="tiny muted">
-                    Joined by {{ group.connector }}.
+                    {{ $t('unit.joinedBy', { connector: group.connector }) }}
                   </p>
                 </div>
               </div>
             </template>
-            <p v-else class="muted small">
-              The Handbook lists no prerequisite, corequisite or prohibition for this unit.
-            </p>
+            <p v-else class="muted small">{{ $t('unit.noRequisites') }}</p>
           </section>
 
           <section v-if="unit.learning_outcomes.length" id="outcomes" class="card section">
-            <h2>Learning outcomes</h2>
+            <h2>{{ $t('unit.outcomes') }}</h2>
             <ol class="outcomes">
               <li v-for="outcome in unit.learning_outcomes" :key="outcome.code">
                 {{ outcome.description }}
@@ -169,11 +181,13 @@ useHead(() => ({
           </section>
 
           <section id="workload" class="card section">
-            <h2>Workload</h2>
+            <h2>{{ $t('unit.workload') }}</h2>
             <p v-if="unit.workload_requirements" class="pre">{{ unit.workload_requirements }}</p>
             <div v-if="unit.activities.length" class="scroll-x">
               <table>
-                <thead><tr><th>Activity</th><th>Duration</th></tr></thead>
+                <thead>
+                  <tr><th>{{ $t('unit.colActivity') }}</th><th>{{ $t('unit.colDuration') }}</th></tr>
+                </thead>
                 <tbody>
                   <tr v-for="(activity, i) in unit.activities" :key="i">
                     <td>{{ activity.activity_type }}</td>
@@ -183,19 +197,16 @@ useHead(() => ({
               </table>
             </div>
             <p v-if="!unit.workload_requirements && !unit.activities.length" class="muted small">
-              No workload detail published.
+              {{ $t('unit.noWorkload') }}
             </p>
           </section>
 
           <section id="ask" class="card section ask">
-            <h2>Ask about {{ unit.unit_code }}</h2>
-            <p class="tiny muted">
-              Answered from the Handbook fields above - no AI, no guessing. Every answer links back
-              to the source.
-            </p>
+            <h2>{{ $t('unit.askAbout', { code: unit.unit_code }) }}</h2>
+            <p class="tiny muted">{{ $t('unit.askHint') }}</p>
             <SearchInput
               v-model="question"
-              :placeholder="`${unit.unit_code} 有考试吗？`"
+              :placeholder="$t('unit.askPlaceholder', { code: unit.unit_code })"
               @submit="ask"
             />
             <p class="suggestions tiny">
@@ -207,39 +218,39 @@ useHead(() => ({
 
           <section id="community" class="card section">
             <div class="section-head">
-              <h2>Community discussions about {{ unit.unit_code }}</h2>
+              <h2>{{ $t('unit.discussionsAbout', { code: unit.unit_code }) }}</h2>
               <SourceBadge kind="community" />
             </div>
-            <p class="tiny muted">
-              Student experience, not official rules. Nothing here changes what the Handbook says.
-            </p>
+            <p class="tiny muted">{{ $t('unit.discussionsNote') }}</p>
             <div v-if="discussions?.results?.length" class="grid">
               <PostCard v-for="post in discussions.results" :key="post.id" :post="post" />
             </div>
             <EmptyState
               v-else
-              title="No discussions yet"
-              hint="Be the first to share what this unit was actually like."
+              :title="$t('unit.noDiscussions')"
+              :hint="$t('unit.noDiscussionsHint')"
             >
-              <NuxtLink :to="`/community?unit=${unit.unit_code}`" class="btn">Start a discussion</NuxtLink>
+              <NuxtLink :to="`/community?unit=${unit.unit_code}`" class="btn">
+                {{ $t('unit.startDiscussion') }}
+              </NuxtLink>
             </EmptyState>
           </section>
         </div>
 
         <aside class="side">
-          <nav class="card section nav" aria-label="On this page">
-            <h2 class="small">On this page</h2>
-            <a href="#overview">Overview</a>
-            <a href="#offerings">Offerings</a>
-            <a href="#assessment">Assessment</a>
-            <a href="#requisites">Requisites</a>
-            <a href="#outcomes">Learning outcomes</a>
-            <a href="#workload">Workload</a>
-            <a href="#ask">Ask about this unit</a>
-            <a href="#community">Community</a>
+          <nav class="card section nav" :aria-label="$t('unit.onThisPage')">
+            <h2 class="small">{{ $t('unit.onThisPage') }}</h2>
+            <a href="#overview">{{ $t('unit.overview') }}</a>
+            <a href="#offerings">{{ $t('unit.offerings') }}</a>
+            <a href="#assessment">{{ $t('unit.assessment') }}</a>
+            <a href="#requisites">{{ $t('unit.requisites') }}</a>
+            <a href="#outcomes">{{ $t('unit.outcomes') }}</a>
+            <a href="#workload">{{ $t('unit.workload') }}</a>
+            <a href="#ask">{{ $t('unit.askAbout', { code: unit.unit_code }) }}</a>
+            <a href="#community">{{ $t('nav.community') }}</a>
           </nav>
           <div class="card section">
-            <h2 class="small">Official source</h2>
+            <h2 class="small">{{ $t('unit.officialSource') }}</h2>
             <p class="small">
               <a :href="unit.source_url" rel="noopener external" target="_blank">
                 Monash Handbook {{ unit.academic_year }} ↗
@@ -247,8 +258,8 @@ useHead(() => ({
             </p>
             <LastChecked :value="unit.last_checked" />
             <p class="tiny muted">
-              Handbook version {{ unit.handbook_version || 'unknown' }}. Assessment detail for a
-              specific teaching period is confirmed in Moodle.
+              {{ $t('unit.handbookVersion', { version: unit.handbook_version || '—' }) }}
+              {{ $t('unit.moodleNote') }}
             </p>
           </div>
         </aside>

@@ -1,16 +1,18 @@
 <script setup lang="ts">
 defineProps<{ post: any }>()
+const { $t } = useNuxtApp()
 </script>
 
 <template>
   <NuxtLink :to="`/community/post/${post.id}`" class="post card">
     <div class="top">
       <SourceBadge kind="community" />
-      <span v-if="post.is_solved" class="solved tiny">Marked helpful</span>
+      <span v-if="post.is_solved" class="solved tiny">{{ $t('community.solved') }}</span>
     </div>
     <h3>{{ post.title }}</h3>
     <p class="tiny muted">
-      {{ post.author || 'unknown' }} · {{ post.answer_count }} answers
+      {{ $t('community.by') }} {{ post.author || '—' }} ·
+      {{ post.answer_count === 1 ? $t('community.answersOne') : $t('community.answers', { count: post.answer_count }) }}
       <span v-if="post.unit_code"> · <span class="mono">{{ post.unit_code }}</span></span>
     </p>
   </NuxtLink>

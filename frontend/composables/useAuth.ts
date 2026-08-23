@@ -1,25 +1,34 @@
 /**
  * Minimal client-side session.
  *
- * Anonymous reading is the default, so this only exists to decide whether to
+ * Anonymous reading is the default, so this exists only to decide whether to
  * show a compose box or a sign-in prompt. The token lives in localStorage and
  * every write goes through apiFetch, which attaches it.
  */
 export type SessionUser = { id: number; nickname: string; email: string; is_admin: boolean }
 
+const TOKEN_KEY = 'mh_token'
+
 export function useAuth() {
   const user = useState<SessionUser | null>('auth-user', () => null)
   const ready = useState<boolean>('auth-ready', () => false)
 
+  function applySession(token: string, account: SessionUser) {
+    localStorage.setItem(TOKEN_KEY, token)
+    user.value = account
+    ready.value = true
+  }
+
   async function restore() {
     if (!import.meta.client || ready.value) return
     ready.value = true
-    if (!localStorage.getItem('mh_token')) return
+    if (!localStorage.getItem(TOKEN_KEY)) return
     try {
       user.value = await apiFetch<SessionUser>('/v1/auth/me')
     } catch {
-      // An expired or tampered token is not an error worth showing anyone.
-      localStorage.removeItem('mh_token')
+      // An expired token, or one issued before a password reset, is not an
+      // error worth showing anyone - it just means signed out.
+      localStorage.removeItem(TOKEN_KEY)
       user.value = null
     }
   }
@@ -29,23 +38,15 @@ export function useAuth() {
       method: 'POST',
       body: { email, password }
     })
-    localStorage.setItem('mh_token', result.token)
-    user.value = result.user
-  }
-
-  async function signUp(email: string, nickname: string, password: string) {
-    const result = await apiFetch<{ token: string; user: SessionUser }>('/v1/auth/signup', {
-      method: 'POST',
-      body: { email, nickname, password }
-    })
-    localStorage.setItem('mh_token', result.token)
-    user.value = result.user
+    applySession(result.token, result.user)
   }
 
   function signOut() {
-    localStorage.removeItem('mh_token')
+    localStorage.removeItem(TOKEN_KEY)
     user.value = null
+    const { unread } = useNotifications()
+    unread.value = 0
   }
 
-  return { user, restore, signIn, signUp, signOut }
+  return { user, ready, restore, signIn, signOut, applySession }
 }

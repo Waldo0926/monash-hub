@@ -22,7 +22,13 @@ linking back to the source:
 - **Zero-AI answers** — a unit-code regex, a bilingual keyword dictionary and a
   deterministic router turn "FIT2102 有没有考试？" into the assessment table.
 - **Community** — posts, answers, tags, votes, reports and moderation, visually
-  separated from official data everywhere it appears.
+  separated from official data everywhere it appears, with notifications when
+  someone answers your question.
+- **Accounts** — nickname, email, password. Registration and password reset are
+  both gated on a code sent to the address; nothing asks for a real name or a
+  student ID.
+- **Four interface languages** — English, 简体中文, 日本語, 한국어, switched from
+  the header. Handbook and official text stays in its source language.
 
 Adding an LLM is Stage 7, after there are real users. The product has to work
 without one.
@@ -79,13 +85,18 @@ docker compose -p monash-hub run --rm crawler python -m app.knowledge.seed
 ## Tests
 
 ```bash
+createdb monashhub_test   # or: docker compose -p monash-hub exec postgres createdb -U monashhub monashhub_test
 cd backend
-export TEST_DATABASE_URL='postgresql+psycopg://monashhub:<password>@localhost:5432/monashhub'
+export TEST_DATABASE_URL='postgresql+psycopg://monashhub:<password>@localhost:5432/monashhub_test'
 .venv/bin/pytest
 ```
 
 Parser, keyword and cleaner tests run without a database. API tests need
 PostgreSQL and skip themselves when `TEST_DATABASE_URL` is unset.
+
+Point it at a **separate database** from the one you develop against — the suite
+drops every table it created when it finishes, and pointing it at your dev
+database means losing your local data.
 
 ## API
 
@@ -105,6 +116,10 @@ PostgreSQL and skip themselves when `TEST_DATABASE_URL` is unset.
 | `GET /api/v1/guides` · `/guides/{slug}` | Official guide index and detail |
 | `GET/POST /api/v1/community/posts` | Community |
 | `POST /api/v1/community/reports` | Reporting |
+| `POST /api/v1/auth/verification-code` | Send a registration or reset code |
+| `POST /api/v1/auth/signup` · `/signin` | Accounts |
+| `POST /api/v1/auth/password-reset` | Recovery, signs other devices out |
+| `GET /api/v1/notifications` | Your notifications and unread count |
 
 ## Contributing
 

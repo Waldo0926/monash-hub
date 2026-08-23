@@ -104,6 +104,92 @@ the distinction survives for colour-blind readers and in plain text:
 Sponsored content, when it eventually exists, gets a fourth badge and its own
 region. It will never affect the ranking of an academic or policy answer.
 
+## Accounts
+
+Nickname, email, password. No real name, no student ID — the roadmap is explicit
+that registration friction is what leaves a forum empty, and a student forum
+does not need to know who anyone is.
+
+Both registration and password reset are gated on a six-digit code sent to the
+address. That is what makes an account recoverable at all: without a verified
+address, a forgotten password is a lost account. Only an HMAC of the code is
+stored, bound to the address, with a ten-minute expiry and five attempts.
+
+Two things the endpoints deliberately do not reveal:
+
+- **Whether an address has an account.** Requesting a code always returns the
+  same body, and a registration code is simply not sent to an address that is
+  already registered. "That email is taken" is reported only after a valid code
+  proves the requester controls the address.
+- **Which part of a sign-in was wrong.** Unknown email and wrong password return
+  the same 401 with the same message.
+
+Sessions are JWTs carrying the account's `token_version`. A password reset bumps
+that column, which invalidates every token already issued — sign-out-everywhere
+without a session table to delete from.
+
+## Notifications
+
+One flat table. A notification copies the actor's nickname, the post title and a
+short excerpt at the moment it is written, rather than joining at read time.
+That costs a little duplication and buys two things: the list is a single
+indexed read, and it still reads correctly after the post is edited or hidden.
+
+They are written when someone answers your question, and when your answer is
+marked helpful. Answering your own post notifies nobody.
+
+The header badge polls `/notifications/unread-count` once a minute and pauses
+while the tab is hidden. A WebSocket for a number that changes a few times a day
+would mean a live connection per open tab for the whole session.
+
+## Interface languages
+
+English, 简体中文, 日本語 and 한국어, switched from the header, remembered in a
+cookie, resolved during SSR so the server and the browser render the same
+markup.
+
+There is no i18n library: `frontend/i18n/index.ts` is four plain objects and a
+`translate()` that substitutes `{name}` placeholders, wired to `$t` by a plugin.
+The app has no plural rules worth the dependency and formats its one date by
+hand in UTC.
+
+**Only the interface is translated.** Handbook fields, official Monash page text
+and anything a student wrote stay in the language they were written in. Those
+are quotations from a source, and silently translating a quotation is how a
+platform ends up asserting something the official page never said.
+
+## Does it hold up as it fills?
+
+Measured on a generated forum of 2,000 accounts, 20,000 posts, 60,000 answers
+and 40,000 notifications — considerably more than a first year is likely to
+bring — on one PostgreSQL container:
+
+| Query | p50 | p95 |
+| --- | --- | --- |
+| Community feed, recent | 0.22 ms | 0.69 ms |
+| Community feed, by category | 0.26 ms | 0.30 ms |
+| Unit thread feed | 0.23 ms | 0.29 ms |
+| Community full-text search | 0.28 ms | 0.35 ms |
+| Answers for one post | 0.20 ms | 0.24 ms |
+| Unread notification count | 0.18 ms | 0.23 ms |
+| Notification list | 0.15 ms | 0.23 ms |
+| Sign-in lookup | 0.13 ms | 0.15 ms |
+
+The whole database was 59 MB. Nothing here is close to needing a cache.
+
+Three things make that true, and they are the ones to protect:
+
+- **Composite indexes matching the orderings the feed actually offers** —
+  `(is_hidden, is_pinned, updated_at)`, and the same with `category` and
+  `unit_code` in front. Without them every community page load is a sequential
+  scan plus a sort.
+- **Counters updated atomically.** `answer_count`, `vote_count` and `view_count`
+  are `UPDATE ... SET x = x + 1`, not read-modify-write. Two people opening a
+  thread at the same moment would otherwise each read the same number and write
+  it back, losing one.
+- **No N+1 in the list endpoints.** Tags and authors are eager-loaded; a feed of
+  twenty posts is a fixed handful of queries, not twenty-one.
+
 ## Why a monolith
 
 Two people are building this. A modular monolith with clear package boundaries

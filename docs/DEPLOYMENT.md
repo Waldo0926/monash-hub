@@ -115,6 +115,26 @@ Monash Hub adds one server block and binds its own containers to loopback only.
    ./deployment/crawl.sh seed           # curated FAQ
    ```
 
+## Email delivery
+
+Registration and password reset send a six-digit code. With
+`EMAIL_PROVIDER=console` the code goes to the API log and nobody outside the
+server can finish a signup, so production needs a real provider:
+
+```bash
+cd /opt/monash-hub/repo
+cat >> .env <<'EOF'
+EMAIL_PROVIDER=resend
+EMAIL_FROM_ADDRESS=no-reply@secureview.tech
+RESEND_API_KEY=<key>
+EOF
+./deployment/deploy.sh
+```
+
+`GET /api/health` does not report this, but the client does: the
+`verification-code` endpoint returns `delivery_configured`, and the signup form
+says plainly that the code will not arrive when it is false.
+
 ## Creating the first moderator
 
 Reports and hidden posts need someone who can act on them. The seed script

@@ -5,6 +5,7 @@
  */
 const route = useRoute()
 const router = useRouter()
+const { $t } = useNuxtApp()
 
 const query = ref((route.query.q as string) || '')
 const filters = reactive({
@@ -46,41 +47,42 @@ function reset() {
 }
 
 useSeoMeta({
-  title: 'Unit search — Monash Hub',
+  title: () => $t('units.metaTitle'),
   description: 'Search Monash Handbook units by code, title, campus, teaching period and assessment.'
 })
 </script>
 
 <template>
   <div class="container">
-    <h1>Unit search</h1>
-    <p class="muted">
-      {{ data?.academic_year }} Handbook data. Every result links back to the Handbook page it
-      came from.
-    </p>
+    <h1>{{ $t('units.title') }}</h1>
+    <p class="muted">{{ $t('units.lead', { year: data?.academic_year || '' }) }}</p>
 
-    <SearchInput v-model="query" placeholder="FIT2102, programming, databases…" @submit="v => (query = v)" />
+    <SearchInput
+      v-model="query"
+      :placeholder="$t('units.searchPlaceholder')"
+      @submit="v => (query = v)"
+    />
 
     <button class="btn btn--ghost btn--small filter-toggle" @click="drawerOpen = !drawerOpen">
-      Filters{{ drawerOpen ? ' ▲' : ' ▼' }}
+      {{ $t('units.filters') }}{{ drawerOpen ? ' ▲' : ' ▼' }}
     </button>
 
     <div class="layout">
       <aside class="filters" :class="{ open: drawerOpen }">
-        <h2 class="small">Filters</h2>
+        <h2 class="small">{{ $t('units.filters') }}</h2>
 
         <label class="filter">
-          <span class="tiny muted">Campus</span>
+          <span class="tiny muted">{{ $t('units.campus') }}</span>
           <select v-model="filters.campus" class="field">
-            <option value="">Any campus</option>
+            <option value="">{{ $t('units.anyCampus') }}</option>
             <option v-for="campus in facets?.campuses || []" :key="campus" :value="campus">{{ campus }}</option>
           </select>
         </label>
 
         <label class="filter">
-          <span class="tiny muted">Teaching period</span>
+          <span class="tiny muted">{{ $t('units.teachingPeriod') }}</span>
           <select v-model="filters.teaching_period" class="field">
-            <option value="">Any period</option>
+            <option value="">{{ $t('units.anyPeriod') }}</option>
             <option v-for="period in facets?.teaching_periods || []" :key="period" :value="period">
               {{ period }}
             </option>
@@ -88,53 +90,50 @@ useSeoMeta({
         </label>
 
         <label class="filter">
-          <span class="tiny muted">Level</span>
+          <span class="tiny muted">{{ $t('units.level') }}</span>
           <select v-model="filters.level" class="field">
-            <option value="">Any level</option>
+            <option value="">{{ $t('units.anyLevel') }}</option>
             <option v-for="level in facets?.levels || []" :key="level" :value="level">{{ level }}</option>
           </select>
         </label>
 
         <label class="filter">
-          <span class="tiny muted">Examination</span>
+          <span class="tiny muted">{{ $t('units.examination') }}</span>
           <select v-model="filters.has_exam" class="field">
-            <option value="">Any</option>
-            <option value="true">Handbook lists an exam</option>
-            <option value="false">No exam listed</option>
+            <option value="">{{ $t('units.any') }}</option>
+            <option value="true">{{ $t('units.hasExam') }}</option>
+            <option value="false">{{ $t('units.noExam') }}</option>
           </select>
         </label>
 
         <label class="filter">
-          <span class="tiny muted">Sort</span>
+          <span class="tiny muted">{{ $t('units.sort') }}</span>
           <select v-model="filters.sort" class="field">
-            <option value="relevance">Relevance</option>
-            <option value="code">Unit code</option>
-            <option value="title">Title</option>
+            <option value="relevance">{{ $t('units.sortRelevance') }}</option>
+            <option value="code">{{ $t('units.sortCode') }}</option>
+            <option value="title">{{ $t('units.sortTitle') }}</option>
           </select>
         </label>
 
-        <button class="btn btn--ghost btn--small" @click="reset">Clear filters</button>
-        <p class="tiny muted note">
-          “No exam listed” means the Handbook publishes no examination among the assessment items -
-          not a guarantee that none exists.
-        </p>
+        <button class="btn btn--ghost btn--small" @click="reset">{{ $t('units.clearFilters') }}</button>
+        <p class="tiny muted note">{{ $t('units.examNote') }}</p>
       </aside>
 
       <div class="results">
         <ErrorState v-if="error" :error="error" :on-retry="refresh" />
         <Skeleton v-else-if="pending" :lines="8" />
         <template v-else>
-          <p class="tiny muted count">{{ data.total }} unit{{ data.total === 1 ? '' : 's' }}</p>
+          <p class="tiny muted count">
+            {{ data.total === 1 ? $t('units.countOne') : $t('units.count', { count: data.total }) }}
+          </p>
           <div v-if="data.results.length" class="grid">
             <UnitCard v-for="unit in data.results" :key="unit.unit_code" :unit="unit" />
           </div>
-          <EmptyState
-            v-else
-            title="No unit matched that"
-            hint="Check the unit code spelling, clear a filter, or search official guides and the community instead."
-          >
-            <NuxtLink :to="`/search?q=${encodeURIComponent(query)}`" class="btn btn--ghost">Search everything</NuxtLink>
-            <NuxtLink to="/community" class="btn">Ask the community</NuxtLink>
+          <EmptyState v-else :title="$t('units.empty')" :hint="$t('units.emptyHint')">
+            <NuxtLink :to="`/search?q=${encodeURIComponent(query)}`" class="btn btn--ghost">
+              {{ $t('units.searchEverything') }}
+            </NuxtLink>
+            <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
           </EmptyState>
         </template>
       </div>

@@ -3,10 +3,15 @@
 // so a student never has to decide which section their question belongs to.
 const props = withDefaults(
   defineProps<{ modelValue?: string; placeholder?: string; autofocus?: boolean; big?: boolean }>(),
-  { modelValue: '', placeholder: 'Search units, policies or community…', big: false }
+  { modelValue: '', placeholder: '', big: false }
 )
+const { $t } = useNuxtApp()
+const resolvedPlaceholder = computed(() => props.placeholder || $t('search.placeholder'))
 const emit = defineEmits<{ (e: 'update:modelValue', value: string): void; (e: 'submit', value: string): void }>()
 
+// The header and the page can both render a search box, so the id has to be
+// unique or the two labels point at the same input.
+const inputId = useId()
 const value = ref(props.modelValue)
 watch(() => props.modelValue, v => { value.value = v })
 
@@ -18,17 +23,17 @@ function submit() {
 
 <template>
   <form class="search" :class="{ big }" role="search" @submit.prevent="submit">
-    <label class="visually-hidden" for="search-input">Search Monash Hub</label>
+    <label class="visually-hidden" :for="inputId">{{ $t('search.label') }}</label>
     <input
-      id="search-input"
+      :id="inputId"
       v-model="value"
       class="field"
       type="search"
-      :placeholder="placeholder"
+      :placeholder="resolvedPlaceholder"
       :autofocus="autofocus"
       autocomplete="off"
     >
-    <button class="btn" type="submit">Search</button>
+    <button class="btn" type="submit">{{ $t('search.button') }}</button>
   </form>
 </template>
 

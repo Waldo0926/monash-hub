@@ -1,24 +1,29 @@
 <script setup lang="ts">
+const { $t } = useNuxtApp()
 const { data } = await useApiFetch<any>('/v1/exchange')
+
 useSeoMeta({
-  title: 'Exchange — Monash Hub',
-  description: 'Monash exchange and study abroad information. Integration with the Monash Abroad Tracker is planned.'
+  title: () => $t('exchange.metaTitle'),
+  description:
+    'Monash exchange and study abroad information. Integration with the Monash Abroad Tracker is planned.'
 })
 </script>
 
 <template>
   <div class="container narrow">
-    <h1>Exchange</h1>
+    <h1>{{ $t('exchange.title') }}</h1>
     <div class="card section">
       <p>{{ data?.summary }}</p>
-      <p class="tiny muted">Planned for {{ data?.stage }}.</p>
+      <p class="tiny muted">{{ $t('exchange.planned', { stage: data?.stage || '' }) }}</p>
       <ul>
         <li v-for="topic in data?.topics || []" :key="topic.key">{{ topic.label }}</li>
       </ul>
       <p class="small">
-        In the meantime, the official Monash exchange page is indexed under
-        <NuxtLink to="/guides?category=exchange">Official guides</NuxtLink>, and exchange questions
-        belong in <NuxtLink to="/community?category=exchange">Community</NuxtLink>.
+        {{ $t('exchange.note') }}
+      </p>
+      <p class="small">
+        <NuxtLink to="/guides?category=exchange">{{ $t('nav.guides') }}</NuxtLink> ·
+        <NuxtLink to="/community?category=exchange">{{ $t('nav.community') }}</NuxtLink>
       </p>
     </div>
   </div>

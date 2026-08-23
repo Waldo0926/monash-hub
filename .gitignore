@@ -29,3 +29,6 @@ backups/
 .DS_Store
 .idea/
 .vscode/
+
+# Local dev server config
+.claude/launch.json

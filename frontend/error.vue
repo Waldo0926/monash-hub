@@ -1,20 +1,17 @@
 <script setup lang="ts">
 const props = defineProps<{ error: any }>()
+const { $t } = useNuxtApp()
 const is404 = computed(() => props.error?.statusCode === 404)
 </script>
 
 <template>
   <div class="container narrow">
     <div class="card section">
-      <h1>{{ is404 ? 'That page does not exist' : 'Something went wrong' }}</h1>
-      <p class="muted">
-        {{ is404
-          ? 'The link may be out of date, or the unit or guide is not in the index yet.'
-          : 'This is our problem, not your connection. Try again in a moment.' }}
-      </p>
+      <h1>{{ is404 ? $t('error.pageMissing') : $t('error.generic') }}</h1>
+      <p class="muted">{{ is404 ? $t('error.pageMissingHint') : $t('error.genericHint') }}</p>
       <div class="actions">
-        <NuxtLink to="/" class="btn">Go home</NuxtLink>
-        <NuxtLink to="/search" class="btn btn--ghost">Search Monash Hub</NuxtLink>
+        <NuxtLink to="/" class="btn">{{ $t('error.goHome') }}</NuxtLink>
+        <NuxtLink to="/search" class="btn btn--ghost">{{ $t('search.title') }}</NuxtLink>
       </div>
     </div>
   </div>

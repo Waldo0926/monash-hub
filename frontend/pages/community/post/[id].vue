@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const { $t } = useNuxtApp()
 const { user, restore } = useAuth()
 onMounted(restore)
 
@@ -40,10 +41,12 @@ async function report(targetType: string, targetId: number) {
     method: 'POST',
     body: { target_type: targetType, target_id: targetId, reason: 'other' }
   })
-  notice.value = 'Reported. A moderator will look at it.'
+  notice.value = $t('community.reported')
 }
 
-useSeoMeta({ title: () => (post.value ? `${post.value.title} — Monash Hub Community` : 'Community') })
+useSeoMeta({
+  title: () => (post.value ? `${post.value.title} — Monash Hub` : $t('community.title'))
+})
 </script>
 
 <template>
@@ -51,7 +54,10 @@ useSeoMeta({ title: () => (post.value ? `${post.value.title} — Monash Hub Comm
     <ErrorState v-if="error" :error="error" />
 
     <article v-else-if="post">
-      <p class="tiny muted"><NuxtLink to="/community">Community</NuxtLink> / {{ post.category }}</p>
+      <p class="tiny muted">
+        <NuxtLink to="/community">{{ $t('community.title') }}</NuxtLink> /
+        {{ $t(`communityCategory.${post.category}`) }}
+      </p>
 
       <header class="card section">
         <div class="head-top">
@@ -59,30 +65,36 @@ useSeoMeta({ title: () => (post.value ? `${post.value.title} — Monash Hub Comm
           <SourceBadge kind="community" />
         </div>
         <p class="tiny muted">
-          {{ post.author }} · {{ post.answer_count }} answers
+          {{ $t('community.by') }} {{ post.author }} ·
+          {{ post.answer_count === 1
+            ? $t('community.answersOne')
+            : $t('community.answers', { count: post.answer_count }) }}
           <span v-if="post.unit_code">
             · <NuxtLink :to="`/units/${post.unit_code}`" class="mono">{{ post.unit_code }}</NuxtLink>
           </span>
         </p>
         <p class="pre">{{ post.body }}</p>
-        <p class="callout tiny">
-          This is student experience, not an official Monash rule. Check
-          <NuxtLink to="/guides">Official guides</NuxtLink> or the Handbook before you act on it.
-        </p>
+        <p class="callout tiny">{{ $t('community.experienceNote') }}</p>
         <div class="actions">
           <button class="btn btn--ghost btn--small" @click="vote('post', post.id)">
             ♡ {{ post.vote_count }}
           </button>
-          <button class="btn btn--ghost btn--small" @click="report('post', post.id)">Report</button>
+          <button class="btn btn--ghost btn--small" @click="report('post', post.id)">
+            {{ $t('community.report') }}
+          </button>
         </div>
       </header>
 
-      <h2 class="answers-title">{{ post.answers.length }} answers</h2>
+      <h2 class="answers-title">
+        {{ post.answers.length === 1
+          ? $t('community.answersOne')
+          : $t('community.answers', { count: post.answers.length }) }}
+      </h2>
       <div class="stack">
         <article v-for="a in post.answers" :key="a.id" class="card section" :class="{ accepted: a.is_accepted }">
           <p class="tiny muted">
-            {{ a.author }}
-            <span v-if="a.is_accepted" class="accepted-tag"> · marked helpful by the asker</span>
+            {{ $t('community.by') }} {{ a.author }}
+            <span v-if="a.is_accepted" class="accepted-tag"> · {{ $t('community.acceptedBy') }}</span>
           </p>
           <p class="pre">{{ a.body }}</p>
           <div class="actions">
@@ -92,9 +104,11 @@ useSeoMeta({ title: () => (post.value ? `${post.value.title} — Monash Hub Comm
               class="btn btn--ghost btn--small"
               @click="accept(a.id)"
             >
-              Mark helpful
+              {{ $t('community.markHelpful') }}
             </button>
-            <button class="btn btn--ghost btn--small" @click="report('answer', a.id)">Report</button>
+            <button class="btn btn--ghost btn--small" @click="report('answer', a.id)">
+              {{ $t('community.report') }}
+            </button>
           </div>
         </article>
       </div>
@@ -102,16 +116,21 @@ useSeoMeta({ title: () => (post.value ? `${post.value.title} — Monash Hub Comm
       <p v-if="notice" class="notice small">{{ notice }}</p>
 
       <section class="card section reply">
-        <h2>Your answer</h2>
+        <h2>{{ $t('community.yourAnswer') }}</h2>
         <template v-if="user">
-          <textarea v-model="reply" class="field body" rows="4" placeholder="Share what you actually experienced." />
+          <textarea
+            v-model="reply"
+            class="field body"
+            rows="4"
+            :placeholder="$t('community.answerPlaceholder')"
+          />
           <button class="btn" :disabled="busy" @click="answer">
-            {{ busy ? 'Posting…' : 'Post answer' }}
+            {{ busy ? $t('community.posting') : $t('community.postAnswer') }}
           </button>
         </template>
         <template v-else>
-          <p class="small">Sign in to answer. Reading stays open to everyone.</p>
-          <NuxtLink to="/login" class="btn">Sign in</NuxtLink>
+          <p class="small">{{ $t('community.signInToAnswer') }}</p>
+          <NuxtLink to="/login" class="btn">{{ $t('nav.signIn') }}</NuxtLink>
         </template>
       </section>
     </article>

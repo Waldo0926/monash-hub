@@ -28,9 +28,56 @@ class Settings(BaseSettings):
     secret_key: str = "dev-only-change-me"
     access_token_ttl_minutes: int = 60 * 24 * 14
 
+    # --- Email verification -------------------------------------------------
+    # Registration and password reset are both gated on a code sent to the
+    # address, so the account can actually be recovered later.
+    verification_code_ttl_seconds: int = 10 * 60
+    verification_resend_interval_seconds: int = 60
+    # Sends allowed per address, and per address per window, before we stop.
+    verification_send_window_seconds: int = 60 * 60
+    verification_send_max_per_window: int = 5
+    verification_max_attempts: int = 5
+
+    # console | resend | smtp. ``console`` writes the message to the log and is
+    # for development only - nobody outside the server can complete a signup
+    # with it, so production must set a real provider.
+    email_provider: str = "console"
+    email_from_address: str = "no-reply@monashhub.secureview.tech"
+    email_from_name: str = "Monash Hub"
+    email_reply_to: str | None = None
+    email_timeout_seconds: int = 10
+
+    resend_api_key: str = ""
+    resend_api_url: str = "https://api.resend.com/emails"
+
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+
+    # --- Database pool ------------------------------------------------------
+    # Sized for one API container against one PostgreSQL: enough for concurrent
+    # readers without letting a traffic spike open more connections than the
+    # server will accept.
+    db_pool_size: int = 10
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30
+    db_pool_recycle: int = 1800
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def email_is_deliverable(self) -> bool:
+        """Whether a code can actually reach a stranger's inbox."""
+        if self.email_provider == "resend":
+            return bool(self.resend_api_key)
+        if self.email_provider == "smtp":
+            return bool(self.smtp_host)
+        return False
 
 
 @lru_cache

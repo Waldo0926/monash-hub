@@ -11,7 +11,17 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import ask, auth, community, exchange, guides, health, search, units
+from app.api.v1 import (
+    ask,
+    auth,
+    community,
+    exchange,
+    guides,
+    health,
+    notifications,
+    search,
+    units,
+)
 from app.core.config import get_settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -41,7 +51,7 @@ app.add_middleware(
 # script probe it, and neither should have to know about /v1.
 app.include_router(health.router, prefix="/api")
 
-for module in (units, search, ask, guides, community, auth, exchange):
+for module in (units, search, ask, guides, community, auth, exchange, notifications):
     app.include_router(module.router, prefix=settings.api_prefix)
 
 
