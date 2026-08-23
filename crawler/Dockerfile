@@ -17,6 +17,24 @@ COPY crawler/requirements.txt /srv/crawler/requirements.txt
 RUN pip install --no-cache-dir -r /srv/backend/requirements.txt \
  && pip install --no-cache-dir -r /srv/crawler/requirements.txt
 
+# Translation models, baked in rather than downloaded per run: a `compose run`
+# container is thrown away each time, so otherwise every batch would re-fetch a
+# hundred megabytes before it could start.
+ARG TRANSLATION_LOCALES="zh ja ko"
+RUN TRANSLATION_LOCALES="$TRANSLATION_LOCALES" python - <<'PY'
+import os
+import argostranslate.package as package
+
+package.update_package_index()
+available = package.get_available_packages()
+for locale in os.environ.get("TRANSLATION_LOCALES", "zh").split():
+    match = [p for p in available if p.from_code == "en" and p.to_code == locale]
+    if not match:
+        raise SystemExit(f"no en->{locale} package in the Argos index")
+    print(f"installing en->{locale}")
+    package.install_from_path(match[0].download())
+PY
+
 COPY backend /srv/backend
 COPY crawler /srv/crawler
 

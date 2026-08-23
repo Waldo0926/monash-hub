@@ -36,9 +36,15 @@ type Messages = Record<string, string>
 
 const en: Messages = {
   // --- translation notice -------------------------------------------------
-  'translation.label': 'Unofficial translation.',
-  'translation.explain':
-    'Monash publishes this page in English. The Chinese here was written and checked by the Monash Hub team, not by the University — for anything that decides an enrolment, a fee or a visa, read the official page.',
+  'translation.label.human': 'Unofficial translation.',
+  'translation.explain.human':
+    'Monash publishes this page in English. This translation was written and checked by the Monash Hub team, not by the University — for anything that decides an enrolment, a fee or a visa, read the official page.',
+  'translation.label.machine': 'Machine translation.',
+  'translation.explain.machine':
+    'Monash publishes this page in English. This was translated automatically; the terms that matter — census date, hurdle, WAM, credit points — use wording agreed by the Monash Hub team, but the rest was not checked by a person. For anything that decides an enrolment, a fee or a visa, read the official page.',
+  'translation.label.mixed': 'Machine translation, partly checked.',
+  'translation.explain.mixed':
+    'Monash publishes this page in English. Parts of this were translated by the Monash Hub team and the rest automatically. For anything that decides an enrolment, a fee or a visa, read the official page.',
   'translation.stale':
     'The official page has changed since this translation was written, so parts of it may be out of date.',
   'translation.viewOriginal': 'Read the official English page ↗',
@@ -368,9 +374,15 @@ const en: Messages = {
 
 const zh: Messages = {
   // --- translation notice -------------------------------------------------
-  'translation.label': '非官方翻译。',
-  'translation.explain':
+  'translation.label.human': '非官方翻译。',
+  'translation.explain.human':
     'Monash 官方以英文发布本页。这里的中文由 Monash Hub 团队人工翻译并校对，不是学校发布的版本——凡是涉及选课、缴费、签证的决定，请以官方英文页面为准。',
+  'translation.label.machine': '机器翻译。',
+  'translation.explain.machine':
+    'Monash 官方以英文发布本页。这里的中文由机器自动翻译；census date、及格门槛、WAM、学分等关键术语使用 Monash Hub 团队核定的译法，其余部分未经人工校对。凡是涉及选课、缴费、签证的决定，请以官方英文页面为准。',
+  'translation.label.mixed': '机器翻译，部分已人工校对。',
+  'translation.explain.mixed':
+    'Monash 官方以英文发布本页。其中一部分由 Monash Hub 团队人工翻译，其余为机器翻译。凡是涉及选课、缴费、签证的决定，请以官方英文页面为准。',
   'translation.stale':
     '官方页面在本译文完成之后有过改动，部分内容可能已经过时。',
   'translation.viewOriginal': '查看官方英文原页 ↗',
@@ -672,9 +684,15 @@ const zh: Messages = {
 
 const ja: Messages = {
   // --- translation notice -------------------------------------------------
-  'translation.label': '非公式翻訳です。',
-  'translation.explain':
+  'translation.label.human': '非公式翻訳です。',
+  'translation.explain.human':
     'Monash はこのページを英語で公開しています。ここでの訳文は Monash Hub チームが作成・確認したもので、大学によるものではありません。履修・学費・ビザに関わる判断は公式ページで確認してください。',
+  'translation.label.machine': '機械翻訳です。',
+  'translation.explain.machine':
+    'Monash はこのページを英語で公開しています。この日本語は自動翻訳です。census date、必須到達要件、WAM、単位数など重要な用語は Monash Hub が定めた訳語を使っていますが、それ以外は人の目を通していません。履修・費用・ビザに関わる判断は、必ず公式の英語ページで確認してください。',
+  'translation.label.mixed': '機械翻訳（一部確認済み）です。',
+  'translation.explain.mixed':
+    'Monash はこのページを英語で公開しています。一部は Monash Hub が翻訳し、残りは自動翻訳です。履修・費用・ビザに関わる判断は、必ず公式の英語ページで確認してください。',
   'translation.stale':
     'この訳文の作成後に公式ページが更新されているため、内容が古くなっている可能性があります。',
   'translation.viewOriginal': '公式の英語ページを見る ↗',
@@ -988,9 +1006,15 @@ const ja: Messages = {
 
 const ko: Messages = {
   // --- translation notice -------------------------------------------------
-  'translation.label': '비공식 번역입니다.',
-  'translation.explain':
+  'translation.label.human': '비공식 번역입니다.',
+  'translation.explain.human':
     'Monash는 이 페이지를 영어로 공개합니다. 여기의 번역문은 Monash Hub 팀이 작성하고 검토한 것이며 대학이 제공한 것이 아닙니다. 수강, 학비, 비자에 관한 결정은 공식 페이지를 확인하세요.',
+  'translation.label.machine': '기계 번역입니다.',
+  'translation.explain.machine':
+    'Monash는 이 페이지를 영어로 게시합니다. 이 번역은 자동 번역이며, census date, 필수 통과 요건, WAM, 학점 등 중요한 용어는 Monash Hub가 정한 표현을 사용하지만 나머지는 사람이 확인하지 않았습니다. 수강, 비용, 비자와 관련된 결정은 공식 영어 페이지에서 확인하세요.',
+  'translation.label.mixed': '기계 번역(일부 확인됨)입니다.',
+  'translation.explain.mixed':
+    'Monash는 이 페이지를 영어로 게시합니다. 일부는 Monash Hub가 번역했고 나머지는 자동 번역입니다. 수강, 비용, 비자와 관련된 결정은 공식 영어 페이지에서 확인하세요.',
   'translation.stale':
     '이 번역이 작성된 뒤 공식 페이지가 바뀌었으므로 일부 내용은 오래된 것일 수 있습니다.',
   'translation.viewOriginal': '공식 영어 페이지 보기 ↗',

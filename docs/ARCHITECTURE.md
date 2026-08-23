@@ -153,10 +153,29 @@ There is no i18n library: `frontend/i18n/index.ts` is four plain objects and a
 The app has no plural rules worth the dependency and formats its one date by
 hand in UTC.
 
-**Only the interface is translated.** Handbook fields, official Monash page text
-and anything a student wrote stay in the language they were written in. Those
-are quotations from a source, and silently translating a quotation is how a
-platform ends up asserting something the official page never said.
+**Content is translated too, and says how.** Handbook fields and official page
+text are translated into the reader's language; student posts never are, because
+those are someone's own words.
+
+The engine is Argos Translate (OPUS-MT through CTranslate2) running on the same
+box: no key, no per-call cost, no rate limit, which is what makes five thousand
+units possible at all. On its own it is wrong exactly where this product cannot
+afford it — measured on the real pages it renders *census date* as 人口普查日期,
+*unit* as 单位, *Exercise* as 锻炼 (physical exercise) and *Programming
+paradigms* as 方案拟订模式. So every string goes through:
+
+    agreed value?  ->  protect the terms  ->  translate  ->  put the terms back
+
+`app/knowledge/glossary.py` holds 210 terms and 113 closed-list values (every
+campus, teaching period, assessment type, level). A field value drawn from a
+closed list never reaches the model at all. A term inside a sentence is swapped
+for a letter placeholder — digits get rewritten by the model, letters survive —
+and restored afterwards.
+
+Human and machine rows sit side by side in `content_translations` with a
+`provenance` column. The human one wins on read, so translating a page properly
+later simply takes over from the machine without deleting anything, and the
+notice on the page says which the reader is looking at.
 
 ## Does it hold up as it fills?
 

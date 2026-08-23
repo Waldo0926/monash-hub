@@ -2,3 +2,8 @@
 # behind a WAF that scores the HTTP client itself, so plain httpx gets a 403
 # where a real browser does not - see docs/CRAWLING.md.
 playwright==1.56.0
+
+# Offline machine translation: CTranslate2 models, no API key, no per-call cost
+# and no rate limit. See app/knowledge/glossary.py for what it is not allowed to
+# decide on its own.
+argostranslate==1.11.0
