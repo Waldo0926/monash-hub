@@ -12,8 +12,8 @@ const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
 const query = ref('')
 
-const { data: units } = await useApiFetch<any>('/v1/units?limit=6&sort=code')
-const { data: guides } = await useApiFetch<any>('/v1/guides?limit=6')
+const { data: units } = await useApiFetch<any>('/v1/units?limit=8&sort=code')
+const { data: guides } = await useApiFetch<any>('/v1/guides?limit=8')
 const { data: posts } = await useApiFetch<any>('/v1/community/posts?limit=4')
 
 const trending = ['FIT2102', 'Special consideration', 'WAM', 'Census dates', 'Student visa']
@@ -66,41 +66,44 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
       </NuxtLink>
     </section>
 
-    <section class="columns">
-      <div>
-        <div class="section-head">
-          <h2>{{ $t('home.unitsInIndex') }}</h2>
-          <NuxtLink to="/units" class="small">{{ $t('home.allUnits') }}</NuxtLink>
-        </div>
-        <div class="grid">
-          <UnitCard v-for="unit in units?.results || []" :key="unit.unit_code" :unit="unit" />
-        </div>
-        <EmptyState
-          v-if="!units?.results?.length"
-          :title="$t('home.noUnits')"
-          :hint="$t('home.noUnitsHint')"
-        />
+    <section class="block">
+      <div class="section-head">
+        <h2>{{ $t('home.unitsInIndex') }}</h2>
+        <NuxtLink to="/units" class="small">{{ $t('home.allUnits') }}</NuxtLink>
       </div>
+      <div v-if="units?.results?.length" class="grid">
+        <UnitCard v-for="unit in units.results" :key="unit.unit_code" :unit="unit" />
+      </div>
+      <EmptyState v-else :title="$t('home.noUnits')" :hint="$t('home.noUnitsHint')" />
+    </section>
 
-      <div>
-        <div class="section-head">
-          <h2>{{ $t('home.officialGuides') }}</h2>
-          <NuxtLink to="/guides" class="small">{{ $t('home.allGuides') }}</NuxtLink>
-        </div>
-        <div class="grid">
-          <GuideCard v-for="page in guides?.results?.slice(0, 4) || []" :key="page.slug" :page="page" />
-        </div>
+    <section class="block">
+      <div class="section-head">
+        <h2>{{ $t('home.officialGuides') }}</h2>
+        <NuxtLink to="/guides" class="small">{{ $t('home.allGuides') }}</NuxtLink>
+      </div>
+      <div class="grid">
+        <GuideCard v-for="page in guides?.results || []" :key="page.slug" :page="page" />
       </div>
     </section>
 
-    <section v-if="posts?.results?.length" class="latest">
+    <!-- Always rendered, empty or not. An empty forum that says nothing looks
+         broken; an empty forum that asks for the first question is an invitation. -->
+    <section class="block">
       <div class="section-head">
         <h2>{{ $t('home.latestDiscussions') }}</h2>
         <NuxtLink to="/community" class="small">{{ $t('home.allDiscussions') }}</NuxtLink>
       </div>
-      <div class="grid">
+      <div v-if="posts?.results?.length" class="grid">
         <PostCard v-for="post in posts.results" :key="post.id" :post="post" />
       </div>
+      <EmptyState
+        v-else
+        :title="$t('home.communityEmpty')"
+        :hint="$t('home.communityEmptyHint')"
+      >
+        <NuxtLink to="/community" class="btn">{{ $t('community.ask') }}</NuxtLink>
+      </EmptyState>
     </section>
   </div>
 </template>
@@ -128,14 +131,27 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .entry h2 { margin: var(--s3) 0 var(--s2); font-size: 1.1rem; }
 .entry p { margin: 0; }
 
-.columns { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s6); margin-bottom: var(--s7); }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
-.grid { display: grid; gap: var(--s3); }
-.columns .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-.latest .grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+/* Stacked full-width sections rather than two columns side by side.
+   Unit cards and guide cards are different heights, so a two-column split left
+   whichever ran out first as a large empty rectangle - the taller column set the
+   height and the shorter one just stopped. */
+.block { margin-bottom: var(--s7); }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s3);
+  /* Cards in a row share a height, so the row reads as a row. */
+  align-items: stretch;
+}
 
 @media (max-width: 900px) {
   .entries { grid-template-columns: 1fr; }
-  .columns { grid-template-columns: 1fr; }
 }
 </style>

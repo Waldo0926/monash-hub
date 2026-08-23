@@ -58,6 +58,12 @@ const en: Messages = {
   'footer.disclaimer':
     'Monash Hub is an independent student information platform and is not affiliated with or endorsed by Monash University. Always confirm enrolment, graduation, visa and academic policy decisions through the Monash website, Handbook, Moodle or WES.',
   'footer.handbookLink': 'Monash Handbook',
+  'footer.explore': 'Explore',
+  'footer.official': 'Official sources',
+  'footer.monashStudents': 'Monash current students',
+  'footer.about': 'An independent student platform',
+  'home.communityEmpty': 'No discussions yet',
+  'home.communityEmptyHint': 'Official pages answer what the rules are. This is where students answer what it was actually like — someone has to ask first.',
 
   // --- badges -------------------------------------------------------------
   'badge.handbook': 'Official Handbook',
@@ -374,6 +380,12 @@ const zh: Messages = {
   'footer.disclaimer':
     'Monash Hub 为独立学生信息平台，与 Monash University 无官方隶属或背书关系。涉及选课、毕业、签证与学术政策的决定，请以 Monash 官网、Handbook、Moodle 或 WES 的最新信息为准。',
   'footer.handbookLink': 'Monash Handbook',
+  'footer.explore': '浏览',
+  'footer.official': '官方来源',
+  'footer.monashStudents': 'Monash 在读学生页',
+  'footer.about': '独立学生平台',
+  'home.communityEmpty': '还没有讨论',
+  'home.communityEmptyHint': '官方页面告诉你规定是什么，这里是学生说真实体验是什么样——总要有人先开口。',
 
   'badge.handbook': '官方 Handbook',
   'badge.official': '官方来源',
@@ -663,6 +675,12 @@ const ja: Messages = {
   'footer.disclaimer':
     'Monash Hub は独立した学生向け情報プラットフォームであり、Monash University とは提携も承認関係もありません。履修・卒業・ビザ・学務規程に関わる判断は、必ず Monash 公式サイト、Handbook、Moodle、WES で確認してください。',
   'footer.handbookLink': 'Monash Handbook',
+  'footer.explore': '見る',
+  'footer.official': '公式ソース',
+  'footer.monashStudents': 'Monash 在学生ページ',
+  'footer.about': '独立した学生プラットフォーム',
+  'home.communityEmpty': 'まだ投稿がありません',
+  'home.communityEmptyHint': '公式ページは規程が何かを答えます。ここは学生が実際どうだったかを答える場所です。誰かが最初に聞く必要があります。',
 
   'badge.handbook': '公式 Handbook',
   'badge.official': '公式ソース',
@@ -964,6 +982,12 @@ const ko: Messages = {
   'footer.disclaimer':
     'Monash Hub는 독립적인 학생 정보 플랫폼이며 Monash University와 제휴하거나 승인받은 관계가 아닙니다. 수강신청, 졸업, 비자, 학사 규정에 관한 결정은 반드시 Monash 공식 웹사이트, Handbook, Moodle 또는 WES에서 확인하세요.',
   'footer.handbookLink': 'Monash Handbook',
+  'footer.explore': '둘러보기',
+  'footer.official': '공식 출처',
+  'footer.monashStudents': 'Monash 재학생 페이지',
+  'footer.about': '독립 학생 플랫폼',
+  'home.communityEmpty': '아직 글이 없습니다',
+  'home.communityEmptyHint': '공식 페이지는 규정이 무엇인지 답합니다. 여기는 학생이 실제로 어땠는지 답하는 곳입니다. 누군가는 먼저 물어야 합니다.',
 
   'badge.handbook': '공식 Handbook',
   'badge.official': '공식 출처',
