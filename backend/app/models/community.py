@@ -45,6 +45,12 @@ class CommunityPost(Base):
     __tablename__ = "community_posts"
     __table_args__ = (
         Index("ix_community_posts_search_vector", "search_vector", postgresql_using="gin"),
+        # The three orderings the list endpoint offers. Without these, every
+        # community page load is a sequential scan plus a sort once the table
+        # stops being small.
+        Index("ix_community_posts_feed", "is_hidden", "is_pinned", "updated_at"),
+        Index("ix_community_posts_category_feed", "category", "is_hidden", "updated_at"),
+        Index("ix_community_posts_unit_feed", "unit_code", "is_hidden", "updated_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -13,9 +13,16 @@ class Base(DeclarativeBase):
 
 _settings = get_settings()
 
+# pool_pre_ping costs one round trip per checkout and saves every request that
+# would otherwise inherit a connection PostgreSQL closed while it was idle.
+# recycle is below any sensible server-side idle timeout for the same reason.
 engine = create_engine(
     _settings.database_url,
     pool_pre_ping=True,
+    pool_size=_settings.db_pool_size,
+    max_overflow=_settings.db_max_overflow,
+    pool_timeout=_settings.db_pool_timeout,
+    pool_recycle=_settings.db_pool_recycle,
     future=True,
 )
 

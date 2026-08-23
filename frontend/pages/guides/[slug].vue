@@ -6,6 +6,7 @@
  */
 const route = useRoute()
 const config = useRuntimeConfig()
+const { $t } = useNuxtApp()
 const slug = computed(() => String(route.params.slug))
 
 const { data: guide, error } = await useApiFetch<any>(() => `/v1/guides/${slug.value}`)
@@ -26,7 +27,10 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
         <header class="card section">
           <div class="head-top">
             <div>
-              <p class="tiny muted"><NuxtLink to="/guides">Official guides</NuxtLink> / {{ guide.category }}</p>
+              <p class="tiny muted">
+                <NuxtLink to="/guides">{{ $t('guides.title') }}</NuxtLink> /
+                {{ $t(`category.${guide.category}`) }}
+              </p>
               <h1>{{ guide.title }}</h1>
             </div>
             <SourceBadge kind="official" />
@@ -35,13 +39,13 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           <LastChecked :value="guide.last_checked" />
           <p class="mt">
             <a :href="guide.url" rel="noopener external" target="_blank" class="btn">
-              View the official Monash page ↗
+              {{ $t('guides.viewOfficial') }}
             </a>
           </p>
         </header>
 
         <section v-if="guide.headings?.length" class="card section">
-          <h2>What this page covers</h2>
+          <h2>{{ $t('guides.covers') }}</h2>
           <ul class="outline">
             <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
               {{ heading.text }}
@@ -50,18 +54,15 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
         </section>
 
         <section class="card section">
-          <h2>Page text</h2>
-          <p class="tiny muted">
-            Extracted from the official page for searching. Formatting, images and forms are not
-            reproduced - open the original for anything you need to act on.
-          </p>
+          <h2>{{ $t('guides.pageText') }}</h2>
+          <p class="tiny muted">{{ $t('guides.pageTextNote') }}</p>
           <p class="pre body-text">{{ guide.clean_text }}</p>
         </section>
       </article>
 
       <aside class="side stack">
         <div v-if="guide.related_faq?.length" class="card section">
-          <h2 class="small">Related questions</h2>
+          <h2 class="small">{{ $t('guides.relatedQuestions') }}</h2>
           <div v-for="faq in guide.related_faq" :key="faq.slug" class="faq">
             <h3>{{ faq.question }}</h3>
             <p class="small">{{ faq.answer }}</p>
@@ -70,7 +71,7 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
 
         <div class="card section">
           <div class="section-head">
-            <h2 class="small">Community</h2>
+            <h2 class="small">{{ $t('nav.community') }}</h2>
             <SourceBadge kind="community" />
           </div>
           <ul v-if="guide.related_community?.length" class="links">
@@ -79,8 +80,10 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
               <span class="tiny muted"> · {{ post.answer_count }} answers</span>
             </li>
           </ul>
-          <p v-else class="small muted">Nothing yet. Ask if the official page did not cover it.</p>
-          <NuxtLink to="/community" class="btn btn--ghost btn--small">Ask the community</NuxtLink>
+          <p v-else class="small muted">{{ $t('guides.communityEmpty') }}</p>
+          <NuxtLink to="/community" class="btn btn--ghost btn--small">
+            {{ $t('units.askCommunity') }}
+          </NuxtLink>
         </div>
       </aside>
     </div>

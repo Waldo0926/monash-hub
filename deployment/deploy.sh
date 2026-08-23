@@ -42,13 +42,19 @@ git reset --hard origin/main
 echo "    now at $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
 
 echo "==> Building images"
-"${COMPOSE[@]}" build
+# --profile tools is not optional here: crawler and migrate live behind it, and
+# without it a deploy silently ships yesterday's crawler.
+"${COMPOSE[@]}" --profile tools build
 
 echo "==> Running migrations"
 "${COMPOSE[@]}" run --rm migrate
 
 echo "==> Starting services"
-"${COMPOSE[@]}" up -d --remove-orphans
+# Deliberately not --remove-orphans. A crawl started with `compose run` is a
+# container Compose does not consider part of the active profile, so a deploy
+# would kill a backfill that has been running for hours. Tidying up genuinely
+# stale containers is worth less than that.
+"${COMPOSE[@]}" up -d
 
 echo "==> Waiting for the API to report healthy"
 for attempt in $(seq 1 30); do

@@ -12,7 +12,7 @@ from typing import Any
 from sqlalchemy import case, func, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.community import CommunityPost
+from app.models.community import CommunityPost, PostTag
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.search.keywords import extract_unit_codes
@@ -193,6 +193,12 @@ def search_community(
         )
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
-    stmt = stmt.order_by(CommunityPost.is_pinned.desc(), CommunityPost.updated_at.desc())
-    stmt = stmt.limit(limit).offset(offset)
+    # post_brief reads every result's tags, so load them in one extra query
+    # rather than one per row.
+    stmt = (
+        stmt.options(selectinload(CommunityPost.post_tags).selectinload(PostTag.tag))
+        .order_by(CommunityPost.is_pinned.desc(), CommunityPost.updated_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)

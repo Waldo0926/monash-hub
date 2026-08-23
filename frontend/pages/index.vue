@@ -3,8 +3,13 @@
  * Home answers three questions above the fold and nothing else: what can this
  * do for me, where do I search, and what if I find nothing. No architecture
  * diagrams, no row counts.
+ *
+ * For a signed-in reader it also carries the notification list, because the
+ * point of being told your question was answered is that you see it without
+ * going looking for it.
  */
 const config = useRuntimeConfig()
+const { $t } = useNuxtApp()
 const query = ref('')
 
 const { data: units } = await useApiFetch<any>('/v1/units?limit=6&sort=code')
@@ -18,12 +23,10 @@ function search(value: string) {
 }
 
 useSeoMeta({
-  title: 'Monash Hub — Handbook, official guides and student community',
-  description:
-    'Search 2026 Monash Handbook units, official Monash policy pages and a public student ' +
-    'community in one place. Independent student platform.',
+  title: () => $t('home.title'),
+  description: () => $t('home.metaDescription'),
   ogTitle: 'Monash Hub',
-  ogDescription: 'Everything Monash, in one place.',
+  ogDescription: () => $t('home.hero'),
   ogUrl: config.public.siteUrl
 })
 useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
@@ -32,58 +35,57 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 <template>
   <div class="container">
     <section class="hero">
-      <h1>Everything Monash, in one place.</h1>
-      <p class="lead">
-        Unit data from the 2026 Handbook, the official Monash pages students actually need, and a
-        public place to ask everything the official pages do not cover.
-      </p>
+      <h1>{{ $t('home.hero') }}</h1>
+      <p class="lead">{{ $t('home.lead') }}</p>
       <SearchInput v-model="query" big autofocus @submit="search" />
       <p class="trending tiny muted">
-        Trending:
+        {{ $t('home.trending') }}:
         <button v-for="term in trending" :key="term" class="term" @click="search(term)">
           {{ term }}
         </button>
       </p>
     </section>
 
+    <NotificationPanel class="notifications" />
+
     <section class="entries">
       <NuxtLink to="/units" class="entry card">
         <SourceBadge kind="handbook" />
-        <h2>Units</h2>
-        <p class="small muted">查课程 — assessment, requisites, offerings, workload</p>
+        <h2>{{ $t('home.entryUnits') }}</h2>
+        <p class="small muted">{{ $t('home.entryUnitsHint') }}</p>
       </NuxtLink>
       <NuxtLink to="/guides" class="entry card">
         <SourceBadge kind="official" />
-        <h2>Official guides</h2>
-        <p class="small muted">查政策 — special consideration, WAM, visas, census dates</p>
+        <h2>{{ $t('home.entryGuides') }}</h2>
+        <p class="small muted">{{ $t('home.entryGuidesHint') }}</p>
       </NuxtLink>
       <NuxtLink to="/community" class="entry card">
         <SourceBadge kind="community" />
-        <h2>Community</h2>
-        <p class="small muted">提问 / 经验分享 — public, searchable, no group chat required</p>
+        <h2>{{ $t('home.entryCommunity') }}</h2>
+        <p class="small muted">{{ $t('home.entryCommunityHint') }}</p>
       </NuxtLink>
     </section>
 
     <section class="columns">
       <div>
         <div class="section-head">
-          <h2>Units in the index</h2>
-          <NuxtLink to="/units" class="small">All units →</NuxtLink>
+          <h2>{{ $t('home.unitsInIndex') }}</h2>
+          <NuxtLink to="/units" class="small">{{ $t('home.allUnits') }}</NuxtLink>
         </div>
         <div class="grid">
           <UnitCard v-for="unit in units?.results || []" :key="unit.unit_code" :unit="unit" />
         </div>
         <EmptyState
           v-if="!units?.results?.length"
-          title="No units indexed yet"
-          hint="The Handbook crawl has not run on this environment."
+          :title="$t('home.noUnits')"
+          :hint="$t('home.noUnitsHint')"
         />
       </div>
 
       <div>
         <div class="section-head">
-          <h2>Official guides</h2>
-          <NuxtLink to="/guides" class="small">All guides →</NuxtLink>
+          <h2>{{ $t('home.officialGuides') }}</h2>
+          <NuxtLink to="/guides" class="small">{{ $t('home.allGuides') }}</NuxtLink>
         </div>
         <div class="grid">
           <GuideCard v-for="page in guides?.results?.slice(0, 4) || []" :key="page.slug" :page="page" />
@@ -93,8 +95,8 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
     <section v-if="posts?.results?.length" class="latest">
       <div class="section-head">
-        <h2>Latest community discussions</h2>
-        <NuxtLink to="/community" class="small">All discussions →</NuxtLink>
+        <h2>{{ $t('home.latestDiscussions') }}</h2>
+        <NuxtLink to="/community" class="small">{{ $t('home.allDiscussions') }}</NuxtLink>
       </div>
       <div class="grid">
         <PostCard v-for="post in posts.results" :key="post.id" :post="post" />
@@ -104,7 +106,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 </template>
 
 <style scoped>
-.hero { max-width: 760px; margin: 0 auto var(--s7); text-align: center; }
+.hero { max-width: 760px; margin: 0 auto var(--s6); text-align: center; }
 .lead { color: var(--muted); font-size: 1.05rem; }
 .trending { margin-top: var(--s3); }
 .term {
@@ -117,6 +119,8 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   cursor: pointer;
 }
 .term:hover { text-decoration: underline; }
+
+.notifications { margin-bottom: var(--s6); }
 
 .entries { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); margin-bottom: var(--s7); }
 .entry { padding: var(--s5); color: inherit; }

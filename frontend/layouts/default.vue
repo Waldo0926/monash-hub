@@ -1,6 +1,6 @@
 <template>
   <div class="shell">
-    <a href="#main" class="skip">Skip to content</a>
+    <a href="#main" class="skip">{{ $t('nav.skipToContent') }}</a>
     <AppHeader />
     <main id="main" class="main">
       <slot />

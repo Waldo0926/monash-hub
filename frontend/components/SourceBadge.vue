@@ -10,18 +10,20 @@
  */
 const props = defineProps<{ kind: string }>()
 
-const LABELS: Record<string, string> = {
-  handbook: 'Official Handbook',
-  'official-handbook': 'Official Handbook',
-  official: 'Official source',
-  'official-source': 'Official source',
-  faq: 'Official source',
-  community: 'Community',
-  mumguide: 'MUMGuide',
-  sponsored: 'Sponsored'
+const { $t } = useNuxtApp()
+
+const KEYS: Record<string, string> = {
+  handbook: 'badge.handbook',
+  'official-handbook': 'badge.handbook',
+  official: 'badge.official',
+  'official-source': 'badge.official',
+  faq: 'badge.official',
+  community: 'badge.community',
+  mumguide: 'badge.mumguide',
+  sponsored: 'badge.sponsored'
 }
 
-const label = computed(() => LABELS[props.kind] ?? props.kind)
+const label = computed(() => (KEYS[props.kind] ? $t(KEYS[props.kind]!) : props.kind))
 const tone = computed(() => {
   if (props.kind.includes('handbook')) return 'handbook'
   if (props.kind === 'community') return 'community'

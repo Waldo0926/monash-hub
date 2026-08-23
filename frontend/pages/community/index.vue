@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const { $t } = useNuxtApp()
 const { user, restore } = useAuth()
 onMounted(restore)
 
@@ -53,8 +54,9 @@ async function submit() {
 }
 
 useSeoMeta({
-  title: 'Community — Monash Hub',
-  description: 'Public, searchable Monash student questions and experience. Anyone can read; posting needs an account.'
+  title: () => $t('community.metaTitle'),
+  description:
+    'Public, searchable Monash student questions and experience. Anyone can read; posting needs an account.'
 })
 </script>
 
@@ -62,64 +64,70 @@ useSeoMeta({
   <div class="container">
     <div class="head">
       <div>
-        <h1>Community</h1>
-        <p class="muted">
-          Student experience, in public and searchable. Official rules live in
-          <NuxtLink to="/guides">Official guides</NuxtLink> and
-          <NuxtLink to="/units">Units</NuxtLink> — nothing here overrides them.
-        </p>
+        <h1>{{ $t('community.title') }}</h1>
+        <p class="muted">{{ $t('community.lead') }}</p>
       </div>
-      <button class="btn" @click="showCompose = !showCompose">Ask a question</button>
+      <button class="btn" @click="showCompose = !showCompose">{{ $t('community.ask') }}</button>
     </div>
 
     <section v-if="showCompose" class="card compose">
-      <h2>Ask a question</h2>
+      <h2>{{ $t('community.ask') }}</h2>
       <template v-if="user">
         <p class="tiny muted">
-          Do not post anyone's student ID, phone number, address or private chat screenshots.
-          Posting as <strong>{{ user.nickname }}</strong>.
+          {{ $t('community.privacyNote') }} {{ $t('community.postingAs', { nickname: user.nickname }) }}
         </p>
         <label class="field-row">
-          <span class="tiny muted">Title</span>
-          <input v-model="draft.title" class="field" placeholder="What do you want to know?">
+          <span class="tiny muted">{{ $t('community.askTitle') }}</span>
+          <input v-model="draft.title" class="field" :placeholder="$t('community.askTitlePlaceholder')">
         </label>
         <label class="field-row">
-          <span class="tiny muted">Details</span>
-          <textarea v-model="draft.body" class="field body" rows="5" placeholder="Give enough context for someone to answer." />
+          <span class="tiny muted">{{ $t('community.askBody') }}</span>
+          <textarea
+            v-model="draft.body"
+            class="field body"
+            rows="5"
+            :placeholder="$t('community.askBodyPlaceholder')"
+          />
         </label>
         <div class="row">
           <label class="field-row">
-            <span class="tiny muted">Category</span>
+            <span class="tiny muted">{{ $t('community.category') }}</span>
             <select v-model="draft.category" class="field">
               <option v-for="cat in categories?.categories || []" :key="cat.key" :value="cat.key">
-                {{ cat.label }}
+                {{ $t(`communityCategory.${cat.key}`) }}
               </option>
             </select>
           </label>
           <label class="field-row">
-            <span class="tiny muted">Unit code (optional)</span>
+            <span class="tiny muted">{{ $t('community.unitCode') }}</span>
             <input v-model="draft.unit_code" class="field" placeholder="FIT2102">
           </label>
           <label class="field-row">
-            <span class="tiny muted">Tags (comma separated)</span>
+            <span class="tiny muted">{{ $t('community.tags') }}</span>
             <input v-model="draft.tags" class="field" placeholder="workload, exchange">
           </label>
         </div>
         <p v-if="submitError" class="small err">{{ submitError }}</p>
         <button class="btn" :disabled="submitting" @click="submit">
-          {{ submitting ? 'Posting…' : 'Post question' }}
+          {{ submitting ? $t('community.posting') : $t('community.post') }}
         </button>
       </template>
       <template v-else>
-        <p class="small">Reading is open to everyone. Posting needs an account.</p>
-        <NuxtLink to="/login" class="btn">Sign in or create an account</NuxtLink>
+        <p class="small">{{ $t('community.signInToPost') }}</p>
+        <NuxtLink to="/login" class="btn">{{ $t('community.signInCta') }}</NuxtLink>
       </template>
     </section>
 
-    <SearchInput v-model="query" placeholder="Search discussions…" @submit="v => (query = v)" />
+    <SearchInput
+      v-model="query"
+      :placeholder="$t('community.searchPlaceholder')"
+      @submit="v => (query = v)"
+    />
 
     <div class="cats">
-      <button class="cat" :class="{ active: !category }" @click="category = ''">All</button>
+      <button class="cat" :class="{ active: !category }" @click="category = ''">
+        {{ $t('guides.all') }}
+      </button>
       <button
         v-for="cat in categories?.categories || []"
         :key="cat.key"
@@ -127,12 +135,12 @@ useSeoMeta({
         :class="{ active: category === cat.key }"
         @click="category = cat.key"
       >
-        {{ cat.label }}
+        {{ $t(`communityCategory.${cat.key}`) }}
       </button>
       <select v-model="sort" class="field sort">
-        <option value="recent">Most recent</option>
-        <option value="top">Most liked</option>
-        <option value="unanswered">Unanswered</option>
+        <option value="recent">{{ $t('community.sortRecent') }}</option>
+        <option value="top">{{ $t('community.sortTop') }}</option>
+        <option value="unanswered">{{ $t('community.sortUnanswered') }}</option>
       </select>
     </div>
 
@@ -142,12 +150,8 @@ useSeoMeta({
       <div v-if="data.results.length" class="grid">
         <PostCard v-for="post in data.results" :key="post.id" :post="post" />
       </div>
-      <EmptyState
-        v-else
-        title="No discussions here yet"
-        hint="Someone has to go first — a question with real detail usually gets a real answer."
-      >
-        <button class="btn" @click="showCompose = true">Ask a question</button>
+      <EmptyState v-else :title="$t('community.empty')" :hint="$t('community.emptyHint')">
+        <button class="btn" @click="showCompose = true">{{ $t('community.ask') }}</button>
       </EmptyState>
     </template>
   </div>

@@ -79,6 +79,39 @@ def db(engine):
 
 
 @pytest.fixture
+def mailbox(monkeypatch):
+    """Capture outbound mail instead of sending it, and expose the codes.
+
+    Registration and password reset are only testable end to end if the test can
+    read the code, and reading it out of the captured message is the same path a
+    real user takes - no test-only bypass in the application itself.
+    """
+    import re
+
+    from app.core import email as email_module
+
+    sent: list[email_module.Message] = []
+
+    def capture(self, message):
+        sent.append(message)
+
+    monkeypatch.setattr(email_module.Emailer, "send", capture)
+
+    class Mailbox:
+        messages = sent
+
+        def code_for(self, address: str) -> str:
+            for message in reversed(sent):
+                if message.to.lower() == address.lower():
+                    found = re.search(r"\b(\d{6})\b", message.text)
+                    if found:
+                        return found.group(1)
+            raise AssertionError(f"no verification code was sent to {address}")
+
+    return Mailbox()
+
+
+@pytest.fixture
 def client(engine, db):
     from app.core.db import get_db
     from app.main import app

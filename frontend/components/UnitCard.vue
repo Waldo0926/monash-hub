@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineProps<{ unit: any }>()
+const { $t } = useNuxtApp()
 </script>
 
 <template>
@@ -13,14 +14,18 @@ defineProps<{ unit: any }>()
       <span v-for="(offering, i) in unit.offerings.slice(0, 4)" :key="i" class="chip">
         {{ offering.campus }} · {{ offering.teaching_period }}
       </span>
-      <span v-if="unit.offerings.length > 4" class="chip">+{{ unit.offerings.length - 4 }} more</span>
-      <span v-if="!unit.offerings.length" class="chip chip--quiet">No published offerings</span>
+      <span v-if="unit.offerings.length > 4" class="chip">
+        {{ $t('units.more', { count: unit.offerings.length - 4 }) }}
+      </span>
+      <span v-if="!unit.offerings.length" class="chip chip--quiet">
+        {{ $t('units.noOfferings') }}
+      </span>
     </div>
     <p class="meta tiny muted">
-      {{ unit.credit_points }} credit points<span v-if="unit.level"> · {{ unit.level }}</span>
-      · {{ unit.assessment_count }} assessment items
-      <span v-if="unit.has_exam === true"> · exam listed</span>
-      <span v-else-if="unit.has_exam === false"> · no exam listed</span>
+      {{ unit.credit_points }} {{ $t('units.creditPoints') }}<span v-if="unit.level"> · {{ unit.level }}</span>
+      · {{ unit.assessment_count }} {{ $t('units.assessmentItems') }}
+      <span v-if="unit.has_exam === true"> · {{ $t('units.examListed') }}</span>
+      <span v-else-if="unit.has_exam === false"> · {{ $t('units.noExamListed') }}</span>
     </p>
   </NuxtLink>
 </template>

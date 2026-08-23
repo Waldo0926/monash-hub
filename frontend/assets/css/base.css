@@ -91,6 +91,9 @@ img { max-width: 100%; height: auto; }
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
+  /* Button labels are one line in every language; without this, translations
+     longer than the English wrap inside the button and break its height. */
+  white-space: nowrap;
 }
 .btn:hover { background: var(--blue-700); text-decoration: none; }
 .btn--ghost {

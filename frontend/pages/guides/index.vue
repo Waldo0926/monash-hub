@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
+const { $t } = useNuxtApp()
 const query = ref((route.query.q as string) || '')
 const category = ref((route.query.category as string) || '')
 
@@ -19,34 +20,28 @@ watch([query, category], () => {
   router.replace({ query: q })
 })
 
-const CATEGORY_LABELS: Record<string, string> = {
-  enrolment: 'Enrolment & course planning',
-  assessment: 'Assessment & results',
-  'academic-rules': 'Academic rules & policy',
-  international: 'International students',
-  'fees-dates': 'Fees & key dates',
-  exchange: 'Exchange & study abroad',
-  malaysia: 'Malaysia campus'
-}
-
 useSeoMeta({
-  title: 'Official Monash guides — Monash Hub',
-  description: 'Indexed official Monash pages: special consideration, WAM, GPA, visas, census dates, fees and graduation.'
+  title: () => $t('guides.metaTitle'),
+  description:
+    'Indexed official Monash pages: special consideration, WAM, GPA, visas, census dates, fees and graduation.'
 })
 </script>
 
 <template>
   <div class="container">
-    <h1>Official guides</h1>
-    <p class="muted">
-      Indexed Monash pages, kept as searchable text with the source link and the date we last
-      checked it. We do not rewrite official wording.
-    </p>
+    <h1>{{ $t('guides.title') }}</h1>
+    <p class="muted">{{ $t('guides.lead') }}</p>
 
-    <SearchInput v-model="query" placeholder="special consideration, WAM, visa…" @submit="v => (query = v)" />
+    <SearchInput
+      v-model="query"
+      :placeholder="$t('guides.searchPlaceholder')"
+      @submit="v => (query = v)"
+    />
 
     <div class="cats">
-      <button class="cat" :class="{ active: !category }" @click="category = ''">All</button>
+      <button class="cat" :class="{ active: !category }" @click="category = ''">
+        {{ $t('guides.all') }}
+      </button>
       <button
         v-for="cat in data?.categories || []"
         :key="cat.key"
@@ -54,7 +49,7 @@ useSeoMeta({
         :class="{ active: category === cat.key }"
         @click="category = cat.key"
       >
-        {{ CATEGORY_LABELS[cat.key] || cat.key }} ({{ cat.count }})
+        {{ $t(`category.${cat.key}`) }} ({{ cat.count }})
       </button>
     </div>
 
@@ -64,12 +59,8 @@ useSeoMeta({
       <div v-if="data.results.length" class="grid">
         <GuideCard v-for="page in data.results" :key="page.slug" :page="page" />
       </div>
-      <EmptyState
-        v-else
-        title="No guide matched that"
-        hint="The index covers high-frequency pages only, and grows from what people actually search for."
-      >
-        <NuxtLink to="/community" class="btn">Ask the community</NuxtLink>
+      <EmptyState v-else :title="$t('guides.empty')" :hint="$t('guides.emptyHint')">
+        <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
       </EmptyState>
     </template>
   </div>

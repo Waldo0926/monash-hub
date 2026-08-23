@@ -16,6 +16,7 @@
  * safe direction: the warning appears, it never wrongly disappears.
  */
 const props = defineProps<{ value?: string | null; label?: string }>()
+const { $t } = useNuxtApp()
 
 const STALE_AFTER_DAYS = 14
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -43,8 +44,8 @@ onMounted(() => {
 
 <template>
   <span v-if="formatted" class="last-checked tiny" :class="{ stale: isStale }">
-    {{ label || 'Last checked' }}: {{ formatted }}
-    <span v-if="isStale"> · source may have changed since</span>
+    {{ label || $t('source.lastChecked') }}: {{ formatted }}
+    <span v-if="isStale"> · {{ $t('source.mayHaveChanged') }}</span>
   </span>
 </template>
 

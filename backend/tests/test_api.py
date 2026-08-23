@@ -162,18 +162,32 @@ def test_ask_unknown_question_falls_back_to_community(client, loaded):
     assert body["fallback"]["ask_community"] is True
 
 
-def _account(client, email: str, nickname: str) -> str:
+PASSWORD = "Correct-Horse-9"
+
+
+def _account(client, mailbox, email: str, nickname: str) -> str:
+    """Register through the real flow: request a code, read it, then sign up."""
+    sent = client.post(
+        "/api/v1/auth/verification-code",
+        json={"email": email, "purpose": "registration"},
+    )
+    assert sent.status_code == 200
     response = client.post(
         "/api/v1/auth/signup",
-        json={"email": email, "nickname": nickname, "password": "correct-horse-battery"},
+        json={
+            "email": email,
+            "nickname": nickname,
+            "password": PASSWORD,
+            "verification_code": mailbox.code_for(email),
+        },
     )
-    assert response.status_code == 201
+    assert response.status_code == 201, response.text
     return response.json()["token"]
 
 
-def test_community_post_answer_and_search(client, loaded):
-    asker = _account(client, "asker@example.com", "asker")
-    helper = _account(client, "helper@example.com", "helper")
+def test_community_post_answer_and_search(client, loaded, mailbox):
+    asker = _account(client, mailbox, "asker@example.com", "asker")
+    helper = _account(client, mailbox, "helper@example.com", "helper")
 
     created = client.post(
         "/api/v1/community/posts",
@@ -218,14 +232,14 @@ def test_anonymous_can_read_everything_public(client, loaded):
     assert client.get("/api/v1/guides").status_code == 200
 
 
-def test_reports_can_be_filed_and_only_admins_can_read_them(client, loaded):
+def test_reports_can_be_filed_and_only_admins_can_read_them(client, loaded, mailbox):
     filed = client.post(
         "/api/v1/community/reports",
         json={"target_type": "post", "target_id": 1, "reason": "spam"},
     )
     assert filed.status_code == 201
 
-    token = _account(client, "nosy@example.com", "nosy")
+    token = _account(client, mailbox, "nosy@example.com", "nosy")
     assert client.get(
         "/api/v1/community/reports", headers={"Authorization": f"Bearer {token}"}
     ).status_code == 403

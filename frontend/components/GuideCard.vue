@@ -1,12 +1,13 @@
 <script setup lang="ts">
 defineProps<{ page: any }>()
+const { $t } = useNuxtApp()
 </script>
 
 <template>
   <NuxtLink :to="`/guides/${page.slug}`" class="guide card">
     <div class="top">
       <SourceBadge kind="official" />
-      <span class="tiny muted">{{ page.category }}</span>
+      <span class="tiny muted">{{ $t(`category.${page.category}`) }}</span>
     </div>
     <h3>{{ page.title }}</h3>
     <p class="small muted summary">{{ page.summary }}</p>
