@@ -23,10 +23,13 @@ echo "==> Backing up the database before anything else"
 mkdir -p "$BACKUP_DIR"
 if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx postgres; then
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-  # shellcheck disable=SC1091
-  set -a; . ./.env; set +a
+  # Read the two values needed rather than sourcing the file. .env is a Compose
+  # env file, not a shell script: Compose is happy with EMAIL_FROM_NAME=Monash
+  # Hub, and `.` is not.
+  db_user="$(sed -n 's/^POSTGRES_USER=//p' .env | tail -1)"
+  db_name="$(sed -n 's/^POSTGRES_DB=//p' .env | tail -1)"
   "${COMPOSE[@]}" exec -T postgres \
-    pg_dump -U "${POSTGRES_USER:-monashhub}" "${POSTGRES_DB:-monashhub}" \
+    pg_dump -U "${db_user:-monashhub}" "${db_name:-monashhub}" \
     | gzip > "$BACKUP_DIR/monashhub-$stamp.sql.gz"
   echo "    saved $BACKUP_DIR/monashhub-$stamp.sql.gz"
   # Keep a fortnight of daily backups; the dataset is small and re-crawlable.
@@ -57,8 +60,10 @@ echo "==> Starting services"
 "${COMPOSE[@]}" up -d
 
 echo "==> Waiting for the API to report healthy"
+api_port="$(sed -n 's/^API_PORT=//p' .env | tail -1)"
+api_port="${api_port:-8100}"
 for attempt in $(seq 1 30); do
-  if curl -fsS "http://127.0.0.1:${API_PORT:-8100}/api/health" >/dev/null 2>&1; then
+  if curl -fsS "http://127.0.0.1:${api_port}/api/health" >/dev/null 2>&1; then
     echo "    API healthy after ${attempt}0s at most"
     break
   fi
@@ -71,4 +76,4 @@ for attempt in $(seq 1 30); do
 done
 
 echo "==> Done"
-curl -fsS "http://127.0.0.1:${API_PORT:-8100}/api/health"; echo
+curl -fsS "http://127.0.0.1:${api_port}/api/health"; echo
