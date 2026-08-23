@@ -14,3 +14,8 @@ ignore = [
 
 [lint.per-file-ignores]
 "backend/tests/*" = ["E501"]
+# Translations are data, not code. A Chinese sentence broken every hundred
+# columns lands mid-clause, so the file stops being readable as prose and a
+# one-word change reflows the lines around it. The English keys have to match
+# the source character for character either way.
+"backend/app/knowledge/translations_seed.py" = ["E501"]
