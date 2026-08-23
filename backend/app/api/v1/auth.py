@@ -104,36 +104,34 @@ def _normalise_nickname(nickname: str) -> str:
 
 @router.post("/verification-code")
 def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_db)) -> dict:
-    """Send a code, or quietly decline to.
+    """Send something to the address, whatever its state.
 
     The response is the same either way. A caller cannot learn from it whether
-    the address is registered.
+    the address is registered - and neither can they learn it from whether an
+    email turns up, because one always does. Which email depends on the account,
+    and only the person holding the mailbox ever reads it.
     """
     settings = get_settings()
     email = str(payload.email).strip().lower()
 
-    exists = db.scalar(select(func.count(User.id)).where(User.email == email)) or 0
-    wanted = (payload.purpose == verification.REGISTRATION and not exists) or (
-        payload.purpose == verification.PASSWORD_RESET and exists
-    )
+    exists = bool(db.scalar(select(func.count(User.id)).where(User.email == email)) or 0)
 
-    if wanted:
-        try:
-            verification.issue(db, email, payload.purpose)
-        except verification.RateLimited as limited:
-            raise HTTPException(
-                status.HTTP_429_TOO_MANY_REQUESTS,
-                "Too many code requests. Wait a moment and try again.",
-                headers={"Retry-After": str(limited.retry_after_seconds)},
-            ) from limited
-        except EmailDeliveryError as exc:
-            # A provider outage is our problem, and saying so is not a leak -
-            # the caller learns nothing about the address from it.
-            log.error("verification email failed: %s", exc)
-            raise HTTPException(
-                status.HTTP_503_SERVICE_UNAVAILABLE,
-                "We could not send the email just now. Try again shortly.",
-            ) from exc
+    try:
+        verification.issue(db, email, payload.purpose, account_exists=exists)
+    except verification.RateLimited as limited:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Too many code requests. Wait a moment and try again.",
+            headers={"Retry-After": str(limited.retry_after_seconds)},
+        ) from limited
+    except EmailDeliveryError as exc:
+        # A provider outage is our problem, and saying so is not a leak -
+        # the caller learns nothing about the address from it.
+        log.error("verification email failed: %s", exc)
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "We could not send the email just now. Try again shortly.",
+        ) from exc
 
     return {
         "expires_in_seconds": settings.verification_code_ttl_seconds,

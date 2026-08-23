@@ -18,6 +18,20 @@ def _request_code(client, email: str, purpose: str = "registration"):
     )
 
 
+def _make_account(db, email: str, nickname: str):
+    """An account that never went through the code endpoint.
+
+    Registering through the API spends the address's rate-limit budget, which
+    makes it useless for comparing a known address against an unknown one - the
+    known one is already throttled before the comparison starts.
+    """
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    db.add(User(email=email, nickname=nickname, password_hash=hash_password(PASSWORD)))
+    db.commit()
+
+
 def _register(client, mailbox, email: str, nickname: str, password: str = PASSWORD):
     _request_code(client, email)
     return client.post(
@@ -84,7 +98,14 @@ def test_a_code_is_bound_to_its_purpose(client, db, mailbox):
 
 
 def test_requesting_a_code_never_reveals_whether_the_account_exists(client, db, mailbox):
-    assert _register(client, mailbox, "known@example.com", "known").status_code == 201
+    """Same status, same body, same number of emails, same throttling.
+
+    The last one matters as much as the rest. While a taken address was skipped
+    outright it never touched the rate limiter, so it never got a 429 - and
+    "this address is never throttled" is exactly the answer the endpoint is not
+    supposed to give.
+    """
+    _make_account(db, "known@example.com", "known")
 
     before = len(mailbox.messages)
     taken = _request_code(client, "known@example.com")
@@ -92,10 +113,12 @@ def test_requesting_a_code_never_reveals_whether_the_account_exists(client, db, 
 
     assert taken.status_code == free.status_code == 200
     assert taken.json() == free.json()
-    # Identical answers, but only one of them actually sent anything: a
-    # registration code must not go to an address that already has an account.
     recipients = [m.to for m in mailbox.messages[before:]]
-    assert recipients == ["stranger@example.com"]
+    assert recipients == ["known@example.com", "stranger@example.com"]
+
+    # Immediately again: both throttled, identically.
+    assert _request_code(client, "known@example.com").status_code == 429
+    assert _request_code(client, "stranger@example.com").status_code == 429
 
 
 def test_a_second_code_request_is_rate_limited(client, db, mailbox):
@@ -222,3 +245,57 @@ def test_reset_code_is_not_issued_for_an_unknown_address(client, db, mailbox):
     assert _request_code(client, "ghost@example.com", "password_reset").status_code == 200
     with pytest.raises(AssertionError):
         mailbox.code_for("ghost@example.com")
+
+
+# --- a code request always produces an email ------------------------------
+#
+# The endpoint stays uninformative; the inbox does not. Sending nothing at all
+# is indistinguishable from a broken mail provider, and that ambiguity is what
+# makes "I never got the code" unanswerable.
+
+def _last_message(mailbox, address: str):
+    for message in reversed(mailbox.messages):
+        if message.to.lower() == address.lower():
+            return message
+    raise AssertionError(f"nothing was sent to {address}")
+
+
+def test_registering_an_address_that_already_has_an_account_still_emails(client, db, mailbox):
+    _make_account(db, "taken@example.com", "taken")
+    before = len(mailbox.messages)
+
+    assert _request_code(client, "taken@example.com").status_code == 200
+
+    assert len(mailbox.messages) == before + 1, "a second request must still send something"
+    message = _last_message(mailbox, "taken@example.com")
+    assert "already have" in message.subject.lower()
+    # And nothing in it can be mistaken for a code to type in.
+    with pytest.raises(AssertionError):
+        mailbox.code_for("taken@example.com")
+
+
+def test_reset_for_an_unknown_address_still_emails(client, db, mailbox):
+    assert _request_code(client, "ghost2@example.com", "password_reset").status_code == 200
+    message = _last_message(mailbox, "ghost2@example.com")
+    assert "no monash hub account" in message.subject.lower()
+
+
+def test_a_dead_end_code_can_never_be_redeemed(client, db, mailbox):
+    """The row is written so rate limiting behaves the same, not so it works."""
+    from app.core import verification
+
+    _make_account(db, "settled@example.com", "settled")
+    _request_code(client, "settled@example.com")
+
+    for guess in ("000000", "123456"):
+        with pytest.raises(verification.VerificationError):
+            verification.verify(db, "settled@example.com", verification.REGISTRATION, guess)
+
+
+# --- password length ------------------------------------------------------
+
+def test_eight_characters_with_two_classes_is_enough():
+    """The floor is 8. Pinned because it moved once and the four locales,
+    the browser copy and the server copy all have to agree on the number."""
+    assert password_problem("Abcdef-1") is None
+    assert password_problem("Abcde-1") is not None

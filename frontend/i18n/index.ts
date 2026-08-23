@@ -35,6 +35,15 @@ export const DEFAULT_LOCALE: LocaleCode = 'en'
 type Messages = Record<string, string>
 
 const en: Messages = {
+  // --- translation notice -------------------------------------------------
+  'translation.label': 'Unofficial translation.',
+  'translation.explain':
+    'Monash publishes this page in English. The Chinese here was written and checked by the Monash Hub team, not by the University — for anything that decides an enrolment, a fee or a visa, read the official page.',
+  'translation.stale':
+    'The official page has changed since this translation was written, so parts of it may be out of date.',
+  'translation.viewOriginal': 'Read the official English page ↗',
+  'translation.partial': 'Anything still in English has not been translated yet.',
+
   // --- chrome -------------------------------------------------------------
   'nav.units': 'Units',
   'nav.guides': 'Guides',
@@ -295,7 +304,7 @@ const en: Messages = {
   'auth.email': 'Email',
   'auth.emailHint': 'Only used to verify the account and to recover it later.',
   'auth.password': 'Password',
-  'auth.passwordHint': 'At least 10 characters, mixing at least two of: lower case, upper case, digits, symbols.',
+  'auth.passwordHint': 'At least 8 characters, mixing at least two of: lower case, upper case, digits, symbols.',
   'auth.confirmPassword': 'Confirm password',
   'auth.confirmPlaceholder': 'Repeat your password',
   'auth.newPassword': 'New password',
@@ -305,7 +314,7 @@ const en: Messages = {
   'auth.sending': 'Sending…',
   'auth.resendIn': 'Resend in {seconds}s',
   'auth.codeSent':
-    'If {email} can be used, a code is on its way. It expires in {minutes} minutes.',
+    'We have emailed {email}. If a code was needed it is in there and expires in {minutes} minutes; if the address cannot be used, the email says why.',
   'auth.createAccount': 'Create account',
   'auth.working': 'Working…',
   'auth.haveAccount': 'Already have an account? Sign in',
@@ -327,7 +336,7 @@ const en: Messages = {
   'auth.errNicknameChars': 'Use letters, numbers, underscore, dot or hyphen only.',
   'auth.errEmail': 'Enter a valid email address.',
   'auth.errCode': 'Enter the 6-digit code from the email.',
-  'auth.errPasswordShort': 'Use at least 10 characters.',
+  'auth.errPasswordShort': 'Use at least 8 characters.',
   'auth.errPasswordClasses':
     'Mix at least two of: lower case, upper case, digits, symbols.',
   'auth.errPasswordSimilar': 'Do not build the password out of your nickname or email.',
@@ -358,6 +367,15 @@ const en: Messages = {
 }
 
 const zh: Messages = {
+  // --- translation notice -------------------------------------------------
+  'translation.label': '非官方翻译。',
+  'translation.explain':
+    'Monash 官方以英文发布本页。这里的中文由 Monash Hub 团队人工翻译并校对，不是学校发布的版本——凡是涉及选课、缴费、签证的决定，请以官方英文页面为准。',
+  'translation.stale':
+    '官方页面在本译文完成之后有过改动，部分内容可能已经过时。',
+  'translation.viewOriginal': '查看官方英文原页 ↗',
+  'translation.partial': '仍显示为英文的部分尚未翻译。',
+
   'nav.units': '课程',
   'nav.guides': '官方指南',
   'nav.community': '社区',
@@ -474,11 +492,11 @@ const zh: Messages = {
   'unit.colActivity': '教学活动',
   'unit.colDuration': '时长',
   'unit.noOfferingsPublished': 'Handbook 未公布这门课的开课信息。',
-  'unit.examYes': 'Handbook 为这门课列出了 examination。',
-  'unit.examNo': 'Handbook 的考核项里没有列出期末 examination。这不等于保证没有考试。',
+  'unit.examYes': 'Handbook 为这门课列出了期末考试（examination）。',
+  'unit.examNo': 'Handbook 列出的考核项里没有期末考试（examination）。这不等于保证一定没有考试。',
   'unit.examUnknown': 'Handbook 还没有公布这门课的考核项。',
   'unit.noRequisites': 'Handbook 未为这门课列出先修、同修或禁修要求。',
-  'unit.joinedBy': '以 {connector} 连接。',
+  'unit.joinedBy': '以上各项以「{connector}」的关系相连。',
   'unit.noWorkload': '未公布工作量说明。',
   'unit.askAbout': '关于 {code} 提问',
   'unit.askHint': '答案直接来自上面的 Handbook 字段——没有 AI，不做猜测，每条都能点回来源。',
@@ -597,7 +615,7 @@ const zh: Messages = {
   'auth.email': '邮箱',
   'auth.emailHint': '仅用于验证账号和以后找回账号。',
   'auth.password': '密码',
-  'auth.passwordHint': '至少 10 位，且至少包含小写、大写、数字、符号中的两类。',
+  'auth.passwordHint': '至少 8 位，且至少包含小写、大写、数字、符号中的两类。',
   'auth.confirmPassword': '确认密码',
   'auth.confirmPlaceholder': '再输入一次密码',
   'auth.newPassword': '新密码',
@@ -606,7 +624,7 @@ const zh: Messages = {
   'auth.sendCode': '发送验证码',
   'auth.sending': '发送中…',
   'auth.resendIn': '{seconds} 秒后可重发',
-  'auth.codeSent': '如果 {email} 可以使用，验证码已经在路上了，{minutes} 分钟内有效。',
+  'auth.codeSent': '已经给 {email} 发了邮件。如果需要验证码，它就在邮件里，{minutes} 分钟内有效；如果这个地址用不了，邮件里会说明原因。',
   'auth.createAccount': '创建账号',
   'auth.working': '处理中…',
   'auth.haveAccount': '已经有账号了？去登录',
@@ -626,7 +644,7 @@ const zh: Messages = {
   'auth.errNicknameChars': '只能使用字母、数字、下划线、点或连字符。',
   'auth.errEmail': '请输入有效的邮箱地址。',
   'auth.errCode': '请输入邮件里的 6 位验证码。',
-  'auth.errPasswordShort': '至少 10 位。',
+  'auth.errPasswordShort': '至少 8 位。',
   'auth.errPasswordClasses': '至少包含小写、大写、数字、符号中的两类。',
   'auth.errPasswordSimilar': '密码不要用昵称或邮箱拼出来。',
   'auth.errConfirm': '请再输入一次密码。',
@@ -653,6 +671,15 @@ const zh: Messages = {
 }
 
 const ja: Messages = {
+  // --- translation notice -------------------------------------------------
+  'translation.label': '非公式翻訳です。',
+  'translation.explain':
+    'Monash はこのページを英語で公開しています。ここでの訳文は Monash Hub チームが作成・確認したもので、大学によるものではありません。履修・学費・ビザに関わる判断は公式ページで確認してください。',
+  'translation.stale':
+    'この訳文の作成後に公式ページが更新されているため、内容が古くなっている可能性があります。',
+  'translation.viewOriginal': '公式の英語ページを見る ↗',
+  'translation.partial': '英語のままの部分はまだ翻訳されていません。',
+
   'nav.units': 'ユニット',
   'nav.guides': '公式ガイド',
   'nav.community': 'コミュニティ',
@@ -901,7 +928,7 @@ const ja: Messages = {
   'auth.email': 'メールアドレス',
   'auth.emailHint': 'アカウントの確認と、後で復旧するためだけに使います。',
   'auth.password': 'パスワード',
-  'auth.passwordHint': '10 文字以上、小文字・大文字・数字・記号のうち 2 種類以上を含めてください。',
+  'auth.passwordHint': '8 文字以上、小文字・大文字・数字・記号のうち 2 種類以上を含めてください。',
   'auth.confirmPassword': 'パスワードの確認',
   'auth.confirmPlaceholder': 'もう一度入力してください',
   'auth.newPassword': '新しいパスワード',
@@ -910,7 +937,7 @@ const ja: Messages = {
   'auth.sendCode': 'コードを送る',
   'auth.sending': '送信中…',
   'auth.resendIn': '{seconds} 秒後に再送できます',
-  'auth.codeSent': '{email} が使用可能であれば、コードを送信しました。{minutes} 分で期限切れになります。',
+  'auth.codeSent': '{email} にメールを送りました。コードが必要な場合はその中にあり、{minutes} 分で期限切れになります。使用できないアドレスの場合は、理由がメールに書かれています。',
   'auth.createAccount': 'アカウントを作成',
   'auth.working': '処理中…',
   'auth.haveAccount': 'すでにアカウントをお持ちですか？ログイン',
@@ -932,7 +959,7 @@ const ja: Messages = {
   'auth.errNicknameChars': '英数字、アンダースコア、ドット、ハイフンのみ使えます。',
   'auth.errEmail': '有効なメールアドレスを入力してください。',
   'auth.errCode': 'メールに記載された 6 桁のコードを入力してください。',
-  'auth.errPasswordShort': '10 文字以上にしてください。',
+  'auth.errPasswordShort': '8 文字以上にしてください。',
   'auth.errPasswordClasses': '小文字・大文字・数字・記号のうち 2 種類以上を含めてください。',
   'auth.errPasswordSimilar': 'ニックネームやメールアドレスからパスワードを作らないでください。',
   'auth.errConfirm': 'パスワードをもう一度入力してください。',
@@ -960,6 +987,15 @@ const ja: Messages = {
 }
 
 const ko: Messages = {
+  // --- translation notice -------------------------------------------------
+  'translation.label': '비공식 번역입니다.',
+  'translation.explain':
+    'Monash는 이 페이지를 영어로 공개합니다. 여기의 번역문은 Monash Hub 팀이 작성하고 검토한 것이며 대학이 제공한 것이 아닙니다. 수강, 학비, 비자에 관한 결정은 공식 페이지를 확인하세요.',
+  'translation.stale':
+    '이 번역이 작성된 뒤 공식 페이지가 바뀌었으므로 일부 내용은 오래된 것일 수 있습니다.',
+  'translation.viewOriginal': '공식 영어 페이지 보기 ↗',
+  'translation.partial': '영어로 남아 있는 부분은 아직 번역되지 않았습니다.',
+
   'nav.units': '과목',
   'nav.guides': '공식 가이드',
   'nav.community': '커뮤니티',
@@ -1207,7 +1243,7 @@ const ko: Messages = {
   'auth.email': '이메일',
   'auth.emailHint': '계정 확인과 나중의 복구에만 사용합니다.',
   'auth.password': '비밀번호',
-  'auth.passwordHint': '10자 이상, 소문자·대문자·숫자·기호 중 두 가지 이상을 섞으세요.',
+  'auth.passwordHint': '8자 이상, 소문자·대문자·숫자·기호 중 두 가지 이상을 섞으세요.',
   'auth.confirmPassword': '비밀번호 확인',
   'auth.confirmPlaceholder': '비밀번호를 다시 입력하세요',
   'auth.newPassword': '새 비밀번호',
@@ -1216,7 +1252,7 @@ const ko: Messages = {
   'auth.sendCode': '코드 보내기',
   'auth.sending': '보내는 중…',
   'auth.resendIn': '{seconds}초 후 재전송',
-  'auth.codeSent': '{email}을(를) 사용할 수 있다면 코드를 보냈습니다. {minutes}분 후 만료됩니다.',
+  'auth.codeSent': '{email}(으)로 메일을 보냈습니다. 코드가 필요했다면 메일 안에 있고 {minutes}분 후 만료됩니다. 사용할 수 없는 주소라면 그 이유가 메일에 적혀 있습니다.',
   'auth.createAccount': '계정 만들기',
   'auth.working': '처리 중…',
   'auth.haveAccount': '이미 계정이 있나요? 로그인',
@@ -1238,7 +1274,7 @@ const ko: Messages = {
   'auth.errNicknameChars': '영문, 숫자, 밑줄, 점, 하이픈만 사용할 수 있습니다.',
   'auth.errEmail': '유효한 이메일 주소를 입력하세요.',
   'auth.errCode': '메일에 적힌 6자리 코드를 입력하세요.',
-  'auth.errPasswordShort': '10자 이상 입력하세요.',
+  'auth.errPasswordShort': '8자 이상 입력하세요.',
   'auth.errPasswordClasses': '소문자·대문자·숫자·기호 중 두 가지 이상을 섞으세요.',
   'auth.errPasswordSimilar': '닉네임이나 이메일로 비밀번호를 만들지 마세요.',
   'auth.errConfirm': '비밀번호를 다시 입력하세요.',

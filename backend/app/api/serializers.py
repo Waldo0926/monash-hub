@@ -3,14 +3,25 @@
 Kept in one place so that "official" and "community" payloads always carry the
 fields the UI needs to label them differently: a source, and when we last
 checked it.
+
+Official payloads optionally carry a third thing: a ``translation`` object, set
+when a human-written translation was applied. The UI needs it to say so on
+screen - a Chinese paragraph presented as though Monash wrote it in Chinese is
+the one outcome the whole translation feature has to avoid. ``None`` means what
+you are reading is the source, verbatim.
 """
 from __future__ import annotations
 
 from typing import Any
 
+from app.knowledge.translations import Translation, translate_blocks, translated_headings
 from app.models.community import CommunityAnswer, CommunityPost
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
+
+# A translation that has nothing in it: every serialiser can take one, so the
+# untranslated path is the same code as the translated one.
+NO_TRANSLATION = Translation("")
 
 
 def _iso(value) -> str | None:
@@ -41,16 +52,19 @@ def unit_brief(unit: Unit) -> dict[str, Any]:
     }
 
 
-def unit_detail(unit: Unit) -> dict[str, Any]:
+def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         **unit_brief(unit),
         "school": unit.school,
-        "overview": unit.overview,
+        "overview": tr.field("overview", unit.overview),
         "areas_of_study": unit.areas_of_study,
-        "teaching_approach": unit.teaching_approach,
-        "workload_requirements": unit.workload_requirements,
-        "assessment_summary": unit.assessment_summary,
-        "assessment_static_text": unit.assessment_static_text,
+        "teaching_approach": tr.field("teaching_approach", unit.teaching_approach),
+        "workload_requirements": tr.field("workload_requirements", unit.workload_requirements),
+        "assessment_summary": tr.field("assessment_summary", unit.assessment_summary),
+        # One string, identical on thousands of units - it lives in the global
+        # set rather than being stored 2,596 times.
+        "assessment_static_text": tr.string(unit.assessment_static_text),
+        "translation": tr.meta(),
         "handbook_version": unit.handbook_version,
         "assessments": [
             {
@@ -69,7 +83,7 @@ def unit_detail(unit: Unit) -> dict[str, Any]:
                 "requisite_type": g.requisite_type,
                 "connector": g.connector,
                 "title": g.title,
-                "description": g.description,
+                "description": tr.string(g.description),
                 "items": [
                     {
                         "code": i.item_code,
@@ -84,7 +98,7 @@ def unit_detail(unit: Unit) -> dict[str, Any]:
             for g in unit.requisite_groups
         ],
         "learning_outcomes": [
-            {"code": o.code, "number": o.number, "description": o.description}
+            {"code": o.code, "number": o.number, "description": tr.string(o.description)}
             for o in unit.learning_outcomes
         ],
         "activities": [
@@ -94,13 +108,14 @@ def unit_detail(unit: Unit) -> dict[str, Any]:
     }
 
 
-def official_brief(page: OfficialPage) -> dict[str, Any]:
+def official_brief(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         "slug": page.slug,
-        "title": page.title,
+        "title": tr.field("title", page.title),
         "category": page.category,
         "tags": list(page.tags or []),
-        "summary": page.summary,
+        "summary": tr.field("summary", page.summary),
+        "translation": tr.meta(),
         "url": page.canonical_url,
         "status": page.status,
         "last_checked": _iso(page.last_checked),
@@ -108,21 +123,28 @@ def official_brief(page: OfficialPage) -> dict[str, Any]:
     }
 
 
-def official_detail(page: OfficialPage) -> dict[str, Any]:
+def official_detail(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    blocks = translate_blocks(page.blocks or [], tr)
     return {
-        **official_brief(page),
-        "headings": page.headings or [],
+        **official_brief(page, tr),
+        # Rebuilt from the translated blocks rather than from the stored
+        # outline, so the contents list and the headings it points at cannot
+        # end up in two different languages.
+        "headings": translated_headings(blocks) if tr.strings else (page.headings or []),
+        # ``blocks`` is what the page renders; ``clean_text`` is kept as the
+        # fallback for a page crawled before the structured extractor existed.
+        "blocks": blocks,
         "clean_text": page.clean_text,
         "source_name": page.source.name if page.source else None,
         "refresh_tier": page.refresh_tier,
     }
 
 
-def faq_brief(entry: FaqEntry) -> dict[str, Any]:
+def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         "slug": entry.slug,
-        "question": entry.question,
-        "answer": entry.answer,
+        "question": tr.field("question", entry.question),
+        "answer": tr.field("answer", entry.answer),
         "category": entry.category,
         "tags": list(entry.tags or []),
         "official_url": entry.official_url

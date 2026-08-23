@@ -9,7 +9,7 @@ const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
 const code = computed(() => String(route.params.code).toUpperCase())
 
-const { data: unit, error } = await useApiFetch<any>(() => `/v1/units/${code.value}`)
+const { data: unit, error } = await useLocalisedApiFetch<any>(() => `/v1/units/${code.value}`)
 const { data: discussions } = await useApiFetch<any>(
   () => `/v1/community/posts?unit_code=${code.value}&limit=5`
 )
@@ -77,8 +77,8 @@ useHead(() => ({
           <span v-if="unit.credit_points" class="chip">
             {{ unit.credit_points }} {{ $t('units.creditPoints') }}
           </span>
-          <span v-if="unit.level" class="chip">{{ unit.level }}</span>
-          <span v-if="unit.faculty" class="chip">{{ unit.faculty }}</span>
+          <span v-if="unit.level" class="chip">{{ $term('level', unit.level) }}</span>
+          <span v-if="unit.faculty" class="chip">{{ $term('faculty', unit.faculty) }}</span>
         </p>
         <LastChecked :value="unit.last_checked" />
       </header>
@@ -87,6 +87,12 @@ useHead(() => ({
         <div class="content stack">
           <section v-if="unit.overview" id="overview" class="card section">
             <h2>{{ $t('unit.overview') }}</h2>
+            <TranslationNotice
+              v-if="unit.translation"
+              :translation="unit.translation"
+              :source-url="unit.source_url"
+              class="mb"
+            />
             <p class="pre">{{ unit.overview }}</p>
             <p v-if="unit.areas_of_study" class="small muted">
               {{ $t('unit.areasOfStudy') }}: {{ unit.areas_of_study }}
@@ -106,9 +112,9 @@ useHead(() => ({
                 </thead>
                 <tbody>
                   <tr v-for="(offering, i) in unit.offerings" :key="i">
-                    <td>{{ offering.campus || '—' }}</td>
-                    <td>{{ offering.teaching_period || '—' }}</td>
-                    <td>{{ offering.attendance_mode || '—' }}</td>
+                    <td>{{ $term('campus', offering.campus) || '—' }}</td>
+                    <td>{{ $term('period', offering.teaching_period) || '—' }}</td>
+                    <td>{{ $term('mode', offering.attendance_mode) || '—' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -137,10 +143,10 @@ useHead(() => ({
                 <tbody>
                   <tr v-for="item in unit.assessments" :key="item.number">
                     <td>{{ item.number }}</td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.type || '—' }}</td>
+                    <td>{{ $assessmentName(item.name) }}</td>
+                    <td>{{ $term('assessmentType', item.type) || '—' }}</td>
                     <td>{{ item.weight ? `${item.weight}%` : '—' }}</td>
-                    <td>{{ item.hurdle || '—' }}</td>
+                    <td>{{ $term('hurdle', item.hurdle) || '—' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -153,7 +159,7 @@ useHead(() => ({
             <h2>{{ $t('unit.requisites') }}</h2>
             <template v-if="unit.requisites.length">
               <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
-                <h3 class="req-type">{{ type }}</h3>
+                <h3 class="req-type">{{ $term('requisiteType', String(type)) }}</h3>
                 <div v-for="(group, gi) in groups" :key="gi" class="req-group">
                   <p v-if="group.description" class="small pre">{{ group.description }}</p>
                   <ul v-if="group.items.length">
@@ -163,7 +169,7 @@ useHead(() => ({
                     </li>
                   </ul>
                   <p v-if="group.connector && group.items.length > 1" class="tiny muted">
-                    {{ $t('unit.joinedBy', { connector: group.connector }) }}
+                    {{ $t('unit.joinedBy', { connector: $term('connector', group.connector) || group.connector }) }}
                   </p>
                 </div>
               </div>
@@ -190,7 +196,7 @@ useHead(() => ({
                 </thead>
                 <tbody>
                   <tr v-for="(activity, i) in unit.activities" :key="i">
-                    <td>{{ activity.activity_type }}</td>
+                    <td>{{ $term('activityType', activity.activity_type) }}</td>
                     <td>{{ activity.name || '—' }}</td>
                   </tr>
                 </tbody>
@@ -269,6 +275,7 @@ useHead(() => ({
 </template>
 
 <style scoped>
+.mb { margin-bottom: var(--s5); }
 .head { padding: var(--s5); margin-bottom: var(--s5); }
 .head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
 .head h1 { margin-bottom: var(--s3); }
@@ -276,6 +283,11 @@ useHead(() => ({
 .chip { padding: 2px 10px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: 0.78rem; }
 
 .body { display: grid; grid-template-columns: 1fr 280px; gap: var(--s5); align-items: start; }
+/* A grid item defaults to min-width:auto, so a wide table inside .scroll-x
+   stretches its own column instead of scrolling, and the whole page ends up
+   scrolling sideways on a phone. This is the line that keeps the scroll inside
+   the table where it belongs. */
+.body > * { min-width: 0; }
 .section { padding: var(--s5); }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
 .pre { white-space: pre-line; }

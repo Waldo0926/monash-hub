@@ -6,7 +6,7 @@
  * looking at the field, rather than after a round trip. If the two ever
  * disagree, the server wins and the form shows its message.
  */
-export const PASSWORD_MIN_LENGTH = 10
+export const PASSWORD_MIN_LENGTH = 8
 
 export function passwordProblem(password: string, avoid: string[] = []): string | null {
   if (password.length < PASSWORD_MIN_LENGTH) return 'auth.errPasswordShort'

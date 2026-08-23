@@ -35,6 +35,32 @@ export function useApiFetch<T>(path: string | (() => string), options: Record<st
   return useFetch<T>(() => apiUrl(resolve()), { ...options, key })
 }
 
+/**
+ * The same GET, asking for the reader's language.
+ *
+ * The locale rides in the query string rather than in a header. Three reasons,
+ * and the first two are the ones that bite: the SSR fetch and the client fetch
+ * have to agree on the cache key or the page hydrates against a different
+ * payload than it rendered with, and a header that varies per browser is a poor
+ * cache key for a page that is otherwise identical for everyone. The third is
+ * that it makes a translated page linkable.
+ *
+ * Reading `locale.value` inside the getter is what makes the switcher work: the
+ * URL is a reactive dependency, so changing language refetches rather than
+ * leaving Chinese chrome around English content.
+ */
+export function useLocalisedApiFetch<T>(
+  path: string | (() => string),
+  options: Record<string, any> = {}
+) {
+  const { locale } = useLocale()
+  const resolve = typeof path === 'function' ? path : () => path
+  return useApiFetch<T>(() => {
+    const resolved = resolve()
+    return `${resolved}${resolved.includes('?') ? '&' : '?'}locale=${locale.value}`
+  }, options)
+}
+
 /** Imperative call, for form submissions and other browser-side actions. */
 export function apiFetch<T>(path: string, options: Record<string, any> = {}): Promise<T> {
   const token = import.meta.client ? localStorage.getItem('mh_token') : null

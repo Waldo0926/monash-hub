@@ -1,7 +1,7 @@
 """Shared FastAPI dependencies."""
 from __future__ import annotations
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -42,3 +42,23 @@ def current_admin(user: User = Depends(current_user)) -> User:
     if not user.is_admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Moderator access required")
     return user
+
+
+# The four interface languages. An unknown value is treated as "no translation"
+# rather than rejected: a stale bookmark with ?locale=fr should show the page in
+# English, not a 422.
+LOCALES = ("en", "zh", "ja", "ko")
+
+
+def requested_locale(locale: str | None = Query(None, pattern="^[A-Za-z-]{0,16}$")) -> str | None:
+    """Which language to look translations up in, or ``None`` for the source.
+
+    A query parameter rather than ``Accept-Language``: the language is a thing
+    the reader chose in the switcher, it has to be part of the URL for the cache
+    and the SSR fetch to agree on it, and a header that varies per browser is a
+    poor cache key for a page that is otherwise identical for everyone.
+    """
+    if not locale:
+        return None
+    code = locale.strip().lower().split("-")[0]
+    return code if code in LOCALES else None
