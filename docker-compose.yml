@@ -47,6 +47,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://monashhub.secureview.tech}
+      SITE_URL: ${SITE_URL:-https://monashhub.secureview.tech}
       CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
       EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-no-reply@monashhub.secureview.tech}

@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     secret_key: str = "dev-only-change-me"
     access_token_ttl_minutes: int = 60 * 24 * 14
 
+    # The public origin, for links inside emails. The frontend has its own copy
+    # of this; the API needs one because nothing in a transactional email can be
+    # a relative URL.
+    site_url: str = "https://monashhub.secureview.tech"
+
     # --- Email verification -------------------------------------------------
     # Registration and password reset are both gated on a code sent to the
     # address, so the account can actually be recovered later.

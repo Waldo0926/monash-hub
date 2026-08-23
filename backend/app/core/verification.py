@@ -7,6 +7,16 @@ time.
 The endpoints that use this must answer identically whether or not the address
 belongs to an account. Registration and password reset are both places where a
 helpful "no such user" tells a stranger who has an account here.
+
+That silence used to extend to the inbox: asking for a registration code with an
+address that already had an account sent nothing at all, and the screen still
+said a code was on its way. Nobody could tell that apart from a broken mail
+provider, and the first person it cost an afternoon was the person who built it.
+
+So a request now always sends *an* email - either the code, or a short note
+saying why there is no code and what to do instead. The endpoint's answer is
+unchanged, the rate limiting is unchanged, and the note only ever reaches
+somebody who already controls the mailbox, so it tells a stranger nothing.
 """
 from __future__ import annotations
 
@@ -53,11 +63,27 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def issue(db: Session, email: str, purpose: str) -> tuple[int, int]:
-    """Create and send a code. Returns ``(ttl_seconds, resend_after_seconds)``.
+def is_usable(purpose: str, account_exists: bool) -> bool:
+    """Whether a code for this purpose could actually be redeemed.
 
-    Raises :class:`RateLimited` when the address has asked too often. Callers
-    must still answer the client neutrally.
+    A registration code is worthless once the address has an account, and a
+    reset code is worthless when it does not. In both cases we still take the
+    request, still spend the rate-limit budget and still send an email - we just
+    send one that explains itself instead of six digits that lead nowhere.
+    """
+    return account_exists if purpose == PASSWORD_RESET else not account_exists
+
+
+def issue(db: Session, email: str, purpose: str, *, account_exists: bool) -> tuple[int, int]:
+    """Take a code request and send the matching email.
+
+    Returns ``(ttl_seconds, resend_after_seconds)``. Raises :class:`RateLimited`
+    when the address has asked too often. Callers must still answer the client
+    neutrally.
+
+    The work is deliberately identical whether or not a code is usable: the same
+    rate-limit checks, the same row written, the same one outbound message. Only
+    the body of that message differs, and only the mailbox owner reads it.
     """
     if purpose not in PURPOSES:
         raise ValueError(f"unknown purpose: {purpose}")
@@ -98,6 +124,7 @@ def issue(db: Session, email: str, purpose: str) -> tuple[int, int]:
     ):
         row.consumed_at = now
 
+    usable = is_usable(purpose, account_exists)
     code = f"{secrets.randbelow(1_000_000):06d}"
     db.add(
         EmailVerificationCode(
@@ -106,18 +133,28 @@ def issue(db: Session, email: str, purpose: str) -> tuple[int, int]:
             code_digest=_digest(code, email),
             max_attempts=settings.verification_max_attempts,
             expires_at=now + timedelta(seconds=settings.verification_code_ttl_seconds),
+            # A row is written either way so the rate limiter behaves the same
+            # for every address, but a code nobody can redeem is retired on the
+            # spot rather than left sitting there redeemable.
+            consumed_at=None if usable else now,
         )
     )
     db.commit()
 
     minutes = max(1, settings.verification_code_ttl_seconds // 60)
-    Emailer(settings).send(
-        Message(
+    if usable:
+        message = Message(
             to=email,
             subject=_subject(purpose),
             text=_body(purpose, code, minutes),
         )
-    )
+    else:
+        message = Message(
+            to=email,
+            subject=_dead_end_subject(purpose),
+            text=_dead_end_body(purpose),
+        )
+    Emailer(settings).send(message)
     return settings.verification_code_ttl_seconds, settings.verification_resend_interval_seconds
 
 
@@ -166,6 +203,46 @@ def prune(db: Session, older_than_days: int = 30) -> int:
     return len(rows)
 
 
+def _dead_end_subject(purpose: str) -> str:
+    return {
+        REGISTRATION: "You already have a Monash Hub account",
+        PASSWORD_RESET: "No Monash Hub account uses this address",
+    }[purpose]
+
+
+def _dead_end_body(purpose: str) -> str:
+    """What to send when the code would have been useless.
+
+    Deliberately contains no six-digit number anywhere: this is the message a
+    person gets when there is nothing to type in, and a stray number in it would
+    have them typing it in anyway.
+    """
+    site = get_settings().site_url.rstrip("/")
+    if purpose == REGISTRATION:
+        middle = (
+            "Somebody - probably you - just tried to create a Monash Hub account "
+            "with this address. There is already an account here, so no second "
+            "one was created and there is no code to enter.\n\n"
+            f"Sign in:              {site}/login\n"
+            f"Forgotten password:   {site}/forgot-password\n"
+        )
+    else:
+        middle = (
+            "Somebody - probably you - just asked to reset a Monash Hub password "
+            "for this address. No account here uses it, so there is nothing to "
+            "reset and no code to enter.\n\n"
+            f"Create an account:    {site}/register\n"
+        )
+    return (
+        f"{middle}\n"
+        "If this was not you, you can ignore this email - nothing has changed, "
+        "and nobody learned anything about you from it.\n\n"
+        "Monash Hub is an independent student platform and is not affiliated "
+        "with Monash University.\n"
+        f"{site}\n"
+    )
+
+
 def _subject(purpose: str) -> str:
     return {
         REGISTRATION: "Your Monash Hub verification code",
@@ -186,5 +263,5 @@ def _body(purpose: str, code: str, minutes: int) -> str:
         "changed on your account.\n\n"
         "Monash Hub is an independent student platform and is not affiliated "
         "with Monash University.\n"
-        "https://monashhub.secureview.tech\n"
+        f"{get_settings().site_url.rstrip('/')}\n"
     )

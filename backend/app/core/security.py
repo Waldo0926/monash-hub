@@ -14,7 +14,7 @@ ALGORITHM = "HS256"
 # bcrypt silently truncates at 72 bytes, so reject longer input rather than
 # accept a password whose tail never mattered.
 MAX_PASSWORD_BYTES = 72
-MIN_PASSWORD_LENGTH = 10
+MIN_PASSWORD_LENGTH = 8
 
 
 def hash_password(raw: str) -> str:
