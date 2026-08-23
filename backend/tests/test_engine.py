@@ -125,3 +125,20 @@ def test_the_model_landing_on_the_agreed_wording_is_accepted():
 
     engine = translator(stub)
     assert engine.text("Pay before the census date.") == "在census date（学籍统计日）之前付款。"
+
+
+def test_an_acronym_the_model_copied_is_still_replaced():
+    """WAM, NSR and SFR come back from the model untouched.
+
+    The term is then still in English rather than wrongly rendered, so the
+    agreed wording can go in instead of the sentence being given up on.
+    """
+    def stub(text):
+        if "Zq" in text:
+            return "兹卡不计入。"                 # placeholder lost
+        if text == "WAM":
+            return "WAM"
+        return "WAM 不计入计算。"                 # copied straight through
+
+    engine = translator(stub)
+    assert engine.text("WAM is not included.") == "WAM（加权平均分）不计入计算。"

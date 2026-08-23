@@ -174,9 +174,16 @@ class Translator:
             if agreed in plain:
                 continue  # the model happened to land on the agreed wording
             rendered = self._bare(written)
-            if not rendered or rendered not in plain:
-                return None
-            plain = plain.replace(rendered, agreed)
+            if rendered and rendered in plain:
+                plain = plain.replace(rendered, agreed)
+                continue
+            if written in plain:
+                # An acronym the model copied rather than translated - WAM,
+                # NSR, SFR come back untouched. That is the term still in
+                # English, not a wrong rendering of it, so it can be replaced.
+                plain = plain.replace(written, agreed)
+                continue
+            return None
         return _tidy(plain, self.locale)
 
     def _bare(self, term: str) -> str:
@@ -299,7 +306,11 @@ def _tidy(text: str, locale: str) -> str:
     # space words. A space between Latin and CJK is correct and stays
     # ("Monash 大学"), and so is one before a digit ("第 2 级").
     text = re.sub(rf"(?<=[{_CJK}])[ \t]+(?=[{_CJK}])", "", text)
-    # A space against CJK punctuation is not.
+    # A space against CJK punctuation is not - on either side of it. The
+    # closing bracket of an agreed term ("WAM（加权平均分）") is the common
+    # case: the term goes back in where a Latin word was, and the space that
+    # followed the Latin word stays behind.
     text = re.sub(r"[ \t]+(?=[，。、；：？！）])", "", text)
+    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     return re.sub(r"[ \t]{2,}", " ", text).strip()
