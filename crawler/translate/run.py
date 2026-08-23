@@ -61,6 +61,9 @@ def unit_strings(unit: Unit, *, long_prose: bool) -> list[str]:
         strings += [activity.activity_type, activity.name]
     for group in unit.requisite_groups:
         strings.append(group.description)
+        # The names the Handbook gives the units it points at. Historical
+        # titles, sometimes: worth translating, not worth replacing.
+        strings += [item.item_name for item in group.items]
 
     if long_prose:
         for field in (

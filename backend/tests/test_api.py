@@ -243,3 +243,48 @@ def test_reports_can_be_filed_and_only_admins_can_read_them(client, loaded, mail
     assert client.get(
         "/api/v1/community/reports", headers={"Authorization": f"Bearer {token}"}
     ).status_code == 403
+
+
+def test_a_requisite_name_is_translated_as_the_handbook_wrote_it(client, db, handbook_html):
+    """FIT2102 lists FIT1008 as a prohibition, calling it what it was called then.
+
+    The Handbook's requisite records are snapshots: this one names FIT1008
+    "Introduction to computer science", the 2019 title, while FIT1008's own 2026
+    page says "Fundamentals of algorithms". We translate the sentence the
+    Handbook wrote. Substituting today's title would be putting words in its
+    mouth.
+    """
+    from app.models.translation import MACHINE, PUBLISHED, UNIT, ContentTranslation
+
+    for code in ("FIT2102", "FIT1008"):
+        upsert_unit(db, parse_unit_page(handbook_html(code), unit_url(code, 2026)))
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="FIT2102", field="content",
+            provenance=MACHINE, status=PUBLISHED,
+            data={"strings": {"Introduction to computer science": "计算机科学导论"}},
+        )
+    )
+    db.commit()
+
+    body = client.get("/api/v1/units/FIT2102", params={"locale": "zh"}).json()
+    names = {
+        item["code"]: item["name"]
+        for group in body["requisites"]
+        for item in group["items"]
+    }
+    assert names["FIT1008"] == "计算机科学导论"
+
+
+def test_an_untranslated_requisite_keeps_its_english_name(client, db, handbook_html):
+    for code in ("FIT2102", "FIT1008"):
+        upsert_unit(db, parse_unit_page(handbook_html(code), unit_url(code, 2026)))
+    db.commit()
+
+    body = client.get("/api/v1/units/FIT2102", params={"locale": "zh"}).json()
+    names = {
+        item["code"]: item["name"]
+        for group in body["requisites"]
+        for item in group["items"]
+    }
+    assert names["FIT1008"] == "Introduction to computer science"
