@@ -25,6 +25,7 @@ import threading
 from collections.abc import Iterable
 
 from app.knowledge.glossary import (
+    is_critical,
     is_only_placeholders,
     placeholders_survived,
     protect,
@@ -186,7 +187,14 @@ class Translator:
                 # English, not a wrong rendering of it, so it can be replaced.
                 plain = plain.replace(written, agreed)
                 continue
-            return None
+            if is_critical(written):
+                # Rendered some third way in context, and this is a term a
+                # student acts on with their money or their visa. English, and
+                # no guessing at it.
+                return None
+            # Anything else: the model's own wording stands rather than the
+            # whole sentence going back to English over a word like "results".
+            log.debug("kept the model's wording for %r in: %s", written, source[:50])
         return _tidy(plain, self.locale)
 
     def _bare(self, term: str) -> str:
