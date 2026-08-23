@@ -189,3 +189,63 @@ def test_html_comments_are_not_page_text():
     for leak in ("endnoindex", "WIP", "call-to-action", "Feature Box"):
         assert leak not in rendered
     assert "plan your payments" in result["clean_text"]
+
+
+def test_a_table_inside_a_list_item_stays_a_table():
+    """The results legend keeps its older grading tables inside a <ul>.
+
+    Flattened with the rest of the item, a whole table arrived as one line -
+    "Code, grade and mark range for 2017 to 2019CodeGradeMarkHD High
+    Distinction 80-100 D..." - which is neither readable nor translatable.
+    """
+    html = """
+    <html><body><main>
+      <h1>Results legend</h1>
+      <ul>
+        <li>
+          <table>
+            <caption>Code, grade and mark range for 2017 to 2019.</caption>
+            <thead><tr><th>Code</th><th>Grade</th><th>Mark</th></tr></thead>
+            <tbody>
+              <tr><td>HD</td><td>High Distinction</td><td>80–100</td></tr>
+              <tr><td>D</td><td>Distinction</td><td>70–79</td></tr>
+            </tbody>
+          </table>
+        </li>
+      </ul>
+    </main></body></html>
+    """
+    blocks = clean_page(html, url="https://www.monash.edu/results-legend")["blocks"]
+    tables = [b for b in blocks if b["type"] == "table"]
+    assert len(tables) == 1
+    assert tables[0]["columns"] == ["Code", "Grade", "Mark"]
+    assert tables[0]["rows"] == [
+        ["HD", "High Distinction", "80–100"],
+        ["D", "Distinction", "70–79"],
+    ]
+    # and nothing was left behind as a run-together bullet
+    for block in blocks:
+        if block["type"] == "list":
+            for item in block["items"]:
+                assert "High Distinction" not in "".join(s["text"] for s in item)
+
+
+def test_the_cms_placeholder_is_not_a_description():
+    """"NEED DESCRIPTION" is a note to the page's author, and it reached
+    five grades on the results legend as their explanation."""
+    html = """
+    <html><body><main>
+      <h1>Results legend</h1>
+      <h3>Exempt</h3>
+      <p>NEED DESCRIPTION</p>
+      <h3>Not Assessed</h3>
+      <p>This grade is used to finalise a unit undertaken on a non-assessed basis.</p>
+    </main></body></html>
+    """
+    blocks = clean_page(html, url="https://www.monash.edu/results-legend")["blocks"]
+    text = " ".join(
+        "".join(s["text"] for s in b.get("spans", []))
+        for b in blocks if b["type"] == "paragraph"
+    )
+    assert "NEED DESCRIPTION" not in text
+    assert "non-assessed" in text
