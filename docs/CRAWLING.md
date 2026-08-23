@@ -15,6 +15,20 @@ Two sources, both public, both small:
 We do not crawl the whole site, follow arbitrary links, or download images,
 video, PDFs or any other binary.
 
+## Backfilling a whole year
+
+```bash
+deployment/crawl.sh handbook --all --min-interval 1.5
+```
+
+Five thousand units at a second and a half apart is around three hours, so it is
+run detached and watched through the log, not in a terminal someone has to keep
+open. It is resumable: `--skip-fresh 24` drops anything already crawled today,
+so a run that dies partway can simply be started again.
+
+This is a one-off. Afterwards the same units cost almost nothing to re-check,
+because an unchanged page is a hash comparison and no write.
+
 ## Rate limits
 
 Set in `crawler/throttling/limiter.py` and applied to every request:
