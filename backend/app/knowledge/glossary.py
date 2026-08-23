@@ -446,6 +446,18 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "Moodle",
         "ko": "Moodle",
     },
+    # Monash's own name for where the rules live. Left to itself the model
+    # reads "bank" as the financial kind and renders it 政策银行.
+    "policy bank": {
+        "zh": "政策库（policy bank）",
+        "ja": "ポリシーバンク（policy bank）",
+        "ko": "정책 모음(policy bank)",
+    },
+    "policies and procedures": {
+        "zh": "政策与流程",
+        "ja": "ポリシーと手続き",
+        "ko": "정책 및 절차",
+    },
 
     # --- international students ---------------------------------------------
     "student visa": {
@@ -1403,6 +1415,28 @@ def protect(text: str, locale: str) -> tuple[str, list[str]]:
         return placeholder(len(replacements) - 1)
 
     return _PATTERN.sub(swap, text), replacements
+
+
+def terms_in(text: str, locale: str) -> list[tuple[str, str]]:
+    """The reserved terms this string uses: (English as written, agreed wording).
+
+    ``protect`` returns only the agreed side, which is all a placeholder needs.
+    Repairing a translation needs the English too: to find what the model made
+    of a term, you have to be able to ask it to translate that term.
+    """
+    found: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    def note(match: re.Match[str]) -> str:
+        written = match.group(1)
+        agreed = TERMS[_LOOKUP[written.lower()]].get(locale)
+        if agreed and written.lower() not in seen:
+            seen.add(written.lower())
+            found.append((written, agreed))
+        return match.group(0)
+
+    _PATTERN.sub(note, text)
+    return found
 
 
 def restore(text: str, replacements: list[str]) -> str:
