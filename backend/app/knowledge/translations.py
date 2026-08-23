@@ -156,7 +156,19 @@ def load_many(
             _apply(translation, row)
             translation.source_hash = translation.source_hash or row.source_hash
             current = (source_hashes or {}).get(key)
-            if current and row.source_hash and row.source_hash != current:
+            # Only a whole-field translation can go quietly out of date: it
+            # replaces the field wholesale, so if the English moved the reader
+            # is looking at a paragraph that no longer exists. A string map is
+            # keyed by the exact English sentence - when that sentence changes
+            # the key simply stops matching and the reader gets the new English,
+            # which is the honest outcome and not worth a warning banner on
+            # every page the extractor has ever touched.
+            if (
+                row.text is not None
+                and current
+                and row.source_hash
+                and row.source_hash != current
+            ):
                 translation.stale = True
 
     return result

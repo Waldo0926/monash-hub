@@ -58,7 +58,9 @@ def test_placeholders_are_letters_only():
 @pytest.mark.parametrize(
     "source,expected",
     [
-        ("census date", "课程退选截止日（census date）"),
+        # English first, matching the reviewed translations: a student meets
+        # this term in English in WES and on every official page.
+        ("census date", "census date（学籍统计日）"),
         ("credit points", "学分"),
         ("hurdle", "及格门槛"),
         ("prerequisite", "先修课程"),
@@ -76,7 +78,7 @@ def test_protect_and_restore_round_trip():
     assert "census date" not in masked
     assert "Zqa" in masked
     restored = restore(masked, terms)
-    assert "课程退选截止日（census date）" in restored
+    assert "census date（学籍统计日）" in restored
     assert "课程" in restored
 
 

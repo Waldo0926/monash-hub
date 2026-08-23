@@ -35,12 +35,15 @@ LOCALES = ("zh", "ja", "ko")
 TERMS: dict[str, dict[str, str]] = {
     # --- deadlines and money -------------------------------------------------
     "census date": {
-        "zh": "课程退选截止日（census date）",
+        # English first, matching translations_seed.py: this is a term the
+        # student will meet in English on every official page and in WES, and
+        # the two have to be matchable.
+        "zh": "census date（学籍统计日）",
         "ja": "履修取消期限（census date）",
         "ko": "수강 철회 마감일(census date)",
     },
     "census dates": {
-        "zh": "课程退选截止日（census dates）",
+        "zh": "census dates（学籍统计日）",
         "ja": "履修取消期限（census dates）",
         "ko": "수강 철회 마감일(census dates)",
     },

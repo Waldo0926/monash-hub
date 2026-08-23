@@ -76,6 +76,29 @@ def test_load_many_is_one_query_for_many_targets(db):
 
 # --- staleness ------------------------------------------------------------
 
+def test_a_string_map_written_against_older_english_is_not_flagged(db):
+    """A changed sentence stops matching; it does not silently mistranslate.
+
+    Whole-field translations do go quietly out of date, so those are still
+    flagged - see the test below. Warning on string maps as well put a "may be
+    out of date" banner on every page the extractor had ever touched.
+    """
+    from app.models.translation import OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=OFFICIAL_PAGE, target_key="fees", field="content",
+            status=PUBLISHED, source_hash="hash-when-translated",
+            data={"strings": {"Fees": "学费"}},
+        )
+    )
+    db.commit()
+
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "fees", source_hash="a-different-hash")
+    assert tr.stale is False
+    assert tr.string("Fees") == "学费"
+
+
 def test_a_translation_of_text_that_has_changed_is_flagged(db):
     _store(
         db, target_type=OFFICIAL_PAGE, target_key="gpa", field="title",
