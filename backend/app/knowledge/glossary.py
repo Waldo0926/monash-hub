@@ -1415,6 +1415,17 @@ def restore(text: str, replacements: list[str]) -> str:
     return text
 
 
+def placeholders_survived(text: str, count: int) -> bool:
+    """Whether every placeholder made it through a translation intact.
+
+    The model usually copies these tokens and occasionally transliterates one:
+    "What is Zqa?" came back from a live page as 什么是兹卡?. Restoring cannot
+    find a token that is no longer there, so the reader would be shown a
+    nonsense word where a term should be. The caller keeps the English instead.
+    """
+    return all(placeholder(index) in text for index in range(count))
+
+
 def is_only_placeholders(text: str) -> bool:
     """True when nothing is left for the translator to do.
 

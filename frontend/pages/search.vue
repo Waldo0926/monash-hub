@@ -11,7 +11,7 @@ const route = useRoute()
 const { $t } = useNuxtApp()
 const query = ref((route.query.q as string) || '')
 
-const { data, pending, error, refresh } = await useApiFetch<any>(
+const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
   () => `/v1/search?q=${encodeURIComponent((route.query.q as string) || '')}`,
   { watch: [() => route.query.q] }
 )

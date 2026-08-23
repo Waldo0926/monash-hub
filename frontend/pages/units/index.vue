@@ -27,7 +27,7 @@ const requestPath = computed(() => {
   return `/v1/units?${params.toString()}`
 })
 
-const { data, pending, error, refresh } = await useApiFetch<any>(() => requestPath.value, {
+const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(() => requestPath.value, {
   watch: [requestPath]
 })
 
