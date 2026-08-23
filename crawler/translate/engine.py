@@ -112,8 +112,11 @@ class Translator:
         masked, terms = protect(source, self.locale)
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
-            # a campus name, an assessment type. Nothing for the model to do.
-            result = restore(masked, terms)
+            # a campus name, an assessment type. Nothing for the model to do,
+            # but still something to tidy: the space that separated the English
+            # words is left sitting between two Chinese ones, and "Accounting
+            # fundamentals" came out as 会计 基础.
+            result = _tidy(restore(masked, terms), self.locale)
         elif _CODE.match(source):
             # A grade code on its own. Checked after the glossary, so a term
             # that happens to look like one - WAM - still gets its agreed

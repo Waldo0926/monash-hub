@@ -142,3 +142,15 @@ def test_an_acronym_the_model_copied_is_still_replaced():
 
     engine = translator(stub)
     assert engine.text("WAM is not included.") == "WAM（加权平均分）不计入计算。"
+
+
+def test_a_title_of_two_terms_loses_the_english_space():
+    """"Accounting fundamentals" is two glossary terms and no translation.
+
+    It still needs tidying: the space that separated the English words is not
+    a space between two Chinese ones, and it shipped as 会计 基础.
+    """
+    calls = []
+    engine = translator(lambda text: calls.append(text) or "译")
+    assert engine.text("Accounting fundamentals") == "会计基础"
+    assert calls == []  # never reached the model
