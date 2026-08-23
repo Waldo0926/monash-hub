@@ -39,12 +39,12 @@ import re
 import unicodedata
 from typing import Any
 
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 3
+EXTRACTOR_VERSION = 4
 
 DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
 
@@ -419,6 +419,14 @@ def _drop_junk(blocks: list[dict]) -> list[dict]:
 def clean_page(html: str, *, url: str) -> dict:
     """Return ``{title, headings, blocks, clean_text, summary, content_hash}``."""
     soup = BeautifulSoup(html, "lxml")
+
+    # HTML comments first. BeautifulSoup's get_text() returns Comment nodes
+    # along with real text, and Monash's CMS leaves a lot of them: a fees page
+    # arrived with "endnoindex", "@@ WIP @@", "Micro Banner: Do Not Display",
+    # "/.call-to-action__wrapper" and "Remove below on 1.1.9 release" as
+    # paragraphs, which were then indexed, translated and shown to a student.
+    for comment in soup.find_all(string=lambda node: isinstance(node, Comment)):
+        comment.extract()
 
     for tag in soup(list(DROP_TAGS)):
         tag.decompose()

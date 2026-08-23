@@ -123,6 +123,20 @@ class Translator:
         return out
 
 
+def quieten() -> None:
+    """Silence the engine's own logging.
+
+    Argos logs every sentence it tokenises, and Stanza logs the model it loads
+    to do it. Setting the parent logger is not enough - they set a level on the
+    child themselves - so every logger already registered under those names is
+    turned down by name, after import.
+    """
+    logging.getLogger().setLevel(logging.WARNING)
+    for name in list(logging.root.manager.loggerDict):
+        if name.split(".")[0] in {"argostranslate", "stanza", "ctranslate2", "sentencepiece"}:
+            logging.getLogger(name).setLevel(logging.ERROR)
+
+
 def _load_model(locale: str):
     import argostranslate.package as package
     import argostranslate.translate as translate
@@ -143,9 +157,7 @@ def _load_model(locale: str):
             raise RuntimeError(f"the Argos index has no en->{locale} package")
         package.install_from_path(candidates[0].download())
 
-    # Argos logs every sentence it tokenises at INFO on the root logger, which
-    # at five thousand units would be the entire log.
-    logging.getLogger().setLevel(logging.WARNING)
+    quieten()
 
     def run(text: str) -> str:
         return translate.translate(text, "en", locale)

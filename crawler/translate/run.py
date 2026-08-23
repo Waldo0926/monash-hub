@@ -39,7 +39,7 @@ from app.models.translation import (
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from crawler.translate.engine import Translator
+from crawler.translate.engine import Translator, quieten
 
 log = logging.getLogger("crawler.translate")
 
@@ -287,6 +287,9 @@ def main() -> None:
         logging.getLogger(noisy).setLevel(logging.ERROR)
 
     translator = Translator(args.locale)
+    # Again after the model is loaded: importing it registers more loggers, and
+    # they arrive with a level of their own already set.
+    quieten()
     log.info("translating into %s", args.locale)
 
     if args.targets in ("all", "official"):
