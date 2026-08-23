@@ -154,3 +154,36 @@ def test_a_title_of_two_terms_loses_the_english_space():
     engine = translator(lambda text: calls.append(text) or "译")
     assert engine.text("Accounting fundamentals") == "会计基础"
     assert calls == []  # never reached the model
+
+
+def test_tidying_does_not_close_a_paragraph_break():
+    """The punctuation rules used to match across a blank line.
+
+    A workload field arrived as several paragraphs and left as one: the rule
+    that turns ")" between two Chinese characters into "）" was reading the
+    blank line after it as more whitespace to swallow.
+    """
+    from crawler.translate.engine import _tidy
+
+    source = "参加每周小组会议（每周5小时)\n\n参加研讨会和座谈会\n\n每周至少5小时"
+    assert _tidy(source, "zh") == "参加每周小组会议（每周5小时）\n\n参加研讨会和座谈会\n\n每周至少5小时"
+
+
+def test_tidying_still_fixes_punctuation_within_a_line():
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("找到教室,查看你的考核", "zh") == "找到教室，查看你的考核"
+    assert _tidy("系： 市场营销", "zh") == "系：市场营销"
+
+
+def test_a_full_width_bracket_is_closed_full_width():
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("实习合同（及格门槛要求)", "zh") == "实习合同（及格门槛要求）"
+
+
+def test_a_space_before_a_digit_is_kept():
+    """财务会计 1 reads correctly; 会计基础 does not want the space."""
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("财务会计 1", "zh") == "财务会计 1"

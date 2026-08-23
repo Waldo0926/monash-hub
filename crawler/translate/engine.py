@@ -295,15 +295,24 @@ def _tidy(text: str, locale: str) -> str:
     if mapping:
         # Only between CJK characters: "45%, up from" inside an English quote
         # should keep its comma, and "1,200" must not become "1，200".
+        #
+        # Spaces and tabs, never `\s`: a blank line between two paragraphs is
+        # whitespace too, and the version that used `\s*` closed the gap -
+        # "（每周5小时)\n\n参加研讨会" came out as one run-on paragraph.
         for ascii_mark, wide in mapping.items():
             text = re.sub(
-                rf"(?<=[{_CJK}])\s*{re.escape(ascii_mark)}\s*(?=[{_CJK}])",
+                rf"(?<=[{_CJK}])[ \t]*{re.escape(ascii_mark)}[ \t]*(?=[{_CJK}])",
                 wide,
                 text,
             )
+        # A bracket opened full-width is closed full-width, wherever the
+        # closing one happens to sit. The rule above only sees a bracket with
+        # Chinese on both sides, so "（每周5小时)" at the end of a line kept
+        # its half-width half and looked broken.
+        text = re.sub(r"（([^（）]*)\)", r"（\1）", text)
         # Sentence-final full stop, which the rule above cannot see.
-        text = re.sub(rf"(?<=[{_CJK}])\s*\.\s*$", "。", text)
-        text = re.sub(rf"(?<=[{_CJK}])\s*\.\s+(?=[{_CJK}])", "。", text)
+        text = re.sub(rf"(?<=[{_CJK}])[ \t]*\.[ \t]*$", "。", text)
+        text = re.sub(rf"(?<=[{_CJK}])[ \t]*\.[ \t]+(?=[{_CJK}])", "。", text)
     # Two CJK words with a space between them is an artefact of putting a
     # glossary term back where a placeholder was; Chinese and Japanese do not
     # space words. A space between Latin and CJK is correct and stays
