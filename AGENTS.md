@@ -22,21 +22,25 @@ here because breaking it costs money, trust, or someone else's server.
   Four conditions keep it honest, and a change that weakens any of them is not
   a refactor:
 
-  1. **It only touches unit descriptions.** Overview, teaching approach,
-     workload, learning outcomes. Not official pages, not the FAQ, not anything
-     a student wrote. The pages that decide an enrolment, a fee or a visa are
-     translated by a person.
+  1. **It never touches anything a student wrote, and never overwrites a
+     person.** Handbook units and official Monash pages are in scope. Community
+     posts and answers are not. A target that already has a hand-written
+     translation for the same field is skipped rather than replaced, so a
+     reviewed page cannot be downgraded to machine output by a later batch.
   2. **The glossary is not negotiable.** `app/knowledge/glossary.py` holds the
      terms the service is not allowed an opinion about, starting with the pair
      it always gets backwards — at Monash a *unit* is a subject and a *course*
-     is the degree. Output that renders one of them wrongly is **discarded, not
-     stored**.
+     is the degree. Output that renders one of them wrongly is **repaired**, and
+     the repair is counted in the run summary. It used to be discarded, which
+     left that paragraph in English; the owner's call was full coverage with the
+     notice and the link to the original doing the work instead.
   3. **The page says it is machine translated**, in different words and a
      different colour from a human translation. `method` on the row is what
      drives that, and it must never be set to `human` by a machine.
-  4. **A failure leaves English.** Every path out of a failed translation ends
-     with the unit keeping its source text. A gap is recoverable; a confident
-     wrong sentence about census dates is not.
+  4. **A term that survives in English is reported, not hidden.** The run
+     summary counts `repaired` and `leaked`, and a non-zero `leaked` names the
+     pages worth re-reading. Silence about a failed protection is the one
+     outcome this design cannot produce.
 - **Do not merge official data and community content.** Handbook fields,
   official Monash pages and student posts stay in separate tables and are
   labelled differently everywhere they appear. There is no shared `answers`
@@ -148,7 +152,7 @@ here because breaking it costs money, trust, or someone else's server.
 | Chinese for Handbook field values | `frontend/i18n/handbook-terms.ts` |
 | Chinese for official page and unit prose | `backend/app/knowledge/translations_seed.py` |
 | Terms machine translation may not touch | `backend/app/knowledge/glossary.py` |
-| The batch translation run | `backend/app/knowledge/translate_units.py` |
+| The batch translation run | `backend/app/knowledge/translate_content.py` |
 | How an official page is turned into blocks | `backend/app/knowledge/cleaner.py` |
 | How a guide page renders | `frontend/components/PageBlocks.vue` |
 | Registration and reset rules | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |

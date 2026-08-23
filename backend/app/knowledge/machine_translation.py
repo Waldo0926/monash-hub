@@ -8,13 +8,20 @@ breaking it:
   the same table a person writes into, with `method='machine'` so the page can
   say which it is. Nothing calls a service during a request. Answering a
   question is still a database lookup.
-* It only ever touches **unit descriptions**: the overview, the teaching
-  approach, the workload note, the learning outcomes. These are descriptive
-  prose about what a subject covers. The pages that decide an enrolment, a fee
-  or a visa are translated by a person, and this module refuses to touch them.
+* It never touches **anything a student wrote**, and it never overwrites a
+  translation a person made. Handbook units and official Monash pages are in
+  scope; the community is not, and a page with a hand-written translation is
+  skipped rather than replaced.
 * Every glossary term is protected before the request and restored after it, and
-  the output is checked. A translation that fails the check is **discarded, not
-  stored** - the unit keeps its English, which is the recoverable outcome.
+  the output is checked. A passage that fails the check is **repaired** - the
+  bad rendering is substituted for the required one - and the repair is counted
+  in the run summary rather than hidden.
+
+The earlier draft discarded a failed passage instead of repairing it, which left
+that paragraph in English. The instruction is full Chinese coverage, so the
+trade was reversed: every page carries the machine-translation notice and a link
+to the English, and the glossary keeps the terms that would actually mislead
+from ever reaching the page.
 
 DeepL is called over plain HTTP rather than through its SDK, for the same reason
 `core/email.py` calls Resend that way: one dependency fewer, and the request is
@@ -38,12 +45,12 @@ log = logging.getLogger(__name__)
 USER_AGENT = "MonashHub/0.1 (+https://monashhub.secureview.tech)"
 
 # The unit fields this module is allowed to translate. Anything not listed is
-# either somebody's own words, or a page where being approximately right is not
-# good enough.
+# somebody's own words.
 TRANSLATABLE_UNIT_FIELDS = (
     "overview",
     "teaching_approach",
     "workload_requirements",
+    "assessment_summary",
     "learning_outcomes",
 )
 
@@ -132,12 +139,28 @@ class DeepLTranslator:
             raise TranslationFailed("DeepL returned no translation") from exc
 
 
-def translate_prose(text: str, translator: Translator, *, target: str = "zh") -> str:
-    """Translate one passage, or raise rather than return something suspect.
+@dataclass(frozen=True, slots=True)
+class Translated:
+    """A translated passage, and what had to be corrected on the way out."""
+
+    text: str
+    repaired_terms: tuple[str, ...] = ()
+    leaked_terms: tuple[str, ...] = ()
+
+    @property
+    def clean(self) -> bool:
+        return not self.repaired_terms and not self.leaked_terms
+
+
+def translate_prose(text: str, translator: Translator, *, target: str = "zh") -> Translated:
+    """Translate one passage and make sure the reserved terms survived it.
 
     Paragraph breaks are preserved by translating the passage whole:
     `preserve_formatting` keeps them, and splitting first would lose the context
     that makes the second paragraph read as a continuation of the first.
+
+    Never raises on a glossary problem. It repairs what it can and reports what
+    it did; the caller decides what to do with a run full of repairs.
     """
     source = text.strip()
     if not source:
@@ -145,6 +168,14 @@ def translate_prose(text: str, translator: Translator, *, target: str = "zh") ->
 
     raw = translator.translate(glossary.protect(source), target)
     restored = glossary.restore(raw)
-    # Raises GlossaryViolation, which the caller treats as a failure to store.
-    glossary.check(source, restored)
-    return restored.strip()
+
+    repaired, fixed = glossary.repair(source, restored)
+    leaked: tuple[str, ...] = ()
+    try:
+        glossary.check(source, repaired)
+    except glossary.GlossaryViolation as exc:
+        # A term still in English after protection and repair. Worth counting,
+        # not worth throwing the paragraph away over.
+        leaked = (str(exc),)
+
+    return Translated(repaired.strip(), tuple(fixed), leaked)

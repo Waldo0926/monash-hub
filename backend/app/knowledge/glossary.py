@@ -38,6 +38,14 @@ GLOSSARY: dict[str, str] = {
     "course": "学位课程",
     "courses": "学位课程",
     # --- marks and grades -------------------------------------------------
+    # Monash writes the long form with its acronym after it, and both halves are
+    # in this table. Matching them separately expands each one and produces
+    # "累计平均绩点（CGPA）（累计平均绩点（CGPA））", so the pair is an entry of
+    # its own - longest-first ordering makes it win.
+    "Weighted Average Mark (WAM)": "加权平均分（WAM）",
+    "Grade Point Average (GPA)": "平均绩点（GPA）",
+    "Cumulative Grade Point Average (CGPA)": "累计平均绩点（CGPA）",
+    "Web Enrolment System (WES)": "选课系统（WES）",
     "Weighted Average Mark": "加权平均分（WAM）",
     "WAM": "加权平均分（WAM）",
     "Grade Point Average": "平均绩点（GPA）",
@@ -67,6 +75,8 @@ GLOSSARY: dict[str, str] = {
     "academic record": "学业记录（成绩单）",
     "transcript": "成绩单",
     # --- international ----------------------------------------------------
+    "Confirmation of Enrolment (CoE)": "入学确认书（CoE）",
+    "Overseas Student Health Cover (OSHC)": "海外学生医疗保险（OSHC）",
     "Confirmation of Enrolment": "入学确认书（CoE）",
     "CoE": "入学确认书（CoE）",
     "Overseas Student Health Cover": "海外学生医疗保险（OSHC）",
@@ -121,6 +131,12 @@ def protect(text: str) -> str:
     return _PATTERN.sub(lambda m: f"<{PROTECT_TAG}>{m.group(0)}</{PROTECT_TAG}>", text)
 
 
+# "累计平均绩点（CGPA）（累计平均绩点（CGPA））" - the same expansion twice, the
+# second time in brackets. The explicit pair entries above stop most of these at
+# the source; this catches the shapes nobody enumerated.
+_DOUBLED = re.compile(r"(?P<term>[^（）\s][^（）]*?)\s*（(?P=term)）")
+
+
 def restore(text: str) -> str:
     """Swap each protected term for its required Chinese."""
 
@@ -135,11 +151,37 @@ def restore(text: str) -> str:
                 return translated
         return term
 
-    return _PLACEHOLDER.sub(replace, text)
+    return _DOUBLED.sub(r"\g<term>", _PLACEHOLDER.sub(replace, text))
 
 
 class GlossaryViolation(ValueError):
     """The output translated a term this file reserves."""
+
+
+def repair(source: str, translated: str) -> tuple[str, list[str]]:
+    """Force the reserved terms back to their required Chinese.
+
+    The batch used to discard a passage that failed the check, which kept the
+    page honest at the cost of leaving it in English. The instruction now is
+    full coverage, so a failed passage is repaired instead of dropped: the
+    known-bad rendering is substituted for the required one, which for these
+    terms is a safe edit because the two are the same part of speech and the
+    surrounding sentence does not change shape.
+
+    Returns the repaired text and the list of terms that needed repairing, so a
+    run can report how often the protection failed rather than hiding it.
+    """
+    repaired = translated
+    fixed: list[str] = []
+    for term, bad_renderings in FORBIDDEN_RENDERINGS.items():
+        if not re.search(rf"\b{re.escape(term)}\b", source, re.IGNORECASE):
+            continue
+        required = GLOSSARY[term]
+        for bad in bad_renderings:
+            if bad in repaired and required not in repaired:
+                repaired = repaired.replace(bad, required)
+                fixed.append(term)
+    return repaired, fixed
 
 
 def check(source: str, translated: str) -> None:

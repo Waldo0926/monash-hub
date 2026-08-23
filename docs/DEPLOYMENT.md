@@ -132,40 +132,57 @@ Monash Hub adds one server block and binds its own containers to loopback only.
      still current, and the site marks them all stale. The seeder warns by name
      about any page in that state.
 
-## Machine-translated unit descriptions
+## Machine-translated Chinese
 
-Optional, run by hand, and never part of a deploy. Without it, unit
-descriptions stay in English, which is the safe state.
+Optional, run by hand, never part of a deploy. Without it the Chinese interface
+still works — the field values, guide titles, FAQ and the hand-written pages are
+all translated — and the long prose stays in English.
+
+Order matters: **crawl first**. Guides are translated from their extracted
+blocks, which only exist after `crawl.sh official --all` has run, and every
+translation is stamped with the source's content hash.
 
 ```bash
 cd /opt/monash-hub/repo
-docker compose -p monash-hub run --rm crawler \
-  python -m app.knowledge.translate_units --dry-run          # check the selection
-docker compose -p monash-hub run --rm crawler \
-  python -m app.knowledge.translate_units --limit 50         # a real batch
+./deployment/crawl.sh translate --what guides --dry-run
+./deployment/crawl.sh translate --what guides
+./deployment/crawl.sh translate --what units --limit 200
 ```
 
-`--dry-run` needs no API key: it runs the whole pipeline with a translator that
-returns the source, writes nothing, and tells you how many units and passages a
-real run would send. Use it to size a batch before paying for one.
+`--dry-run` needs no API key. It runs the whole pipeline with a translator that
+returns the source, writes nothing, and reports the **character count** a real
+run would send — which is the unit every provider bills in. Use it to size a
+batch before spending quota on one.
 
-A real run needs `DEEPL_API_KEY` in `.env`. Set `DEEPL_API_URL` to
-`https://api.deepl.com/v2/translate` for a Pro key; the default is the free
+### Quota, measured
+
+| | characters |
+| --- | --- |
+| All 40 official guides | ~250,000 after the new extractor drops the duplicated tab content |
+| All 2,596 Handbook units | ~5,400,000 |
+
+DeepL's free tier is 500,000 characters a month. So the guides fit inside a
+single free month with room to spare; the units are about eleven free months, or
+roughly €120 once on a Pro key. `--limit` is how you stay inside a month:
+translate in batches, and a re-run only sends what has not been done yet.
+
+Set `DEEPL_API_KEY` in `.env`. A Pro key also needs
+`DEEPL_API_URL=https://api.deepl.com/v2/translate`; the default is the free
 endpoint.
 
-Two things to know about what it writes:
+### Reading the summary
 
-* Rows are stamped `method='machine'`, and the page says so — in different
-  words and a different colour from a hand-written translation. Never edit that
-  column to `human` to make the notice go away.
-* A passage whose output fails the glossary check in
-  `app/knowledge/glossary.py` is **discarded**, logged, and counted in the
-  summary as `rejected`. That unit keeps its English. A non-zero `rejected`
-  count is worth reading the log for — it means a Monash term came back
-  rendered the way it must not be.
+* `repaired` — the service rendered a reserved Monash term the wrong way and it
+  was substituted back. Expected occasionally, not a problem.
+* `leaked` — a reserved term is still in English in the output. The pages are
+  named in the log. Worth a look.
+* Rows are stamped `method='machine'` and the page says so, in different words
+  and a different colour from a hand-written translation. Never edit that column
+  to `human` to make the notice go away — the notice and the link to the
+  original are what make a machine translation acceptable to publish at all.
 
-Re-running only sends units that have no translation yet. Add `--restale` to
-also redo units whose Handbook entry has changed since they were translated.
+A target that already has a hand-written translation is skipped, so running this
+cannot downgrade a reviewed page.
 
 ## Email delivery
 
