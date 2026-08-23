@@ -44,9 +44,19 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 2
+EXTRACTOR_VERSION = 3
 
 DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
+
+# Template plumbing that renders as a sentence. Monash ships an unconfigured
+# share widget on many pages and it comes through the extractor as a paragraph
+# reading "Social Media Share Bar: Not Configured", which then goes on to be
+# indexed, translated and shown to a student as if it were content.
+JUNK_TEXT = re.compile(
+    r"^\s*(?:social media share bar\s*:?\s*not configured|not configured|"
+    r"skip to (?:content|main content)|back to top)\s*$",
+    re.IGNORECASE,
+)
 # Monash templates wrap the real content in these; dropping them stops every
 # page from hashing differently just because a nav item changed.
 DROP_SELECTORS = (
@@ -392,6 +402,20 @@ def blocks_to_text(blocks: list[dict[str, Any]]) -> str:
     return BLANK_RE.sub("\n\n", "\n".join(lines)).strip()
 
 
+def _drop_junk(blocks: list[dict]) -> list[dict]:
+    """Remove blocks that are template plumbing rather than content."""
+    kept = []
+    for block in blocks:
+        if block.get("type") == "paragraph":
+            text = "".join(span.get("text", "") for span in block.get("spans") or [])
+            if JUNK_TEXT.match(text):
+                continue
+        elif block.get("type") == "heading" and JUNK_TEXT.match(block.get("text") or ""):
+            continue
+        kept.append(block)
+    return kept
+
+
 def clean_page(html: str, *, url: str) -> dict:
     """Return ``{title, headings, blocks, clean_text, summary, content_hash}``."""
     soup = BeautifulSoup(html, "lxml")
@@ -422,7 +446,9 @@ def clean_page(html: str, *, url: str) -> dict:
     if body is None:
         body = soup.body or soup
 
-    blocks = _extract_blocks(body)
+    # Before the outline and the search text are derived from them, so all
+    # three agree about what is on the page.
+    blocks = _drop_junk(_extract_blocks(body))
     headings = [
         {"level": b["level"], "text": b["text"], "id": b["id"]}
         for b in blocks

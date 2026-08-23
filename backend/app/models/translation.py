@@ -16,9 +16,15 @@ Three things make that safe enough to show:
   stale rather than quietly continuing to speak for text that no longer exists.
 * **The original is always one click away**, and every translated block says it
   is an unofficial translation. We are not claiming Monash said this in Chinese.
-* **Nothing is partially guessed.** A string with no translation stays in
-  English. A page half in Chinese is honest; a page fully in Chinese where half
-  of it was invented is not.
+* **Machine and human rows are kept apart.** ``provenance`` says which is
+  which, the human row wins when both exist, and the page says which one the
+  reader is looking at. A machine translation is useful and it is not the same
+  claim as a checked one, so it is not presented as one.
+
+The domain terms are not left to the machine either: ``app/knowledge/glossary.py``
+holds the ones a wrong rendering would cost a student money or a semester -
+census date, hurdle, WAM, credit points - and they are substituted before the
+translator sees the sentence and put back afterwards.
 
 The unit of storage is a *string map*, not a parallel copy of the document:
 ``data = {"strings": {"<english>": "<中文>"}}``, applied by exact match when the
@@ -50,12 +56,19 @@ TARGET_TYPES = (OFFICIAL_PAGE, UNIT, FAQ_ENTRY, GLOBAL)
 DRAFT = "draft"
 PUBLISHED = "published"
 
+# Who wrote it. A human row and a machine row can both exist for one target;
+# the human one wins on read, so translating a page by hand later simply takes
+# over from the machine without anybody deleting anything.
+HUMAN = "human"
+MACHINE = "machine"
+PROVENANCES = (HUMAN, MACHINE)
+
 
 class ContentTranslation(Base):
     __tablename__ = "content_translations"
     __table_args__ = (
         UniqueConstraint(
-            "locale", "target_type", "target_key", "field",
+            "locale", "target_type", "target_key", "field", "provenance",
             name="uq_content_translations_target",
         ),
         # The lookup is always "everything for this page in this language", so
@@ -83,6 +96,7 @@ class ContentTranslation(Base):
     # the source moved on and the reader has to be told.
     source_hash: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default=PUBLISHED)
+    provenance: Mapped[str] = mapped_column(String(16), default=HUMAN)
     # Free text: a person's name, or the name of the batch it came in with.
     translator: Mapped[str | None] = mapped_column(String(120))
     note: Mapped[str | None] = mapped_column(Text)

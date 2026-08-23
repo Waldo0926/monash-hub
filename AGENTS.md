@@ -39,19 +39,29 @@ here because breaking it costs money, trust, or someone else's server.
   without saying so turns someone else's statement into ours. What changed is
   that a Chinese-reading student was being handed English on the pages that
   decide their enrolment, and "read it in the original" is not a neutral default
-  for them. So translation is now allowed under four conditions, all of which
+  for them. So translation is now allowed under five conditions, all of which
   are enforced in code:
 
-  1. **A person writes it.** No model, no translation API. Translations live in
-     `backend/app/knowledge/translations_seed.py`, in the repository, where they
-     can be read in a diff.
-  2. **A missing translation stays in English.** Never approximate, never fill
-     the gap. `app/knowledge/translations.py` falls back to the source on every
-     miss, and that is the feature, not a limitation of it.
-  3. **It is labelled on screen.** `TranslationNotice.vue` says it is unofficial
-     and links to the original. A reader must never be able to mistake our
-     Chinese for something Monash published.
-  4. **It expires.** Every translation is stored against the content hash of the
+  1. **The reader is told who wrote it.** A person or a machine — both are
+     allowed, they are stored apart (`provenance`), and the notice on the page
+     says which. Hand-written translations live in
+     `backend/app/knowledge/translations_seed.py` where they can be read in a
+     diff, and they always win on read, so translating a page properly later
+     takes over from the machine without deleting anything.
+  2. **The machine never decides a term that costs money.** `census date`,
+     `hurdle`, `WAM`, `credit points`, `intermission`, `prohibition` and the
+     rest live in `app/knowledge/glossary.py`. They are substituted out before
+     the model sees the sentence and put back afterwards, and closed-list values
+     — every campus, teaching period, assessment type, level — never reach it at
+     all. Left to itself the model renders *census date* as 人口普查日期 and the
+     assessment type *Exercise* as 锻炼. **Add the term before you add a
+     translation pass over anything new.**
+  3. **A missing translation stays in English.** Never approximate by hand.
+     `app/knowledge/translations.py` falls back to the source on every miss.
+  4. **It is labelled on screen.** `TranslationNotice.vue` says it is unofficial,
+     says whether a person checked it, and links to the original. A reader must
+     never be able to mistake this for something Monash published.
+  5. **It expires.** Every translation is stored against the content hash of the
      English it was made from. When the source changes, the hash stops matching
      and the page says the translation may be out of date, rather than
      continuing to speak for text that has changed underneath it.

@@ -33,6 +33,7 @@ def list_units(
     sort: str = Query("relevance", pattern="^(relevance|code|title)$"),
     limit: int = Query(20, le=100),
     offset: int = 0,
+    locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
     units, total = service.search_units(
@@ -48,12 +49,17 @@ def list_units(
         has_exam=has_exam,
         sort=sort,
     )
+    # One query for the whole page of results, not one per card.
+    unit_translations = translations.load_many(
+        db, locale, UNIT, [u.unit_code for u in units],
+        source_hashes={u.unit_code: u.content_hash for u in units},
+    )
     return {
         "total": total,
         "limit": limit,
         "offset": offset,
         "academic_year": _year(year),
-        "results": [unit_brief(u) for u in units],
+        "results": [unit_brief(u, unit_translations[u.unit_code]) for u in units],
     }
 
 

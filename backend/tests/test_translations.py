@@ -84,7 +84,13 @@ def test_a_translation_of_text_that_has_changed_is_flagged(db):
 
     current = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="hash-when-translated")
     assert current.stale is False
-    assert current.meta() == {"locale": "zh", "stale": False, "unofficial": True}
+    assert current.meta() == {
+        "locale": "zh",
+        "stale": False,
+        "unofficial": True,
+        "machine": False,
+        "reviewed": True,
+    }
 
     moved_on = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="monash-edited-it")
     # Still shown - a slightly old translation beats nothing - but not silently.
@@ -171,3 +177,84 @@ def test_the_outline_and_the_headings_cannot_disagree(gpa_blocks):
 
 def test_nothing_is_touched_when_there_are_no_strings(gpa_blocks):
     assert translations.translate_blocks(gpa_blocks, translations.Translation("zh")) is gpa_blocks
+
+
+# --- machine and human side by side ----------------------------------------
+
+def test_a_checked_translation_wins_over_a_machine_one(db):
+    """Both can exist for one target. The one a person wrote is what shows."""
+    from app.knowledge import translations
+    from app.models.translation import HUMAN, MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    for provenance, text in ((MACHINE, "人口普查日期"), (HUMAN, "课程退选截止日")):
+        db.add(
+            ContentTranslation(
+                locale="zh",
+                target_type=OFFICIAL_PAGE,
+                target_key="census-dates",
+                field="content",
+                provenance=provenance,
+                status=PUBLISHED,
+                data={"strings": {"census date": text}},
+            )
+        )
+    db.commit()
+
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "census-dates")
+    assert tr.string("census date") == "课程退选截止日"
+    # And the page says both things happened to it.
+    assert tr.meta() == {
+        "locale": "zh",
+        "stale": False,
+        "unofficial": True,
+        "machine": True,
+        "reviewed": True,
+    }
+
+
+def test_a_machine_only_page_says_so(db):
+    from app.knowledge import translations
+    from app.models.translation import MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    db.add(
+        ContentTranslation(
+            locale="zh",
+            target_type=OFFICIAL_PAGE,
+            target_key="fees",
+            field="content",
+            provenance=MACHINE,
+            status=PUBLISHED,
+            data={"strings": {"Fees": "学费"}},
+        )
+    )
+    db.commit()
+
+    meta = translations.load(db, "zh", OFFICIAL_PAGE, "fees").meta()
+    assert meta["machine"] is True
+    assert meta["reviewed"] is False
+
+
+def test_machine_strings_fill_the_gaps_a_person_left(db):
+    """The mixed case: a few paragraphs checked, the rest translated."""
+    from app.knowledge import translations
+    from app.models.translation import HUMAN, MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=OFFICIAL_PAGE, target_key="wam", field="content",
+            provenance=MACHINE, status=PUBLISHED,
+            data={"strings": {"What is WAM?": "什么是 WAM？", "How it is used": "机器译文"}},
+        )
+    )
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=OFFICIAL_PAGE, target_key="wam", field="content",
+            provenance=HUMAN, status=PUBLISHED,
+            data={"strings": {"How it is used": "人工校对过的译文"}},
+        )
+    )
+    db.commit()
+
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "wam")
+    assert tr.string("How it is used") == "人工校对过的译文"
+    assert tr.string("What is WAM?") == "什么是 WAM？"

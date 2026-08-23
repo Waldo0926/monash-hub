@@ -12,19 +12,40 @@
  * `stale` is the case worth caring about. Everything else here is labelling.
  */
 const props = defineProps<{
-  translation?: { locale: string; stale: boolean; unofficial: boolean } | null
+  translation?: {
+    locale: string
+    stale: boolean
+    unofficial: boolean
+    machine?: boolean
+    reviewed?: boolean
+  } | null
   sourceUrl?: string | null
 }>()
 
 const { $t } = useNuxtApp()
 const showing = computed(() => !!props.translation)
+
+/**
+ * Machine and checked are different claims, so they get different words.
+ *
+ * A page can be both: the body translated by machine with the terms that matter
+ * pinned to agreed wording, and a few paragraphs corrected by hand. Saying
+ * "translated" for all three cases would make the checked ones worth less and
+ * the machine ones sound like more than they are.
+ */
+const kind = computed(() => {
+  const t = props.translation
+  if (!t) return 'human'
+  if (t.machine && t.reviewed) return 'mixed'
+  return t.machine ? 'machine' : 'human'
+})
 </script>
 
 <template>
   <div v-if="showing" class="notice" :class="{ 'notice--stale': translation!.stale }">
     <p class="tiny">
-      <strong>{{ $t('translation.label') }}</strong>
-      {{ $t('translation.explain') }}
+      <strong>{{ $t(`translation.label.${kind}`) }}</strong>
+      {{ $t(`translation.explain.${kind}`) }}
     </p>
     <p v-if="translation!.stale" class="tiny stale-line">
       {{ $t('translation.stale') }}

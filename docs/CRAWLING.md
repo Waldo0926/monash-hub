@@ -86,3 +86,20 @@ A `403` is therefore not evidence that anything is broken.
 Crawled HTML, page dumps, database dumps, images, PDFs. `backend/tests/fixtures`
 holds three trimmed Handbook payloads for parser tests and one synthetic
 official page written by hand — that is all.
+
+
+## Translating what has been crawled
+
+```bash
+deployment/translate.sh zh short   # titles and closed-list values - minutes
+deployment/translate.sh zh all     # adds overviews and outcomes - about 30 min
+```
+
+Same shape as a crawl: sequential, idempotent, and keyed on the source hash, so
+a unit whose English has not moved is skipped. It writes only rows marked
+`provenance='machine'`; a hand-written translation for the same target always
+wins on read.
+
+The models are baked into the crawler image (`TRANSLATION_LOCALES` build arg)
+rather than downloaded per run, because a `compose run` container is discarded
+each time and would otherwise re-fetch a hundred megabytes before starting.

@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.models.translation import GLOBAL, PUBLISHED, ContentTranslation
+from app.models.translation import GLOBAL, HUMAN, MACHINE, PUBLISHED, ContentTranslation
 
 # The string set applied to every Handbook unit, for the boilerplate the
 # Handbook repeats verbatim across thousands of them.
@@ -25,7 +25,7 @@ HANDBOOK_GLOBAL = "handbook"
 class Translation:
     """Everything stored for one target in one language, ready to apply."""
 
-    __slots__ = ("fields", "locale", "source_hash", "stale", "strings")
+    __slots__ = ("fields", "locale", "machine", "reviewed", "source_hash", "stale", "strings")
 
     def __init__(self, locale: str) -> None:
         self.locale = locale
@@ -34,6 +34,10 @@ class Translation:
         self.source_hash: str | None = None
         # True when the source has changed since the translation was written.
         self.stale = False
+        # Where the words came from. Both can be true: a page can have a
+        # machine body with a few paragraphs corrected by hand.
+        self.machine = False
+        self.reviewed = False
 
     def __bool__(self) -> bool:
         return bool(self.fields or self.strings)
@@ -68,7 +72,13 @@ class Translation:
         """What the UI needs to label this as a translation rather than a source."""
         if not self:
             return None
-        return {"locale": self.locale, "stale": self.stale, "unofficial": True}
+        return {
+            "locale": self.locale,
+            "stale": self.stale,
+            "unofficial": True,
+            "machine": self.machine,
+            "reviewed": self.reviewed,
+        }
 
 
 def load(
@@ -129,8 +139,13 @@ def load_many(
         )
     ).all()
 
-    own = [r for r in rows if r.target_type != GLOBAL]
-    shared = [r for r in rows if r.target_type == GLOBAL]
+    # Machine before human, everywhere: whatever is applied last wins, and a
+    # sentence somebody checked must not be replaced by one nobody did.
+    def order(row: ContentTranslation) -> int:
+        return 0 if row.provenance == MACHINE else 1
+
+    own = sorted((r for r in rows if r.target_type != GLOBAL), key=order)
+    shared = sorted((r for r in rows if r.target_type == GLOBAL), key=order)
 
     for key, translation in result.items():
         # Global first, so a page's own strings overwrite the shared boilerplate
@@ -148,6 +163,10 @@ def load_many(
 
 
 def _apply(translation: Translation, row: ContentTranslation) -> None:
+    if row.provenance == MACHINE:
+        translation.machine = True
+    elif row.provenance == HUMAN:
+        translation.reviewed = True
     if row.text is not None:
         translation.fields[row.field] = row.text
     for source, translated in ((row.data or {}).get("strings") or {}).items():

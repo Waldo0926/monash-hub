@@ -28,36 +28,43 @@ def _iso(value) -> str | None:
     return value.isoformat() if value else None
 
 
-def unit_brief(unit: Unit) -> dict[str, Any]:
+def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    """The card shown in search results, on the home page and in a unit header.
+
+    It takes a translation because this is the payload a reader meets first. A
+    home page of English unit titles under a Chinese heading is the version of
+    "partially translated" that just looks broken.
+    """
     return {
         "unit_code": unit.unit_code,
-        "title": unit.title,
+        "title": tr.field("title", unit.title),
         "academic_year": unit.academic_year,
         "credit_points": unit.credit_points,
-        "level": unit.level,
-        "faculty": unit.faculty,
+        "level": tr.string(unit.level),
+        "faculty": tr.string(unit.faculty),
         "has_exam": unit.has_exam,
         "assessment_count": len(unit.assessments),
         "offerings": [
             {
-                "campus": o.campus,
-                "teaching_period": o.teaching_period,
-                "attendance_mode": o.attendance_mode,
+                "campus": tr.string(o.campus),
+                "teaching_period": tr.string(o.teaching_period),
+                "attendance_mode": tr.string(o.attendance_mode),
             }
             for o in unit.offerings
             if o.offered
         ],
         "source_url": unit.source_url,
         "last_checked": _iso(unit.last_crawled),
+        "translation": tr.meta(),
     }
 
 
 def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
-        **unit_brief(unit),
-        "school": unit.school,
+        **unit_brief(unit, tr),
+        "school": tr.string(unit.school),
         "overview": tr.field("overview", unit.overview),
-        "areas_of_study": unit.areas_of_study,
+        "areas_of_study": tr.field("areas_of_study", unit.areas_of_study),
         "teaching_approach": tr.field("teaching_approach", unit.teaching_approach),
         "workload_requirements": tr.field("workload_requirements", unit.workload_requirements),
         "assessment_summary": tr.field("assessment_summary", unit.assessment_summary),

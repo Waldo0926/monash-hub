@@ -148,3 +148,18 @@ def test_changing_the_extractor_invalidates_every_stored_hash(official_html):
         assert clean_page(official_html("gpa-tabbed"), url="u")["content_hash"] != original
     finally:
         cleaner.EXTRACTOR_VERSION = bumped - 1
+
+
+def test_template_plumbing_is_not_content(official_html):
+    """Monash ships an unconfigured share widget that extracts as a sentence.
+
+    Left in, it is indexed, translated and shown to a student as if the page
+    said it.
+    """
+    html = official_html("sample-guide").replace(
+        "<h1>", "<p>Social Media Share Bar: Not Configured</p><h1>"
+    )
+    result = clean_page(html, url="https://example.invalid/guide")
+
+    assert "Not Configured" not in result["clean_text"]
+    assert not any("Not Configured" in str(block) for block in result["blocks"])
