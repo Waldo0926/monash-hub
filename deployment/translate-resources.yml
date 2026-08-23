@@ -1,0 +1,19 @@
+# Resource limits for the translation pass, layered over docker-compose.yml.
+#
+# The crawler's own limit is 1.5 cores because a crawler that can take the box
+# down is worse than a slow crawler, and a crawl spends most of its time
+# waiting on Monash anyway. The translation pass waits on nothing: it is the
+# model, and it is held at whatever the limit is.
+#
+# Measured on the eight-core box, `--fields all` over the 2026 Handbook:
+#
+#   1.5 cores    11 units/min    about 7 hours
+#   5   cores    55 units/min    about 1.5 hours
+#
+# Five rather than eight: the FYP platform and the tracker share this machine,
+# and the pass is long enough that starving them for an hour would be felt.
+# Raise TRANSLATE_CPUS on a box that has nothing else to do.
+services:
+  crawler:
+    cpus: ${TRANSLATE_CPUS:-5.0}
+    mem_limit: ${TRANSLATE_MEMORY:-4g}

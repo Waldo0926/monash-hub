@@ -10,13 +10,18 @@
 # for the same target always wins on read, so this can be re-run safely and
 # translating a page properly later simply takes over.
 #
-# `short` is minutes; `all` is roughly half an hour for a full year of units.
-# Both are resumable - a unit whose English has not changed is skipped.
+# Measured on the eight-core VPS: `short` is about ten minutes, `all` about an
+# hour and a half. Both are resumable - a unit whose English has not changed
+# since it was last translated at the same `--fields` is skipped - so an
+# interrupted pass is restarted by running the same command again.
+#
+# The pass gets more cores than a crawl does; see translate-resources.yml for
+# what it is set to and why. TRANSLATE_CPUS overrides it.
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
 cd "$PROJECT_DIR"
-COMPOSE=(docker compose -p monash-hub)
+COMPOSE=(docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub)
 
 locale="${1:-zh}"
 fields="${2:-short}"
