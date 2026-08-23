@@ -50,6 +50,20 @@ TARGET_TYPES = (OFFICIAL_PAGE, UNIT, FAQ_ENTRY, GLOBAL)
 DRAFT = "draft"
 PUBLISHED = "published"
 
+# How the translation was produced. This is not bookkeeping - it changes what
+# the page says about itself. "Written and checked by a person" and "produced by
+# a translation service and not yet read by anybody" are different claims, and
+# showing the first one over the second is the specific dishonesty this whole
+# feature was built to avoid.
+HUMAN = "human"
+MACHINE = "machine"
+MACHINE_REVIEWED = "machine_reviewed"
+METHODS = (HUMAN, MACHINE, MACHINE_REVIEWED)
+
+# Weakest first: when one page carries translations from more than one method,
+# the label has to describe the weakest of them.
+METHOD_RANK = {MACHINE: 0, MACHINE_REVIEWED: 1, HUMAN: 2}
+
 
 class ContentTranslation(Base):
     __tablename__ = "content_translations"
@@ -83,6 +97,7 @@ class ContentTranslation(Base):
     # the source moved on and the reader has to be told.
     source_hash: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default=PUBLISHED)
+    method: Mapped[str] = mapped_column(String(24), default=HUMAN)
     # Free text: a person's name, or the name of the batch it came in with.
     translator: Mapped[str | None] = mapped_column(String(120))
     note: Mapped[str | None] = mapped_column(Text)

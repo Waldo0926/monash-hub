@@ -25,7 +25,7 @@ from app.core.security import hash_password
 from app.knowledge.faq_seed import FAQ_SEEDS
 from app.knowledge.translations_seed import TRANSLATION_SEEDS
 from app.models.knowledge import FaqEntry, OfficialPage
-from app.models.translation import OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+from app.models.translation import HUMAN, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
 from app.models.user import User
 
 log = logging.getLogger("seed")
@@ -79,6 +79,10 @@ def seed_translations() -> int:
             row.text = item.text
             row.data = {"strings": item.strings} if item.strings else None
             row.status = PUBLISHED
+            # Everything in translations_seed.py is written by a person. The
+            # machine-translated rows are written by translate_units.py and are
+            # never touched here.
+            row.method = HUMAN
             row.translator = item.translator
             row.note = item.note
             # Only page translations can go stale; the global boilerplate and

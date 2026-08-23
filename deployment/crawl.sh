@@ -7,7 +7,9 @@
 #   deployment/crawl.sh handbook --all --min-interval 1.5   # every 2026 unit
 #   deployment/crawl.sh official            # only seed pages that are due
 #   deployment/crawl.sh official --all      # every seed page, ignoring intervals
-#   deployment/crawl.sh seed                # curated FAQ rows
+#   deployment/crawl.sh seed                # curated FAQ rows and translations
+#   deployment/crawl.sh translate --dry-run # size a machine-translation batch
+#   deployment/crawl.sh translate --limit 50
 #
 # Crawls are one-shot containers, not services. Nothing here runs on a timer
 # yet: the first production crawls are meant to be watched.
@@ -36,8 +38,15 @@ case "$target" in
   seed)
     "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
     ;;
+  translate)
+    # Machine translation of unit descriptions. Costs money and writes content,
+    # so it is never run automatically - see docs/DEPLOYMENT.md.
+    #   deployment/crawl.sh translate --dry-run
+    #   deployment/crawl.sh translate --limit 50
+    "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.translate_units "$@"
+    ;;
   *)
-    echo "usage: $0 {handbook|official|seed} [args]" >&2
+    echo "usage: $0 {handbook|official|seed|translate} [args]" >&2
     exit 2
     ;;
 esac

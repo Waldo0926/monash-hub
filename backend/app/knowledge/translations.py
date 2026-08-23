@@ -15,7 +15,13 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.models.translation import GLOBAL, PUBLISHED, ContentTranslation
+from app.models.translation import (
+    GLOBAL,
+    HUMAN,
+    METHOD_RANK,
+    PUBLISHED,
+    ContentTranslation,
+)
 
 # The string set applied to every Handbook unit, for the boilerplate the
 # Handbook repeats verbatim across thousands of them.
@@ -25,7 +31,7 @@ HANDBOOK_GLOBAL = "handbook"
 class Translation:
     """Everything stored for one target in one language, ready to apply."""
 
-    __slots__ = ("fields", "locale", "source_hash", "stale", "strings")
+    __slots__ = ("fields", "locale", "method", "source_hash", "stale", "strings")
 
     def __init__(self, locale: str) -> None:
         self.locale = locale
@@ -34,6 +40,11 @@ class Translation:
         self.source_hash: str | None = None
         # True when the source has changed since the translation was written.
         self.stale = False
+        # The weakest method among the rows that contributed. A page carrying
+        # one machine-translated paragraph is a machine-translated page as far
+        # as the label goes, because the reader cannot tell which paragraph it
+        # was.
+        self.method: str = HUMAN
 
     def __bool__(self) -> bool:
         return bool(self.fields or self.strings)
@@ -68,7 +79,12 @@ class Translation:
         """What the UI needs to label this as a translation rather than a source."""
         if not self:
             return None
-        return {"locale": self.locale, "stale": self.stale, "unofficial": True}
+        return {
+            "locale": self.locale,
+            "stale": self.stale,
+            "unofficial": True,
+            "method": self.method,
+        }
 
 
 def load(
@@ -148,6 +164,9 @@ def load_many(
 
 
 def _apply(translation: Translation, row: ContentTranslation) -> None:
+    method = row.method or HUMAN
+    if METHOD_RANK.get(method, 0) < METHOD_RANK.get(translation.method, 0):
+        translation.method = method
     if row.text is not None:
         translation.fields[row.field] = row.text
     for source, translated in ((row.data or {}).get("strings") or {}).items():

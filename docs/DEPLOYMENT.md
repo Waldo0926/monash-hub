@@ -132,6 +132,41 @@ Monash Hub adds one server block and binds its own containers to loopback only.
      still current, and the site marks them all stale. The seeder warns by name
      about any page in that state.
 
+## Machine-translated unit descriptions
+
+Optional, run by hand, and never part of a deploy. Without it, unit
+descriptions stay in English, which is the safe state.
+
+```bash
+cd /opt/monash-hub/repo
+docker compose -p monash-hub run --rm crawler \
+  python -m app.knowledge.translate_units --dry-run          # check the selection
+docker compose -p monash-hub run --rm crawler \
+  python -m app.knowledge.translate_units --limit 50         # a real batch
+```
+
+`--dry-run` needs no API key: it runs the whole pipeline with a translator that
+returns the source, writes nothing, and tells you how many units and passages a
+real run would send. Use it to size a batch before paying for one.
+
+A real run needs `DEEPL_API_KEY` in `.env`. Set `DEEPL_API_URL` to
+`https://api.deepl.com/v2/translate` for a Pro key; the default is the free
+endpoint.
+
+Two things to know about what it writes:
+
+* Rows are stamped `method='machine'`, and the page says so — in different
+  words and a different colour from a hand-written translation. Never edit that
+  column to `human` to make the notice go away.
+* A passage whose output fails the glossary check in
+  `app/knowledge/glossary.py` is **discarded**, logged, and counted in the
+  summary as `rejected`. That unit keeps its English. A non-zero `rejected`
+  count is worth reading the log for — it means a Monash term came back
+  rendered the way it must not be.
+
+Re-running only sends units that have no translation yet. Add `--restale` to
+also redo units whose Handbook entry has changed since they were translated.
+
 ## Email delivery
 
 Registration and password reset send a six-digit code. With

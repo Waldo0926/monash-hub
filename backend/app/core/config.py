@@ -62,6 +62,16 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
 
+    # --- Machine translation ------------------------------------------------
+    # Used by `python -m app.knowledge.translate_units`, offline and in batches.
+    # Nothing calls this during a request; see app/knowledge/machine_translation.py.
+    deepl_api_key: str = ""
+    deepl_api_url: str = "https://api-free.deepl.com/v2/translate"
+    deepl_timeout_seconds: int = 20
+    # Seconds between requests. DeepL does not need this for rate limiting; it
+    # is here so a runaway batch cannot spend the quota in one minute.
+    deepl_min_interval_seconds: float = 0.5
+
     # --- Database pool ------------------------------------------------------
     # Sized for one API container against one PostgreSQL: enough for concurrent
     # readers without letting a traffic spike open more connections than the

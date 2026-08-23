@@ -36,6 +36,9 @@ type Messages = Record<string, string>
 
 const en: Messages = {
   // --- translation notice -------------------------------------------------
+  'translation.labelMachine': 'Machine translation, not yet checked by a person.',
+  'translation.explainMachine':
+    'Monash publishes this in English. The Chinese below was produced by a translation service and has not been read by anyone on the Monash Hub team. Monash terminology is held to a fixed glossary, but treat the wording as a rough guide and read the official page before acting on it.',
   'translation.label': 'Unofficial translation.',
   'translation.explain':
     'Monash publishes this page in English. The Chinese here was written and checked by the Monash Hub team, not by the University — for anything that decides an enrolment, a fee or a visa, read the official page.',
@@ -368,6 +371,9 @@ const en: Messages = {
 
 const zh: Messages = {
   // --- translation notice -------------------------------------------------
+  'translation.labelMachine': '机器翻译，尚未人工校对。',
+  'translation.explainMachine':
+    'Monash 官方以英文发布本页。下面的中文由翻译服务生成，Monash Hub 团队还没有人逐句读过。Monash 的专有术语走的是固定词表，但其余措辞只能当作大致参考——真要办事，请以官方英文页面为准。',
   'translation.label': '非官方翻译。',
   'translation.explain':
     'Monash 官方以英文发布本页。这里的中文由 Monash Hub 团队人工翻译并校对，不是学校发布的版本——凡是涉及选课、缴费、签证的决定，请以官方英文页面为准。',
@@ -672,6 +678,9 @@ const zh: Messages = {
 
 const ja: Messages = {
   // --- translation notice -------------------------------------------------
+  'translation.labelMachine': '機械翻訳です。人による確認はまだ行われていません。',
+  'translation.explainMachine':
+    'Monash はこれを英語で公開しています。以下の訳文は翻訳サービスによるもので、Monash Hub チームの誰も目を通していません。Monash 固有の用語は固定の用語集に従いますが、それ以外の表現は目安として扱い、実際の手続きは公式ページで確認してください。',
   'translation.label': '非公式翻訳です。',
   'translation.explain':
     'Monash はこのページを英語で公開しています。ここでの訳文は Monash Hub チームが作成・確認したもので、大学によるものではありません。履修・学費・ビザに関わる判断は公式ページで確認してください。',
@@ -988,6 +997,9 @@ const ja: Messages = {
 
 const ko: Messages = {
   // --- translation notice -------------------------------------------------
+  'translation.labelMachine': '기계 번역이며 사람이 아직 확인하지 않았습니다.',
+  'translation.explainMachine':
+    'Monash는 이 내용을 영어로 공개합니다. 아래 번역문은 번역 서비스가 생성한 것으로 Monash Hub 팀의 누구도 읽어보지 않았습니다. Monash 고유 용어는 고정 용어집을 따르지만, 나머지 표현은 참고용으로만 보시고 실제 처리는 공식 페이지에서 확인하세요.',
   'translation.label': '비공식 번역입니다.',
   'translation.explain':
     'Monash는 이 페이지를 영어로 공개합니다. 여기의 번역문은 Monash Hub 팀이 작성하고 검토한 것이며 대학이 제공한 것이 아닙니다. 수강, 학비, 비자에 관한 결정은 공식 페이지를 확인하세요.',

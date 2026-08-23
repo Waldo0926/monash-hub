@@ -6,10 +6,37 @@ here because breaking it costs money, trust, or someone else's server.
 
 ## Do not
 
-- **Do not add an LLM.** No OpenAI, Anthropic, or any other model SDK. No
-  pgvector, no embeddings, no RAG. That is Stage 7, after there are real users
-  and a reason to pay for it. Every question the MVP answers is a database
-  lookup or a template.
+- **Do not add an LLM to the answer path.** No OpenAI, Anthropic, or any other
+  model SDK behind a request. No pgvector, no embeddings, no RAG. That is Stage
+  7, after there are real users and a reason to pay for it. **Every question the
+  product answers is still a database lookup or a template**, and that sentence
+  is the rule - not "no third-party service ever appears in the repository".
+
+  There is exactly one exception, and it is shaped so the sentence above stays
+  true: `app/knowledge/translate_units.py` calls a translation service
+  **offline, in batches, run by hand**, and writes rows into
+  `content_translations` — the same table a person writes into. Nothing calls it
+  during a request. If it is deleted tomorrow, every page still renders; the
+  Chinese on unit descriptions is simply not there.
+
+  Four conditions keep it honest, and a change that weakens any of them is not
+  a refactor:
+
+  1. **It only touches unit descriptions.** Overview, teaching approach,
+     workload, learning outcomes. Not official pages, not the FAQ, not anything
+     a student wrote. The pages that decide an enrolment, a fee or a visa are
+     translated by a person.
+  2. **The glossary is not negotiable.** `app/knowledge/glossary.py` holds the
+     terms the service is not allowed an opinion about, starting with the pair
+     it always gets backwards — at Monash a *unit* is a subject and a *course*
+     is the degree. Output that renders one of them wrongly is **discarded, not
+     stored**.
+  3. **The page says it is machine translated**, in different words and a
+     different colour from a human translation. `method` on the row is what
+     drives that, and it must never be set to `human` by a machine.
+  4. **A failure leaves English.** Every path out of a failed translation ends
+     with the unit keeping its source text. A gap is recoverable; a confident
+     wrong sentence about census dates is not.
 - **Do not merge official data and community content.** Handbook fields,
   official Monash pages and student posts stay in separate tables and are
   labelled differently everywhere they appear. There is no shared `answers`
@@ -120,6 +147,8 @@ here because breaking it costs money, trust, or someone else's server.
 | Interface translations | `frontend/i18n/index.ts` |
 | Chinese for Handbook field values | `frontend/i18n/handbook-terms.ts` |
 | Chinese for official page and unit prose | `backend/app/knowledge/translations_seed.py` |
+| Terms machine translation may not touch | `backend/app/knowledge/glossary.py` |
+| The batch translation run | `backend/app/knowledge/translate_units.py` |
 | How an official page is turned into blocks | `backend/app/knowledge/cleaner.py` |
 | How a guide page renders | `frontend/components/PageBlocks.vue` |
 | Registration and reset rules | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |

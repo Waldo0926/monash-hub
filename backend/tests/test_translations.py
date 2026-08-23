@@ -84,7 +84,12 @@ def test_a_translation_of_text_that_has_changed_is_flagged(db):
 
     current = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="hash-when-translated")
     assert current.stale is False
-    assert current.meta() == {"locale": "zh", "stale": False, "unofficial": True}
+    assert current.meta() == {
+        "locale": "zh",
+        "stale": False,
+        "unofficial": True,
+        "method": "human",
+    }
 
     moved_on = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="monash-edited-it")
     # Still shown - a slightly old translation beats nothing - but not silently.
