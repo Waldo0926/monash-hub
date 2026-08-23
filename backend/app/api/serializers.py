@@ -94,7 +94,13 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
                 "items": [
                     {
                         "code": i.item_code,
-                        "name": i.item_name,
+                        # The Handbook's own wording, translated - not the
+                        # unit's current title. A requisite record is a snapshot:
+                        # FIT2102 names FIT1008 as "Introduction to computer
+                        # science", which is what it was called in 2019, and
+                        # replacing that with today's title would put words in
+                        # the Handbook's mouth.
+                        "name": tr.string(i.item_name),
                         "type": i.item_type,
                         "url": i.item_url,
                         "credit_points": i.credit_points,

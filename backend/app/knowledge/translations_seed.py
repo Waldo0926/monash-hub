@@ -457,6 +457,71 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
 }
 
 
+# --- results legend -------------------------------------------------------
+#
+# The codes themselves - P, N, NE, NGO, SFR, WDN - are never translated: they
+# are what a student matches against their own transcript, and the engine
+# leaves them alone. What is translated is the grade beside each code.
+#
+# Written in plain Chinese rather than the "Credit（良好）" shape used on the
+# GPA page: there the grade name is being discussed in a sentence, here it is
+# a cell in a lookup table that already carries the English code in the column
+# to its left.
+
+RESULTS_LEGEND: dict[str, str] = {
+    "Code": "代码",
+    "Grade": "成绩等级",
+    "Mark": "分数",
+
+    "High Distinction": "最高优等",
+    "Distinction": "优等",
+    "Credit": "良好",
+    "Pass": "及格",
+    "Fail": "不及格",
+    "Deferred Assessment": "延期考核",
+    "Not Assessed": "未评定",
+    "Not Examinable": "不参加考核",
+    "Hurdle Fail": "必过项未通过",
+    "Supplementary Assessment": "补考",
+    "Not Satisfied Requirements": "未满足要求",
+    "Satisfied Faculty Requirements": "已满足学院要求",
+    "Withdrawn": "退课",
+    "Withheld": "成绩暂扣",
+    "Withdrawn Incomplete": "退课且未完成",
+    "Withdrawn Fail": "退课记为不及格",
+    "Exempt": "免修",
+    "Faculty Pass": "学院及格",
+    "Merit": "优良",
+    "Not Applicable": "不适用",
+    "Pass Grade Only (no higher grade available)": "仅记及格（该课不设更高等级）",
+    "NGO (Fail)": "NGO（不及格）",
+    "PGO (Pass)": "PGO（及格）",
+
+    "First Class Honours": "一等荣誉",
+    "Second Class Honours Division A": "二等甲级荣誉",
+    "Second Class Honours Division B": "二等乙级荣誉",
+    "Third Class Honours Applies only to students who started before 2021":
+        "三等荣誉　仅适用于 2021 年之前入学的学生",
+    "Pass Applies only to students who started on or after 1 January 2021":
+        "及格　仅适用于 2021 年 1 月 1 日及之后入学的学生",
+
+    "The Monash grading system": "Monash 的成绩等级制度",
+    "Honours course grades": "荣誉学位课程的成绩等级",
+    "2020–2021 Temporary grading system in response to COVID-19":
+        "2020–2021 年因应 COVID-19 的临时评分制度",
+    "Masters awarded with distinction": "硕士优等毕业（awarded with distinction）",
+    "Marks from previous years": "往年的成绩等级",
+    "Related links": "相关链接",
+
+    "Code, grade and mark range for academic transcript results. Links in this table "
+    "open in a lightbox.":
+        "成绩单上的代码、成绩等级与分数区间。表中的链接会在弹层中打开。",
+    "Code, grade and mark range in academic transcript results for honours degrees and "
+    "degrees with honours.":
+        "荣誉学位及带荣誉学位的成绩单代码、成绩等级与分数区间。",
+}
+
+
 def all_seeds() -> tuple[TranslationSeed, ...]:
     seeds: list[TranslationSeed] = [
         TranslationSeed(
@@ -470,6 +535,11 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
             note="全文人工翻译，2026-08-23 对照官方页面",
         ),
         TranslationSeed(ZH, OFFICIAL_PAGE, "gpa", "title", text=GUIDE_TITLES["gpa"]),
+        TranslationSeed(
+            ZH, OFFICIAL_PAGE, "results-legend", "body",
+            strings=RESULTS_LEGEND,
+            note="成绩等级名称人工翻译，代码保留原文",
+        ),
     ]
     seeds += [
         TranslationSeed(ZH, OFFICIAL_PAGE, slug, "title", text=title)

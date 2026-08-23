@@ -29,6 +29,7 @@ from app.knowledge.glossary import (
     placeholders_survived,
     protect,
     restore,
+    terms_in,
     whole_value,
 )
 
@@ -42,6 +43,22 @@ _SKIP = re.compile(
     r"^\s*(?:[\W\d]+|Social Media Share Bar.*|Not Configured)\s*$",
     re.IGNORECASE,
 )
+
+# A short all-capitals token standing on its own is a code, not a word. The
+# results legend is a whole table of them - P, N, NE, NGO, SFR, WDN - and the
+# model reads every one as English: P came back as 页, NGO as 非政府组织, SFR
+# as 南锥体. The code is what a student matches against their own transcript,
+# so it has to survive verbatim. The column beside it is the part to translate.
+_CODE = re.compile(r"^[A-Z][A-Z0-9]{0,4}$")
+
+# A stored string that runs over several lines is usually two things stuck
+# together - a link's own title and the sentence beneath it - and handing the
+# model both at once makes it hallucinate instead of translate. "Policy
+# bank\n \nTake a look at our policy bank ..." came back with a wiki's
+# citation error message spliced into the middle. Each line is its own
+# translation problem, so each is translated alone and put back with the
+# separator it arrived with.
+_LINES = re.compile(r"(\s*\n\s*)")
 
 # Argos emits ASCII punctuation into CJK text, which reads as a foreign body in
 # a Chinese or Japanese sentence. Korean uses ASCII punctuation, so it is left
@@ -61,6 +78,7 @@ class Translator:
             raise ValueError(f"no model for {locale!r}")
         self.locale = locale
         self._cache: dict[str, str] = {}
+        self._renderings: dict[str, str] = {}
         self._lock = threading.Lock()
         self._translate = _load_model(locale)
 
@@ -80,6 +98,9 @@ class Translator:
         if cached is not None:
             return cached or None
 
+        if "\n" in source:
+            return self._by_line(source)
+
         # A complete field value off one of the Handbook's closed lists - a
         # campus, a teaching period, an assessment type. Agreed wording, not a
         # translation problem.
@@ -93,6 +114,12 @@ class Translator:
             # Entirely known terms - a unit title like "Programming paradigms",
             # a campus name, an assessment type. Nothing for the model to do.
             result = restore(masked, terms)
+        elif _CODE.match(source):
+            # A grade code on its own. Checked after the glossary, so a term
+            # that happens to look like one - WAM - still gets its agreed
+            # wording rather than being left in English.
+            self._cache[source] = ""
+            return None
         else:
             try:
                 translated = self._translate(masked)
@@ -103,15 +130,21 @@ class Translator:
             if not placeholders_survived(translated, len(terms)):
                 # The model rewrote one of the tokens instead of copying it -
                 # "What is Zqa?" came back as 什么是兹卡?. Restoring cannot find
-                # it, so the reader would get a transliterated nonsense word
-                # where a term should be. English is the better answer.
-                log.debug("placeholder lost, keeping English: %s", source[:60])
-                self._cache[source] = ""
-                return None
-            # Tidy after restoring, not before: with the placeholders still in
-            # place the punctuation rules see a Latin character where the
-            # finished sentence has a Chinese one, and leave the comma alone.
-            result = _tidy(restore(translated, terms), self.locale)
+                # it. Giving up here is what left whole paragraphs of the
+                # guides in English while the page around them was Chinese, so
+                # the sentence gets a second attempt without any masking.
+                repaired = self._agreed_wording(source)
+                if repaired is None:
+                    log.debug("placeholder lost, keeping English: %s", source[:60])
+                    self._cache[source] = ""
+                    return None
+                result = repaired
+            else:
+                # Tidy after restoring, not before: with the placeholders still
+                # in place the punctuation rules see a Latin character where
+                # the finished sentence has a Chinese one, and leave the comma
+                # alone.
+                result = _tidy(restore(translated, terms), self.locale)
 
         result = result.strip()
         # A "translation" identical to the source is not one. Storing it would
@@ -119,6 +152,75 @@ class Translator:
         if result == source:
             self._cache[source] = ""
             return None
+        self._cache[source] = result
+        return result
+
+    def _agreed_wording(self, source: str) -> str | None:
+        """Translate with nothing masked, then put the agreed terms back.
+
+        Masking exists because the model renders *census date* as 人口普查日期.
+        When the mask does not survive, the answer is not to accept that
+        rendering but to go and find it: the model translates a term the same
+        way on its own as it does inside a sentence, so translating the bare
+        term says what to look for. A term whose rendering cannot be found
+        leaves the sentence in English - the same place it was already headed.
+        """
+        try:
+            plain = self._translate(source)
+        except Exception as exc:  # one bad string must not end a batch of 5,000
+            log.warning("translation failed (%s): %s", exc, source[:60])
+            return None
+        for written, agreed in terms_in(source, self.locale):
+            if agreed in plain:
+                continue  # the model happened to land on the agreed wording
+            rendered = self._bare(written)
+            if rendered and rendered in plain:
+                plain = plain.replace(rendered, agreed)
+                continue
+            if written in plain:
+                # An acronym the model copied rather than translated - WAM,
+                # NSR, SFR come back untouched. That is the term still in
+                # English, not a wrong rendering of it, so it can be replaced.
+                plain = plain.replace(written, agreed)
+                continue
+            return None
+        return _tidy(plain, self.locale)
+
+    def _bare(self, term: str) -> str:
+        """What the model makes of a term on its own. Cached - terms repeat."""
+        with self._lock:
+            known = self._renderings.get(term)
+        if known is None:
+            try:
+                known = self._translate(term).strip().strip("。.")
+            except Exception:
+                known = ""
+            with self._lock:
+                self._renderings[term] = known
+        return known
+
+    def _by_line(self, source: str) -> str | None:
+        """Translate a multi-line string a line at a time.
+
+        The separators are kept, so a heading and the sentence beneath it come
+        back arranged the way they arrived. A line the model cannot manage
+        keeps its English instead of taking the rest of the string down with
+        it, which is what happened while the whole blob was one call.
+        """
+        parts = _LINES.split(source)
+        rendered: list[str] = []
+        translated_any = False
+        for index, part in enumerate(parts):
+            if index % 2 or not part.strip():
+                rendered.append(part)  # a separator, or the blank line itself
+                continue
+            done = self.text(part)
+            rendered.append(done or part)
+            translated_any = translated_any or bool(done)
+        if not translated_any:
+            self._cache[source] = ""
+            return None
+        result = "".join(rendered).strip()
         self._cache[source] = result
         return result
 
@@ -204,7 +306,11 @@ def _tidy(text: str, locale: str) -> str:
     # space words. A space between Latin and CJK is correct and stays
     # ("Monash 大学"), and so is one before a digit ("第 2 级").
     text = re.sub(rf"(?<=[{_CJK}])[ \t]+(?=[{_CJK}])", "", text)
-    # A space against CJK punctuation is not.
+    # A space against CJK punctuation is not - on either side of it. The
+    # closing bracket of an agreed term ("WAM（加权平均分）") is the common
+    # case: the term goes back in where a Latin word was, and the space that
+    # followed the Latin word stays behind.
     text = re.sub(r"[ \t]+(?=[，。、；：？！）])", "", text)
+    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     return re.sub(r"[ \t]{2,}", " ", text).strip()

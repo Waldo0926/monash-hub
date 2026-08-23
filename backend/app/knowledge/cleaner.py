@@ -44,7 +44,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 4
+EXTRACTOR_VERSION = 5
 
 DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
 
@@ -54,7 +54,10 @@ DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
 # indexed, translated and shown to a student as if it were content.
 JUNK_TEXT = re.compile(
     r"^\s*(?:social media share bar\s*:?\s*not configured|not configured|"
-    r"skip to (?:content|main content)|back to top)\s*$",
+    r"skip to (?:content|main content)|back to top|"
+    # The CMS's own note to whoever writes the page. It reached the results
+    # legend as the description of five grades, and was then translated.
+    r"need description)\s*$",
     re.IGNORECASE,
 )
 # Monash templates wrap the real content in these; dropping them stops every
@@ -312,9 +315,19 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
             elif name in ("p", "blockquote"):
                 add_paragraph(_rich(child))
             elif name in ("ul", "ol"):
+                # A list item holding a table is a section, not a bullet. The
+                # results legend keeps three years of grading tables inside one
+                # <ul>, and flattening those items put a whole table - headers,
+                # codes, mark ranges - into a single run of text with no row
+                # left in it. Lift them out before the item is flattened.
+                lifted = [t.extract() for t in child.find_all("table")]
                 block = _list_block(child)
                 if block:
                     blocks.append(block)
+                for lifted_table in lifted:
+                    lifted_block = _table_block(lifted_table)
+                    if lifted_block:
+                        blocks.append(lifted_block)
                 for nested in child.select("li > ul, li > ol"):
                     nested_block = _list_block(nested)
                     if nested_block:
