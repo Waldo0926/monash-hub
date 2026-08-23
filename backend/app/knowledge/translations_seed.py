@@ -519,6 +519,284 @@ RESULTS_LEGEND: dict[str, str] = {
     "Code, grade and mark range in academic transcript results for honours degrees and "
     "degrees with honours.":
         "荣誉学位及带荣誉学位的成绩单代码、成绩等级与分数区间。",
+
+    "You’ve been granted a deferred assessment, resulting from your special consideration application.":
+        "你的特殊考虑（special consideration）申请获批，因此获得了延期考核。",
+}
+
+
+# --- guide bodies, sentence by sentence ------------------------------------
+#
+# What the machine would not translate. Every string here was held back by a
+# reserved term the model rendered a third way - deferred assessment came back
+# as 递延摊款, a loan repayment - so the engine kept the English rather than
+# guess at a word a student acts on. These are the pages where guessing is
+# worst: census dates, visas, and what happens to a grade when you withdraw.
+#
+# Keyed on the exact English the crawler extracted. Anything that does not
+# match character for character stays in English, which is the safe direction.
+
+GUIDE_BODIES: dict[str, dict[str, str]] = {
+    "academic-transcripts": {
+        "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
+            "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
+        "Your academic record has the following information about you:If a unit is marked as Incomplete on your academic transcript, it simply means the result isn't available yet.Masters awarded with distinctionFrom 6 October 2021, a student graduating with a master’s degree by coursework with a WAM of 80 or above will see ‘awarded with distinction’ on their transcript.Credit points not showing for some unit exemptionsSometimes exempted units listed in your academic record don’t have credit points attached. This is because you’ve been exempted from studying a particular unit (based on prior study), but you’re required to complete another unit in its place.":
+            "你的学业记录包含以下关于你的信息：如果成绩单上某门课程标注为 Incomplete（未完成），只是表示成绩尚未公布。硕士优等毕业（awarded with distinction）：自 2021 年 10 月 6 日起，以授课型硕士学位毕业且 WAM（加权平均分）达到 80 分及以上的学生，成绩单上会显示「awarded with distinction」。部分免修课程不显示学分：成绩单上列出的免修课程有时没有对应学分，这是因为你（基于此前的学习）获准免修某门课程，但需要另修一门课程来替代。",
+    },
+    "add-or-withdraw-units": {
+        "ADD UNITS":
+            "添加课程",
+        "After 11.59pm (Melbourne time) on the census date":
+            "在 census date（学籍统计日）当天 23:59（墨尔本时间）之后",
+        "Before 11.59pm (Melbourne time) on the census date":
+            "在 census date（学籍统计日）当天 23:59（墨尔本时间）之前",
+        "Check units you’re currently enrolled in – title and code, campus, faculty, credit points and teaching period of each – with our virtual assistant – it only takes a moment, and you’ll need to log in with your Monash student account.":
+            "用我们的虚拟助手查看你当前已选的课程——每门课的名称与代码、校区、学院、学分和开课学期。只需片刻，需要用 Monash 学生账号登录。",
+        "Financial penalties apply Academic penalties may apply to some teaching periods The teaching weeks' end date is the last day to withdraw from units":
+            "会产生费用方面的处罚；部分开课学期还可能有学业方面的处罚；教学周结束日即为退选课程的最后一天",
+        "If you have to withdraw after the census date because of circumstances out of your control, you may be eligible for a WDN grade, a fee reversal, or both.":
+            "如果你因无法控制的原因不得不在 census date（学籍统计日）之后退选，你可能符合条件获得 WDN（退课）成绩等级、学费冲销，或两者兼有。",
+        "If you’re a full-fee paying student and you withdraw from a unit after the census date, you still need to pay the fees.":
+            "如果你是全额自费学生，在 census date（学籍统计日）之后退选课程，仍然需要缴纳该课程的学费。",
+        "The following penalties apply to all units withdrawn after 11.59pm (Melbourne time) on the census date for your teaching period":
+            "在你所在开课学期的 census date（学籍统计日）当天 23:59（墨尔本时间）之后退选的所有课程，适用下列处罚",
+        "The following penalties apply to withdrawn units in most teaching periods after 11.59pm (Melbourne time) on the unit’s census date. To see what applies to your units, check your teaching period's census date.":
+            "在课程的 census date（学籍统计日）当天 23:59（墨尔本时间）之后退选的课程，在多数开课学期适用下列处罚。想知道自己的课程适用哪一种，请查看你所在开课学期的 census date（学籍统计日）。",
+    },
+    "assessment-at-monash": {
+        "Assessment is an integral part of your studies. It’s much more than a critical step in passing your units. Completing assessments and receiving feedback allows you to track the progress of your academic performance, and find ways of improving it.":
+            "考核是学习中不可分割的一部分，远不只是通过课程的一道关口。完成考核并获得反馈，可以让你了解自己学业表现的变化，并找到改进的方法。",
+        "Assessments for learning are designed to help you build and consolidate your knowledge, understanding and skills, and provide you with feedback on your progress. They’re usually set during the teaching weeks, and sometimes contribute to your overall unit results (but not always).":
+            "促学型考核的目的，是帮助你建立并巩固知识、理解和技能，并就你的进展给出反馈。这类考核通常安排在教学周内，有时会计入课程的总成绩（但并非总是如此）。",
+        "For teaching periods that started on or after 22 July 2024, you’ll receive a 5% penalty on the available marks if you submit your assessment after the due date (unless you have an extension or you’ve been granted special consideration).":
+            "对于 2024 年 7 月 22 日及之后开始的开课学期，逾期提交考核会按可得分数扣罚 5%（除非你已获得延期，或获批特殊考虑（special consideration））。",
+        "You might be eligible for a generally longer extension through special consideration if you can’t complete an assessment due to exceptional circumstances beyond your control. You can apply for an extension through special consideration for any type of assessment except a scheduled final assessment. Supporting documents are required.":
+            "如果你因无法控制的特殊情况而无法完成考核，可能符合条件通过特殊考虑（special consideration）获得通常更长的延期。除原定的期末考核外，任何类型的考核都可以通过特殊考虑申请延期。申请需要提交证明材料。",
+    },
+    "census-dates": {
+        "Check the details at add or withdraw from units.":
+            "详情请见「添加或退选课程」页面。",
+        "If you withdraw from a unit after a certain date, your academic record may show Withdrawn or Withdrawn Fail. You should understand how census and withdrawal dates can affect your fees and academic record. For more information, see:":
+            "在某个日期之后退选课程，你的学业记录上可能会显示 Withdrawn（退课）或 Withdrawn Fail（退课记为不及格）。你应当了解 census date（学籍统计日）和退选日期会如何影响你的学费与学业记录。更多信息请见：",
+        "You have until 11.59pm (Melbourne time) on the census date to withdraw from units without financial or academic penalty.":
+            "你可以在 census date（学籍统计日）当天 23:59（墨尔本时间）之前退选课程，不会受到费用或学业方面的处罚。",
+    },
+    "census-dates-explained": {
+        "Check the census dates for your units to avoid academic and financial penalties.":
+            "查看你所选课程的 census dates（学籍统计日），以免受到学业和费用方面的处罚。",
+        "If you discontinue before 11.59pm (Melbourne time) on the census date, you pay fees for the time you were enrolled. See chapters one and three of the Handbook of Doctoral and MPhil Degrees.":
+            "如果你在 census date（学籍统计日）当天 23:59（墨尔本时间）之前退课，只需按已注册的时间缴纳相应费用。详见《Handbook of Doctoral and MPhil Degrees》第一章和第三章。",
+        "If you withdraw from a unit after 11.59pm (Melbourne time) on the census date, you’ll have to pay for the unit up front, or if you’re a HELP-loan student, the fees will be added to your loan.":
+            "如果你在 census date（学籍统计日）当天 23:59（墨尔本时间）之后退选课程，就必须自行缴清该课程的学费；如果你使用 HELP 贷款，这笔费用会计入你的贷款。",
+        "If you withdraw from a unit after the census date (but before the Withdrawn Fail date) your record will show the unit result as Withdrawn. If you withdraw after the Withdrawn Fail date, your record will show the unit result as Withdrawn Fail. This will affect your grade point average (GPA).":
+            "如果你在 census date（学籍统计日）之后、但在 Withdrawn Fail 日期之前退选课程，记录上这门课程会显示为 Withdrawn（退课）。如果在 Withdrawn Fail 日期之后退选，则会显示为 Withdrawn Fail（退课记为不及格），并会影响你的 GPA（平均绩点）。",
+        "The last date to withdraw from a unit may differ if you are studying a unit taught in:":
+            "如果你所修课程的授课地点属于以下情况，退选课程的最后日期可能有所不同：",
+    },
+    "confirmation-of-enrolment": {
+        "A CoE is an official form that we provide to international students who need to apply for a student visa. It confirms you’re enrolled in a registered course and you’ve paid your enrolment fees, and displays the registration code and the start and end dates for your course.":
+            "CoE（入学确认书）是学校出具给需要申请学生签证的国际学生的正式文件。它确认你已注册在册的学位课程、已缴纳注册费用，并载明课程注册代码以及学位课程的起止日期。",
+        "If you can’t complete your course before your visa expires, you’ll need to apply for a new CoE to submit with your student visa application.":
+            "如果你无法在签证到期前完成学位课程，需要申请新的 CoE（入学确认书），随学生签证申请一并提交。",
+        "If your visa is going to expire before you’ve finished your course, you’ll need to apply for a new CoE.":
+            "如果你的签证会在完成学位课程之前到期，你需要申请一份新的 CoE（入学确认书）。",
+        "You’ll receive a CoE once you accept your course offer (unless you’re an Australia Awards Scholarship student). This includes if you’re transferring from one Monash course to another.":
+            "接受录取通知后，你会收到 CoE（入学确认书）（澳大利亚奖学金 Australia Awards Scholarship 学生除外）。在 Monash 内部转读另一个学位课程时也同样会收到。",
+    },
+    "course-advice": {
+        "If you apply to take a break or discontinue your course, we’ll automatically get in contact with you to discuss your options.":
+            "如果你申请休息一段时间或退出学位课程，我们会主动联系你，一起讨论可选的方案。",
+    },
+    "defer-final-assessment": {
+        "If there isn’t another suitable session on the same day, you’ll have to sit your deferred assessment at the time it is scheduled.":
+            "如果当天没有其他合适的场次，你就必须按原定时间参加延期考核。",
+        "If there isn’t another suitable session on the same day, you’ll have to sit your rescheduled deferred assessment at the time it is scheduled.":
+            "如果当天没有其他合适的场次，你就必须按原定时间参加改期的延期考核。",
+        "If we approve your application to reschedule your deferred assessment, your assessment will be held during the rescheduled deferred assessment period unless your faculty decides to offer you an alternative assessment – in that case it’ll be due at an alternative time. You’ll get an email with this information once it’s available.":
+            "如果改期申请获批，考核将安排在改期延期考核期内进行，除非学院决定给你另一种考核形式——那样的话截止时间会另行安排。相关信息确定后，你会收到邮件通知。",
+        "If we don’t approve your application and/or you didn’t sit your scheduled final assessment on the original date, your final grade will be based on your marks for other assessments you’ve completed for that unit.":
+            "如果申请未获批准、和/或你没有在原定日期参加期末考核，你的最终成绩等级将依据你在这门课程已完成的其他考核的分数来评定。",
+        "If you can’t complete your rescheduled deferred assessment on the rescheduled date, you won’t be able to reschedule it again. However, if you let us know ahead of time that you’re not able to complete your rescheduled deferred assessment, we’ll consider you for a WDN grade (provided you’re eligible). Otherwise we’ll finalise your grade by converting your interim DEF result to a final grade based on your marks for other assessments you’ve completed for that unit.":
+            "如果你无法在改期后的日期完成延期考核，就不能再次改期。不过，若你提前告知我们无法完成这次改期考核，我们会考虑给你 WDN 成绩等级（前提是你符合条件）。否则，我们会依据你在这门课程已完成的其他考核的分数，把临时的 DEF 成绩转为最终成绩等级，以此定出最终成绩。",
+        "If you’re eligible for a rescheduled deferred assessment, but can’t pass your unit even if you successfully complete your assessment, we recommend that you instead apply for a Withdrawn (WDN) grade if you meet the criteria.":
+            "如果你符合改期延期考核的资格，但即使顺利完成考核也无法通过这门课程，我们建议你改为申请 Withdrawn（WDN，退课）成绩等级——前提是你满足相应条件。",
+        "If you’re sitting a deferred assessment for a unit that is a prerequisite for another unit you’re enrolled in, you’ll need to pass your deferred assessment to stay enrolled in that unit. If you fail the unit, your enrolment in the subsequent unit will be invalid and cancelled by the faculty (this is because you won’t have met the academic requirements to remain enrolled).":
+            "如果你参加延期考核的这门课程，是你已选的另一门课程的先修课程，那么你必须通过这次延期考核才能保留后一门课程的选课。如果这门课程不及格，你在后续课程的选课将失效并被学院取消（因为你没有满足继续选课所需的学术要求）。",
+        "If you’re sitting a rescheduled deferred assessment for a unit that is a prerequisite for another unit you’re enrolled in, you’ll need to pass your rescheduled assessment to stay enrolled in that unit. If you fail the unit, your enrolment in the subsequent unit will be invalid and cancelled by the faculty (this is because you won’t have met the academic requirements to remain enrolled).":
+            "如果你参加改期延期考核的这门课程，是你已选的另一门课程的先修课程，那么你必须通过这次改期考核才能保留后一门课程的选课。如果这门课程不及格，你在后续课程的选课将失效并被学院取消（因为你没有满足继续选课所需的学术要求）。",
+        "If you’ve already deferred your assessment (exam) but still need more time due to unresolved circumstances or new extreme circumstances, you can apply for a rescheduled deferred assessment if you meet the stricter eligibility requirements.":
+            "如果你已经获批延期考核（考试），但因情况仍未解决、或出现新的极端情况而需要更多时间，在满足更严格的资格要求的前提下，可以申请改期的延期考核。",
+        "Keep in mind, you can’t take a supplementary assessment if you complete a deferred or rescheduled assessment.":
+            "请注意：如果你完成了延期考核或改期考核，就不能再参加补考。",
+        "Once you’ve notified exam support, a Monash medical support person will discuss your situation over the phone. If you’re unable to continue with your assessment, they will advise you on what you need to do if you intend to apply for special consideration.":
+            "在你通知考试支持团队后，Monash 的医疗支持人员会通过电话了解你的情况。如果你无法继续参加考核，他们会告诉你：若打算申请特殊考虑（special consideration），接下来需要做什么。",
+        "Some faculties won’t allow you to enrol in a unit if you have a deferred (DEF) grade for a prerequisite, so having an interim result (DEF grade) while you wait to see if you passed might affect your enrolment. This won’t be a problem if your deferred assessment results are released before re-enrolment closes (and you passed), but for some teaching periods, you may receive your final grade after the cut-off for enrolment.":
+            "如果先修课程的成绩等级是 DEF（延期考核），部分学院不允许你选修相应课程。因此在等待结果期间持有临时成绩（DEF）可能影响你的选课。如果延期考核成绩在重新注册截止前公布（且你通过了），就不成问题；但在某些开课学期，你可能要到选课截止之后才拿到最终成绩等级。",
+        "Some faculties won’t allow you to enrol in a unit if you have a deferred (DEF) or Withheld (WH) grade for a prerequisite, so having an interim result while you wait to see if you passed might affect your enrolment. This won’t be a problem if your rescheduled deferred assessment results are released before re-enrolment closes (and you passed), but for some teaching periods, you may receive your final grade after the cut-off for enrolment.":
+            "如果先修课程的成绩等级是 DEF（延期考核）或 WH（成绩暂扣），部分学院不允许你选修相应课程。因此在等待结果期间持有临时成绩可能影响你的选课。如果改期延期考核的成绩在重新注册截止前公布（且你通过了），就不成问题；但在某些开课学期，你可能要到选课截止之后才拿到最终成绩等级。",
+        "You can apply to reschedule your deferred assessment no later than 11.55pm on its set date.":
+            "申请延期考核改期，最迟不得晚于原定考核日当天 23:55。",
+        "You generally won’t be eligible to defer your assessment if you’ve seen and/or attempted to answer questions on your scheduled final assessment (exam).":
+            "如果你已经看过、或尝试作答原定期末考核（考试）的题目，通常就不再符合申请延期考核的资格。",
+        "You generally won’t be eligible to reschedule your deferred assessment if you’ve seen and/or attempted to answer questions on your scheduled final assessment (exam).":
+            "如果你已经看过、或尝试作答原定期末考核（考试）的题目，通常就不再符合改期延期考核的资格。",
+        "You should apply as soon as you’re aware that you can’t sit your scheduled final assessment (after timetable release) but no later than 11.55pm on the set date for your assessment. Make sure you attach all required supporting documents as evidence of your exceptional circumstances.":
+            "一旦（在考试时间表公布后）确认自己无法参加原定的期末考核，就应尽快申请，最迟不得晚于考核当天 23:55。申请时务必附上全部所需的证明材料，作为你处于特殊情况的证据。",
+        "You’ll need to make sure you’re available to sit your assessment. Your assessment will be held during the deferred assessment period unless your faculty decides to offer you an alternative assessment – in that case it’ll be due at an alternative time. You’ll get an email with information about your assessment date, time and location once it’s available.":
+            "你需要确保自己能够参加考核。考核将安排在延期考核期内进行，除非学院决定给你另一种考核形式——那样的话截止时间会另行安排。考核的日期、时间和地点确定后，你会收到邮件通知。",
+        "convert your interim DEF result to a final grade based on your marks for other assessments you’ve completed for that unit, if you’re not eligible for a WDN grade.":
+            "如果你不符合 WDN 成绩等级的条件，则依据你在这门课程已完成的其他考核的分数，把临时的 DEF 成绩转为最终成绩等级。",
+    },
+    "discontinue-course": {
+        "It’s okay to be unsure about continuing your course – we’re here to help you make the decision that’s right for you. This page will help you understand your options, what discontinuation actually means, and how to take the next step, whatever that ends up being.":
+            "对是否继续读下去感到犹豫是很正常的——我们会帮你做出适合自己的决定。本页会说明你有哪些选择、退出学位课程究竟意味着什么，以及无论你最终怎么决定，下一步该怎么走。",
+        "You should submit the Course Discontinuation request form before 11.59pm on the census date. If you submit it later, you'll be charged for the units you're enrolled in, and you may receive a fail grade after a certain date.":
+            "你应在 census date（学籍统计日）当天 23:59 之前提交退出学位课程申请表。逾期提交的话，已选课程会照常收费；超过某个日期之后，还可能被记为不及格成绩等级。",
+    },
+    "enrolments": {
+        "Continuing students must re-enrol for the entire following year – or apply for intermission – during the specified re-enrolment period.":
+            "在读学生必须在规定的重新注册期内，完成次年整年的重新注册，或者申请休学（intermission）。",
+    },
+    "final-assessment-dates": {
+        "For all other teaching periods, you’ll be given notice of at least five University working-days of the date of your deferred or supplementary assessment.":
+            "在其他所有开课学期，学校会在你的延期考核或补考日期之前，至少提前 5 个大学工作日通知你。",
+        "Not every teaching period has a defined set of dates to run deferred and supplementary assessments and the dates may vary from unit to unit. Check with your faculty if you’re unsure when to sit your deferred or supplementary assessment.":
+            "并非每个开课学期都有固定的延期考核和补考日期，具体日期也可能因课程而异。如果不确定自己的延期考核或补考在什么时候，请向所在学院确认。",
+    },
+    "intermission": {
+        "Here's what you need to know while you’re on intermission, and what to do before you return.":
+            "以下是休学（intermission）期间你需要了解的事项，以及复学前需要办理的手续。",
+        "If you apply for study leave after the census date, you’ll be charged for all enrolled units and receive a Withdrawn or Withdrawn Fail grade. For penalty dates, see census dates and teaching periods.":
+            "如果你在 census date（学籍统计日）之后申请 study leave，所有已选课程都会照常收费，并会得到 Withdrawn（退课）或 Withdrawn Fail（退课记为不及格）成绩等级。各项处罚的日期见 census date（学籍统计日）与开课学期页面。",
+        "If you've paid your fees up front and apply for study leave before 11.59pm (Melbourne time) on the census date, you can apply for a refund. Fees will not be refunded if you apply for study leave after the census date. If you fail to re-enrol for the following year on time, and then apply for study leave, you'll be charged a late enrolment fee.":
+            "如果你已经预先缴清学费，并在 census date（学籍统计日）当天 23:59（墨尔本时间）之前申请 study leave，可以申请退费。在 census date 之后申请则不予退费。如果你没有按时完成次年的重新注册，之后才申请 study leave，将被收取逾期注册费。",
+        "If you’re not sure whether to take a break, you should re-enrol in your units for now. This keeps your place in the course active while you consider your options. You have until the census date of the teaching period to apply for intermission without any financial or academic penalties.":
+            "如果还没想好要不要休息一段时间，建议你先照常重新注册课程，这样在你考虑期间学位课程的学籍会保持有效。你可以在所在开课学期的 census date（学籍统计日）之前申请休学（intermission），不会产生任何费用或学业方面的处罚。",
+        "Once you've started your course and your first census date has passed, you may be able to apply for intermission (study leave). If you haven’t started your course yet (or you’ve enrolled but the first census date hasn’t passed), you’ll need to defer your offer instead – see the deferral page for details.":
+            "在你的学位课程已经开始、并且第一个 census date（学籍统计日）已过之后，你才可能申请休学（intermission，即 study leave）。如果学位课程尚未开始（或者已经注册但第一个 census date 还没到），你需要办理的是推迟入学，详见推迟入学页面。",
+        "We’ll notify the Department of Home Affairs that you’re on study leave. You’re still considered a current student when you’re on study leave (intermission), with access to University support services and academic services, including the library, WES, Student Portal and the Monash intranets.":
+            "我们会将你处于 study leave 的情况通知澳大利亚内政部（Department of Home Affairs）。在 study leave（休学，intermission）期间你仍被视为在读学生，可以继续使用学校的支持服务和学术服务，包括图书馆、WES（学生系统）、学生门户以及 Monash 内网。",
+        "Your student visa and CoE":
+            "你的学生签证与 CoE（入学确认书）",
+        "if you decide to take a break after you’ve enrolled and the semester has started – apply before 11.59pm (Melbourne time) on the census date.":
+            "如果你在注册且学期已经开始之后决定休息一段时间——请在 census date（学籍统计日）当天 23:59（墨尔本时间）之前提出申请。",
+    },
+    "oshc": {
+        "These three exceptions apply as long as you’re not a Study Abroad student with OSHC included in your package.":
+            "这三项例外适用于所有人，但套餐中已包含 OSHC（海外学生医疗保险）的 Study Abroad 交流学生除外。",
+    },
+    "principal-dates": {
+        "Census date: Full-year (FY-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：全学年（FY-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 1 (MO-TP1-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 1（MO-TP1-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 2 (MO-TP2-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 2（MO-TP2-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 3 (MO-TP3-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 3（MO-TP3-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 4 (MO-TP4-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 4（MO-TP4-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 5 (MO-TP5-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 5（MO-TP5-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Monash Online 6 (MO-TP6-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：Monash Online 6（MO-TP6-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Semester 1 (extended) (S1-32). Last day to withdraw from units in this teaching period without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第一学期（延长）（S1-32）。退选本开课学期课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Semester one (S1-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第一学期（S1-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Semester two (S2-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第二学期（S2-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Term 1 (T1-57). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 1 学季（T1-57）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Term 2 (T2-57). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 2 学季（T2-57）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Term 3 (T3-57). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record.":
+            "census date（学籍统计日）：第 3 学季（T3-57）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）。",
+        "Census date: Trimester 1 (T1-58). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 1 学段（T1-58）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Trimester 2 (T2-58). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 2 学段（T2-58）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Winter semester (WS-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：冬季学期（WS-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census dates – unit withdrawal dates for all teaching periods":
+            "census date（学籍统计日）——各开课学期的课程退选日期",
+        "Last day to withdraw from Monash Online 1 (MO-TP1-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 1（MO-TP1-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Monash Online 2 (MO-TP2-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 2（MO-TP2-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Monash Online 3 (MO-TP3-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 3（MO-TP3-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Monash Online 4 (MO-TP4-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 4（MO-TP4-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Monash Online 5 (MO-TP5-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 5（MO-TP5-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Monash Online 6 (MO-TP6-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 Monash Online 6（MO-TP6-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Summer A - semester 1 (SS-S1-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 夏季学期 A—第一学期（SS-S1-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from Term 4 (T4-57) and semester 2 - summer A (S2-SS-02) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 第 4 学季（T4-57）和第二学期—夏季学期 A（S2-SS-02） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from full-year (FY-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 全学年（FY-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from full-year (extended) (FY-32) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 全学年（延长）（FY-32） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from semester 1 (northern) (S1-60) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 第一学期（北半球）（S1-60） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from semester one (S1-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 第一学期（S1-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from summer semester B (SSB-01) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 夏季学期 B（SSB-01） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from trimester 1 (T1-58) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 第 1 学段（T1-58） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from trimester 3 (T3-58) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 第 3 学段（T3-58） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+        "Last day to withdraw from winter semester (WS-01) and trimester 2 (T2-58) units with Withdrawn showing on your academic record. Units withdrawn after this date will show as Withdrawn Fail":
+            "退选 冬季学期（WS-01）和第 2 学段（T2-58） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
+    },
+    "special-consideration": {
+        "If we approve your application, you’ll get an extension of two calendar days from the original due date of the assessment task.":
+            "如果申请获批，你将从考核任务的原定截止日起获得 2 个日历日的延期。",
+        "If you’ve already been given a short extension for an assessment but you need more time, you’ll need to then apply for an extension through special consideration with supporting documents.":
+            "如果你已经为某项考核拿到短期延期但仍需更多时间，接下来需要通过特殊考虑（special consideration）申请延期，并提交证明材料。",
+        "When you apply for an extension through special consideration, you need to provide supporting documents to show why you can’t complete your assessment as scheduled due to immediate and exceptional circumstances beyond your control. Make sure to apply as soon as possible, but no later than 11.55pm on the day your assessment is due.":
+            "通过特殊考虑（special consideration）申请延期时，你需要提交证明材料，说明自己为何因突发且无法控制的特殊情况而不能按时完成考核。请尽快提出申请，最迟不得晚于考核截止当天 23:55。",
+    },
+    "student-visa": {
+        "Check visa processing times (Department of Home Affairs). If you’re outside Australia, you’ll need enough time to get your visa before your course starts. If you’re already in Australia, make sure you apply in time before your current visa expires.":
+            "查看签证审理时长（澳大利亚内政部 Department of Home Affairs）。如果你人在澳大利亚境外，需要留出足够时间在学位课程开始前拿到签证；如果你已在澳大利亚境内，请务必在现有签证到期前及时提交申请。",
+        "If you’re starting your studies with us, you’ll need to apply for a student visa once you’ve accepted your offer and received your Confirmation of Enrolment (CoE).":
+            "如果你即将来 Monash 开始学习，在接受录取并收到入学确认书（CoE）之后，需要申请学生签证。",
+        "completing your course within the time frame on your CoE":
+            "在 CoE（入学确认书）载明的期限内完成学位课程",
+    },
+    "study-at-another-institution": {
+        "Your result will appear on your academic record (transcript) as either SFR (satisfied faculty requirements) or Fail. If you don't provide a record from the host institution you will have a Fail recorded against the units on your Monash academic record.":
+            "你的成绩会以 SFR（已满足学院要求）或 Fail（不及格）的形式出现在成绩单上。如果你不提交接收院校出具的成绩记录，这些课程在 Monash 成绩单上会被记为 Fail（不及格）。",
+    },
+    "supporting-documents": {
+        "If you’re registered with Disability Support Services (DSS) and couldn’t sit your deferred assessment due to circumstances not directly related to your DSS condition, you'll still need to provide the supporting documentation noted above.":
+            "如果你已在无障碍支持服务（Disability Support Services，DSS）登记，但未能参加延期考核的原因与你在 DSS 登记的状况没有直接关系，你仍然需要提交上述证明材料。",
+        "If you’re registered with Disability Support Services (DSS) and couldn’t sit your deferred assessment, you’ll need to provide supporting documents to prove that:":
+            "如果你已在无障碍支持服务（Disability Support Services，DSS）登记且未能参加延期考核，你需要提交证明材料来说明：",
+        "If you’re registered with Disability Support Services (DSS), and couldn’t sit your deferred assessment due to circumstances not directly related to your DSS condition, you’ll still need to provide the supporting documents noted above.":
+            "如果你已在无障碍支持服务（Disability Support Services，DSS）登记，但未能参加延期考核的原因与你在 DSS 登记的状况没有直接关系，你仍然需要提交上述证明材料。",
+        "an extension of more than 10 calendar days from the original due date of the assessment":
+            "自考核原定截止日起、超过 10 个日历日的延期",
+        "you'll be well enough to take the rescheduled deferred assessment within 90 days of the result release date of the teaching period in which the original assessment was scheduled, if your application is approved.":
+            "如果申请获批，你的身体状况能够在原定考核所属开课学期成绩公布日起 90 天内参加改期后的延期考核。",
+    },
+    "visa-changes": {
+        "Keep in mind that Monash is required to inform the Department of Home Affairs when you make changes to your enrolment. This includes taking intermission (study leave), changing course, extending the duration of your studies or having your enrolment terminated or suspended.":
+            "请注意：当你的选课注册发生变动时，Monash 必须通知澳大利亚内政部（Department of Home Affairs）。这包括申请休学（intermission，即 study leave）、更换学位课程、延长学习年限，以及学籍被终止或暂停。",
+    },
+    "wam": {
+        "DEF (deferred assessment)":
+            "DEF（延期考核）",
+        "NS (supplementary assessment)":
+            "NS（补考）",
+        "Weighted credit points":
+            "加权学分",
+    },
 }
 
 
@@ -545,6 +823,14 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
         TranslationSeed(ZH, OFFICIAL_PAGE, slug, "title", text=title)
         for slug, title in GUIDE_TITLES.items()
         if slug != "gpa"
+    ]
+    seeds += [
+        TranslationSeed(
+            ZH, OFFICIAL_PAGE, slug, "body",
+            strings=strings,
+            note="人工翻译：机器因保留术语无法处理的句子",
+        )
+        for slug, strings in GUIDE_BODIES.items()
     ]
     for slug, (question, answer) in FAQ_ZH.items():
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "question", text=question))
