@@ -75,7 +75,11 @@ useSeoMeta({
           <span class="tiny muted">{{ $t('units.campus') }}</span>
           <select v-model="filters.campus" class="field">
             <option value="">{{ $t('units.anyCampus') }}</option>
-            <option v-for="campus in facets?.campuses || []" :key="campus" :value="campus">{{ campus }}</option>
+            <!-- The value stays the Handbook's own string: it is the filter the
+                 API matches on. Only the label is translated. -->
+            <option v-for="campus in facets?.campuses || []" :key="campus" :value="campus">
+              {{ $term('campus', campus) }}
+            </option>
           </select>
         </label>
 
@@ -84,7 +88,7 @@ useSeoMeta({
           <select v-model="filters.teaching_period" class="field">
             <option value="">{{ $t('units.anyPeriod') }}</option>
             <option v-for="period in facets?.teaching_periods || []" :key="period" :value="period">
-              {{ period }}
+              {{ $term('period', period) }}
             </option>
           </select>
         </label>
@@ -93,7 +97,9 @@ useSeoMeta({
           <span class="tiny muted">{{ $t('units.level') }}</span>
           <select v-model="filters.level" class="field">
             <option value="">{{ $t('units.anyLevel') }}</option>
-            <option v-for="level in facets?.levels || []" :key="level" :value="level">{{ level }}</option>
+            <option v-for="level in facets?.levels || []" :key="level" :value="level">
+              {{ $term('level', level) }}
+            </option>
           </select>
         </label>
 

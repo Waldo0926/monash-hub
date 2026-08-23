@@ -1,4 +1,5 @@
-"""Load curated FAQ rows and, optionally, the first moderator account.
+"""Load curated FAQ rows, Chinese translations and, optionally, the first
+moderator account.
 
     python -m app.knowledge.seed
     ADMIN_EMAIL=... ADMIN_PASSWORD=... ADMIN_NICKNAME=... python -m app.knowledge.seed
@@ -6,6 +7,11 @@
 Idempotent: running it twice updates the same rows rather than duplicating them.
 The admin account is only created when both env vars are set, so a default
 password never ends up on a public server.
+
+Run it after a crawl, not before. A translation is stored against the hash of
+the English it was made from, and that hash only exists once the page has been
+fetched - seeding first leaves the translations unable to tell whether they are
+still current.
 """
 from __future__ import annotations
 
@@ -17,7 +23,9 @@ from sqlalchemy import select
 from app.core.db import SessionLocal
 from app.core.security import hash_password
 from app.knowledge.faq_seed import FAQ_SEEDS
+from app.knowledge.translations_seed import TRANSLATION_SEEDS
 from app.models.knowledge import FaqEntry, OfficialPage
+from app.models.translation import OFFICIAL_PAGE, PUBLISHED, ContentTranslation
 from app.models.user import User
 
 log = logging.getLogger("seed")
@@ -44,6 +52,51 @@ def seed_faq() -> int:
     return len(FAQ_SEEDS)
 
 
+def seed_translations() -> int:
+    """Write the Chinese, stamped with the hash of the English it was made from."""
+    written = 0
+    with SessionLocal() as db:
+        hashes = dict(
+            db.execute(select(OfficialPage.slug, OfficialPage.content_hash)).all()
+        )
+        for item in TRANSLATION_SEEDS:
+            row = db.scalar(
+                select(ContentTranslation).where(
+                    ContentTranslation.locale == item.locale,
+                    ContentTranslation.target_type == item.target_type,
+                    ContentTranslation.target_key == item.target_key,
+                    ContentTranslation.field == item.field,
+                )
+            )
+            if row is None:
+                row = ContentTranslation(
+                    locale=item.locale,
+                    target_type=item.target_type,
+                    target_key=item.target_key,
+                    field=item.field,
+                )
+                db.add(row)
+            row.text = item.text
+            row.data = {"strings": item.strings} if item.strings else None
+            row.status = PUBLISHED
+            row.translator = item.translator
+            row.note = item.note
+            # Only page translations can go stale; the global boilerplate and
+            # our own FAQ have no upstream to drift from.
+            row.source_hash = (
+                hashes.get(item.target_key) if item.target_type == OFFICIAL_PAGE else None
+            )
+            if item.target_type == OFFICIAL_PAGE and item.target_key not in hashes:
+                log.warning(
+                    "%s has a translation but is not crawled yet - it will show as stale",
+                    item.target_key,
+                )
+            written += 1
+        db.commit()
+    log.info("seeded %d translations", written)
+    return written
+
+
 def seed_admin() -> bool:
     email = os.getenv("ADMIN_EMAIL")
     password = os.getenv("ADMIN_PASSWORD")
@@ -66,6 +119,7 @@ def seed_admin() -> bool:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     seed_faq()
+    seed_translations()
     seed_admin()
 
 

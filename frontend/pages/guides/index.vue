@@ -11,7 +11,10 @@ const path = computed(() => {
   if (category.value) params.set('category', category.value)
   return `/v1/guides?${params.toString()}`
 })
-const { data, pending, error, refresh } = await useApiFetch<any>(() => path.value, { watch: [path] })
+const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
+  () => path.value,
+  { watch: [path] }
+)
 
 watch([query, category], () => {
   const q: Record<string, string> = {}

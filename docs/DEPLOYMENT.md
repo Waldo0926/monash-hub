@@ -112,8 +112,25 @@ Monash Hub adds one server block and binds its own containers to loopback only.
    ```bash
    ./deployment/crawl.sh handbook       # 20 fixture units
    ./deployment/crawl.sh official --all # 40 seed pages
-   ./deployment/crawl.sh seed           # curated FAQ
+   ./deployment/crawl.sh seed           # curated FAQ and Chinese translations
    ```
+
+   **Order matters, and `--all` matters.** Run the official crawl before the
+   seed, and run it with `--all` after any release that changes
+   `app/knowledge/cleaner.py`:
+
+   * The structured blocks a guide page renders from only exist once the page
+     has been crawled by the current extractor. A page still holding the old
+     flat text falls back to showing that text, so nothing breaks - it just
+     stays ugly until the crawl runs. `EXTRACTOR_VERSION` in `cleaner.py` is
+     what makes the crawl treat every page as changed; without `--all`, a page
+     whose refresh interval has not elapsed is not fetched at all and keeps the
+     old shape.
+   * Each translation is stamped with the content hash of the English it was
+     made from, and the seeder reads that hash off the crawled page. Seeding
+     before the crawl leaves every translation unable to tell whether it is
+     still current, and the site marks them all stale. The seeder warns by name
+     about any page in that state.
 
 ## Email delivery
 

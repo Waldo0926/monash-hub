@@ -19,6 +19,10 @@ here because breaking it costs money, trust, or someone else's server.
   crawling more is easy.
 - **Do not mirror files.** Text, structured fields, links and metadata only.
   No images, no videos, no lecture recordings, no PDFs into the database.
+  Structure *is* text: headings, lists and tables are extracted as typed blocks
+  (`app/knowledge/cleaner.py`) because a table flattened into a column of loose
+  numbers is not a cheaper copy of the page, it is a broken one. Screenshotting
+  a page to preserve its layout is still mirroring, and still out.
 - **Do not touch the other projects on the VPS.** The FYP secure file platform
   and the Monash Abroad Tracker share that host. Different compose project,
   different network, different volumes, different nginx server block.
@@ -30,10 +34,35 @@ here because breaking it costs money, trust, or someone else's server.
   internal Docker network.
 - **Do not copy third-party code with an incompatible licence.** Implement it,
   and record where an idea came from.
-- **Do not translate source content.** The interface has four languages; the
-  Handbook fields, official page text and student posts inside it have one — the
-  one they were written in. Translating a quotation silently turns someone
-  else's statement into ours.
+- **Do not translate source content *silently*.** This rule used to be an
+  outright ban, and the reason for the ban still stands: translating a quotation
+  without saying so turns someone else's statement into ours. What changed is
+  that a Chinese-reading student was being handed English on the pages that
+  decide their enrolment, and "read it in the original" is not a neutral default
+  for them. So translation is now allowed under four conditions, all of which
+  are enforced in code:
+
+  1. **A person writes it.** No model, no translation API. Translations live in
+     `backend/app/knowledge/translations_seed.py`, in the repository, where they
+     can be read in a diff.
+  2. **A missing translation stays in English.** Never approximate, never fill
+     the gap. `app/knowledge/translations.py` falls back to the source on every
+     miss, and that is the feature, not a limitation of it.
+  3. **It is labelled on screen.** `TranslationNotice.vue` says it is unofficial
+     and links to the original. A reader must never be able to mistake our
+     Chinese for something Monash published.
+  4. **It expires.** Every translation is stored against the content hash of the
+     English it was made from. When the source changes, the hash stops matching
+     and the page says the translation may be out of date, rather than
+     continuing to speak for text that has changed underneath it.
+
+  Student posts are still never translated: they are somebody's own words in a
+  forum, and there is no version of that which is ours to rewrite.
+
+  Handbook *field values* - campus, teaching period, attendance mode, assessment
+  type - are a separate case handled by `frontend/i18n/handbook-terms.ts`. Those
+  come from closed lists a few dozen entries long, so they are translated by
+  exact lookup at display time and the stored value is never touched.
 - **Do not read the counters and write them back.** `answer_count`,
   `vote_count`, `view_count`: `UPDATE ... SET x = x + 1`, always. A
   read-modify-write loses one of two concurrent updates.
@@ -89,6 +118,10 @@ here because breaking it costs money, trust, or someone else's server.
 | Rate limits and retries | `crawler/throttling/limiter.py` |
 | Colours, spacing, type | `frontend/assets/css/tokens.css` |
 | Interface translations | `frontend/i18n/index.ts` |
+| Chinese for Handbook field values | `frontend/i18n/handbook-terms.ts` |
+| Chinese for official page and unit prose | `backend/app/knowledge/translations_seed.py` |
+| How an official page is turned into blocks | `backend/app/knowledge/cleaner.py` |
+| How a guide page renders | `frontend/components/PageBlocks.vue` |
 | Registration and reset rules | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |
 | What sends a notification | `backend/app/community/notifications.py` |
 | Production topology | `docker-compose.yml`, `deployment/` |

@@ -1,15 +1,20 @@
 <script setup lang="ts">
 /**
- * Guide detail. Shows the heading outline and the extracted text, and puts the
- * link to the original page in front of the reader rather than at the bottom -
- * for anything that matters, the official page is still the authority.
+ * Guide detail. Shows the heading outline and the extracted page, and puts the
+ * link to the original in front of the reader rather than at the bottom - for
+ * anything that matters, the official page is still the authority.
+ *
+ * The body used to be one long string in a scrolling box. It is now the block
+ * list from the crawler, rendered as real headings, lists and tables by
+ * PageBlocks - a scroll box inside a page is a place text goes to be ignored,
+ * and the string in it had lost every table on the way here anyway.
  */
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
 const slug = computed(() => String(route.params.slug))
 
-const { data: guide, error } = await useApiFetch<any>(() => `/v1/guides/${slug.value}`)
+const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
 
 useSeoMeta({
   title: () => (guide.value ? `${guide.value.title} — Monash Hub` : 'Guide — Monash Hub'),
@@ -48,7 +53,8 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           <h2>{{ $t('guides.covers') }}</h2>
           <ul class="outline">
             <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
-              {{ heading.text }}
+              <a v-if="heading.id" :href="`#${heading.id}`">{{ heading.text }}</a>
+              <template v-else>{{ heading.text }}</template>
             </li>
           </ul>
         </section>
@@ -56,7 +62,13 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
         <section class="card section">
           <h2>{{ $t('guides.pageText') }}</h2>
           <p class="tiny muted">{{ $t('guides.pageTextNote') }}</p>
-          <p class="pre body-text">{{ guide.clean_text }}</p>
+          <TranslationNotice
+            v-if="guide.translation"
+            :translation="guide.translation"
+            :source-url="guide.url"
+            class="mb"
+          />
+          <PageBlocks :blocks="guide.blocks" :fallback="guide.clean_text" />
         </section>
       </article>
 
@@ -92,14 +104,16 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
 
 <style scoped>
 .layout { display: grid; grid-template-columns: 1fr 300px; gap: var(--s5); align-items: start; }
-.content { display: grid; gap: var(--s4); }
+/* See units/[code].vue: without this a wide table widens its own grid column
+   and the page scrolls sideways instead of the table. */
+.layout > * { min-width: 0; }
+.content { display: grid; gap: var(--s4); min-width: 0; }
 .section { padding: var(--s5); }
 .head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
 .mt { margin-top: var(--s4); }
+.mb { margin-bottom: var(--s5); }
 .outline { margin: 0; padding-left: var(--s5); }
 .outline .lvl-3 { margin-left: var(--s4); color: var(--muted); }
-.pre { white-space: pre-line; }
-.body-text { max-height: 60vh; overflow-y: auto; font-size: 0.94rem; }
 .side { position: sticky; top: calc(var(--header-h) + var(--s4)); }
 .faq + .faq { margin-top: var(--s4); }
 .faq h3 { font-size: 0.95rem; }

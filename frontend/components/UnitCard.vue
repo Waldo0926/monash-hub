@@ -12,7 +12,7 @@ const { $t } = useNuxtApp()
     <h3 class="title">{{ unit.title }}</h3>
     <div class="chips">
       <span v-for="(offering, i) in unit.offerings.slice(0, 4)" :key="i" class="chip">
-        {{ offering.campus }} · {{ offering.teaching_period }}
+        {{ $term('campus', offering.campus) }} · {{ $term('period', offering.teaching_period) }}
       </span>
       <span v-if="unit.offerings.length > 4" class="chip">
         {{ $t('units.more', { count: unit.offerings.length - 4 }) }}
@@ -22,7 +22,7 @@ const { $t } = useNuxtApp()
       </span>
     </div>
     <p class="meta tiny muted">
-      {{ unit.credit_points }} {{ $t('units.creditPoints') }}<span v-if="unit.level"> · {{ unit.level }}</span>
+      {{ unit.credit_points }} {{ $t('units.creditPoints') }}<span v-if="unit.level"> · {{ $term('level', unit.level) }}</span>
       · {{ unit.assessment_count }} {{ $t('units.assessmentItems') }}
       <span v-if="unit.has_exam === true"> · {{ $t('units.examListed') }}</span>
       <span v-else-if="unit.has_exam === false"> · {{ $t('units.noExamListed') }}</span>

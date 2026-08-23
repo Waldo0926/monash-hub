@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import distinct, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.deps import requested_locale
 from app.api.serializers import unit_brief, unit_detail
 from app.core.config import get_settings
 from app.core.db import get_db
+from app.knowledge import translations
 from app.models.handbook import Unit, UnitOffering
+from app.models.translation import UNIT
 from app.search import service
 
 router = APIRouter(prefix="/units", tags=["units"])
@@ -111,8 +114,15 @@ def _load(db: Session, code: str, year: int) -> Unit:
 
 
 @router.get("/{code}")
-def get_unit(code: str, year: int | None = None, db: Session = Depends(get_db)) -> dict:
-    return unit_detail(_load(db, code, _year(year)))
+def get_unit(
+    code: str,
+    year: int | None = None,
+    locale: str | None = Depends(requested_locale),
+    db: Session = Depends(get_db),
+) -> dict:
+    unit = _load(db, code, _year(year))
+    tr = translations.load(db, locale, UNIT, unit.unit_code, source_hash=unit.content_hash)
+    return unit_detail(unit, tr)
 
 
 @router.get("/{code}/assessment")
