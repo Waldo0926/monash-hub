@@ -176,34 +176,13 @@ def _up_to_date(
 
 # --- the passes ------------------------------------------------------------
 
-def _shard(value: str) -> tuple[int, int]:
-    """Parse ``K/N``. Rejects the off-by-one that would silently skip units."""
-    try:
-        index, count = (int(part) for part in value.split("/", 1))
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"--shard wants K/N, got {value!r}") from None
-    if count < 1 or not 0 <= index < count:
-        raise argparse.ArgumentTypeError(f"--shard {value} is not a shard of a whole")
-    return index, count
-
-
-def translate_units(translator: Translator, *, long_prose: bool, limit: int, refresh: bool,
-                    shard: tuple[int, int] = (0, 1)) -> dict:
+def translate_units(translator: Translator, *, long_prose: bool, limit: int, refresh: bool) -> dict:
     locale = translator.locale
     summary = {"translated": 0, "skipped": 0, "strings": 0}
     started = time.monotonic()
 
     with SessionLocal() as db:
         codes = list(db.scalars(select(Unit.unit_code).order_by(Unit.unit_code)))
-        # One process translating five thousand units with the long prose takes
-        # most of a day, and the model is capped at a core and a half. Splitting
-        # the list lets several run at once on different units; they share
-        # nothing but the database, and each row is written by exactly one of
-        # them. Interleaved rather than blocked, so every shard sees the same
-        # mixture of long and short units and they finish together.
-        index, count = shard
-        if count > 1:
-            codes = codes[index::count]
         if limit:
             codes = codes[:limit]
 
@@ -297,12 +276,6 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int, default=0, help="stop after this many units")
     parser.add_argument(
-        "--shard",
-        default="0/1",
-        metavar="K/N",
-        help="translate only shard K of N, so N of these can run at once",
-    )
-    parser.add_argument(
         "--refresh", action="store_true", help="re-translate even when the source is unchanged"
     )
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -333,7 +306,6 @@ def main() -> None:
                 translator,
                 long_prose=args.fields == "all",
                 limit=args.limit,
-                shard=_shard(args.shard),
                 refresh=args.refresh,
             ),
         )
