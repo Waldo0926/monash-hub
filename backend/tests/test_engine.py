@@ -324,10 +324,16 @@ def test_a_term_and_its_acronym_are_not_glossed_twice():
     assert engine.text("grade point average (GPA)") == "平均绩点（GPA）"
 
 
-def test_two_sentences_glued_at_a_colon_are_still_two():
-    """The crawler hands the transcripts page over with the space missing."""
-    parts = _SENTENCES.split("about you:If a unit is marked as Incomplete")
-    assert parts == ["about you", ":", "If a unit is marked as Incomplete"]
+def test_sentences_glued_together_are_still_separate_sentences():
+    """The crawler hands the transcripts page over with the spaces missing."""
+    parts = _SENTENCES.split("about you:If it is Incomplete.Masters awarded")
+    assert [part for part in parts if part] == [
+        "about you:", "If it is Incomplete.", "Masters awarded",
+    ]
+
+
+def test_a_full_stop_inside_a_time_is_not_a_boundary():
+    assert _SENTENCES.split("due at 11.55pm Friday") == ["due at 11.55pm Friday"]
 
 
 def test_a_dash_between_clauses_splits_and_a_dash_in_a_date_does_not():

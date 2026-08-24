@@ -87,16 +87,20 @@ _LABEL_HEAD = 40
 # Two more boundaries, both found by looking at what was still English after
 # every other repair:
 #
-# * A colon with no space after it. The transcripts page arrives from the
-#   crawler as "... information about you:If a unit is marked as Incomplete
-#   ..." - two sentences with the space lost between them, and far too long to
-#   translate as one.
+# * A full stop or a colon with no space after it. The transcripts page arrives
+#   from the crawler as "... information about you:If a unit is marked as
+#   Incomplete ... available yet.Masters awarded with ..." - four sentences with
+#   the spaces lost between them, and far too long to translate as one. Both
+#   rules want a lowercase letter in front of the mark, so that "U.S." and
+#   "11.55pm" are left alone.
 # * A dash standing in for a clause break: "unsure about continuing your course
 #   – we're here to help". Lowercase on both sides, so that "1 Jul – 30 Sep
 #   2026" is left whole - a span split at its dash is how a start date was
 #   published as a single day in September.
 _SENTENCES = re.compile(
-    r"((?<=[.!?])\s+|(?<=[a-z]):(?=[A-Z])|(?<=[a-z])\s+[–—]\s+(?=[a-z]))"
+    r"((?<=[.!?])\s+"
+    r"|(?<=[a-z][.!?:])(?=[A-Z])"
+    r"|(?<=[a-z])\s+[–—]\s+(?=[a-z]))"
 )
 
 # Asked to translate a short heading the model sometimes signs its work with
