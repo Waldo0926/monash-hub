@@ -12,10 +12,12 @@ from app.knowledge.glossary import (
     KEEP_IN_ENGLISH,
     LOCALES,
     TERMS,
+    has_verbatim,
     is_only_placeholders,
     placeholder,
     placeholders_survived,
     protect,
+    rendered_verbatim,
     restore,
     whole_value,
 )
@@ -141,3 +143,79 @@ def test_a_lost_placeholder_is_detectable():
     assert placeholders_survived("学业进度审查是什么东西? Zqa", 1) is True
     assert placeholders_survived("什么是兹卡?", 1) is False
     assert placeholders_survived("Zqa 和 兹卡b", 2) is False
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["Monash", "Monash Abroad", "Monash Connect", "Monash Online", "Monash Indonesia"],
+)
+def test_the_universitys_own_names_keep_their_english(name):
+    """Monash reads as *money* to the model.
+
+    "Monash Abroad", the office a student goes to about exchange, was
+    published as 国外货币 - foreign currency - as the heading of the study
+    abroad guide, and the unit code MON1001 as 货币1001. The name never
+    reaches the model, and what comes back still has the name in it.
+    """
+    masked, kept = protect(name, "zh")
+    assert is_only_placeholders(masked)
+    assert name in restore(masked, kept)
+
+
+def test_a_service_says_what_it_is():
+    # The name is what a student matches; the bracket is what it means.
+    assert TERMS["Monash Abroad"]["zh"] == "Monash Abroad（海外学习与交换）"
+    assert TERMS["Monash"]["zh"] == "Monash"
+
+
+def test_a_faculty_is_named_not_described():
+    # 法学院：, with the colon copied off "School of", was what the page said.
+    assert TERMS["Faculty of Law"]["zh"] == "法学院"
+    assert TERMS["Faculty of Information Technology"]["zh"] == "信息技术学院"
+
+
+def test_a_period_inside_a_label_is_pinned_too():
+    """ENUMS pins these as whole values; on the dates pages they arrive inside
+    a label, where the model read Trimester 1 as 三月一日 and Semester 2 as
+    学士2."""
+    masked, kept = protect("Trimester 1 (Faculty of Law units only)", "zh")
+    assert kept == ["第 1 学段", "法学院", "课程"]  # units is a term of its own
+    assert "Trimester" not in masked
+
+
+@pytest.mark.parametrize(
+    "source,expected",
+    [
+        ("1 Apr 2026", "2026年4月1日"),          # was 2026年4月1日（英语）.
+        ("1 Aug 2024", "2024年8月1日"),          # was 2024年8月1日纽约
+        ("10 Apr", "4月10日"),                   # was 4月10日，纽约
+        ("1 Jul – 30 Sep 2026", "2026年7月1日至9月30日"),  # was 2026年9月30日
+        ("3–7 Jun 2026", "2026年6月3日至7日"),
+        ("1 Nov 2027 – 11 Feb 2028", "2027年11月1日至2028年2月11日"),
+        ("11.55pm", "23:55"),
+        ("12.30am", "00:30"),                    # midnight, not noon
+        ("5am", "05:00"),                        # was 下午5点, twelve hours out
+    ],
+)
+def test_a_date_or_a_time_is_arithmetic_not_translation(source, expected):
+    assert rendered_verbatim(source, "zh") == expected
+
+
+@pytest.mark.parametrize("code", ["MON1001", "ATS1192", "S2-01", "MO-TP1-01"])
+def test_a_code_is_kept_exactly_as_it_arrived(code):
+    # ATS1192 came back as 1192奥地利先令: ATS was the Austrian schilling.
+    assert rendered_verbatim(code, "zh") == code
+    masked, kept = protect(code, "zh")
+    assert is_only_placeholders(masked) and restore(masked, kept) == code
+
+
+def test_a_sentence_keeps_its_dates_out_of_the_models_reach():
+    masked, kept = protect("Applications close at 11.59pm for semester two (S2-01)", "zh")
+    assert "11.59pm" not in masked and "S2-01" not in masked
+    assert "23:59" in kept and "S2-01" in kept and "第二学期" in kept
+
+
+def test_a_month_needs_its_capital_to_be_a_date():
+    # "3 may be enough" is a sentence, not the third of May.
+    assert not has_verbatim("3 may be enough to pass")
+    assert has_verbatim("3 May 2026")
