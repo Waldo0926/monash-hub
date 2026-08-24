@@ -70,6 +70,12 @@ _LINES = re.compile(r"(\s*\n\s*)")
 # own small problem, and the head of the label is usually a closed-list value
 # the glossary already has agreed wording for, so nothing is left to guess at.
 _BRACKETED = re.compile(r"\s*[（(]\s*([^()（）]*?)\s*[）)]")
+# Only for labels. A sentence has brackets too - "after the census date (but
+# before the Withdrawn Fail date) your record will show ..." - and splitting one
+# at its brackets leaves the head of the sentence to stand on its own, which is
+# how that page came back with its first clause still in English. A label has no
+# sentence-ending punctuation and a short head; prose has one or the other.
+_LABEL_HEAD = 40
 
 # When a whole string cannot be managed, the sentences it is made of usually
 # can. "Census date: Term 4 (T4-57). Last day to withdraw from units without
@@ -91,6 +97,14 @@ _LANGUAGE_NAMES = frozenset({
     "日语", "日本語", "韩语", "한국어",
 })
 _LANGUAGE_WORDS = re.compile(r"English|Chinese|Mandarin|Japanese|Korean|language", re.I)
+
+
+def _is_label(source: str) -> bool:
+    """Whether this is a bracketed label rather than a sentence with brackets."""
+    match = _BRACKETED.search(source)
+    if not match or re.search(r"[.!?。！？]", source):
+        return False
+    return match.start() <= _LABEL_HEAD
 
 
 def _unsigned(text: str, source: str) -> str:
@@ -186,7 +200,7 @@ class Translator:
                 return None
             if attempt is None:
                 # Every token was rewritten rather than copied - see ``_masked``.
-                if _BRACKETED.search(source):
+                if _is_label(source):
                     by_bracket = self._by_bracket(source)
                     if by_bracket:
                         return by_bracket
@@ -509,6 +523,15 @@ def _tidy(text: str, locale: str) -> str:
         # Sentence-final full stop, which the rule above cannot see.
         text = re.sub(rf"(?<=[{_CJK}])[ \t]*\.[ \t]*$", "。", text)
         text = re.sub(rf"(?<=[{_CJK}])[ \t]*\.[ \t]+(?=[{_CJK}])", "。", text)
+    # "grade point average (GPA)" is two reserved terms, and each one's agreed
+    # wording carries the other: restoring both writes 平均绩点（GPA）（GPA（平均
+    # 绩点））. The gloss is already there, so the bracket the English wrote is
+    # the one to drop.
+    text = re.sub(
+        r"(?P<a>[^（）\s]+)（(?P<b>[^（）]+)）\s*[（(](?P=b)[（(](?P=a)[）)][）)]",
+        r"\g<a>（\g<b>）",
+        text,
+    )
     # Two CJK words with a space between them is an artefact of putting a
     # glossary term back where a placeholder was; Chinese and Japanese do not
     # space words. A space between Latin and CJK is correct and stays

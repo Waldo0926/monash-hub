@@ -299,6 +299,31 @@ def test_the_model_is_given_a_straight_apostrophe():
     assert "you're" in calls[0]
 
 
+def test_a_sentence_with_brackets_is_not_split_at_them():
+    """Only labels are taken apart at their brackets.
+
+    "... after the census date (but before the Withdrawn Fail date) your record
+    will show ..." is a sentence. Split at the bracket, its head stands alone
+    and comes back in English on an otherwise Chinese page.
+    """
+    engine = translator(lambda text: "兹卡")
+    source = (
+        "If you withdraw from a unit after the census date "
+        "(but before the Withdrawn Fail date) your record will show it."
+    )
+    assert engine.text(source) is None  # English, rather than half a sentence
+
+
+def test_a_term_and_its_acronym_are_not_glossed_twice():
+    """Both halves of "grade point average (GPA)" are reserved terms.
+
+    Each one's agreed wording carries the other, so restoring both wrote the
+    gloss out twice on the live GPA page.
+    """
+    engine = translator(lambda text: text)
+    assert engine.text("grade point average (GPA)") == "平均绩点（GPA）"
+
+
 def test_a_lost_term_still_gets_its_second_attempt():
     """The guard is about dates and codes, not about every lost placeholder."""
     calls = []
