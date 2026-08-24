@@ -83,7 +83,21 @@ _LABEL_HEAD = 40
 # period code and so lost all three sentences, when only the first one was
 # ever in question. Split on a full stop that ends a sentence, not on the one
 # inside 11.55pm - the space after it is what tells them apart.
-_SENTENCES = re.compile(r"(?<=[.!?])(\s+)")
+#
+# Two more boundaries, both found by looking at what was still English after
+# every other repair:
+#
+# * A colon with no space after it. The transcripts page arrives from the
+#   crawler as "... information about you:If a unit is marked as Incomplete
+#   ..." - two sentences with the space lost between them, and far too long to
+#   translate as one.
+# * A dash standing in for a clause break: "unsure about continuing your course
+#   – we're here to help". Lowercase on both sides, so that "1 Jul – 30 Sep
+#   2026" is left whole - a span split at its dash is how a start date was
+#   published as a single day in September.
+_SENTENCES = re.compile(
+    r"((?<=[.!?])\s+|(?<=[a-z]):(?=[A-Z])|(?<=[a-z])\s+[–—]\s+(?=[a-z]))"
+)
 
 # Asked to translate a short heading the model sometimes signs its work with
 # the name of a language: "Discontinue your course" came back as

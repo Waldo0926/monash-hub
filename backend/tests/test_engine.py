@@ -12,7 +12,7 @@ import threading
 import pytest
 from app.knowledge.glossary import MASKS, placeholder
 
-from crawler.translate.engine import _CODE, Translator
+from crawler.translate.engine import _CODE, _SENTENCES, Translator
 
 CODES = ["P", "N", "HD", "D", "C", "NE", "NAS", "NGO", "NH", "NS", "NSR",
          "PGO", "SFR", "WDN", "WH", "WI", "WN", "DEF"]
@@ -322,6 +322,17 @@ def test_a_term_and_its_acronym_are_not_glossed_twice():
     """
     engine = translator(lambda text: text)
     assert engine.text("grade point average (GPA)") == "平均绩点（GPA）"
+
+
+def test_two_sentences_glued_at_a_colon_are_still_two():
+    """The crawler hands the transcripts page over with the space missing."""
+    parts = _SENTENCES.split("about you:If a unit is marked as Incomplete")
+    assert parts == ["about you", ":", "If a unit is marked as Incomplete"]
+
+
+def test_a_dash_between_clauses_splits_and_a_dash_in_a_date_does_not():
+    assert len(_SENTENCES.split("continuing your course – we’re here to help")) == 3
+    assert _SENTENCES.split("1 Jul – 30 Sep 2026") == ["1 Jul – 30 Sep 2026"]
 
 
 def test_a_lost_term_still_gets_its_second_attempt():
