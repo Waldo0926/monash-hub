@@ -503,6 +503,54 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "フルタイムの履修量",
         "ko": "전일제 수강 부담",
     },
+
+    # The OSHC page is about the insurance a student visa is conditional on,
+    # and unaided it was the worst page on the site. The insurer's name was
+    # transliterated three different ways and none of them is a company a
+    # student can find: "Allianz Care Australia Policy Wording Documents"
+    # came back as 澳大利亚爱护组织 (an Australian caring organisation) and
+    # "Once you've purchased your Allianz Care Australia OSHC policy" as
+    # 澳洲爱心 (Australian loving heart). The name is kept, like Monash's own.
+    "Allianz Care Australia": {
+        "zh": "Allianz Care Australia", "ja": "Allianz Care Australia",
+        "ko": "Allianz Care Australia",
+    },
+    "Allianz Care": {
+        "zh": "Allianz Care", "ja": "Allianz Care", "ko": "Allianz Care",
+    },
+    # An insurance *policy* is a 保单, not a 政策 - the model chose the
+    # government kind on every occurrence, on the page that tells a student
+    # what their cover pays for. Longest form first, as always.
+    "policy wording": {
+        "zh": "保单条款", "ja": "保険約款", "ko": "보험 약관",
+    },
+    "OSHC policy": {
+        "zh": "OSHC（留学生医疗保险）保单",
+        "ja": "OSHC（留学生健康保険）の保険",
+        "ko": "OSHC(유학생 의료보험) 보험",
+    },
+    "extras policy": {
+        "zh": "附加保障保单", "ja": "追加保障の保険", "ko": "부가 보장 보험",
+    },
+    "health cover": {
+        "zh": "医疗保险保障", "ja": "医療保険", "ko": "의료보험 보장",
+    },
+    "your cover": {
+        # "get the most from your cover" came back as 你的封面 - a book cover.
+        "zh": "你的保险保障", "ja": "あなたの保障", "ko": "보장 내용",
+    },
+    # The extras a policy does not pay for, and the model's readings of them:
+    # *chiropractic* became 脊髓灰质炎 (poliomyelitis), *osteopathy* 骨病 (bone
+    # disease) and *optical* 光学 (the physics).
+    "chiropractic": {
+        "zh": "脊椎按摩治疗", "ja": "カイロプラクティック", "ko": "척추 교정 치료",
+    },
+    "osteopathy": {
+        "zh": "整骨治疗", "ja": "オステオパシー", "ko": "정골 치료",
+    },
+    "optical": {
+        "zh": "验光配镜", "ja": "眼鏡・検眼", "ko": "안경·검안",
+    },
     "international student": {
         "zh": "国际学生",
         "ja": "留学生",
@@ -1660,6 +1708,11 @@ KEEP_IN_ENGLISH = frozenset({
     # The services that carry it - Monash Abroad, Monash Connect - keep the
     # English too, with a bracket saying what they are.
     "Monash",
+    # The OSHC insurer, for the same reason: a student has to be able to match
+    # the name here against the policy documents and the card in their wallet,
+    # and every reading the model invented for it - 爱护组织, 爱心, 爱丽安兹 -
+    # is a company that does not exist.
+    "Allianz Care Australia", "Allianz Care",
 })
 
 
