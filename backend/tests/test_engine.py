@@ -286,6 +286,19 @@ def test_a_bracketed_labels_qualifier_is_still_translated():
     assert result == "第 1 学段 (T1-58)（法学院课程除外）"
 
 
+def test_the_model_is_given_a_straight_apostrophe():
+    """Monash writes ’ and the model was trained on '.
+
+    Eight of the sentences left in English on the live guides came back whole
+    once the apostrophe was straightened, and nothing else changed.
+    """
+    calls = []
+    engine = translator(lambda text: calls.append(text) or "如果你不确定，请联系学院。")
+    engine.text("Check with your faculty if you’re unsure.")
+    assert calls and all("’" not in call for call in calls)
+    assert "you're" in calls[0]
+
+
 def test_a_lost_term_still_gets_its_second_attempt():
     """The guard is about dates and codes, not about every lost placeholder."""
     calls = []

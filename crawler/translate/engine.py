@@ -116,6 +116,13 @@ _PUNCTUATION = {
 }
 _CJK = r"㐀-䶿一-鿿぀-ヿ가-힯"
 
+# Monash writes the curly apostrophe and the model was trained on the straight
+# one. Measured over the sentences that were failing on the live guides,
+# straightening it alone recovers eight of them - three of which then survive
+# the very first mask. What cost those sentences their Chinese was the shape of
+# the apostrophe in "you're", not the token standing beside it.
+_CURLY = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
+
 
 class Translator:
     """One loaded model per language, translating with the glossary in front."""
@@ -224,6 +231,10 @@ class Translator:
         self._cache[source] = result
         return result
 
+    def _ask(self, text: str) -> str:
+        """Hand a string to the model in the punctuation it was trained on."""
+        return self._translate(text.translate(_CURLY))
+
     def _masked(self, source: str) -> tuple[str, list[str], tuple[str, str]] | None:
         """Translate with the terms masked, until a mask comes back intact.
 
@@ -244,7 +255,7 @@ class Translator:
         """
         for mask in MASKS:
             masked, terms = protect(source, self.locale, mask)
-            translated = self._translate(masked)
+            translated = self._ask(masked)
             if placeholders_survived(translated, len(terms), mask):
                 return translated, terms, mask
             log.debug("mask %s was rewritten: %s", mask[0], source[:60])
@@ -261,7 +272,7 @@ class Translator:
         leaves the sentence in English - the same place it was already headed.
         """
         try:
-            plain = self._translate(source)
+            plain = self._ask(source)
         except Exception as exc:  # one bad string must not end a batch of 5,000
             log.warning("translation failed (%s): %s", exc, source[:60])
             return None
@@ -308,7 +319,7 @@ class Translator:
             known = self._renderings.get(term)
         if known is None:
             try:
-                known = self._translate(term).strip().strip("。.")
+                known = self._ask(term).strip().strip("。.")
             except Exception:
                 known = ""
             with self._lock:
