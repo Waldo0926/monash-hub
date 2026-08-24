@@ -212,7 +212,7 @@ class Translator:
             return None
         else:
             try:
-                attempt = self._masked(source, MASKS if single else MASKS[:1])
+                attempt = self._masked(source, MASKS if single else MASKS[:2])
             except Exception as exc:  # one bad string must not end a batch of 5,000
                 log.warning("translation failed (%s): %s", exc, source[:60])
                 self._cache[source] = ""
@@ -286,14 +286,17 @@ class Translator:
         sentence that has already failed pays for the extra calls, and the
         alternative it is being compared against is the reader seeing English.
 
-        The caller passes one mask for a string made of several sentences and
-        all of them for a single sentence. Retrying a whole paragraph is the
-        expensive half and the useless half: the more terms a string carries
-        the likelier one of them is rewritten whatever the token, and the
-        measurement above was made on sentences. A paragraph that fails is
-        better split than retried, and each of its sentences then gets the
-        full run - which took the units pass from twelve units a minute back
-        to the thirty-odd it managed before any of this.
+        The caller passes two masks for a string made of several sentences and
+        all of them for a single sentence. Retrying a whole paragraph against
+        every mask is where the cost multiplied: the paragraph is tried five
+        times, then split, and each sentence tried five times again, which took
+        the units pass from thirty-odd units a minute down to twelve - seven
+        hours for a year of the Handbook. It is also the weaker half, since the
+        more terms a string carries the likelier one is rewritten whatever the
+        token, and the measurement above was made on sentences. Two is where it
+        settled: enough that a paragraph like "Check units you're currently
+        enrolled in - title and code, campus ..." still comes back whole, and
+        the sentences of the ones that do not still get the full run.
 
         Returns the translation, the replacements and the mask that survived.
         """
