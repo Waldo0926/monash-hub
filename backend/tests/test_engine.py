@@ -218,3 +218,57 @@ def test_an_ordinary_term_does_not():
 
     engine = translator(stub)
     assert engine.text("Results are released on Friday.") == "成绩在周五公布。"
+
+
+def test_a_rewritten_date_keeps_the_sentence_in_english():
+    """The repair path re-translates with nothing masked.
+
+    For a term that is the right answer - the model's own wording for
+    "results" beats a page left in English. For a date it is how "1 Aug 2024"
+    came back as 2024年8月1日纽约 in the first place, so a lost date or code
+    ends the attempt instead of starting a second one.
+    """
+    calls = []
+    engine = translator(lambda text: calls.append(text) or "考核于兹卡截止")
+    assert engine.text("The assessment is due on 1 Aug 2024.") is None
+    assert len(calls) == 1  # asked once, and not asked again unmasked
+
+
+def test_a_lost_term_still_gets_its_second_attempt():
+    """The guard is about dates and codes, not about every lost placeholder."""
+    calls = []
+    engine = translator(lambda text: calls.append(text) or "兹卡是结果")
+    engine.text("Results are published in WES.")
+    assert len(calls) > 1
+
+
+def test_one_terms_wording_is_not_read_as_another_terms():
+    """*course* is 学位课程 and *unit* is 课程, one inside the other.
+
+    Checking the shorter against the whole sentence found 课程 sitting inside
+    学位课程 and called *unit* correctly rendered, which let 单位 - the reading
+    this glossary exists to prevent - through onto the transcripts page.
+    """
+    plain = "成绩单列出所有学位课程和在校学习的所有单位。"
+    engine = translator(lambda text: plain if len(text) > 12 else "单位")
+    result = engine.text("It lists all courses and all units studied.")
+    assert result is not None
+    assert "单位" not in result
+    assert "学位课程" in result and "课程" in result
+
+
+def test_a_sentence_that_cannot_be_managed_does_not_take_the_others():
+    """A time that came back rewritten used to cost the whole paragraph."""
+    def stub(text: str) -> str:
+        if "Zq" in text:
+            return "申请于兹卡截止"  # the placeholder came back transliterated
+        return "无需缴费。"
+    engine = translator(stub)
+    result = engine.text(
+        "Applications close at 11.59pm on the day it is set. No fees are incurred."
+    )
+    assert result is not None
+    # The sentence the engine will not vouch for keeps its English ...
+    assert "Applications close at 11.59pm on the day it is set." in result
+    # ... and the one that was never in question is still translated.
+    assert "无需缴费。" in result

@@ -25,6 +25,7 @@ import threading
 from collections.abc import Iterable
 
 from app.knowledge.glossary import (
+    has_verbatim,
     is_critical,
     is_only_placeholders,
     placeholders_survived,
@@ -60,6 +61,14 @@ _CODE = re.compile(r"^[A-Z][A-Z0-9]{0,4}$")
 # translation problem, so each is translated alone and put back with the
 # separator it arrived with.
 _LINES = re.compile(r"(\s*\n\s*)")
+
+# When a whole string cannot be managed, the sentences it is made of usually
+# can. "Census date: Term 4 (T4-57). Last day to withdraw from units without
+# incurring fees. Units withdrawn after this date will show as WN." lost its
+# period code and so lost all three sentences, when only the first one was
+# ever in question. Split on a full stop that ends a sentence, not on the one
+# inside 11.55pm - the space after it is what tells them apart.
+_SENTENCES = re.compile(r"(?<=[.!?])(\s+)")
 
 # Argos emits ASCII punctuation into CJK text, which reads as a foreign body in
 # a Chinese or Japanese sentence. Korean uses ASCII punctuation, so it is left
@@ -131,17 +140,35 @@ class Translator:
                 log.warning("translation failed (%s): %s", exc, source[:60])
                 self._cache[source] = ""
                 return None
+            if not placeholders_survived(translated, len(terms)) and has_verbatim(source):
+                # The token that went missing was a date, a time or a code.
+                # The repair below re-translates with nothing masked, and
+                # unmasked is exactly how "1 Aug 2024" came back as
+                # 2024年8月1日纽约. There is nothing to look for and nothing to
+                # guess at, so this attempt is over - but the other sentences
+                # in the string were never in question.
+                log.debug("a date or a code was rewritten: %s", source[:60])
+                return self._by_sentence(source)
             if not placeholders_survived(translated, len(terms)):
                 # The model rewrote one of the tokens instead of copying it -
                 # "What is Zqa?" came back as 什么是兹卡?. Restoring cannot find
                 # it. Giving up here is what left whole paragraphs of the
                 # guides in English while the page around them was Chinese, so
                 # the sentence gets a second attempt without any masking.
+                if _SENTENCES.search(source):
+                    # Unless there are several sentences, in which case they
+                    # are each a smaller problem: a placeholder in a short
+                    # sentence usually survives, and the repair below is a
+                    # heuristic - it reads 课程 in 课程框架 (a curriculum
+                    # framework) as proof that *unit* was rendered right, and
+                    # let 单位 through on the paragraph it could not manage.
+                    by_sentence = self._by_sentence(source)
+                    if by_sentence:
+                        return by_sentence
                 repaired = self._agreed_wording(source)
                 if repaired is None:
-                    log.debug("placeholder lost, keeping English: %s", source[:60])
-                    self._cache[source] = ""
-                    return None
+                    log.debug("placeholder lost: %s", source[:60])
+                    return self._by_sentence(source)
                 result = repaired
             else:
                 # Tidy after restoring, not before: with the placeholders still
@@ -174,18 +201,32 @@ class Translator:
         except Exception as exc:  # one bad string must not end a batch of 5,000
             log.warning("translation failed (%s): %s", exc, source[:60])
             return None
-        for written, agreed in terms_in(source, self.locale):
-            if agreed in plain:
+        # Longest agreed wording first, and each one claimed off a working copy
+        # as it is found: *course* is 学位课程 and *unit* is 课程, so checking
+        # the short one against the whole sentence reads the rendering of
+        # "course" as proof that "unit" came out right. That is how 单位 - the
+        # one word this glossary exists to keep out - reached a live page.
+        unclaimed = plain
+        for written, agreed in sorted(
+            terms_in(source, self.locale), key=lambda pair: -len(pair[1])
+        ):
+            if agreed in unclaimed:
+                # Every occurrence, not the first: "course" is written three
+                # times in one Handbook sentence, and the two copies of
+                # 学位课程 left behind were enough to answer for *unit* as well.
+                unclaimed = unclaimed.replace(agreed, "")
                 continue  # the model happened to land on the agreed wording
             rendered = self._bare(written)
             if rendered and rendered in plain:
                 plain = plain.replace(rendered, agreed)
+                unclaimed = unclaimed.replace(rendered, "")
                 continue
             if written in plain:
                 # An acronym the model copied rather than translated - WAM,
                 # NSR, SFR come back untouched. That is the term still in
                 # English, not a wrong rendering of it, so it can be replaced.
                 plain = plain.replace(written, agreed)
+                unclaimed = unclaimed.replace(written, "")
                 continue
             if is_critical(written):
                 # Rendered some third way in context, and this is a term a
@@ -232,6 +273,35 @@ class Translator:
             self._cache[source] = ""
             return None
         result = "".join(rendered).strip()
+        self._cache[source] = result
+        return result
+
+    def _by_sentence(self, source: str) -> str | None:
+        """Translate a string one sentence at a time, after the whole failed.
+
+        The same bargain as ``_by_line``: a sentence the engine will not vouch
+        for keeps its English rather than taking the paragraph with it. Called
+        only after the string as a whole has been given up on, so the extra
+        model calls are paid for by the strings that would otherwise be shown
+        to a Chinese reader in English.
+        """
+        parts = _SENTENCES.split(source)
+        if len(parts) < 3:  # one sentence: there is nothing left to try
+            self._cache[source] = ""
+            return None
+        rendered: list[str] = []
+        translated_any = False
+        for index, part in enumerate(parts):
+            if index % 2 or not part.strip():
+                rendered.append(part)
+                continue
+            done = self.text(part)
+            rendered.append(done or part)
+            translated_any = translated_any or bool(done)
+        if not translated_any:
+            self._cache[source] = ""
+            return None
+        result = _tidy("".join(rendered), self.locale)
         self._cache[source] = result
         return result
 
@@ -333,4 +403,14 @@ def _tidy(text: str, locale: str) -> str:
     text = re.sub(r"[ \t]+(?=[，。、；：？！）])", "", text)
     text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
-    return re.sub(r"[ \t]{2,}", " ", text).strip()
+    text = re.sub(r"[ \t]{2,}", " ", text).strip()
+    for transliterated, name in _HOUSE.get(locale, {}).items():
+        text = text.replace(transliterated, name)
+    return text
+
+
+# The model sometimes writes the university's name out in Chinese even when it
+# was never given it to translate - 莫纳什 arrived in sentences where "Monash"
+# had been masked out. No reviewed translation on this site has ever used it,
+# and a student cannot match it against the address on their own email.
+_HOUSE = {"zh": {"莫纳什大学": "Monash 大学", "莫纳什": "Monash", "蒙纳士": "Monash"}}

@@ -271,6 +271,21 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "同時履修科目",
         "ko": "동시 수강 과목",
     },
+    "co-requisites": {
+        "zh": "同修课程",
+        "ja": "同時履修科目",
+        "ko": "동시 수강 과목",
+    },
+    "co-requisite": {
+        "zh": "同修课程",
+        "ja": "同時履修科目",
+        "ko": "동시 수강 과목",
+    },
+    "corequisites": {
+        "zh": "同修课程",
+        "ja": "同時履修科目",
+        "ko": "동시 수강 과목",
+    },
     "prohibition": {
         "zh": "互斥课程",
         "ja": "履修不可科目",
@@ -497,6 +512,281 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "本地学生",
         "ja": "国内学生",
         "ko": "자국 학생",
+    },
+
+    # A degree is *by coursework* or *by research*, and the pair decides which
+    # rules a student is under. "a coursework student at Monash University"
+    # came back as 教职员工 - a member of staff.
+    "coursework students": {
+        "zh": "授课型学生",
+        "ja": "コースワークの学生",
+        "ko": "코스워크 학생",
+    },
+    "coursework student": {
+        "zh": "授课型学生",
+        "ja": "コースワークの学生",
+        "ko": "코스워크 학생",
+    },
+    "by coursework": {
+        "zh": "授课型",
+        "ja": "コースワーク型",
+        "ko": "코스워크형",
+    },
+    "by research": {
+        "zh": "研究型",
+        "ja": "研究型",
+        "ko": "연구형",
+    },
+
+    # --- what a student does at a desk ---------------------------------------
+    # All four came off the key dates page, where the model had a label and no
+    # sentence to read it in: *course transfer* became 学位课程转账 (a bank
+    # transfer), *change of preference* became 更改优惠 (a change of discount),
+    # *faculty* became 教职员工 (the teaching staff) and "How to apply" became
+    # 如何适用 (how it is applicable).
+    "course transfers": {
+        "zh": "转学位课程",
+        "ja": "コース変更",
+        "ko": "학위 과정 변경",
+    },
+    "course transfer": {
+        "zh": "转学位课程",
+        "ja": "コース変更",
+        "ko": "학위 과정 변경",
+    },
+    "change of preference": {
+        "zh": "更改志愿",
+        "ja": "志望変更",
+        "ko": "지망 변경",
+    },
+    "How to apply": {
+        "zh": "如何申请",
+        "ja": "申請方法",
+        "ko": "신청 방법",
+    },
+    "faculties": {
+        "zh": "学院",
+        "ja": "学部",
+        "ko": "단과대학",
+    },
+    "faculty": {
+        "zh": "学院",
+        "ja": "学部",
+        "ko": "단과대학",
+    },
+
+    # --- the university's own names ------------------------------------------
+    # Left to itself the model reads "Monash" as *money*. Monash Abroad, the
+    # office a student goes to about exchange, was published as 国外货币
+    # (foreign currency) and the unit code MON1001 as 货币1001. Where it does
+    # not do that it transliterates - 莫纳什 - which no reviewed translation on
+    # this site has ever used and which cannot be matched against the address
+    # on the student's own email. So the name is kept and the bracket says what
+    # it is, the way census date and WES already do: a student has to be able
+    # to match what they read here against the office they walk into. "Monash"
+    # on its own is left alone - a gloss on every occurrence would be noise.
+    "Monash Abroad": {
+        "zh": "Monash Abroad（海外学习与交换）",
+        "ja": "Monash Abroad（海外留学・交換留学）",
+        "ko": "Monash Abroad(해외 유학·교환)",
+    },
+    "Monash Connect": {
+        "zh": "Monash Connect（学生服务中心）",
+        "ja": "Monash Connect（学生サービス窓口）",
+        "ko": "Monash Connect(학생 서비스 센터)",
+    },
+    "Monash College": {
+        "zh": "Monash College（预科学院）",
+        "ja": "Monash College（進学準備カレッジ）",
+        "ko": "Monash College(예비 과정 칼리지)",
+    },
+    "Monash Online": {
+        "zh": "Monash Online（在线）",
+        "ja": "Monash Online（オンライン）",
+        "ko": "Monash Online(온라인)",
+    },
+    "Monash Health": {
+        "zh": "Monash Health（医疗服务机构）",
+        "ja": "Monash Health（医療機関）",
+        "ko": "Monash Health(의료 기관)",
+    },
+    "Monash Indonesia": {
+        "zh": "Monash Indonesia（印尼校区）",
+        "ja": "Monash Indonesia（インドネシアキャンパス）",
+        "ko": "Monash Indonesia(인도네시아 캠퍼스)",
+    },
+    "Monash Malaysia": {
+        "zh": "Monash Malaysia（马来西亚校区）",
+        "ja": "Monash Malaysia（マレーシアキャンパス）",
+        "ko": "Monash Malaysia(말레이시아 캠퍼스)",
+    },
+    "Monash Prato": {
+        "zh": "Monash Prato（意大利普拉托校区）",
+        "ja": "Monash Prato（イタリア・プラートキャンパス）",
+        "ko": "Monash Prato(이탈리아 프라토 캠퍼스)",
+    },
+    "Monash": {
+        "zh": "Monash",
+        "ja": "Monash",
+        "ko": "Monash",
+    },
+    "Monash University": {
+        "zh": "Monash 大学",
+        "ja": "Monash 大学",
+        "ko": "Monash 대학교",
+    },
+
+    # --- the faculties -------------------------------------------------------
+    # Table labels on the dates pages, where the model has a name and no
+    # sentence to put it in: "Faculty of Law" came back as 法学院： with the
+    # colon copied off "School of", and "Faculty of Information Technology"
+    # was split down the middle into 学院：信息技术.
+    "Faculty of Art, Design and Architecture": {
+        "zh": "艺术、设计与建筑学院",
+        "ja": "芸術・デザイン・建築学部",
+        "ko": "예술·디자인·건축대학",
+    },
+    "Faculty of Medicine, Nursing and Health Sciences": {
+        "zh": "医学、护理与健康科学学院",
+        "ja": "医学・看護・健康科学部",
+        "ko": "의학·간호·보건과학대학",
+    },
+    "Faculty of Pharmacy and Pharmaceutical Sciences": {
+        "zh": "药学与制药科学学院",
+        "ja": "薬学・薬科学部",
+        "ko": "약학·제약과학대학",
+    },
+    "Faculty of Information Technology": {
+        "zh": "信息技术学院",
+        "ja": "情報技術学部",
+        "ko": "정보기술대학",
+    },
+    "Faculty of Business and Economics": {
+        "zh": "商学与经济学院",
+        "ja": "ビジネス・経済学部",
+        "ko": "경영·경제대학",
+    },
+    "Faculty of Engineering": {
+        "zh": "工程学院",
+        "ja": "工学部",
+        "ko": "공과대학",
+    },
+    "Faculty of Education": {
+        "zh": "教育学院",
+        "ja": "教育学部",
+        "ko": "교육대학",
+    },
+    "Faculty of Science": {
+        "zh": "理学院",
+        "ja": "理学部",
+        "ko": "이과대학",
+    },
+    "Faculty of Arts": {
+        "zh": "文学院",
+        "ja": "文学部",
+        "ko": "인문대학",
+    },
+    "Faculty of Law": {
+        "zh": "法学院",
+        "ja": "法学部",
+        "ko": "법과대학",
+    },
+    "Faculty of IT": {
+        "zh": "信息技术学院（IT）",
+        "ja": "情報技術学部（IT）",
+        "ko": "정보기술대학(IT)",
+    },
+
+    # --- the period a date belongs to ----------------------------------------
+    # The same periods ENUMS pins as whole field values, pinned again as
+    # substrings: on the dates pages they arrive inside a label - "Trimester 1
+    # (Faculty of Law units only)" - and the model, with nothing else to go
+    # on, read Trimester 1 as 三月一日 (the first of March) and Semester 2 as
+    # 学士2 (a bachelor's degree).
+    "Semester 1": {
+        "zh": "第一学期",
+        "ja": "第1学期",
+        "ko": "1학기",
+    },
+    "Semester 2": {
+        "zh": "第二学期",
+        "ja": "第2学期",
+        "ko": "2학기",
+    },
+    "semester one": {
+        "zh": "第一学期",
+        "ja": "第1学期",
+        "ko": "1학기",
+    },
+    "semester two": {
+        "zh": "第二学期",
+        "ja": "第2学期",
+        "ko": "2학기",
+    },
+    "Trimester 1": {
+        "zh": "第 1 学段",
+        "ja": "第1トライメスター",
+        "ko": "1트라이메스터",
+    },
+    "Trimester 2": {
+        "zh": "第 2 学段",
+        "ja": "第2トライメスター",
+        "ko": "2트라이메스터",
+    },
+    "Trimester 3": {
+        "zh": "第 3 学段",
+        "ja": "第3トライメスター",
+        "ko": "3트라이메스터",
+    },
+    "Term 1": {
+        "zh": "第 1 学季",
+        "ja": "第1ターム",
+        "ko": "1학기(term)",
+    },
+    "Term 2": {
+        "zh": "第 2 学季",
+        "ja": "第2ターム",
+        "ko": "2학기(term)",
+    },
+    "Term 3": {
+        "zh": "第 3 学季",
+        "ja": "第3ターム",
+        "ko": "3학기(term)",
+    },
+    "Term 4": {
+        "zh": "第 4 学季",
+        "ja": "第4ターム",
+        "ko": "4학기(term)",
+    },
+    "Teaching period 1": {
+        "zh": "教学期 1",
+        "ja": "開講期 1",
+        "ko": "학기 1",
+    },
+    "Teaching period 2": {
+        "zh": "教学期 2",
+        "ja": "開講期 2",
+        "ko": "학기 2",
+    },
+    "Teaching period 3": {
+        "zh": "教学期 3",
+        "ja": "開講期 3",
+        "ko": "학기 3",
+    },
+    "Teaching period 4": {
+        "zh": "教学期 4",
+        "ja": "開講期 4",
+        "ko": "학기 4",
+    },
+    "Teaching period 5": {
+        "zh": "教学期 5",
+        "ja": "開講期 5",
+        "ko": "학기 5",
+    },
+    "Teaching period 6": {
+        "zh": "教学期 6",
+        "ja": "開講期 6",
+        "ko": "학기 6",
     },
 
     # --- campuses and periods (enumerable, so pin them exactly) --------------
@@ -1363,7 +1653,14 @@ ENUMS: dict[str, dict[str, str]] = {
 # Names a student meets in English everywhere else - on the official site, in
 # the app's own navigation, printed on the building. Translating them would make
 # the two impossible to match up, so these map to themselves on purpose.
-KEEP_IN_ENGLISH = frozenset({"handbook", "Moodle"})
+KEEP_IN_ENGLISH = frozenset({
+    "handbook", "Moodle",
+    # The university's own name. It is on the student's enrolment email, on the
+    # building and on every official page, and the model reads it as *money*.
+    # The services that carry it - Monash Abroad, Monash Connect - keep the
+    # English too, with a bracket saying what they are.
+    "Monash",
+})
 
 
 # Sorted longest-first so "weighted average mark" is matched before "mark".
@@ -1442,12 +1739,139 @@ def whole_value(text: str, locale: str) -> str | None:
     return entry.get(locale) if entry else None
 
 
+# ---------------------------------------------------------------------------
+# Values whose meaning is in their digits: dates, times of day, and codes.
+#
+# There is no grammar here for the model to contribute and everything to lose.
+# On the census dates page "1 Aug 2024" was published as 2024年8月1日纽约 (New
+# York), "1 Apr 2026" as 2026年4月1日（英语）, and "1 Jul – 30 Sep 2026" lost
+# its start date altogether and became 2026年9月30日 - on the page that says
+# when withdrawing stops being free. "before 5am" came back as 下午5点前,
+# twelve hours out, and the unit code ATS1192 as 1192奥地利先令: ATS was the
+# Austrian schilling, and the model would rather read a currency than a unit.
+#
+# So these are lifted out of the sentence the way a glossary term is, and put
+# back either exactly as they arrived (a code) or in a form arithmetic decided
+# (a date, a span of dates, a clock time). The model never sees one.
+
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+_MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?"
+_DASH = r"\s*[-–—]\s*"
+
+# The month has to be capitalised, so that "3 may be enough" stays a sentence
+# and does not become the third of May.
+#
+# Three shapes, longest first, because the dates pages are mostly spans and a
+# span matched as its end date alone is how "1 Jul – 30 Sep 2026" came to be
+# published as a single day in September.
+_SPAN = (                                        # 1 Jul – 30 Sep 2026
+    rf"(?P<sday>\d{{1,2}})\s+(?P<smonth>{_MONTH})(?:\s+(?P<syear>\d{{4}}))?"
+    rf"{_DASH}"
+    rf"(?P<eday>\d{{1,2}})\s+(?P<emonth>{_MONTH})(?:\s+(?P<eyear>\d{{4}}))?"
+)
+_DAY_SPAN = (                                    # 3–7 Jun 2026
+    rf"(?P<rday>\d{{1,2}}){_DASH}(?P<rlast>\d{{1,2}})\s+"
+    rf"(?P<rmonth>{_MONTH})(?:\s+(?P<ryear>\d{{4}}))?"
+)
+_DATE = rf"(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH})(?:\s+(?P<year>\d{{4}}))?"
+# "11.55pm", "12.30am", "5am". Monash writes the minutes after a full stop.
+_CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
+# A unit code (ATS1192, MON1001), and the codes the dates pages hang off
+# (S2-01, MO-TP1-01).
+_UNIT_CODE = r"[A-Z]{2,4}\d{4}"
+_PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
+
+VERBATIM = re.compile(
+    r"(?<![A-Za-z0-9])(?:"
+    + "|".join((_SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + r")(?![A-Za-z0-9])"
+)
+_SPAN_ONLY = re.compile(rf"^{_SPAN}$")
+_DAY_SPAN_ONLY = re.compile(rf"^{_DAY_SPAN}$")
+_DATE_ONLY = re.compile(rf"^{_DATE}$")
+_CLOCK_ONLY = re.compile(rf"^{_CLOCK}$")
+
+# What separates the two ends of a span, once it is in the target language.
+_TO = {"zh": "至", "ja": "〜", "ko": "~"}
+
+
+def has_verbatim(text: str) -> bool:
+    """Whether this string carries a date, a time or a code.
+
+    The caller uses it to decide that a sentence is not worth a second attempt
+    with nothing masked: unmasked is how "1 Aug 2024" acquired a New York.
+    """
+    return bool(VERBATIM.search(text))
+
+
+def _written_date(day: int, month: int, year: str | None, locale: str) -> str:
+    if locale == "ko":
+        return f"{year}년 {month}월 {day}일" if year else f"{month}월 {day}일"
+    return f"{year}年{month}月{day}日" if year else f"{month}月{day}日"
+
+
+def _written_day(day: int, locale: str) -> str:
+    return f"{day}일" if locale == "ko" else f"{day}日"
+
+
+def _month_number(written: str) -> int:
+    return _MONTHS[written.lower()[:3]]
+
+
+def rendered_verbatim(value: str, locale: str) -> str:
+    """What a date, span, time or code should read as. Arithmetic, not translation."""
+    span = _SPAN_ONLY.match(value)
+    if span:
+        # One year written at the end covers both ends of the span, which is
+        # how the Handbook and the dates pages write it.
+        start_year = span["syear"] or span["eyear"]
+        first = _written_date(
+            int(span["sday"]), _month_number(span["smonth"]), start_year, locale
+        )
+        second = _written_date(
+            int(span["eday"]), _month_number(span["emonth"]), span["eyear"], locale
+        )
+        if span["eyear"] and span["eyear"] == start_year and not span["syear"]:
+            # Both ends in the same year: say the year once, at the front.
+            second = _written_date(
+                int(span["eday"]), _month_number(span["emonth"]), None, locale
+            )
+        return f"{first}{_TO[locale]}{second}"
+    days = _DAY_SPAN_ONLY.match(value)
+    if days:
+        first = _written_date(
+            int(days["rday"]), _month_number(days["rmonth"]), days["ryear"], locale
+        )
+        return f"{first}{_TO[locale]}{_written_day(int(days['rlast']), locale)}"
+    date = _DATE_ONLY.match(value)
+    if date:
+        return _written_date(
+            int(date["day"]), _month_number(date["month"]), date["year"], locale
+        )
+    clock = _CLOCK_ONLY.match(value)
+    if clock:
+        # 24-hour, which all three languages write without an am or a pm to get
+        # wrong: 11.55pm is 23:55 and 12.30am is 00:30.
+        hour = int(clock["hour"]) % 12 + (12 if clock["half"].lower() == "pm" else 0)
+        return f"{hour:02d}:{int(clock['minute'] or 0):02d}"
+    return value  # a code, and the code is what a student matches against
+
+
 def protect(text: str, locale: str) -> tuple[str, list[str]]:
-    """Replace every known term with a placeholder.
+    """Replace every known term, date, time and code with a placeholder.
 
     Returns the masked text and the replacements, in placeholder order.
     """
     replacements: list[str] = []
+
+    def keep(match: re.Match[str]) -> str:
+        replacements.append(rendered_verbatim(match.group(0), locale))
+        return placeholder(len(replacements) - 1)
+
+    text = VERBATIM.sub(keep, text)
 
     def swap(match: re.Match[str]) -> str:
         canonical = _LOOKUP[match.group(1).lower()]
