@@ -195,6 +195,7 @@ class Translator:
             self._cache[source] = agreed
             return agreed
 
+        single = not _SENTENCES.search(source)
         masked, terms = protect(source, self.locale)
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
@@ -211,7 +212,7 @@ class Translator:
             return None
         else:
             try:
-                attempt = self._masked(source)
+                attempt = self._masked(source, MASKS if single else MASKS[:1])
             except Exception as exc:  # one bad string must not end a batch of 5,000
                 log.warning("translation failed (%s): %s", exc, source[:60])
                 self._cache[source] = ""
@@ -267,7 +268,9 @@ class Translator:
         """Hand a string to the model in the punctuation it was trained on."""
         return self._translate(text.translate(_CURLY))
 
-    def _masked(self, source: str) -> tuple[str, list[str], tuple[str, str]] | None:
+    def _masked(
+        self, source: str, masks: tuple[tuple[str, str], ...]
+    ) -> tuple[str, list[str], tuple[str, str]] | None:
         """Translate with the terms masked, until a mask comes back intact.
 
         The model usually copies an invented token and occasionally
@@ -283,9 +286,18 @@ class Translator:
         sentence that has already failed pays for the extra calls, and the
         alternative it is being compared against is the reader seeing English.
 
+        The caller passes one mask for a string made of several sentences and
+        all of them for a single sentence. Retrying a whole paragraph is the
+        expensive half and the useless half: the more terms a string carries
+        the likelier one of them is rewritten whatever the token, and the
+        measurement above was made on sentences. A paragraph that fails is
+        better split than retried, and each of its sentences then gets the
+        full run - which took the units pass from twelve units a minute back
+        to the thirty-odd it managed before any of this.
+
         Returns the translation, the replacements and the mask that survived.
         """
-        for mask in MASKS:
+        for mask in masks:
             masked, terms = protect(source, self.locale, mask)
             translated = self._ask(masked)
             if placeholders_survived(translated, len(terms), mask):
