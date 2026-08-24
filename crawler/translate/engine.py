@@ -70,6 +70,34 @@ _LINES = re.compile(r"(\s*\n\s*)")
 # inside 11.55pm - the space after it is what tells them apart.
 _SENTENCES = re.compile(r"(?<=[.!?])(\s+)")
 
+# Asked to translate a short heading the model sometimes signs its work with
+# the name of a language: "Discontinue your course" came back as
+# 退课你的学位课程（英语）. and "1 Apr 2026" as 2026年4月1日（中文（简体)）. It is
+# never part of the sentence, and it is only ever the last thing in it.
+_TRAILING_BRACKET = re.compile(
+    r"[（(]([^（(]*(?:[（(][^）)]*[）)])?[^（(]*)[）)]{1,2}\s*[.。]?\s*$"
+)
+_LANGUAGE_NAMES = frozenset({
+    "英语", "英文", "英語", "中文", "中文简体", "简体中文", "繁体中文",
+    "日语", "日本語", "韩语", "한국어",
+})
+_LANGUAGE_WORDS = re.compile(r"English|Chinese|Mandarin|Japanese|Korean|language", re.I)
+
+
+def _unsigned(text: str, source: str) -> str:
+    """Drop a trailing bracket that names a language rather than saying anything.
+
+    Unless the English was about a language itself, in which case the brackets
+    are the translation doing its job.
+    """
+    if _LANGUAGE_WORDS.search(source):
+        return text
+    match = _TRAILING_BRACKET.search(text)
+    if match and re.sub(r"[（()）\s]", "", match.group(1)) in _LANGUAGE_NAMES:
+        return text[: match.start()].strip()
+    return text
+
+
 # Argos emits ASCII punctuation into CJK text, which reads as a foreign body in
 # a Chinese or Japanese sentence. Korean uses ASCII punctuation, so it is left
 # alone.
@@ -177,7 +205,7 @@ class Translator:
                 # alone.
                 result = _tidy(restore(translated, terms), self.locale)
 
-        result = result.strip()
+        result = _unsigned(result.strip(), source)
         # A "translation" identical to the source is not one. Storing it would
         # mean the reader sees English behind a banner promising Chinese.
         if result == source:

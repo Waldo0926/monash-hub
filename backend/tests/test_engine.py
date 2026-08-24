@@ -272,3 +272,22 @@ def test_a_sentence_that_cannot_be_managed_does_not_take_the_others():
     assert "Applications close at 11.59pm on the day it is set." in result
     # ... and the one that was never in question is still translated.
     assert "无需缴费。" in result
+
+
+@pytest.mark.parametrize(
+    "signed,expected",
+    [
+        ("退课你的学位课程（英语）.", "退课你的学位课程"),
+        ("2026年4月1日（中文（简体)）.", "2026年4月1日"),
+        ("2025年9月10日（简体中文）.", "2025年9月10日"),
+    ],
+)
+def test_the_model_does_not_get_to_sign_its_work(signed, expected):
+    """A short heading came back with the name of a language stuck on the end."""
+    engine = translator(lambda text: signed)
+    assert engine.text("Read this notice") == expected
+
+
+def test_a_sentence_that_is_really_about_a_language_keeps_its_brackets():
+    engine = translator(lambda text: "本Zqa以英文授课（英语）")
+    assert engine.text("This unit is taught in English") == "本课程以英文授课（英语）"
