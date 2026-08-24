@@ -25,6 +25,7 @@ import threading
 from collections.abc import Iterable
 
 from app.knowledge.glossary import (
+    MASKS,
     has_verbatim,
     is_critical,
     is_only_placeholders,
@@ -61,6 +62,14 @@ _CODE = re.compile(r"^[A-Z][A-Z0-9]{0,4}$")
 # translation problem, so each is translated alone and put back with the
 # separator it arrived with.
 _LINES = re.compile(r"(\s*\n\s*)")
+
+# A label is not a sentence, and the dates pages are made of labels: "Trimester
+# 1 (T1-58) (Except Faculty of Law units)", "Summer semester A (SSA-02)". Handed
+# over whole, the model reads one as prose and takes the period code apart -
+# Semester 2 came back as 学士2 and Trimester 1 as 三月一日. Each bracket is its
+# own small problem, and the head of the label is usually a closed-list value
+# the glossary already has agreed wording for, so nothing is left to guess at.
+_BRACKETED = re.compile(r"\s*[（(]\s*([^()（）]*?)\s*[）)]")
 
 # When a whole string cannot be managed, the sentences it is made of usually
 # can. "Census date: Term 4 (T4-57). Last day to withdraw from units without
@@ -163,33 +172,33 @@ class Translator:
             return None
         else:
             try:
-                translated = self._translate(masked)
+                attempt = self._masked(source)
             except Exception as exc:  # one bad string must not end a batch of 5,000
                 log.warning("translation failed (%s): %s", exc, source[:60])
                 self._cache[source] = ""
                 return None
-            if not placeholders_survived(translated, len(terms)) and has_verbatim(source):
-                # The token that went missing was a date, a time or a code.
-                # The repair below re-translates with nothing masked, and
-                # unmasked is exactly how "1 Aug 2024" came back as
-                # 2024年8月1日纽约. There is nothing to look for and nothing to
-                # guess at, so this attempt is over - but the other sentences
-                # in the string were never in question.
-                log.debug("a date or a code was rewritten: %s", source[:60])
-                return self._by_sentence(source)
-            if not placeholders_survived(translated, len(terms)):
-                # The model rewrote one of the tokens instead of copying it -
-                # "What is Zqa?" came back as 什么是兹卡?. Restoring cannot find
-                # it. Giving up here is what left whole paragraphs of the
-                # guides in English while the page around them was Chinese, so
-                # the sentence gets a second attempt without any masking.
+            if attempt is None:
+                # Every token was rewritten rather than copied - see ``_masked``.
+                if _BRACKETED.search(source):
+                    by_bracket = self._by_bracket(source)
+                    if by_bracket:
+                        return by_bracket
+                if has_verbatim(source):
+                    # What went missing was a date, a time or a code. The repair
+                    # below re-translates with nothing masked, and unmasked is
+                    # exactly how "1 Aug 2024" came back as 2024年8月1日纽约.
+                    # There is nothing to look for and nothing to guess at, so
+                    # this attempt is over - but the other sentences in the
+                    # string were never in question.
+                    log.debug("a date or a code was rewritten: %s", source[:60])
+                    return self._by_sentence(source)
                 if _SENTENCES.search(source):
-                    # Unless there are several sentences, in which case they
-                    # are each a smaller problem: a placeholder in a short
-                    # sentence usually survives, and the repair below is a
-                    # heuristic - it reads 课程 in 课程框架 (a curriculum
-                    # framework) as proof that *unit* was rendered right, and
-                    # let 单位 through on the paragraph it could not manage.
+                    # Several sentences are each a smaller problem: a
+                    # placeholder in a short sentence usually survives, and the
+                    # repair below is a heuristic - it reads 课程 in 课程框架 (a
+                    # curriculum framework) as proof that *unit* was rendered
+                    # right, and let 单位 through on the paragraph it could not
+                    # manage.
                     by_sentence = self._by_sentence(source)
                     if by_sentence:
                         return by_sentence
@@ -199,11 +208,12 @@ class Translator:
                     return self._by_sentence(source)
                 result = repaired
             else:
+                translated, terms, mask = attempt
                 # Tidy after restoring, not before: with the placeholders still
                 # in place the punctuation rules see a Latin character where
                 # the finished sentence has a Chinese one, and leave the comma
                 # alone.
-                result = _tidy(restore(translated, terms), self.locale)
+                result = _tidy(restore(translated, terms, mask), self.locale)
 
         result = _unsigned(result.strip(), source)
         # A "translation" identical to the source is not one. Storing it would
@@ -213,6 +223,32 @@ class Translator:
             return None
         self._cache[source] = result
         return result
+
+    def _masked(self, source: str) -> tuple[str, list[str], tuple[str, str]] | None:
+        """Translate with the terms masked, until a mask comes back intact.
+
+        The model usually copies an invented token and occasionally
+        transliterates one: "What is Zqa?" came back from a live page as
+        什么是兹卡?, and restoring cannot find a token that is no longer there.
+        Whether it does that is a property of the token in the sentence, not of
+        invented tokens in general - the same sentence masked as Xya comes back
+        with Xya still in it - and it is not predictable from reading either.
+
+        Measured over the sentences that were actually failing on the live
+        guides, no single token carries them all and the ones each token loses
+        are largely different sentences, so the masks are tried in turn. Only a
+        sentence that has already failed pays for the extra calls, and the
+        alternative it is being compared against is the reader seeing English.
+
+        Returns the translation, the replacements and the mask that survived.
+        """
+        for mask in MASKS:
+            masked, terms = protect(source, self.locale, mask)
+            translated = self._translate(masked)
+            if placeholders_survived(translated, len(terms), mask):
+                return translated, terms, mask
+            log.debug("mask %s was rewritten: %s", mask[0], source[:60])
+        return None
 
     def _agreed_wording(self, source: str) -> str | None:
         """Translate with nothing masked, then put the agreed terms back.
@@ -301,6 +337,49 @@ class Translator:
             self._cache[source] = ""
             return None
         result = "".join(rendered).strip()
+        self._cache[source] = result
+        return result
+
+    def _by_bracket(self, source: str) -> str | None:
+        """Translate a bracketed label a part at a time.
+
+        "Summer semester A (SSA-02)" is a teaching period the glossary knows and
+        a code that must not be touched, stuck together with a bracket. As one
+        string it is neither, and the model treats it as prose: the code goes in
+        and something else comes out. Split, the head matches a closed list and
+        each bracket is either a code or a short qualifier.
+
+        A bracket holding Chinese is closed full-width and a bracket holding a
+        code is not: the code is what a student matches against their own
+        enrolment, and it is written in ASCII on every Monash page.
+        """
+        parts: list[str] = []
+        position = 0
+        for match in _BRACKETED.finditer(source):
+            parts.append(source[position : match.start()])
+            parts.append(match.group(1))
+            position = match.end()
+        parts.append(source[position:])
+
+        rendered: list[str] = []
+        translated_any = False
+        for index, part in enumerate(parts):
+            stripped = part.strip()
+            if not stripped:
+                continue
+            done = self.text(stripped)
+            translated_any = translated_any or bool(done)
+            text = done or stripped
+            if not index % 2:
+                rendered.append(text)
+            elif re.search(rf"[{_CJK}]", text):
+                rendered.append(f"（{text}）")
+            else:
+                rendered.append(f" ({text})")
+        if not translated_any:
+            self._cache[source] = ""
+            return None
+        result = _tidy("".join(rendered), self.locale)
         self._cache[source] = result
         return result
 

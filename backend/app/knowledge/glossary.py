@@ -1718,15 +1718,42 @@ _LOOKUP = {term.lower(): term for term in TERMS}
 # passes an unknown capitalised token through untouched.
 _ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
+# "Untouched" turned out to be a property of the particular token, not of
+# invented tokens in general. Zqa survives most sentences and is transliterated
+# in some - "What is Zqa?" came back as 什么是兹卡? - and reading the sentence
+# does not tell you which. Measured over the 59 sentences that were actually
+# failing on the live guides, with the token varied and nothing else:
+#
+#     #a#  32/59      <a>  28/59      Zqa  0/59 (this is the population it lost)
+#     Qxa  30/59      Xya  20/59      a PUA character, or 〇a〇: 0/59
+#
+# No token carries them all, and the sentences each one loses are largely
+# different sentences, so the caller works down this list until one comes back
+# whole: 50 of the 59 are recovered that way. Zq stays at the front because
+# every translation already stored was made with it and it is right about the
+# other 99% of strings; the rest are in order of what they add after it.
+MASKS: tuple[tuple[str, str], ...] = (
+    ("Zq", ""),
+    ("#", "#"),
+    ("Qx", ""),
+    ("<", ">"),
+    ("Xy", ""),
+)
 
-def placeholder(index: int) -> str:
+_ANY_PLACEHOLDER = re.compile(
+    "|".join(re.escape(pre) + "[a-z]+" + re.escape(suf) for pre, suf in MASKS)
+)
+
+
+def placeholder(index: int, mask: tuple[str, str] = MASKS[0]) -> str:
     """Zqa, Zqb, … Zqaa. Distinct, letters only, and not a real English word."""
+    prefix, suffix = mask
     token = ""
     index += 1
     while index:
         index, remainder = divmod(index - 1, 26)
         token = _ALPHABET[remainder] + token
-    return "Zq" + token
+    return prefix + token + suffix
 
 
 def whole_value(text: str, locale: str) -> str | None:
@@ -1760,6 +1787,11 @@ _MONTHS = {
 }
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?"
 _DASH = r"\s*[-–—]\s*"
+# The census dates page writes the weekday in front of the date, and a weekday
+# left outside the mask is a weekday handed to the model: "Sat 28 Feb 2026" kept
+# its Sat and so the whole row stayed English. It is arithmetic like the rest -
+# the day is already in the date, so nothing needs looking up.
+_WEEKDAY = r"(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\.?"
 
 # The month has to be capitalised, so that "3 may be enough" stays a sentence
 # and does not become the third of May.
@@ -1776,7 +1808,10 @@ _DAY_SPAN = (                                    # 3–7 Jun 2026
     rf"(?P<rday>\d{{1,2}}){_DASH}(?P<rlast>\d{{1,2}})\s+"
     rf"(?P<rmonth>{_MONTH})(?:\s+(?P<ryear>\d{{4}}))?"
 )
-_DATE = rf"(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH})(?:\s+(?P<year>\d{{4}}))?"
+_DATE = (                                        # Sat 28 Feb 2026
+    rf"(?:(?P<wday>{_WEEKDAY})\s+)?"
+    rf"(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH})(?:\s+(?P<year>\d{{4}}))?"
+)
 # "11.55pm", "12.30am", "5am". Monash writes the minutes after a full stop.
 _CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
@@ -1817,6 +1852,24 @@ def _written_day(day: int, locale: str) -> str:
     return f"{day}일" if locale == "ko" else f"{day}日"
 
 
+# Written after the date rather than before it, which is the order all three
+# languages use.
+_WEEKDAYS = {
+    "mon": {"zh": "周一", "ja": "月", "ko": "월"},
+    "tue": {"zh": "周二", "ja": "火", "ko": "화"},
+    "wed": {"zh": "周三", "ja": "水", "ko": "수"},
+    "thu": {"zh": "周四", "ja": "木", "ko": "목"},
+    "fri": {"zh": "周五", "ja": "金", "ko": "금"},
+    "sat": {"zh": "周六", "ja": "土", "ko": "토"},
+    "sun": {"zh": "周日", "ja": "日", "ko": "일"},
+}
+
+
+def _written_weekday(written: str, locale: str) -> str:
+    day = _WEEKDAYS[written.lower()[:3]][locale]
+    return f"({day})" if locale == "ko" else f"（{day}）"
+
+
 def _month_number(written: str) -> int:
     return _MONTHS[written.lower()[:3]]
 
@@ -1848,9 +1901,12 @@ def rendered_verbatim(value: str, locale: str) -> str:
         return f"{first}{_TO[locale]}{_written_day(int(days['rlast']), locale)}"
     date = _DATE_ONLY.match(value)
     if date:
-        return _written_date(
+        written = _written_date(
             int(date["day"]), _month_number(date["month"]), date["year"], locale
         )
+        if date["wday"]:
+            written += _written_weekday(date["wday"], locale)
+        return written
     clock = _CLOCK_ONLY.match(value)
     if clock:
         # 24-hour, which all three languages write without an am or a pm to get
@@ -1860,16 +1916,20 @@ def rendered_verbatim(value: str, locale: str) -> str:
     return value  # a code, and the code is what a student matches against
 
 
-def protect(text: str, locale: str) -> tuple[str, list[str]]:
+def protect(
+    text: str, locale: str, mask: tuple[str, str] = MASKS[0]
+) -> tuple[str, list[str]]:
     """Replace every known term, date, time and code with a placeholder.
 
-    Returns the masked text and the replacements, in placeholder order.
+    Returns the masked text and the replacements, in placeholder order. The
+    ``mask`` is the retry handle: the same sentence masked with a different
+    token is a different problem to the model, and often an easier one.
     """
     replacements: list[str] = []
 
     def keep(match: re.Match[str]) -> str:
         replacements.append(rendered_verbatim(match.group(0), locale))
-        return placeholder(len(replacements) - 1)
+        return placeholder(len(replacements) - 1, mask)
 
     text = VERBATIM.sub(keep, text)
 
@@ -1879,7 +1939,7 @@ def protect(text: str, locale: str) -> tuple[str, list[str]]:
         if not translated:
             return match.group(0)
         replacements.append(translated)
-        return placeholder(len(replacements) - 1)
+        return placeholder(len(replacements) - 1, mask)
 
     return _PATTERN.sub(swap, text), replacements
 
@@ -1906,17 +1966,23 @@ def terms_in(text: str, locale: str) -> list[tuple[str, str]]:
     return found
 
 
-def restore(text: str, replacements: list[str]) -> str:
+def restore(
+    text: str, replacements: list[str], mask: tuple[str, str] = MASKS[0]
+) -> str:
     """Put the agreed wording back where the placeholders are.
 
     Longest placeholder first: without it ``Zqa`` matches inside ``Zqaa``.
     """
-    for index in sorted(range(len(replacements)), key=lambda i: -len(placeholder(i))):
-        text = text.replace(placeholder(index), replacements[index])
+    for index in sorted(
+        range(len(replacements)), key=lambda i: -len(placeholder(i, mask))
+    ):
+        text = text.replace(placeholder(index, mask), replacements[index])
     return text
 
 
-def placeholders_survived(text: str, count: int) -> bool:
+def placeholders_survived(
+    text: str, count: int, mask: tuple[str, str] = MASKS[0]
+) -> bool:
     """Whether every placeholder made it through a translation intact.
 
     The model usually copies these tokens and occasionally transliterates one:
@@ -1924,7 +1990,7 @@ def placeholders_survived(text: str, count: int) -> bool:
     find a token that is no longer there, so the reader would be shown a
     nonsense word where a term should be. The caller keeps the English instead.
     """
-    return all(placeholder(index) in text for index in range(count))
+    return all(placeholder(index, mask) in text for index in range(count))
 
 
 def is_only_placeholders(text: str) -> bool:
@@ -1934,4 +2000,5 @@ def is_only_placeholders(text: str) -> bool:
     name - must not be sent to the model: asked to translate the bare token
     ``Zqa`` it returns 兹卡.
     """
-    return not re.search(r"[A-Za-z]", re.sub(r"Zq[a-z]+", "", text))
+    return not re.search(r"[A-Za-z]", _ANY_PLACEHOLDER.sub("", text))
+
