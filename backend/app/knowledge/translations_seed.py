@@ -144,6 +144,17 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
 
     "Usually, you can expect to engage with:":
         "通常你可以预期参与以下内容：",
+
+    # On nine units, and the sentence the machine kept leaving in English while
+    # translating the two after it. *Hurdle* and *competency-based* are both
+    # terms a student's result turns on, so this one is written out rather than
+    # retried.
+    "Assessments in this unit are competency-based. Competency is assessed "
+    "against a criterion-referenced rubric. Failure to pass any hurdle "
+    "assessment tasks may result in failure of the unit.":
+        "本课程的考核采用能力本位（competency-based）方式，"
+        "依据既定评分标准（criterion-referenced rubric）评定是否达到要求。"
+        "任何一项及格门槛（hurdle）考核未通过，都可能导致本课程不及格。",
 }
 
 

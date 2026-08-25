@@ -195,7 +195,6 @@ class Translator:
             self._cache[source] = agreed
             return agreed
 
-        single = not _SENTENCES.search(source)
         masked, terms = protect(source, self.locale)
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
@@ -212,7 +211,7 @@ class Translator:
             return None
         else:
             try:
-                attempt = self._masked(source, MASKS if single else MASKS[:2])
+                attempt = self._masked(source)
             except Exception as exc:  # one bad string must not end a batch of 5,000
                 log.warning("translation failed (%s): %s", exc, source[:60])
                 self._cache[source] = ""
@@ -268,9 +267,7 @@ class Translator:
         """Hand a string to the model in the punctuation it was trained on."""
         return self._translate(text.translate(_CURLY))
 
-    def _masked(
-        self, source: str, masks: tuple[tuple[str, str], ...]
-    ) -> tuple[str, list[str], tuple[str, str]] | None:
+    def _masked(self, source: str) -> tuple[str, list[str], tuple[str, str]] | None:
         """Translate with the terms masked, until a mask comes back intact.
 
         The model usually copies an invented token and occasionally
@@ -286,21 +283,9 @@ class Translator:
         sentence that has already failed pays for the extra calls, and the
         alternative it is being compared against is the reader seeing English.
 
-        The caller passes two masks for a string made of several sentences and
-        all of them for a single sentence. Retrying a whole paragraph against
-        every mask is where the cost multiplied: the paragraph is tried five
-        times, then split, and each sentence tried five times again, which took
-        the units pass from thirty-odd units a minute down to twelve - seven
-        hours for a year of the Handbook. It is also the weaker half, since the
-        more terms a string carries the likelier one is rewritten whatever the
-        token, and the measurement above was made on sentences. Two is where it
-        settled: enough that a paragraph like "Check units you're currently
-        enrolled in - title and code, campus ..." still comes back whole, and
-        the sentences of the ones that do not still get the full run.
-
         Returns the translation, the replacements and the mask that survived.
         """
-        for mask in masks:
+        for mask in MASKS:
             masked, terms = protect(source, self.locale, mask)
             translated = self._ask(masked)
             if placeholders_survived(translated, len(terms), mask):
