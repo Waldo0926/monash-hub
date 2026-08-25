@@ -46,6 +46,18 @@ def test_no_entry_translates_to_itself_by_accident():
     assert same == set(KEEP_IN_ENGLISH)
 
 
+def test_an_email_address_never_reaches_the_translator():
+    """servicedesk@Monash.edu was published as 服务台@Monash.edu."""
+    masked, kept = protect("email servicedesk@Monash.edu with CUP merge", "zh")
+    assert "servicedesk" not in masked
+    assert "servicedesk@Monash.edu" in restore(masked, kept)
+
+
+def test_re_enrolment_is_not_matched_as_enrolment():
+    masked, kept = protect("under Enrolment/Re-enrolment in WES", "zh")
+    assert "Re-" not in restore(masked, kept)
+
+
 def test_placeholders_are_distinct_past_the_alphabet():
     tokens = [placeholder(i) for i in range(60)]
     assert len(set(tokens)) == 60

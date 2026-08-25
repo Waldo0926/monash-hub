@@ -418,6 +418,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "履修登録する",
         "ko": "수강 신청하다",
     },
+    # Longer first, or the hyphen lets *enrolment* match inside *Re-enrolment*
+    # and WES's own menu came out as 选课注册/Re-选课注册.
+    "re-enrolment": {
+        "zh": "重新注册",
+        "ja": "再履修登録",
+        "ko": "재등록",
+    },
     "re-enrol": {
         "zh": "重新注册",
         "ja": "再履修登録",
@@ -1867,6 +1874,11 @@ _DATE = (                                        # Sat 28 Feb 2026
 )
 # "11.55pm", "12.30am", "5am". Monash writes the minutes after a full stop.
 _CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
+# An email address. "servicedesk@Monash.edu" was published as
+# 服务台@Monash.edu on the academic integrity page - the address a student is
+# told to write to when they cannot finish the compulsory module, translated
+# into an address that does not exist. There is no grammar in an address.
+_EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
 # (S2-01, MO-TP1-01).
 _UNIT_CODE = r"[A-Z]{2,4}\d{4}"
@@ -1874,7 +1886,7 @@ _PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
 
 VERBATIM = re.compile(
     r"(?<![A-Za-z0-9])(?:"
-    + "|".join((_SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + "|".join((_EMAIL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
     + r")(?![A-Za-z0-9])"
 )
 _SPAN_ONLY = re.compile(rf"^{_SPAN}$")
