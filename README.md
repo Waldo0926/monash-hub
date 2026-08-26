@@ -1,139 +1,74 @@
-# Monash Hub
+<p align="center"><img src="./frontend/public/favicon.svg" alt="Monash Hub Logo" width="120" /></p>
 
-An independent student information platform for Monash: structured 2026 Handbook
-unit data, an index of the official Monash pages students actually have to look
-up, and a public, searchable community — in one place.
+<h1 align="center">Monash Hub</h1>
+<p align="center">帮助学生更轻松地查找和理解 Monash 信息</p>
+<p align="center"><strong>简体中文</strong> | <a href="./README.en.md">English</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
 
-**Production:** https://monashhub.secureview.tech
+---
 
-> Monash Hub is not affiliated with or endorsed by Monash University. Confirm
-> anything that matters through the Monash website, Handbook, Moodle or WES.
+## Monash Hub 是什么？
 
-## What this version is
+Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其帮助非英语母语学生更轻松地搜索、理解和核实与 Monash 学习和校园生活相关的信息。
 
-No generative AI, no API tokens, no vector database. The MVP answers questions
-the way they should be answered — by reading a field we already parsed and
-linking back to the source:
+你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
 
-- **Handbook** — units, offerings, assessment, requisites, learning outcomes and
-  workload, parsed from the Handbook's own JSON and stored per academic year.
-- **Official knowledge** — 40 curated monash.edu pages kept as clean text with a
-  content hash, a source link and the date we last checked.
-- **Zero-AI answers** — a unit-code regex, a bilingual keyword dictionary and a
-  deterministic router turn "FIT2102 有没有考试？" into the assessment table.
-- **Community** — posts, answers, tags, votes, reports and moderation, visually
-  separated from official data everywhere it appears, with notifications when
-  someone answers your question.
-- **Accounts** — nickname, email, password. Registration and password reset are
-  both gated on a code sent to the address; nothing asks for a real name or a
-  student ID.
-- **Four interface languages** — English, 简体中文, 日本語, 한국어, switched from
-  the header. Handbook and official text stays in its source language.
+> Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
 
-Adding an LLM is Stage 7, after there are real users. The product has to work
-without one.
+## 你可以做什么？
 
-## Layout
+### 查课程信息
 
-```
-backend/     FastAPI app, SQLAlchemy models, Alembic migrations, tests
-  app/handbook/    Handbook parser (pure functions) and persistence
-  app/knowledge/   Official page cleaner, FAQ seed data
-  app/search/      Keyword dictionary, unified search, zero-AI router
-  app/community/   (models live in app/models/community.py)
-crawler/     Fetchers, rate limiting and crawl bookkeeping
-frontend/    Nuxt 4 SSR web app with its own design tokens
-deployment/  nginx site, deploy and crawl scripts
-docs/        Architecture, deployment and crawling notes
-```
+- 按 Unit code 或课程名称搜索
+- 查看开课校区、教学期、考核、考试、先修/同修要求、学习成果和预期工作量
+- 通过 Handbook 原始链接和最近检查时间核实信息
 
-## Running it locally
+### 查 Monash 官方信息
 
-You need Docker, Python 3.12 and Node 22.
+- 搜索 WAM、Special Consideration、Census Date、签证、交换和校园服务等常见主题
+- 查看经过整理的官方内容、来源链接和最近检查时间
+- 优先阅读带有 `Official Handbook` 或 `Official source` 标识的结果
 
-```bash
-cp .env.example .env      # then set POSTGRES_PASSWORD and SECRET_KEY
-docker compose -p monash-hub up -d postgres
-docker compose -p monash-hub run --rm migrate
-```
+### 更容易理解信息
 
-Backend:
+- 使用简体中文、英语、日语或韩语界面
+- 阅读 Handbook 与官方指南的翻译辅助内容
+- 查看清楚标示的翻译来源与原始页面链接
 
-```bash
-cd backend
-uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r requirements-dev.txt
-export DATABASE_URL='postgresql+psycopg://monashhub:<password>@localhost:5432/monashhub'
-.venv/bin/uvicorn app.main:app --reload
-```
+### 参与学生社区
 
-Frontend:
+- 浏览和搜索公开问题与讨论
+- 登录后提问、回答、投票、收藏和举报
+- 查看与特定 Unit 相关的学生经验
+- 在社区中寻找学习搭子、活动同伴或兴趣相近的同学
 
-```bash
-cd frontend
-npm install
-NUXT_API_BASE=http://localhost:8000/api NUXT_PUBLIC_API_BASE=http://localhost:8000/api npm run dev
-```
+社区内容代表学生个人经验，不代表 Monash University 的官方规定。
 
-Load some data:
+## 如何使用
 
-```bash
-docker compose -p monash-hub run --rm crawler python -m crawler.handbook.run --fixtures
-docker compose -p monash-hub run --rm crawler python -m crawler.official.run --all
-docker compose -p monash-hub run --rm crawler python -m app.knowledge.seed
-```
+1. 在首页输入 Unit code、关键词或问题。
+2. 优先查看官方来源的结果；重要事项请打开原始链接确认。
+3. 需要真实学习体验时，再阅读带有 `Community` 标识的讨论。
+4. 需要提问或回答时，用邮箱注册并登录。
 
-## Tests
+## 信息来源说明
 
-```bash
-createdb monashhub_test   # or: docker compose -p monash-hub exec postgres createdb -U monashhub monashhub_test
-cd backend
-export TEST_DATABASE_URL='postgresql+psycopg://monashhub:<password>@localhost:5432/monashhub_test'
-.venv/bin/pytest
-```
-
-Parser, keyword and cleaner tests run without a database. API tests need
-PostgreSQL and skip themselves when `TEST_DATABASE_URL` is unset.
-
-Point it at a **separate database** from the one you develop against — the suite
-drops every table it created when it finishes, and pointing it at your dev
-database means losing your local data.
-
-## API
-
-`https://monashhub.secureview.tech/api/docs` — or locally, `/api/docs`.
-
-| Endpoint | Purpose |
+| 标识 | 含义 |
 | --- | --- |
-| `GET /api/health` | Liveness plus row counts and the last crawl |
-| `GET /api/v1/units` | Unit search and filters |
-| `GET /api/v1/units/{code}` | Unit detail |
-| `GET /api/v1/units/{code}/assessment` | Assessment only |
-| `GET /api/v1/units/{code}/requisites` | Requisites only |
-| `GET /api/v1/units/{code}/offerings` | Offerings only |
-| `POST /api/v1/ask` | Zero-AI question router |
-| `GET /api/v1/search` | Unified search, grouped by source |
-| `GET /api/v1/official/search` | Official page full-text search |
-| `GET /api/v1/guides` · `/guides/{slug}` | Official guide index and detail |
-| `GET/POST /api/v1/community/posts` | Community |
-| `POST /api/v1/community/reports` | Reporting |
-| `POST /api/v1/auth/verification-code` | Send a registration or reset code |
-| `POST /api/v1/auth/signup` · `/signin` | Accounts |
-| `POST /api/v1/auth/password-reset` | Recovery, signs other devices out |
-| `GET /api/v1/notifications` | Your notifications and unread count |
+| `Official Handbook` | 来自 Monash Handbook 的结构化课程信息 |
+| `Official source` | 来自 Monash 官方网页的已整理信息 |
+| `Community` | 由学生发布的个人经验、问题或讨论 |
 
-## Contributing
+三类内容会明确区分展示。学生经验有助于了解实际情况，但不能替代官方政策。
 
-`main` is the only deployable branch and the VPS tracks it. Work on
-`feat/*`, `fix/*` or `chore/*` and merge through a pull request. CI runs lint,
-the migration drift check, the backend tests and a frontend build.
+## 给开发者与贡献者
 
-Never commit `.env`, a database dump, crawled HTML, or anything else in
-`.gitignore`.
+本 README 面向产品使用者。架构、部署、抓取和本地开发说明请查看：
 
-## Docs
+- [架构说明](docs/ARCHITECTURE.md)
+- [部署说明](docs/DEPLOYMENT.md)
+- [抓取说明](docs/CRAWLING.md)
+- [产品路线图](docs/ROADMAP-STATUS.md)
+- [贡献规则](AGENTS.md)
+- [更新日志](CHANGELOG.md)
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how the pieces fit and why
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — the VPS setup, step by step
-- [docs/CRAWLING.md](docs/CRAWLING.md) — crawl policy, rate limits and the WAF
-- [docs/ROADMAP-STATUS.md](docs/ROADMAP-STATUS.md) — what is done and what is next
-- [AGENTS.md](AGENTS.md) — rules for anyone (or anything) writing code here
+开发改动请使用 `feat/*`、`fix/*` 或 `chore/*` 分支，发起 Pull Request 审查后再合并到 `main`。
