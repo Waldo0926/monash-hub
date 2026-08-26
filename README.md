@@ -2,6 +2,7 @@
 
 <h1 align="center">Monash Hub</h1>
 <p align="center">帮助学生更轻松地查找和理解 Monash 信息</p>
+<p align="center"><a href="https://monashhub.secureview.tech">进入 Monash Hub 网站</a></p>
 <p align="center"><strong>简体中文</strong> | <a href="./README.en.md">English</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
 
 ---
