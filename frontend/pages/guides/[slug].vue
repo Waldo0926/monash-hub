@@ -109,11 +109,15 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
 </template>
 
 <style scoped>
-.layout { display: grid; grid-template-columns: 1fr 300px; gap: var(--s5); align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s5); align-items: start; }
 /* See units/[code].vue: without this a wide table widens its own grid column
    and the page scrolls sideways instead of the table. */
 .layout > * { min-width: 0; }
+/* The cards inside it need this as much as the column does: a grid item is
+   min-width: auto by default, so one wide child pushes the card past its own
+   column and the page scrolls sideways instead of the child. */
 .content { display: grid; gap: var(--s4); min-width: 0; }
+.content > * { min-width: 0; }
 .section { padding: var(--s5); }
 .head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
 .mt { margin-top: var(--s4); }

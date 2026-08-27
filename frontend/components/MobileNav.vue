@@ -35,7 +35,9 @@ const items = computed(() => [
     inset: auto 0 0 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    /* minmax(0, 1fr), not 1fr: a long label in any language must not make
+       the bar wider than the screen it is fixed to. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     background: var(--surface);
     border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);

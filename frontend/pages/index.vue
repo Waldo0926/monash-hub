@@ -125,7 +125,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
 .notifications { margin-bottom: var(--s6); }
 
-.entries { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); margin-bottom: var(--s7); }
+.entries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); margin-bottom: var(--s7); }
 .entry { padding: var(--s5); color: inherit; }
 .entry:hover { text-decoration: none; border-color: var(--border-strong); box-shadow: var(--shadow); }
 .entry h2 { margin: var(--s3) 0 var(--s2); font-size: 1.1rem; }
