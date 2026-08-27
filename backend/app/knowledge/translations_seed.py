@@ -549,6 +549,18 @@ RESULTS_LEGEND: dict[str, str] = {
 
 GUIDE_BODIES: dict[str, dict[str, str]] = {
     "academic-integrity": {
+        "Academic Integrity: a compulsory module":
+            "学术诚信：一个必修模块",
+        "Apply and maintain academic integrity":
+            "践行并保持学术诚信",
+        "Record of completion":
+            "完成记录",
+        "Start the Academic Integrity module":
+            "开始学习学术诚信模块",
+        "avoiding unintentional breaches":
+            "避免无意间违规",
+        "what academic integrity means":
+            "学术诚信指的是什么",
         "A pop-up blocker will prevent you from accessing the "
         "module.Make sure your browser allows pop-ups in the "
         "Compulsory Unit Portal (CUP).":
@@ -829,6 +841,612 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "Whose progress is reviewed":
             "哪些人的学业进度会被审查",
     },
+    "policies": {
+        "Academic integrity, plagiarism and collusion\nAs a Monash "
+        "student, you’re required to maintain academic integrity – so "
+        "it’s essential you understand what that means, what your "
+        "obligations are and what happens if you don’t follow the "
+        "rules.\n\n Learn more about academic integrity":
+            "学术诚信、抄袭与合谋作弊\n作为 Monash "
+            "的学生，你必须守住学术诚信——所以务必弄清它指的是什么、你有哪些义务，以及不守规矩会有什么后果。\n\n 了解学术诚信",
+        "It's important for you to be aware of the University’s "
+        "policies and procedures while you study at Monash.":
+            "在 Monash 学习期间，了解学校的政策与流程很重要。",
+        "Policies and procedures":
+            "政策与流程",
+        "Policy bank\n \nTake a look at our policy bank for a full list "
+        "of our policies and procedures. They address a range of "
+        "topics, from your academic studies to human resources and "
+        "occupational health and safety.":
+            "Policy bank（政策库）\n \n完整的政策与流程清单请查看 Policy "
+            "bank（政策库），内容涵盖从学业到人力资源、职业健康与安全等各个方面。",
+        "Student Code of Conduct\n \nThe Code of Conduct outlines your "
+        "rights and responsibilities as a student, Monash University’s "
+        "commitment to you, how to report concerning behaviour and "
+        "more.":
+            "Student Code of Conduct（学生行为守则）\n \n这份守则写明了你作为学生的权利与责任、Monash "
+            "大学对你的承诺、以及如何举报可疑行为等内容。",
+    },
+    "changing-your-enrolment": {
+        "Changing your enrolment":
+            "变更选课注册",
+        "If you're an honours student, before making changes, you need "
+        "to discuss changes to your enrolment with your supervisor or "
+        "honours coordinator. Contact your faculty "
+        "supervisor/coordinator.":
+            "如果你是荣誉学位学生，在改动之前需要先与导师或荣誉学位课程协调人商量，请联系你所在学院的导师或协调人。",
+        "Take a break or transfer out":
+            "暂停学业或转出",
+        "Transfer course or campus":
+            "转学位课程或转校区",
+        "Update your personal information":
+            "更新个人信息",
+    },
+    "study-abroad": {
+        "Experience the world as part of your Monash degree.":
+            "把看世界，变成你 Monash 学位的一部分。",
+        "If you have any questions, we're here to help.":
+            "有任何问题，我们都在。",
+        "Live and learn in Australia at Monash.":
+            "来 Monash，在澳大利亚生活与学习。",
+        "Monash Abroad\nYour overseas study adventure starts here":
+            "Monash Abroad（海外学习与交换）\n你的海外求学旅程从这里开始",
+        "Monash Abroad\nYour overseas study adventure starts "
+        "here\n\nMonash Abroad\n\nStudy Abroad and Exchange at "
+        "Monash\n\nLive and learn in Australia at Monash.\n\nStudy "
+        "Overseas\n\nExperience the world as part of your Monash "
+        "degree.\n\nContact Us\n\nIf you have any questions, we're here to "
+        "help.":
+            "Monash Abroad（海外学习与交换）\n你的海外求学旅程从这里开始\n\nMonash "
+            "Abroad（海外学习与交换）\n\nMonash 的海外学习与交换\n\n来 "
+            "Monash，在澳大利亚生活与学习。\n\n出国学习\n\n把看世界，变成你 Monash "
+            "学位的一部分。\n\n联系我们\n\n有任何问题，我们都在。",
+        "Monash Abroad - Study Abroad":
+            "Monash Abroad（海外学习与交换）——出国学习",
+        "Study Abroad and Exchange at Monash":
+            "Monash 的海外学习与交换",
+    },
+    "credit-and-enrolment": {
+        "Changing my enrolment":
+            "变更我的选课注册",
+        "Changing my study load":
+            "改变我的学习负荷",
+        "Choose a topicChanging my study loadCourse or campus "
+        "transferCredit for prior learningEnrolling in units and areas "
+        "of studyChanging my enrolment":
+            "选择一个主题：改变我的学习负荷／转学位课程或转校区／既往学习学分减免／选课与专业方向注册／变更我的选课注册",
+        "Course or campus transfer":
+            "转学位课程或转校区",
+        "Credit for prior learning":
+            "既往学习的学分减免",
+        "Enrolling in units and areas of study":
+            "选课与专业方向注册",
+        "Enrolment and credit":
+            "选课注册与学分减免",
+        "What would you like help with?":
+            "你想了解哪方面？",
+    },
+    "graduations": {
+        "1. Before you apply\n\nLearn about course completion, if you're "
+        "eligible, and when you should apply.\n\n\n\n\n\n\nStart preparing to "
+        "graduate":
+            "1. 申请之前\n\n了解学位课程完成情况、自己是否符合条件，以及该在什么时候申请。\n\n\n\n\n\n开始准备毕业",
+        "2. Apply to graduate\n\nChoose a graduation round, apply, and "
+        "start preparing for your graduation.\n\n\n\n\n\n\nApply to graduate "
+        "now":
+            "2. 申请毕业\n\n选定一个毕业批次，提交申请，并开始为毕业典礼做准备。\n\n\n\n\n\n现在就申请毕业",
+        "3. Your graduation day\n\nFind out everything you need about "
+        "graduation day using our ceremony guides.\n\n\n\n\n\n\nTake a look "
+        "at our guides":
+            "3. 毕业典礼当天\n\n用我们的典礼指南，了解毕业当天你需要知道的一切。\n\n\n\n\n\n查看指南",
+        "4. After the day\n\nCheck how to receive your documents and how "
+        "to stay in touch with the Monash community.\n\n\n\n\n\n\nSee what to "
+        "do after the day":
+            "4. 典礼之后\n\n了解如何领取你的证书文件，以及如何与 Monash 校友社群保持联系。\n\n\n\n\n\n看看典礼后要做什么",
+        "All graduation dates":
+            "全部毕业典礼日期",
+        "Find out everything you need to know about graduating at "
+        "Monash.":
+            "在 Monash 毕业需要知道的一切，都在这里。",
+        "Graduations\n\nMonash is proud to celebrate your academic "
+        "achievements.\n\nYour graduation journey\n\nFind out everything "
+        "you need to know about graduating at Monash.\n\n• 1. Before you "
+        "apply\n\nLearn about course completion, if you're eligible, and "
+        "when you should apply.\n\nStart preparing to graduate\n• 2. "
+        "Apply to graduate\n\nChoose a graduation round, apply, and "
+        "start preparing for your graduation.\n\nApply to":
+            "毕业典礼\n\nMonash 很荣幸能一同庆祝你的学业成就。\n\n你的毕业之路\n\n在 Monash "
+            "毕业需要知道的一切，都在这里。\n\n• 1. "
+            "申请之前\n\n了解学位课程完成情况、自己是否符合条件，以及该在什么时候申请。\n\n开始准备毕业\n• 2. "
+            "申请毕业\n\n选定一个毕业批次，提交申请，并开始为毕业典礼做准备。\n\n申请",
+        "Monash is proud to celebrate your academic achievements.":
+            "Monash 很荣幸能一同庆祝你的学业成就。",
+        "Your graduation journey":
+            "你的毕业之路",
+    },
+    "results": {
+        "Academic records (transcripts)":
+            "学业记录（成绩单）",
+        "Check your results in WES":
+            "在 WES（学生系统）里查成绩",
+        "Feedback on your assessments":
+            "考核反馈",
+        "Getting your results":
+            "查成绩",
+        "Getting your results\n\n• Your results – when and how\n• Check "
+        "your results in WES\n\nUnderstanding your results\n\n• Reading "
+        "your marks\n• Academic records (transcripts)\n• Grade Point "
+        "Average (GPA)\n• Weighted Average Mark (WAM)\n• Help with your "
+        "results\n• Feedback on your assessments":
+            "查成绩\n\n• 成绩什么时候出、怎么查\n• 在 WES（学生系统）里查成绩\n\n读懂你的成绩\n\n• 看懂分数\n• "
+            "学业记录（成绩单）\n• GPA（平均绩点）\n• WAM（加权平均分）\n• 成绩方面需要帮助\n• 考核反馈",
+        "Grade Point Average (GPA)":
+            "GPA（平均绩点）",
+        "Help with your results":
+            "成绩方面需要帮助",
+        "Understanding your results":
+            "读懂你的成绩",
+        "Weighted Average Mark (WAM)":
+            "WAM（加权平均分）",
+        "Your results – when and how":
+            "成绩什么时候出、怎么查",
+    },
+    "re-enrol": {
+        "Access dates for WES":
+            "WES（学生系统）的开放日期",
+        "Coursework re-enrolment":
+            "授课型学生重新注册",
+        "Graduate research\nre-enrolment":
+            "研究生研究\n重新注册",
+        "Late or failure to re-enrol":
+            "逾期或未完成重新注册",
+        "Re-enrol – continuing students":
+            "重新注册——在读学生",
+        "Re-enrolment dates and details":
+            "重新注册的日期与说明",
+        "Re-enrolment dates and details\n\n• Coursework re-enrolment\n• "
+        "Graduate research\nre-enrolment\n• Late or failure to "
+        "re-enrol\n• Returning after study leave (intermission)\n\nWeb "
+        "Enrolment System (WES)\n\n• Overview of WES\n• Access dates for "
+        "WES\n• WES login\n• Troubleshooting in WES":
+            "重新注册的日期与说明\n\n• 授课型学生重新注册\n• 研究生研究\n重新注册\n• 逾期或未完成重新注册\n• "
+            "休学（intermission）结束后复学\n\nWES（学生系统）\n\n• WES 概览\n• WES 的开放日期\n• WES "
+            "登录\n• WES 问题排查",
+        "Returning after study leave (intermission)":
+            "休学（intermission）结束后复学",
+        "Troubleshooting in WES":
+            "WES（学生系统）问题排查",
+        "Web Enrolment System (WES)":
+            "WES（学生系统）",
+    },
+    "allocate-timetable": {
+        "Adjusting your timetable\n \nFind out how to request a swap, "
+        "remove yourself from an activity, and adjust your timetable "
+        "on Allocate+.":
+            "调整课表\n \n了解如何在 Allocate+ 里申请换班、退出某项活动，以及调整课表。",
+        "Allocate+ dates\n \nSee when Allocate+ opens for preference "
+        "entry and allocation adjustment.":
+            "Allocate+ 日期\n \n查看 Allocate+ 什么时候开放填志愿、什么时候可以调整分配结果。",
+        "Allocate+ glossary\n \nUnderstand the codes and abbreviations "
+        "used across Allocate+.":
+            "Allocate+ 术语表\n \n看懂 Allocate+ 里用到的各种代码和缩写。",
+        "Allocate+ login\n \nLog into Allocate+ to view and manage your "
+        "University timetable.":
+            "Allocate+ 登录\n \n登录 Allocate+ 查看和管理你的课表。",
+        "Entering your preferences\n \nLearn how to enter your "
+        "preferences with Allocate+ so you can build your personal "
+        "university timetable.":
+            "填写志愿\n \n了解如何在 Allocate+ 里填志愿，从而排出属于你自己的课表。",
+        "Fix timetable problems\n \nCheck out our page on self-help. If "
+        "you can't solve it yourself, you can submit a help request.":
+            "解决课表问题\n \n先看看我们的自助页面。自己解决不了的，可以提交帮助请求。",
+        "How to use Allocate+":
+            "怎么用 Allocate+",
+        "Learn how timetabling works and the steps in creating your "
+        "timetable for the semester. You’ll first enter your "
+        "preferences, and then adjust your timetable.":
+            "了解排课是怎么运作的，以及排出本学期课表的步骤：先填志愿，再调整课表。",
+        "Review your final assessment timetable\n \nAccess and review "
+        "your exam timetable. Find out what to check for and get help "
+        "with any issues.":
+            "查看期末考核课表\n \n打开并核对你的考试课表，了解要重点检查什么，以及遇到问题去哪里求助。",
+        "When to use Allocate+\n \nUnderstand the three different stages "
+        "of creating your timetable with Allocate+.":
+            "什么时候用 Allocate+\n \n了解用 Allocate+ 排课表的三个阶段。",
+        "Your timetable – Allocate+":
+            "你的课表——Allocate+",
+    },
+    "student-conduct": {
+        "Actions and behaviour by a student that breach the Student "
+        "Code of Conduct may result in the student being subject to "
+        "formal disciplinary action.":
+            "学生若有违反 Student Code of Conduct（学生行为守则）的行为，可能会被正式处分。",
+        "How the University manages reports of student misconduct.":
+            "学校如何处理关于学生不端行为的举报。",
+        "Monash University’s commitment to students":
+            "Monash 大学对学生的承诺",
+        "Pathways for reporting unacceptable or concerning conduct, "
+        "and breaches of academic integrity or research standards by a "
+        "student":
+            "举报不当或可疑行为、以及学生违反学术诚信或研究规范的途径",
+        "Student Code of Conduct":
+            "Student Code of Conduct（学生行为守则）",
+        "Student rights and responsibilities":
+            "学生的权利与责任",
+        "Student support resources":
+            "学生支持资源",
+        "Students are at the heart of Monash University, and help "
+        "shape the vibrant, cohesive community we’re proud to be part "
+        "of. As a student, you play a vital role in upholding our "
+        "values which reflect not only who we are as a University, but "
+        "also how we connect with those around us.":
+            "学生是 Monash "
+            "大学的核心，也是这个充满活力、彼此相连的社群得以成形的原因。作为学生，你在守护我们共同价值观这件事上举足轻重——这些价值观既体现了我们是怎样一所大学，也体现了我们如何与身边的人相处。",
+        "The Student Code of Conduct reflects a shared commitment "
+        "between students and the University to ensure the values of "
+        "fairness, integrity, honesty and mutual respect, along with "
+        "ethical conduct, which are at the core of everything we do. "
+        "The Student Code of Conduct sets out both the University’s "
+        "expectations of students, and how the University helps "
+        "students to meet those expectations to foster a supportive, "
+        "respectful, and thriving learning and research environment.":
+            "Student Code of "
+            "Conduct（学生行为守则）体现的是学生与学校之间的共同承诺：守住公平、诚信、诚实与相互尊重，以及合乎伦理的行为——这些是我们所做一切的根本。守则既写明了学校对学生的期望，也写明了学校如何帮助学生达成这些期望，从而营造一个彼此支持、互相尊重、生机勃勃的学习与研究环境。",
+        "What’s covered":
+            "涵盖哪些内容",
+        "You can find the Student Code of Conduct (pdf), along with "
+        "all other University policies, procedures and schedules, in "
+        "the Monash Policy Bank.":
+            "Student Code of Conduct（学生行为守则，pdf）以及学校其他所有政策、流程和附则，都可以在 "
+            "Monash Policy Bank（政策库）里找到。",
+    },
+    "fees": {
+        "Access your fees statement and understand what it means.":
+            "查看你的费用清单，并看懂上面写的是什么。",
+        "Depending on the circumstances, you may be eligible for a "
+        "refund, or a remission of loan debt or credit.":
+            "视具体情况而定，你可能符合退费、贷款债务豁免或额度返还的条件。",
+        "Do you have Overseas student health cover? \n\n find out about "
+        "oshc":
+            "你买了留学生医疗保险（OSHC）吗？\n\n 了解 OSHC",
+        "Find out when and how to pay your fees, and plan your "
+        "payments.":
+            "了解学费什么时候交、怎么交，并把缴费计划安排好。",
+        "Foreign financial aid":
+            "外国财政资助",
+        "Monash Study app Check your timetable, find classrooms,\nand "
+        "view your assessment info\n\n Get the app":
+            "Monash Study app（Monash 学习 app）　查看课表、找教室、看考核信息\n\n 下载 app",
+        "Other costs and fees":
+            "其他费用与开销",
+        "Penalties (encumbrances)":
+            "处罚（encumbrances 学籍限制）",
+        "Sponsorship and financial aid":
+            "资助与财政援助",
+        "Understand the SSAF and other miscellaneous study costs.":
+            "了解 SSAF（学生服务与设施费）以及其他杂项学习开销。",
+        "Use the fee calculator tools to calculate your course fees.":
+            "用学费计算工具算一算你的学位课程要交多少钱。",
+        "Where to get financial assistance":
+            "去哪里寻求经济上的帮助",
+    },
+    "important-dates": {
+        "Archived principal dates":
+            "往年的重要日期存档",
+        "Assessment (exam) dates":
+            "考核（考试）日期",
+        "Calendars and holidays":
+            "校历与假期",
+        "Final assessment dates":
+            "期末考核日期",
+        "Holidays and closedown":
+            "假期与停工期",
+        "Important dates See what's coming up\n\n Take a look":
+            "重要日期　看看接下来有什么\n\n 去看看",
+        "Monash Study app Check your timetable, find classrooms,\nand "
+        "view your assessment info\n\n Get the app":
+            "Monash Study app（Monash 学习 app）　查看课表、找教室、看考核信息\n\n 下载 app",
+        "Principal dates for the current year":
+            "本年度重要日期",
+        "Results release dates":
+            "成绩公布日期",
+        "Semester summary 2026–2028":
+            "2026–2028 学期一览",
+        "Teaching and census dates":
+            "教学日期与 census dates（学籍统计日）",
+        "Web Enrolment System (WES)":
+            "WES（学生系统）",
+        "What are census dates?":
+            "什么是 census dates（学籍统计日）？",
+    },
+    "academic-progress": {
+        "About academic progress":
+            "关于学业进度审查",
+        "Academic progress is about keeping you on track with your "
+        "studies. So twice a year we review your progress to see "
+        "whether you need any additional support to successfully "
+        "complete your course.":
+            "学业进度审查是为了帮你把学业维持在正轨上。我们每年检查两次，看看你是否需要额外的支持才能顺利完成学位课程。",
+        "Academic progress is the University’s way of checking in and "
+        "helping you find the right support to successfully complete "
+        "your degree.":
+            "学业进度审查，是学校主动了解你近况、并帮你找到合适支持以顺利完成学位的方式。",
+        "Attending an Academic Progress Committee hearing":
+            "参加学业进度委员会听证会",
+        "Find the information you need, so that you know how to "
+        "prepare and what to expect on the day of your hearing.":
+            "这里有你需要的信息，帮你知道该怎么准备、以及听证当天会发生什么。",
+        "Getting support and advice":
+            "获取支持与建议",
+        "If you aren’t happy with the outcome of the academic progress "
+        "process, you may have the option to appeal or request a "
+        "review.":
+            "如果你对学业进度审查的结果不满意，可能可以提出申诉或申请复核。",
+        "If you need support or advice, we can offer counselling, "
+        "financial advice, and health and wellbeing support. Your "
+        "student association can also provide you with free and "
+        "confidential support, advice, and representation.":
+            "如果你需要支持或建议，我们可以提供心理咨询、财务咨询，以及健康与身心方面的支持。你所在的学生会也能为你提供免费且保密的支持、建议与代表服务。",
+        "If you receive an email telling you that your progress is "
+        "unsatisfactory, there’s no need to worry. We’ll tell you what "
+        "you need to do to help get you back on track.":
+            "如果你收到邮件说你的学业进度不达标，先别慌。我们会告诉你需要做些什么，帮你回到正轨。",
+        "My Progress and Support tool":
+            "My Progress and Support（我的进度与支持）工具",
+        "Policies and procedures":
+            "政策与流程",
+        "Receiving an email about unsatisfactory progress":
+            "收到学业进度不达标的邮件",
+        "Student academic progress":
+            "学生学业进度审查",
+        "Student academic progress - Monash University":
+            "学生学业进度审查 — Monash 大学",
+        "The outcome of a hearing will vary depending on your "
+        "circumstances and may include enrolment with conditions, "
+        "recommended actions you need to take and, in some cases, "
+        "exclusion.":
+            "听证会的结果因人而异，可能包括：附条件的选课注册、要求你采取的整改措施，以及在某些情况下的退学处理（exclusion）。",
+    },
+    "international-students": {
+        "After you arrive\n\nBreak down your big move into small "
+        "steps.\n\n\n\n\n\n\nFind out how":
+            "抵达之后\n\n把这场大迁徙拆成一个个小步骤。\n\n\n\n\n\n了解怎么做",
+        "Before you leave\n\nGet ready to live and study in "
+        "Australia.\n\n\n\n\n\n\nFind out how":
+            "出发之前\n\n为在澳大利亚生活和学习做好准备。\n\n\n\n\n\n了解怎么做",
+        "Check what’s available":
+            "看看有哪些资源",
+        "During your studies\n\nGet the most out of your Monash "
+        "experience.\n\n\n\n\n\n\nFind out how":
+            "在读期间\n\n把 Monash 的这段经历用足。\n\n\n\n\n\n了解怎么做",
+        "Education Services for Overseas Students (ESOS)\n \nLearn how "
+        "ESOS protects you while you’re studying in Australia, and "
+        "understand your rights and responsibilities.":
+            "Education Services for Overseas Students（ESOS，海外学生教育服务法）\n \n了解 "
+            "ESOS 如何在你留学澳大利亚期间保护你，以及你有哪些权利与责任。",
+        "Everyday costs are rising – we want to help":
+            "日常开销在涨——我们想帮上忙",
+        "Indigenous PhD scholarships now open\n \n\n\n \n Monash University "
+        "is proud to support Indigenous-led research and is currently "
+        "inviting applications for Indigenous PhD opportunities.\n \n "
+        "\n\nOpportunities":
+            "原住民博士奖学金现已开放申请\n \n\n\n \n Monash "
+            "大学很自豪能支持由原住民主导的研究，目前正在招收原住民博士研究生。\n \n \n\n机会",
+        "International current students":
+            "国际在读学生",
+        "International students under 18\n \nIf you’re under 18 and "
+        "coming to Monash from overseas, we’ll make sure you have the "
+        "right support before and during your studies. Find out what "
+        "you need to do before you leave home, and how we help you and "
+        "your family prepare for life in Australia.":
+            "未满 18 岁的国际学生\n \n如果你未满 18 岁、要从海外来 Monash "
+            "读书，我们会确保你在入学前和在读期间都有合适的支持。这里说明了你离家之前需要做什么，以及我们如何帮助你和家人为澳大利亚的生活做准备。",
+        "Late arrival support sessions for international students\n "
+        "\nArrived late or missed Orientation? Join one of our late "
+        "arrival support sessions to get up to speed and feel "
+        "confident as you start your Monash journey.":
+            "国际学生迟到支持场次\n \n来晚了、错过了迎新周？参加我们的迟到支持场次，把进度补上，安心开始你的 Monash 之旅。",
+        "Looking ahead\n\nGear up for graduation and arrange to go home "
+        "or stay in Australia.\n\n\n\n\n\n\nFind out how":
+            "往前看\n\n为毕业做准备，并安排好回国或留在澳大利亚的事。\n\n\n\n\n\n了解怎么做",
+        "Need help or support?\n \nIf you’ve got a question or need some "
+        "support, you can reach out to the International Students Team "
+        "through Monash Connect.":
+            "需要帮助或支持？\n \n如果你有疑问、或者需要支持，可以通过 Monash Connect（学生服务中心）联系国际学生团队。",
+        "New cost-relief initiative":
+            "新的费用纾困措施",
+        "Orientation Week Peer Mentees\n \n\n\n \n Welcome to Orientation "
+        "Week! Designed to help students transition smoothly into "
+        "university life, it's a week filled with excitement, new "
+        "experiences, and opportunities to make lasting connections.\n "
+        "\n \n\nOpportunities":
+            "迎新周朋辈辅导\n \n\n\n \n "
+            "欢迎来到迎新周！这一周是为帮助学生顺利过渡到大学生活而设的，充满新鲜体验、各种机会，以及结识长久友谊的可能。\n \n "
+            "\n\n机会",
+        "Pre-arrival webinars\nArriving for semester two 2026? We can’t "
+        "wait to welcome you to Monash and Australia!We’ve created a "
+        "series of pre-arrival webinars just for you. Each session "
+        "will guide you step-by-step through what to do before you "
+        "leave home.\n\n Check out our webinars":
+            "行前线上讲座\n2026 年第二学期入学？我们已经迫不及待要在 Monash "
+            "和澳大利亚迎接你了！我们专门为你准备了一系列行前线上讲座，一步步带你搞清离家之前要做的事。\n\n 查看讲座安排",
+        "Returning international students – ready for your next "
+        "chapter?\nBuild on your Monash experience by expanding your "
+        "social circle, levelling up your English and getting a head "
+        "start on your career.\n\n See what's on offer":
+            "回来继续读的国际学生——准备好开启下一段了吗？\n在已有的 Monash "
+            "经历之上，把社交圈拓宽、把英文提上去，并为将来的职业早做打算。\n\n 看看有什么",
+        "Stay safe online\n \n\n\n \n It’s important to maintain data "
+        "privacy and protect yourself from cyber stalking, online "
+        "blackmail, scams and technology-facilitated abuse.\n \n "
+        "\n\nInternational students":
+            "上网安全\n \n\n\n \n 保护好个人数据隐私，别让自己暴露在网络跟踪、网络勒索、诈骗和借助技术实施的侵害之下。\n \n "
+            "\n\n国际学生",
+        "We’re providing all students at our Australian campuses with "
+        "a package of support. You can access up to $50 on a prepaid "
+        "student card, free flu vaccinations, enjoy easier, cheaper "
+        "travel options and free food on campus.":
+            "我们为澳大利亚各校区的所有学生提供了一揽子支持：预付学生卡最高可领 50 "
+            "澳元、免费流感疫苗、更便捷更便宜的出行选择，以及校内免费餐食。",
+        "What to do. How to do it. And when. \n Your Monash journey "
+        "from start to finish.":
+            "做什么、怎么做、什么时候做。\n 从头到尾，你的 Monash 之路。",
+        "Your student visa\n \nFind out how to apply for a student visa "
+        "if you’re a new student, and how to keep your visa valid if "
+        "you’re a returning student.":
+            "你的学生签证\n \n新生请了解如何申请学生签证；在读学生请了解如何让签证保持有效。",
+    },
+    "working-on-a-student-visa": {
+        "For more information, go to bringing a partner or family "
+        "(Department of Home Affairs) and visa condition 8104.":
+            "更多信息请查看「携伴侣或家人同行」（Department of Home Affairs（澳大利亚内政部））以及签证条件 "
+            "8104。",
+        "If you have any concerns about your work rights and "
+        "restrictions in Australia, you should get independent legal "
+        "advice. Take a look at Study Melbourne’s free work rights "
+        "legal services for international students.":
+            "如果你对自己在澳大利亚的工作权利和限制有任何疑虑，应当寻求独立的法律意见。可以看看 Study Melbourne "
+            "面向国际学生的免费工作权利法律服务。",
+        "If your family members are travelling with you on your "
+        "student visa, they’ll receive permission to work when the "
+        "visa is granted. Your family members won’t be allowed to work "
+        "until you have started your course. Conditions of their "
+        "working rights vary depending on the type of course you'll be "
+        "studying.":
+            "如果家庭成员随你的学生签证一同前来，签证获批时他们也会获得工作许可，但要等你开课之后才能开始工作。他们工作权利的具体条件，取决于你所读学位课程的类型。",
+        "If you’ll be working while in Australia, you’ll need to "
+        "understand your workplace rights about things like pay, "
+        "working conditions, and health and safety.":
+            "如果你打算在澳大利亚工作，就需要了解自己在薪酬、工作条件、以及健康与安全等方面的职场权利。",
+        "If you’re on a student visa, make sure that you’re aware of "
+        "any changes to work restrictions and other visa conditions. "
+        "For the most up-to-date information, check your visa details "
+        "and conditions (Department of Home Affairs).":
+            "如果你持学生签证，务必留意工作限制和其他签证条件的任何变动。最新信息请查看你的签证详情与签证条件（Department "
+            "of Home Affairs（澳大利亚内政部））。",
+        "See visa condition 8105 for more details about work "
+        "restrictions.":
+            "工作限制的更多细节见签证条件 8105。",
+        "Seeking work in Australia":
+            "在澳大利亚找工作",
+        "The 48-hour work restriction doesn’t apply if:":
+            "下列情形不受 48 小时工作时长限制：",
+        "The rules for working on a student visa cover employment, "
+        "industry experience, internships and placements.":
+            "持学生签证工作的规定，涵盖受雇工作、行业实践、实习和实践课程。",
+        "Work rights for family members":
+            "家庭成员的工作权利",
+        "Working on a student visa":
+            "持学生签证工作",
+        "You can confirm your work restrictions and other visa "
+        "conditions by using the Visa Entitlement Verification Online "
+        "(VEVO) system.":
+            "你可以通过 Visa Entitlement Verification "
+            "Online（VEVO，签证权利在线核验系统）确认自己的工作限制和其他签证条件。",
+        "You can work unlimited hours:":
+            "下列情形下工作时长不受限制：",
+        "You can work up to 48 hours every two weeks once the teaching "
+        "period begins for your course. The 48-hour limit applies "
+        "during teaching and assessment periods. You must not work "
+        "before your course starts.":
+            "你所读学位课程的开课学期开始之后，每两周最多可工作 48 小时。这个 48 小时上限适用于教学期和考核期。开课之前不得工作。",
+        "You’ll need to continue balancing your study and work "
+        "commitments even though there’s flexibility in the number of "
+        "hours you can work.":
+            "即便工作时长上有一定弹性，你仍然需要把学习和工作之间的平衡把握好。",
+        "during scheduled course breaks":
+            "在学位课程排定的假期期间",
+        "the work is a registered component of your CRICOS registered "
+        "course – e.g. some industry experience, placements, "
+        "internships and work-based training units (to check, enter "
+        "your CRICOS course code and make sure there's a ‘YES’ next to "
+        "Work Component), or":
+            "该工作是你所读 CRICOS "
+            "注册学位课程中已登记的组成部分——例如某些行业实践、实习和以工作为基础的实践课程（查询方法：输入你的 CRICOS "
+            "课程代码，确认 Work Component 一栏显示 YES）；或者",
+        "when the final assessment period has ended":
+            "期末考核期结束之后",
+        "when you’ve finished your course.":
+            "你已完成学位课程之后。",
+        "you’ve started a master's by research or a doctorate degree.":
+            "你已经开始攻读研究型硕士或博士学位。",
+    },
+    "malaysia-student-services": {
+        "All Monash students can access a range of support services, "
+        "including services for student advisory, counselling, "
+        "disability, insurance and more.":
+            "所有 Monash 学生都可以使用一系列支持服务，包括学生咨询、心理咨询、无障碍支持、保险等。",
+        "Be an active member of our student community. Get all the "
+        "latest news from Monash, including tips, opportunities and "
+        "what's happening on the campus.":
+            "在学生社群里活跃起来。第一时间获取 Monash 的各类资讯，包括实用提示、各种机会，以及校园里正在发生的事。",
+        "Current Students Home - new - Current Students, Monash "
+        "University Malaysia":
+            "在读学生首页 — Monash 大学马来西亚校区",
+        "Decided to take up a study adventure with us? What a great "
+        "decision. We can help you enjoy the best of Malaysia, and "
+        "prepare for your departure and arrival.":
+            "决定来我们这里开启一段求学之旅了？这个决定很棒。我们可以帮你享受马来西亚最好的一面，并为出发和抵达做好准备。",
+        "Discover a world of fun activities and events on campus to "
+        "enrich your social life and improve your work/study balance.":
+            "校园里有各式各样有意思的活动，既能丰富你的社交生活，也能让工作、学习与生活更平衡。",
+        "Discover information that can guide you through your first "
+        "semester.":
+            "这里的信息，会陪你走完第一个学期。",
+        "Expand your networks, gain employability advantages and "
+        "prepare for a career in academic research.":
+            "拓展人脉，增强就业竞争力，为学术研究方向的职业道路做准备。",
+        "International students":
+            "国际学生",
+        "Isn't an education supposed to broaden your horizon? "
+        "Experience the hidden and untold norms that can only be "
+        "revealed when experiencing a country at its own pace. Step up "
+        "to the challenge abroad.":
+            "教育不就是为了开阔眼界吗？有些风土人情，只有以当地的节奏亲身生活过才能体会。去接受海外这场挑战吧。",
+        "Looking for a new opportunity? Perhaps you need to put that "
+        "finishing touch on your resume. Our career centre can help.":
+            "在找新机会？又或者简历还差最后一点打磨？我们的职业中心可以帮你。",
+        "Mental Health Hotline\n(T) +6015 4877 0403 or (WhatsApp) +6011 "
+        "3011 6610\nFind out more":
+            "心理健康热线\n（电话）+6015 4877 0403 或（WhatsApp）+6011 3011 6610\n了解更多",
+        "Monash Malaysia Connect\nThis one-stop centre has been put "
+        "together to provide the services and support you need.\nFind "
+        "out more":
+            "Monash Malaysia "
+            "Connect（马来西亚校区学生服务中心）\n这个一站式中心汇集了你需要的各项服务与支持。\n了解更多",
+        "Monash Warwick Alliance":
+            "Monash–Warwick 联盟",
+        "Report a hazard or incident":
+            "上报隐患或事故",
+        "Scholarships and financial assistance":
+            "奖学金与经济资助",
+        "Student administration":
+            "学生事务办理",
+        "Supporting the disadvantaged. Rewarding high achievers. There "
+        "are many ways we can help financially so you can focus on "
+        "learning.":
+            "帮助有需要的人，奖励表现优异的人。我们有多种方式提供经济上的支持，好让你能专心学习。",
+        "TRY THE NEW STUDENT PORTAL\nGet access to all the key Monash "
+        "systems, information and resources now in one convenient "
+        "place\nCheck it out":
+            "试试新版学生门户\n把 Monash 的各个关键系统、信息和资源，全都集中到一个地方\n去看看",
+        "Undergraduate Research Program":
+            "本科生科研项目",
+        "We believe every student should have an opportunity for an "
+        "international study experience during their studies at Monash "
+        "University Malaysia.":
+            "我们认为，每一位在 Monash 大学马来西亚校区就读的学生，都应当有机会获得一段海外学习经历。",
+        "We make filling in paperwork easy. Whether you're enrolling "
+        "for the first time, looking for a timetable or preparing for "
+        "graduation, it's all here.":
+            "各类手续，我们尽量帮你办得简单。无论是第一次选课注册、查课表，还是准备毕业，都能在这里找到。",
+        "Your Health and Safety is important to us.\n\nThe university "
+        "strives to provide a healthy and safe study environment for "
+        "students.\n\nOur Safety and Risk Analysis Hub (SARAH) makes it "
+        "easy for you to report OHS-related hazards and incidents.":
+            "你的健康与安全对我们很重要。\n\n学校致力于为学生提供健康、安全的学习环境。\n\n通过我们的 Safety and Risk "
+            "Analysis Hub（SARAH，安全与风险分析平台），你可以方便地上报职业健康安全方面的隐患与事故。",
+    },
     "academic-transcripts": {
         "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
             "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
@@ -1078,6 +1696,12 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你可以在 census date（学籍统计日）当天 23:59（墨尔本时间）之前退选课程，不会受到费用或学业方面的处罚。",
     },
     "census-dates-explained": {
+        "During and after enrolling":
+            "选课注册期间与之后",
+        "Non-standard dates and Withdrawn Early":
+            "非标准日期与 Withdrawn Early（提前退选）",
+        "What are census dates?":
+            "什么是 census dates（学籍统计日）？",
         "Find the teaching period for a unit":
             "查一门课属于哪个开课学期",
         "For units you’re already enrolled in, log into the Web "
@@ -1132,6 +1756,46 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你所修课程的授课地点属于以下情况，退选课程的最后日期可能有所不同：",
     },
     "confirmation-of-enrolment": {
+        "Applying for a new CoE":
+            "申请新的 CoE（入学确认书）",
+        "Confirmation of Enrolment (CoE)":
+            "入学确认书（CoE）",
+        "Exception for Australia Awards students":
+            "Australia Awards 学生的例外情形",
+        "If you hold an Australia Awards Scholarship, you don’t need a "
+        "CoE – instead, you’ll have an agreement with the Department "
+        "of Foreign Affairs and Trade that confirms you’re staying in "
+        "Australia to study.":
+            "如果你持有 Australia Awards 奖学金，就不需要 "
+            "CoE（入学确认书）——取而代之的是你与澳大利亚外交贸易部（DFAT）之间的协议，该协议确认你留在澳大利亚学习。",
+        "If you'd like to extend your stay, take a look at our page on "
+        "Australia Awards Scholarship extensions.":
+            "如果你想延长停留时间，请查看「Australia Awards 奖学金延期」页面。",
+        "If your application is approved, we’ll send your new CoE to "
+        "your Monash email address within seven working days of your "
+        "application.":
+            "如果申请获批，我们会在你提交申请后七个工作日内，把新的 CoE（入学确认书）发到你的 Monash 邮箱。",
+        "We can only approve a new CoE if you can demonstrate one of "
+        "the following:":
+            "只有在你能证明存在下列情形之一时，我们才能批准新的 CoE（入学确认书）：",
+        "You can apply for a new CoE two months before your visa "
+        "expires.":
+            "你可以在签证到期前两个月申请新的 CoE（入学确认书）。",
+        "an academic progress intervention:":
+            "学业进度方面的干预措施：",
+        "an approved deferment or intermission of study.":
+            "已获批的推迟入学或休学（intermission）。",
+        "approving you to underload your studies.":
+            "批准你减少学习负荷（underload）。",
+        "compassionate or compelling circumstances":
+            "compassionate or compelling circumstances（体恤或不可抗情形）",
+        "imposing an enrolment condition on you":
+            "对你的选课注册附加条件",
+        "referring you to University services to assist you "
+        "academically":
+            "把你转介到学校的相关服务，以在学业上给予帮助",
+        "warning you about your academic progress":
+            "就你的学业进度向你发出警示",
         "A CoE is an official form that we provide to international students who need to apply for a student visa. It confirms you’re enrolled in a registered course and you’ve paid your enrolment fees, and displays the registration code and the start and end dates for your course.":
             "CoE（入学确认书）是学校出具给需要申请学生签证的国际学生的正式文件。它确认你已注册在册的学位课程、已缴纳注册费用，并载明课程注册代码以及学位课程的起止日期。",
         "If you can’t complete your course before your visa expires, you’ll need to apply for a new CoE to submit with your student visa application.":
@@ -1524,6 +2188,22 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你不符合 WDN 成绩等级的条件，则依据你在这门课程已完成的其他考核的分数，把临时的 DEF 成绩转为最终成绩等级。",
     },
     "discontinue-course": {
+        "Consider your options":
+            "先把各种选择考虑清楚",
+        "Course Discontinuation Request form":
+            "Course Discontinuation Request form（退课申请表）",
+        "Discontinue your course":
+            "退课",
+        "Enrolment Procedure 7.1 - 7.4 (pdf)":
+            "Enrolment Procedure（选课注册规程）7.1–7.4（pdf）",
+        "International student":
+            "国际学生",
+        "Step 1: When to request discontinuation":
+            "第 1 步：什么时候提出退课申请",
+        "Step 2: Submit the form":
+            "第 2 步：提交表格",
+        "Thinking about leaving your course?":
+            "在考虑离开这个学位课程？",
         "Any units already completed at Monash will remain on your "
         "academic record, but you'll need to reapply if you want to "
         "return to study.":
@@ -1586,6 +2266,41 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你应在 census date（学籍统计日）当天 23:59 之前提交退出学位课程申请表。逾期提交的话，已选课程会照常收费；超过某个日期之后，还可能被记为不及格成绩等级。",
     },
     "enrolments": {
+        "Enrol for the first time":
+            "第一次选课注册",
+        "For information on unit changes, course and campus transfers, "
+        "taking a break, discontinuing your course and how to update "
+        "your personal details.":
+            "关于改课、转学位课程与转校区、暂停学业、退课，以及如何更新个人信息。",
+        "For students new to Monash. You'll also find information here "
+        "on credit, complementary and cross-institutional study or "
+        "options to defer your course.":
+            "写给刚来 Monash 的同学。这里也有学分减免、辅修与跨校学习，以及推迟入学等方面的信息。",
+        "Government support and loans":
+            "政府资助与贷款",
+        "Important dates See what's coming up\n\n Take a look":
+            "重要日期　看看接下来有什么\n\n 去看看",
+        "Looking for electives? Check out Monash Enrich\nOur Monash "
+        "Enrich website has information on elective units from across "
+        "the University that don't require any prerequisites or "
+        "corequisites. Take a look and diversify your learning.\n\n See "
+        "Monash Enrich":
+            "在找选修课？看看 Monash Enrich\nMonash Enrich "
+            "网站汇总了全校各院系不设先修和同修要求的选修课程，去看看，把学习的面铺得更开一些。\n\n 打开 Monash Enrich",
+        "Monash Study app Check your timetable, find classrooms,\nand "
+        "view your assessment info\n\n Get the app":
+            "Monash Study app（Monash 学习 app）　查看课表、找教室、看考核信息\n\n 下载 app",
+        "Some students may be eligible for government income support "
+        "through schemes, fee loans or grants.":
+            "部分学生可能符合条件，通过各类计划、学费贷款或补助金获得政府的收入支持。",
+        "Summer and winter semester":
+            "夏季学期与冬季学期",
+        "These semesters allow you to complete units outside the "
+        "standard semesters' dates. Helpful if you need to re-do a "
+        "unit.":
+            "这两个学期让你可以在标准学期之外修课，需要重修某门课程时尤其有用。",
+        "Unit attendance mode":
+            "课程的授课形式",
         "Continuing students must re-enrol for the entire following year – or apply for intermission – during the specified re-enrolment period.":
             "在读学生必须在规定的重新注册期内，完成次年整年的重新注册，或者申请休学（intermission）。",
     },
@@ -1684,7 +2399,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "首先，你属于哪一类学生？",
         "For more details, see supporting documents for compassionate "
         "or compelling circumstances.":
-            "更多细节，请查看compassionate or compelling "
+            "更多细节，请查看 compassionate or compelling "
             "circumstances（体恤或不可抗情形）所需的证明材料。",
         "If you can provide proof that the reason you applied for "
         "study leave after the census date was due to exceptional "
@@ -1697,7 +2412,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "support an application under compassionate and compelling "
         "circumstances.":
             "如果你一直在就影响学业的问题接受心理咨询，可以和咨询师商量，请他填写一份 Health Professional "
-            "Report（HPR，健康专业人员报告），作为按compassionate or compelling "
+            "Report（HPR，健康专业人员报告），作为按 compassionate or compelling "
             "circumstances（体恤或不可抗情形）提出申请的支持材料。",
         "If you need to take a longer period of study leave than you "
         "initially requested, submit a new intermission request. "
@@ -1717,13 +2432,13 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "If you're not on a student visa, you can go ahead and apply "
         "for intermission – you won't need to show compassionate or "
         "compelling circumstances.":
-            "如果你不是持学生签证，可以直接申请休学（intermission）——不需要证明存在compassionate or "
+            "如果你不是持学生签证，可以直接申请休学（intermission）——不需要证明存在 compassionate or "
             "compelling circumstances（体恤或不可抗情形）。",
         "If you're on a student visa, approval for study leave is "
         "given only in compassionate or compelling circumstances "
         "(unless intermission was recommended by an Academic Progress "
         "Committee panel).":
-            "如果你持学生签证，只有在存在compassionate or compelling "
+            "如果你持学生签证，只有在存在 compassionate or compelling "
             "circumstances（体恤或不可抗情形）时，study "
             "leave（休学）才会获批（除非休学是学业进度审查委员会小组建议的）。",
         "If you're only taking leave for one semester or teaching "
@@ -1732,7 +2447,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你只休一个学期或一个开课学期的假，别忘了为下一个学期或开课学期重新注册选课——请查看重新注册的日期与说明。",
         "If you’re granted study leave for compassionate or compelling "
         "circumstances, there are a few things you’ll need to do:":
-            "如果你因compassionate or compelling circumstances（体恤或不可抗情形）获批 "
+            "如果你因 compassionate or compelling circumstances（体恤或不可抗情形）获批 "
             "study leave（休学），有几件事需要办：",
         "If you’re sure you want to apply for intermission, timing "
         "matters – applying at the right time means you’ll avoid "
@@ -2701,6 +3416,105 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "在 CoE（入学确认书）载明的期限内完成学位课程",
     },
     "study-at-another-institution": {
+        "Admission and Credit Policy (pdf)":
+            "Admission and Credit Policy（录取与学分减免政策，pdf）",
+        "Apply for faculty approval":
+            "申请学院批准",
+        "Apply to the host institution":
+            "向接收院校提出申请",
+        "Attach the unit syllabus from the host institution (see "
+        "instructions on the form).":
+            "附上接收院校的课程大纲（具体要求见表格上的说明）。",
+        "Changing your enrolment":
+            "变更选课注册",
+        "Credit Procedure (pdf)":
+            "Credit Procedure（学分减免流程，pdf）",
+        "Credit will not be granted if your approved enrolment at the "
+        "other institution is varied without Monash faculty "
+        "authorisation.":
+            "如果你在他校已获批的选课未经 Monash 学院授权就发生变动，将不予学分减免。",
+        "Enrolment Procedure – sections 4.1 to 4.6 (pdf)":
+            "Enrolment Procedure（选课注册规程）第 4.1 至 4.6 节（pdf）",
+        "Fill out a Complementary study application form (pdf, 0.18 "
+        "mb).":
+            "填写 Complementary study application form（辅修学习申请表，pdf，0.18 mb）。",
+        "If seeking government assistance through a HELP loan for your "
+        "complementary enrolment, you need to submit a request for "
+        "HECS or FEE-HELP form to the host institution.":
+            "如果你想为这部分辅修选课申请 HELP 贷款的政府资助，需要向接收院校提交 HECS 或 FEE-HELP 申请表。",
+        "If you need to change your complementary enrolment, you must "
+        "get approval from your Monash faculty to ensure the units "
+        "will be credited towards your course. If approved, you need "
+        "to amend your complementary enrolment at both Monash and the "
+        "host institution by the deadlines to avoid fees and fail "
+        "grades.":
+            "如果需要变更辅修选课，必须先取得 Monash "
+            "学院的批准，以确保这些课程仍能计入你的学位课程。获批之后，你需要在截止日期前同时在 Monash "
+            "和接收院校两边修改选课，以免产生费用和不及格成绩。",
+        "If you wish to study at another institution and receive "
+        "credit towards your course, you must seek approval in writing "
+        "from your managing faculty at Monash. Complementary study is "
+        "normally only approved if the unit is not offered by Monash "
+        "University and will contribute to the progression of your "
+        "course.":
+            "如果你想在其他院校修课并计入自己的学位课程，必须事先取得所属学院的书面批准。辅修学习通常只有在该课程 Monash "
+            "大学没有开设、且有助于你学位课程进度的情况下才会获批。",
+        "If your application is approved, your faculty will add the "
+        "units to the Web Enrolment System (WES) and they will appear "
+        "on your academic record. You still need to enrol in the units "
+        "with the host institution.":
+            "如果申请获批，学院会把这些课程加进 "
+            "WES（学生系统），它们也会出现在你的学业记录上。但你仍然需要自行到接收院校完成选课注册。",
+        "Information Technology":
+            "信息技术学院",
+        "Law students need to submit an extra form. See Law students – "
+        "complementary study.":
+            "法学院学生需要另外提交一份表格，详见「法学院学生——辅修学习」。",
+        "Once your application is approved by your faculty at Monash, "
+        "you can apply to enrol in units at the host institution by "
+        "their closing date.":
+            "在 Monash 的学院批准你的申请之后，你就可以在接收院校的截止日期前申请选课注册。",
+        "Pay your fees for complementary units to the host "
+        "institution. They may offer you either a full-fee or "
+        "Commonwealth supported place (CSP). This does not depend on "
+        "the type of place that you currently have at Monash.":
+            "辅修课程的学费直接交给接收院校。他们可能给你全额自费学额，也可能给你联邦资助学额（CSP）——这与你目前在 Monash "
+            "的学额类型无关。",
+        "See Monash University census dates.":
+            "请查看 Monash 大学的 census dates（学籍统计日）。",
+        "See below for faculty information on credit limits for "
+        "students applying for complementary study:":
+            "各学院对辅修学习学分上限的规定见下：",
+        "Start by applying for faculty approval before enrolling in "
+        "any units at another university.":
+            "在他校选任何课之前，先申请学院批准。",
+        "Study at another institution – complementary study":
+            "在其他院校修课——辅修学习（complementary study）",
+        "Submit an enquiry through MoVA with the application attached. "
+        "This will be forwarded to your faculty, who will advise you "
+        "in writing of the outcome.":
+            "通过 MoVA 提交咨询并附上申请表，系统会转交给你所在的学院，学院会以书面形式告知结果。",
+        "To change your enrolment, submit the Enrolment Amendment Form.":
+            "如需变更选课注册，请提交 Enrolment Amendment Form（选课注册变更表）。",
+        "To have your results credited to your Monash course:":
+            "要把成绩计入你的 Monash 学位课程：",
+        "You can apply for complementary study to enrol in a single "
+        "unit or units at another institution (within Australia or New "
+        "Zealand) and have them count toward your Monash award course.":
+            "你可以申请辅修学习（complementary "
+            "study），到澳大利亚或新西兰境内的其他院校修读一门或多门课程，并计入你的 Monash 学位课程。",
+        "You need to apply to Monash for approval to have study at "
+        "another institution credited towards your course, and to the "
+        "host institution to enrol. This means you need to apply early "
+        "to allow time for both of applications to be processed.":
+            "你需要向 Monash "
+            "申请批准，才能把在他校修的课计入自己的学位课程；同时还要向接收院校申请选课注册。也就是说，两边的申请都要留出处理时间，务必尽早提交。",
+        "request an academic record of your results from the host "
+        "institution":
+            "向接收院校索取成绩的学业记录",
+        "submit this to your managing faculty at Monash within six "
+        "weeks of results release.":
+            "并在成绩公布后六周之内提交给 Monash 负责你的学院。",
         "Your result will appear on your academic record (transcript) as either SFR (satisfied faculty requirements) or Fail. If you don't provide a record from the host institution you will have a Fail recorded against the units on your Monash academic record.":
             "你的成绩会以 SFR（已满足学院要求）或 Fail（不及格）的形式出现在成绩单上。如果你不提交接收院校出具的成绩记录，这些课程在 Monash 成绩单上会被记为 Fail（不及格）。",
     },
