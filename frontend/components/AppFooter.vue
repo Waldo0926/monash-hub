@@ -101,6 +101,15 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 .disclaimer { margin: 0; color: var(--muted); }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
+/* The campus label sits against the right edge of the column rather than
+   trailing the name, so the four Malaysia ones line up as a block instead of
+   stepping in and out with the length of each system's name. */
+.system {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
 .heading {
   margin: 0 0 var(--s1);
   text-transform: uppercase;

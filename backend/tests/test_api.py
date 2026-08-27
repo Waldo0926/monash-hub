@@ -373,3 +373,29 @@ def test_a_page_with_no_campus_stated_is_treated_as_australian():
         host = "malaysia" if "monash.edu.my" in seed.url else "australia"
         # "all" is only ever claimed by a page that says so in its own text.
         assert seed.applies_to in (host, "all"), seed.slug
+
+
+def test_a_unit_is_found_by_part_of_its_code(client, loaded):
+    """A student who half-remembers a code types the half they remember.
+
+    "5215" is FIT5215 to them. Matching only from the start of the code answered
+    "no official answer indexed for this yet" for a unit that is indexed.
+    """
+    body = client.get("/api/v1/units", params={"q": "2102"}).json()
+    assert "FIT2102" in {r["unit_code"] for r in body["results"]}
+
+    # The whole-site search reads the same function, so it agrees.
+    search = client.get("/api/v1/search", params={"q": "2102"}).json()
+    units = next(g for g in search["groups"] if g["kind"] == "handbook")
+    assert "FIT2102" in {r["unit_code"] for r in units["results"]}
+
+
+def test_a_code_match_outranks_a_title_that_merely_resembles_it(client, loaded):
+    body = client.get("/api/v1/units", params={"q": "FIT"}).json()
+    assert body["results"][0]["unit_code"].startswith("FIT")
+
+
+def test_a_sentence_is_not_treated_as_a_code_fragment(client, loaded):
+    """Only a short run of letters and digits is a code; a phrase is not."""
+    body = client.get("/api/v1/units", params={"q": "programming paradigms"}).json()
+    assert "FIT2102" in {r["unit_code"] for r in body["results"]}
