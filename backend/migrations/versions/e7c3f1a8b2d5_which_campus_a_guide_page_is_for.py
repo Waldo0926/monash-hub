@@ -1,7 +1,7 @@
 """Which campus a guide page is for
 
 Revision ID: e7c3f1a8b2d5
-Revises: d4a91c73e502
+Revises: 063c0fb1d082
 Create Date: 2026-08-27 10:00:00.000000+00:00
 """
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "e7c3f1a8b2d5"
-down_revision: str | None = "d4a91c73e502"
+down_revision: str | None = "063c0fb1d082"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
