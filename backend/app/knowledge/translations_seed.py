@@ -735,6 +735,48 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你可以在 census date（学籍统计日）当天 23:59（墨尔本时间）之前退选课程，不会受到费用或学业方面的处罚。",
     },
     "census-dates-explained": {
+        "Find the teaching period for a unit":
+            "查一门课属于哪个开课学期",
+        "For units you’re already enrolled in, log into the Web "
+        "Enrolment System and go to the Unit enrolment section. In the "
+        "table displaying your units, check the Semester column.":
+            "已经选上的课程：登录 WES（学生系统），进入 Unit enrolment（课程注册）一节，在列出你所选课程的表格里看 "
+            "Semester（学期）那一列。",
+        "If you haven’t completed your enrolment, once you select "
+        "units, they will display the same as described above before "
+        "submitting or confirming your enrolment.":
+            "还没完成选课注册的：选定课程之后，在提交或确认注册之前，界面上显示的内容与上述相同。",
+        "If you're a domestic student with government support, the "
+        "census date is also:":
+            "如果你是有政府资助的本地学生，census date（学籍统计日）同时还是：",
+        "Some units have a different deadline for withdrawing – this "
+        "is called Withdrawn Early – which acts the same as a census "
+        "date (e.g. summer units). Check the main census dates page "
+        "for where to find non-standard unit dates.":
+            "有些课程的退选截止日不同，叫作 Withdrawn Early（提前退选），作用与 census "
+            "date（学籍统计日）相同，暑期课程就是一例。非标准开课日期在哪里查，请看 census dates（学籍统计日）主页面。",
+        "The census date is when the University finalises your "
+        "enrolment. Once the census date has passed, you’re liable for "
+        "fees and incur academic penalties.":
+            "census date（学籍统计日）是学校确认你选课注册的时点。过了这一天，你就要承担学费，并且会有学业上的处罚。",
+        "The census date is your last opportunity to withdraw from a "
+        "unit without the unit appearing on your academic record "
+        "(transcript).":
+            "census date（学籍统计日）是你退选一门课而不留下记录的最后机会——过了这天再退，这门课就会出现在你的成绩单上。",
+        "To check which teaching period a unit falls in, search for "
+        "the unit in the Handbook and check the Offerings section.":
+            "想知道一门课属于哪个开课学期，可在 Handbook 里搜索该课程，查看 Offerings（开课信息）一节。",
+        "block mode – your faculty will advise the dates for each "
+        "block mode unit.":
+            "block mode（集中授课）——每门集中授课课程的日期由你所在学院另行通知。",
+        "summer semester – see your faculty's summer unit dates":
+            "夏季学期——请查看你所在学院公布的暑期课程日期",
+        "when you become liable for HECS-HELP and FEE-HELP debts.":
+            "你开始承担 HECS-HELP 贷款和 FEE-HELP 贷款债务的时点。",
+        "your last opportunity to apply for HECS-HELP or FEE-HELP loans":
+            "申请 HECS-HELP 贷款或 FEE-HELP 贷款的最后机会",
+        "your last opportunity to make up-front fee payments":
+            "选择先行付清学费的最后机会",
         "Check the census dates for your units to avoid academic and financial penalties.":
             "查看你所选课程的 census dates（学籍统计日），以免受到学业和费用方面的处罚。",
         "If you discontinue before 11.59pm (Melbourne time) on the census date, you pay fees for the time you were enrolled. See chapters one and three of the Handbook of Doctoral and MPhil Degrees.":
@@ -801,6 +843,62 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你不符合 WDN 成绩等级的条件，则依据你在这门课程已完成的其他考核的分数，把临时的 DEF 成绩转为最终成绩等级。",
     },
     "discontinue-course": {
+        "Any units already completed at Monash will remain on your "
+        "academic record, but you'll need to reapply if you want to "
+        "return to study.":
+            "你在 Monash 已修完的课程会保留在成绩单上；但若日后想回来读书，需要重新申请。",
+        "Discontinuing means you’ll lose your place in your course, so "
+        "it’s a good idea to assess your options before making a "
+        "decision.":
+            "退课意味着你会失去这个学位课程的学籍，所以在做决定之前，先把各种选择都考虑清楚为好。",
+        "Firstly, what kind of student are you?":
+            "首先，你属于哪一类学生？",
+        "If discontinuing your course is the right decision for you, "
+        "the steps below will guide you through the process.":
+            "如果退课确实是适合你的决定，按下面的步骤办理即可。",
+        "If you're a coursework student at Monash University, "
+        "Australia, you can submit the form below:":
+            "如果你是 Monash 大学（澳大利亚）的授课型学生，可以提交下面的表格：",
+        "If you're a domestic or international coursework student "
+        "studying at Monash University, you're in the right place. If "
+        "that's not you, you'll find the information you need below:":
+            "如果你是在 Monash 大学就读的本地或国际授课型学生，这个页面就是给你看的。如果不是，请看下面对应的入口：",
+        "If you're considering leaving your course, it's worth taking "
+        "a moment to explore your options first.":
+            "如果你正在考虑离开这个学位课程，不妨先花点时间，把别的可能性了解一遍。",
+        "In the form, you’ll be asked to explain why you’re requesting "
+        "a discontinuation. Understanding what has influenced your "
+        "decision helps us identify support services for you, and "
+        "improve our experience for all Monash students. You can also "
+        "elect to be contacted by Monash Connect about our services "
+        "and next steps.":
+            "表格里会请你说明申请退课的原因。了解是什么影响了你的决定，有助于我们为你找到合适的支持服务，也有助于改善所有 Monash "
+            "学生的就读体验。你也可以选择让 Monash Connect（学生服务中心）就相关服务和后续步骤与你联系。",
+        "Monash College students\n \nCourse discontinuation steps and "
+        "deadlines":
+            "Monash College 学生\n \n退课步骤与截止日期",
+        "Monash Online students\n \nApply in the Student Hub":
+            "Monash Online 学生\n \n在 Student Hub 提交申请",
+        "Monash University, Indonesia\n \nmi-admin@monash.edu":
+            "Monash 大学印度尼西亚校区\n \nmi-admin@monash.edu",
+        "Monash University, Malaysia\n \nCourse withdrawal process and "
+        "requirements":
+            "Monash 大学马来西亚校区\n \n退课流程与要求",
+        "Once you’ve submitted the form, we’ll review your request and "
+        "contact you within two University working days. You'll "
+        "receive confirmation of your course discontinuation by email "
+        "once it's been processed.":
+            "提交表格后，我们会审核你的申请，并在两个学校工作日内与你联系。办理完成后，你会收到退课确认邮件。",
+        "Students consider leaving their course for many different and "
+        "valid reasons, but you may not need to discontinue your "
+        "studies to find a solution that works for you. Many students "
+        "find that the right support, a short-term adjustment or a "
+        "study break is all they need to get them back on track.":
+            "学生考虑离开学位课程的理由各不相同，也都有其道理；但要解决问题，未必非得退学。很多学生发现，只要找对支持、做一点短期调整，或者休学一段时间，就足以回到正轨。",
+        "This could affect you if you decide to return to study later "
+        "on, so make sure you check the penalties for withdrawing from "
+        "units.":
+            "如果你日后打算回来继续读书，这一点可能会影响到你，所以务必先了解退选课程的处罚规定。",
         "It’s okay to be unsure about continuing your course – we’re here to help you make the decision that’s right for you. This page will help you understand your options, what discontinuation actually means, and how to take the next step, whatever that ends up being.":
             "对是否继续读下去感到犹豫是很正常的——我们会帮你做出适合自己的决定。本页会说明你有哪些选择、退出学位课程究竟意味着什么，以及无论你最终怎么决定，下一步该怎么走。",
         "You should submit the Course Discontinuation request form before 11.59pm on the census date. If you submit it later, you'll be charged for the units you're enrolled in, and you may receive a fail grade after a certain date.":
