@@ -191,7 +191,9 @@ def test_a_period_inside_a_label_is_pinned_too():
     a label, where the model read Trimester 1 as 三月一日 and Semester 2 as
     学士2."""
     masked, kept = protect("Trimester 1 (Faculty of Law units only)", "zh")
-    assert kept == ["第 1 学段", "法学院", "课程"]  # units is a term of its own
+    # "Faculty of Law units only" is a term of its own now, so the qualifier is
+    # one agreed phrase rather than two words with an "only" left between them.
+    assert kept == ["第 1 学段", "仅限法学院课程"]
     assert "Trimester" not in masked
 
 

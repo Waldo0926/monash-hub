@@ -533,6 +533,14 @@ def _tidy(text: str, locale: str) -> str:
                 wide,
                 text,
             )
+        # A bracket around Chinese is a Chinese bracket. The rule below only
+        # sees a bracket with Chinese on both sides, so "第 1 学段 (T1-58)
+        # (法学院课程除外)" kept the ASCII pair around a wholly Chinese
+        # qualifier - which is the same call `_by_bracket` makes when it
+        # assembles a label itself.
+        text = re.sub(
+            rf"\s*\(([^()]*[{_CJK}][^()]*)\)", r"（\1）", text
+        )
         # A bracket opened full-width is closed full-width, wherever the
         # closing one happens to sit. The rule above only sees a bracket with
         # Chinese on both sides, so "（每周5小时)" at the end of a line kept
