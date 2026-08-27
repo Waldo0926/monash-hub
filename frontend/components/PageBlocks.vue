@@ -37,6 +37,17 @@ function isExternal(url?: string): boolean {
   return !!url && /^https?:\/\//i.test(url)
 }
 
+/**
+ * Whether a cell holds a sentence rather than a date or a code.
+ *
+ * Long enough that keeping it on one line makes the table wider than any phone,
+ * and wide enough that wrapping it costs nothing. Measured in characters, so it
+ * works the same for Chinese, which has no spaces to wrap at either.
+ */
+function wraps(cell: string): boolean {
+  return (cell || '').trim().length > 28
+}
+
 /** A table whose header row is entirely empty is really a layout table. */
 function hasHeader(block: Block): boolean {
   return (block.columns || []).some(c => c.trim() !== '')
@@ -95,19 +106,24 @@ function hasHeader(block: Block): boolean {
           <table>
             <thead v-if="hasHeader(block)">
               <tr>
-                <th v-for="(column, j) in block.columns || []" :key="j" scope="col">
+                <th
+                  v-for="(column, j) in block.columns || []"
+                  :key="j"
+                  scope="col"
+                  :class="{ wraps: wraps(column) }"
+                >
                   {{ column }}
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(row, j) in block.rows || []" :key="j">
-                <td v-for="(cell, k) in row" :key="k">{{ cell }}</td>
+                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
               </tr>
             </tbody>
             <tfoot v-if="block.foot?.length">
               <tr v-for="(row, j) in block.foot" :key="j">
-                <td v-for="(cell, k) in row" :key="k">{{ cell }}</td>
+                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
               </tr>
             </tfoot>
           </table>
@@ -158,10 +174,20 @@ function hasHeader(block: Block): boolean {
 .block-table .scroll-x {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  /* The property the comment above the markup has always promised. Without it
+     a single cell of Chinese prose - 2,547px of it on the Malaysia student pass
+     page - widened the table, the card and the page, and every paragraph on a
+     phone ran off the right edge. */
+  overflow-x: auto;
 }
 .block-table table { min-width: 100%; }
+/* Dates and codes must not be broken across lines, so cells do not wrap by
+   default. A cell holding a sentence is a different thing and says so - see
+   `wraps` in the script: nowrap there is 2,000px nobody can read. */
 .block-table th,
 .block-table td { white-space: nowrap; }
+.block-table td.wraps,
+.block-table th.wraps { white-space: normal; min-width: 22ch; max-width: 46ch; }
 /* The first column is usually the label and is the one that may be long. */
 .block-table td:first-child,
 .block-table th:first-child { white-space: normal; min-width: 12ch; }

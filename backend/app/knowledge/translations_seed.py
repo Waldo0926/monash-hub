@@ -206,7 +206,15 @@ GUIDE_TITLES: dict[str, str] = {
     "graduations": "毕业典礼",
     "academic-transcripts": "成绩单与学业记录",
     "study-abroad": "海外交换与留学",
-    "malaysia-student-services": "学生服务（马来西亚校区）",
+    # Monash Malaysia. The crawled English titles are the page banners -
+    # "Before You Arrive" for the student pass page - so the Chinese says
+    # what the page is instead of translating what the banner says.
+    "malaysia-student-services": "学生服务",
+    "malaysia-student-pass": "学生准证（Student Pass）",
+    "malaysia-insurance": "保险",
+    "malaysia-student-admin": "学生事务",
+    "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
+    "malaysia-exam-rules": "eExam（线上考试）规则",
 }
 
 
@@ -431,8 +439,9 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "先找顾问确认再操作。",
     ),
     "student-visa-work-hours": (
-        "持学生签证一周能打工多少小时？",
-        "学生签证的工作权限由澳大利亚政府规定，不是 Monash 定的，近几年上限改过好几次。"
+        "（澳大利亚校区）持学生签证一周能打工多少小时？",
+        "这一条讲的是澳大利亚各校区。在马来西亚，居留身份是移民局通过 EMGS 签发的学生准证（Student Pass），适用条件与下面写的不是一回事，请以 monash.edu.my 为准。"
+            "学生签证的工作权限由澳大利亚政府规定，不是 Monash 定的，近几年上限改过好几次。"
         "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定——"
         "在按某个小时数行事之前，"
         "务必到那里确认当前数字。",
@@ -443,8 +452,9 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "如果有未了结的事项，例如欠费或学术诚信调查，某门课的成绩可能会被暂扣。",
     ),
     "what-is-coe": (
-        "CoE 是什么？什么时候需要换新的？",
-        "CoE（入学确认书）是签发学生签证所依据的文件。一般来说，只要你的课程、"
+        "（澳大利亚校区）CoE 是什么？什么时候需要换新的？",
+        "这一条讲的是澳大利亚各校区；马来西亚签发的是通过 EMGS 办理的学生准证（Student Pass）。"
+            "CoE（入学确认书）是签发学生签证所依据的文件。一般来说，只要你的课程、"
         "校区或完成日期发生变化，"
         "就需要一份新的 CoE——包括申请休学或减少课业量的情况。请在现有 CoE 过期之前提出申请。",
     ),

@@ -78,6 +78,11 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           <h2 class="small">{{ $t('guides.relatedQuestions') }}</h2>
           <div v-for="faq in guide.related_faq" :key="faq.slug" class="faq">
             <h3>{{ faq.question }}</h3>
+            <CampusNotice
+              v-if="faq.applies_to && faq.applies_to !== guide.applies_to"
+              :applies-to="faq.applies_to"
+              compact
+            />
             <p class="small">{{ faq.answer }}</p>
           </div>
         </div>
