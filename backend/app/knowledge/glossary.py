@@ -543,6 +543,35 @@ TERMS: dict[str, dict[str, str]] = {
         "ko": "전일제 수강 부담",
     },
 
+    # --- Monash Malaysia -----------------------------------------------------
+    #
+    # Malaysia's own vocabulary for the right to stay, which is not Australia's.
+    # A student pass is issued by the Immigration Department through EMGS and
+    # arrives as an eVAL; none of those words appear on the Australian pages,
+    # and "student visa" does not appear on the Malaysian ones. Each keeps its
+    # English, because it is what is written on the document the student holds
+    # and on the portal they have to log into.
+    "Electronic Visa Approval Letter": {
+        "zh": "电子签证批准函（eVAL）",
+        "ja": "電子ビザ承認レター（eVAL）",
+        "ko": "전자 비자 승인서(eVAL)",
+    },
+    "student pass": {"zh": "学生准证（student pass）", "ja": "学生パス（student pass）",
+                     "ko": "학생 패스(student pass)"},
+    "Student Pass": {"zh": "学生准证（Student Pass）", "ja": "学生パス（Student Pass）",
+                     "ko": "학생 패스(Student Pass)"},
+    "Special Pass": {"zh": "特别准证（Special Pass）", "ja": "特別パス（Special Pass）",
+                     "ko": "특별 패스(Special Pass)"},
+    "Immigration Department of Malaysia": {
+        "zh": "马来西亚移民局", "ja": "マレーシア移民局", "ko": "말레이시아 이민국",
+    },
+    "EMGS": {"zh": "EMGS", "ja": "EMGS", "ko": "EMGS"},
+    "eVAL": {"zh": "eVAL", "ja": "eVAL", "ko": "eVAL"},
+    "MPass": {"zh": "MPass", "ja": "MPass", "ko": "MPass"},
+    "Release Letter": {"zh": "放行信（Release Letter）", "ja": "リリースレター（Release Letter）",
+                       "ko": "릴리스 레터(Release Letter)"},
+    "medical screening": {"zh": "体检", "ja": "健康診断", "ko": "건강검진"},
+
     # The OSHC page is about the insurance a student visa is conditional on,
     # and unaided it was the worst page on the site. The insurer's name was
     # transliterated three different ways and none of them is a company a
@@ -1849,6 +1878,8 @@ KEEP_IN_ENGLISH = frozenset({
     # and every reading the model invented for it - 爱护组织, 爱心, 爱丽安兹 -
     # is a company that does not exist.
     "Allianz Care Australia", "Allianz Care",
+    # Malaysia's own systems and bodies, named on the documents themselves.
+    "EMGS", "eVAL", "MPass",
     # The Handbook's own labels for the MBA teaching periods. There is nothing
     # to translate in "MBA 1" and a rendering of it would not match Allocate+.
     "MBA 1", "MBA 2",
