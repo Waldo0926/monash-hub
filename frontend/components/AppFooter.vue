@@ -80,7 +80,11 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 }
 .inner {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(130px, 1fr));
+  /* The four columns are not the same shape. "Browse" is four short words
+     and needs the least; the source and system columns carry long names and
+     a campus label, so they get the room the browse column gives up. */
+  grid-template-columns:
+    minmax(0, 2fr) minmax(80px, 0.62fr) minmax(150px, 1.19fr) minmax(160px, 1.19fr);
   gap: var(--s6);
   align-items: start;
 }
