@@ -1447,7 +1447,762 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你的健康与安全对我们很重要。\n\n学校致力于为学生提供健康、安全的学习环境。\n\n通过我们的 Safety and Risk "
             "Analysis Hub（SARAH，安全与风险分析平台），你可以方便地上报职业健康安全方面的隐患与事故。",
     },
+    "gpa": {
+        "Assessment and Academic Integrity Policy (pdf)":
+            "Assessment and Academic Integrity Policy（考核与学术诚信政策，pdf）",
+        "CGPA = 250.92 ÷ 78\nCGPA = 3.217":
+            "CGPA = 250.92 ÷ 78\nCGPA = 3.217",
+        "Correcting a mark or grade":
+            "更正分数或成绩等级",
+        "Examples of marking or grading errors may include:":
+            "评分或定级错误的例子包括：",
+        "Final assessments:":
+            "期末考核：",
+        "For example, your grades might be a pass, credit, high "
+        "distinction, distinction and so on. All grades, including "
+        "fail grades and grades from any repeated units, are given a "
+        "numerical value and then those values are averaged which "
+        "gives you your GPA.":
+            "举例来说，你的成绩等级可能是 pass、credit、high distinction、distinction "
+            "等。所有成绩等级——包括不及格，以及重修课程所得的成绩——都会换算成一个数值，再把这些数值取平均，就得到你的 "
+            "GPA（平均绩点）。",
+        "For the cost, see Student letters - standard format on our "
+        "miscellaneous fees page.":
+            "费用请查看「杂项费用」页面上的 Student letters - standard format（学生证明信 · "
+            "标准格式）。",
+        "Format and deadlines":
+            "格式与截止期限",
+        "GPA = 229.80 ÷ 78\nGPA = 2.946":
+            "GPA = 229.80 ÷ 78\nGPA = 2.946",
+        "If you fail a major assessment (worth 20% or more of your "
+        "unit’s total mark) it will be automatically re-marked before "
+        "your result is finalised – so there’s no need to request one.":
+            "如果你某项主要考核不及格（占该课程总分 20% 或以上），系统会在成绩最终确定前自动重新评阅一次，不需要你另行申请。",
+        "If you think there’s been a mistake in how your mark or grade "
+        "was calculated, you can contact the chief examiner about "
+        "having it corrected.":
+            "如果你认为分数或成绩等级的计算有误，可以联系主考官（chief examiner）请求更正。",
+        "If you’re applying for jobs in Malaysia and you need your "
+        "Cumulative Grade Point Average (CGPA) for your resume, you "
+        "can request a letter which states your CGPA from Student "
+        "Services in Malaysia or Monash Connect in Australia. For "
+        "further details, see the Malaysia tab below.":
+            "如果你在马来西亚求职、简历上需要填 CGPA（累计平均绩点），可以向马来西亚的 Student "
+            "Services（学生服务处）、或澳大利亚的 Monash Connect（学生服务中心）申请一封载明 CGPA "
+            "的证明信。详见下方的「马来西亚」标签页。",
+        "In-semester assessments – within ten working days of your "
+        "mark’s release.":
+            "学期内考核——自分数公布起十个工作日之内。",
+        "Just keep in mind, while your work is being marked, you can’t "
+        "contact staff about an assessment or thesis examination issue "
+        "– not even to complain informally.":
+            "但要记住：在你的作业还在评阅期间，你不能就该考核或论文评审的问题联系工作人员，非正式的抱怨也不行。",
+        "Keep in mind that the following are not considered marking "
+        "errors:":
+            "请注意，下列情形不算评分错误：",
+        "Marking and Feedback Procedure (pdf)":
+            "Marking and Feedback Procedure（评分与反馈规程，pdf）",
+        "Outside of this process, in most cases you’re not entitled to "
+        "a re-mark, and it’s unlikely that a complaint about a "
+        "faculty’s refusal to re-mark will be successful.":
+            "除上述流程之外，多数情况下你无权要求重新评阅；就学院拒绝重新评阅一事提出投诉，也很难得到支持。",
+        "Policy and procedure":
+            "政策与流程",
+        "Scheduled Final Assessments Procedure (pdf)":
+            "Scheduled Final Assessments Procedure（已排定期末考核规程，pdf）",
+        "Seeking feedback on your assessments\n \nFind out where you can "
+        "view feedback for an explanation of why you received a "
+        "certain mark for an assessment.":
+            "查看考核反馈\n \n了解可以在哪里查看反馈，弄清自己某项考核为何得到这个分数。",
+        "This is your first step in addressing your complaint. If "
+        "you’re unable to resolve the issue with your chief examiner, "
+        "see how to raise and resolve a complaint for what to do next.":
+            "这是处理投诉的第一步。如果你无法与主考官（chief "
+            "examiner）把问题解决，请查看「如何提出并解决投诉」了解下一步该怎么做。",
+        "To request a CGPA letter, contact Student Services in "
+        "Malaysia or Monash Connect in Australia. Once we have your "
+        "payment, we'll produce the letter within one business day and "
+        "mail it to your nominated address.":
+            "要申请 CGPA（累计平均绩点）证明信，请联系马来西亚的 Student Services（学生服务处）或澳大利亚的 "
+            "Monash Connect（学生服务中心）。收到付款后，我们会在一个工作日内出具信件，并寄往你指定的地址。",
+        "Your request for a correction needs to be in writing, so "
+        "email the chief examiner. Make sure you do this within this "
+        "timeframe below:":
+            "更正请求必须以书面形式提出，请发邮件给主考官（chief examiner），并务必在下列时限之内：",
+        "friends or colleagues think you deserved a higher mark.":
+            "朋友或同学认为你该拿更高的分。",
+        "receiving a late penalty even though you submitted on time.":
+            "明明按时提交却被扣了迟交分。",
+        "semester one –- within six weeks of the release of your unit "
+        "results.":
+            "第一学期——自课程成绩公布起六周之内。",
+        "semester two –- before the end of week one of semester one "
+        "the next year.":
+            "第二学期——在次年第一学期第一周结束之前。",
+        "the marker doesn’t agree with your summary, data or findings":
+            "评阅人不认同你的结论、数据或研究发现",
+        "you disagree with how the marker weighed parts of your "
+        "assessment":
+            "你不认同评阅人对考核各部分的权重处理",
+        "you expected a higher mark based on your past performance":
+            "你根据以往表现，本以为能拿更高的分",
+        "you feel you didn’t get enough explanation for your mark":
+            "你觉得关于分数的解释不够充分",
+        "your mark is inconsistent with what you received for similar "
+        "assessments":
+            "你的分数与类似考核所得的分数不一致",
+        "your marks having been been summed up incorrectly":
+            "你的分数被加总错了",
+    },
+    "fee-payment-dates": {
+        "Course fee payment dates":
+            "学位课程学费缴纳日期",
+        "Ensure you pay your fees by the due date; otherwise, we may "
+        "place an encumbrance on your account.":
+            "请务必在到期日之前缴清学费，否则我们可能会对你的账户施加 encumbrance（学籍限制）。",
+        "Full year (extended)":
+            "全学年（延长）",
+        "Full year teaching period":
+            "全学年开课学期",
+        "If you’re a CSP Monash Online student, you’ll need to check "
+        "your fees statement for your payment due dates – they may be "
+        "different to the dates published here.":
+            "如果你是联邦资助学额（CSP）的 Monash Online "
+            "学生，请以自己费用清单上的缴费到期日为准——它可能与这里公布的日期不同。",
+        "Monash Online fee invoice periods":
+            "Monash Online 的费用账单周期",
+        "November teaching period":
+            "11 月教学期",
+        "Penalties for fees non-payment":
+            "未缴学费的处罚",
+        "Research Q1: 1 Jan – 31 Mar":
+            "研究季度 1：1 月 1 日至 3 月 31 日",
+        "Research Q2: 1 Apr – 30 Jun":
+            "研究季度 2：4 月 1 日至 6 月 30 日",
+        "Research Q3: 1 Jul – 30 Sep":
+            "研究季度 3：7 月 1 日至 9 月 30 日",
+        "Research Q4: 1 Oct – 31 Dec":
+            "研究季度 4：10 月 1 日至 12 月 31 日",
+        "Research degree fee invoice periods":
+            "研究型学位的费用账单周期",
+        "Semester 1 (extended)":
+            "第一学期（延长）",
+        "Semester 1 (northern)":
+            "第一学期（北半球）",
+        "Semester 2 (extended)":
+            "第二学期（延长）",
+        "Semester 2 (northern)":
+            "第二学期（北半球）",
+        "Semester 2 - semester 1":
+            "第二学期至第一学期",
+        "Semester 2 - summer A":
+            "第二学期至夏季学期 A",
+        "Semester one fee invoice cycle includes these teaching periods":
+            "第一学期的费用账单周期涵盖下列开课学期",
+        "Semester one teaching periods":
+            "第一学期的各开课学期",
+        "Semester two fee invoice cycle includes these teaching periods":
+            "第二学期的费用账单周期涵盖下列开课学期",
+        "Semester two teaching periods":
+            "第二学期的各开课学期",
+        "Spring fee invoice cycle includes these teaching periods":
+            "春季的费用账单周期涵盖下列开课学期",
+        "Spring teaching periods":
+            "春季的各开课学期",
+        "Student Services and Amenities Fee (SSAF)":
+            "学生服务与设施费（SSAF）",
+        "Summer A - semester 1":
+            "夏季学期 A 至第一学期",
+        "Summer A fee invoice cycle includes these teaching periods":
+            "夏季学期 A 的费用账单周期涵盖下列开课学期",
+        "Summer A teaching periods":
+            "夏季学期 A 的各开课学期",
+        "Summer B fee invoice cycle includes these teaching periods":
+            "夏季学期 B 的费用账单周期涵盖下列开课学期",
+        "Summer B teaching periods":
+            "夏季学期 B 的各开课学期",
+        "Summer semester 3 (MC)":
+            "夏季学期 3（MC）",
+        "Teaching period code":
+            "开课学期代码",
+        "Teaching period codes and names":
+            "开课学期代码与名称",
+        "Teaching period name":
+            "开课学期名称",
+        "The fee amount and payment due dates are listed on your fees "
+        "statement. For instructions on how to make a payment, see pay "
+        "your fees.":
+            "费用金额和缴费到期日都列在你的费用清单上。缴费方式请见「如何缴纳学费」。",
+        "Trimester A (Joint MU/MC)":
+            "学段 A（MU/MC 联合）",
+        "Trimester B (Joint MU/MC)":
+            "学段 B（MU/MC 联合）",
+        "Trimester C (Joint MU/MC)":
+            "学段 C（MU/MC 联合）",
+        "Understanding your fees statement":
+            "看懂你的费用清单",
+        "Winter fee invoice cycle includes these teaching periods":
+            "冬季的费用账单周期涵盖下列开课学期",
+        "Winter teaching periods":
+            "冬季的各开课学期",
+        "You don't need to pay for the whole year's units at the same "
+        "time. Your fees amount may change if you change your "
+        "enrolment – we’ll send you a new fees statement if that "
+        "happens.":
+            "你不需要一次性交清全年所有课程的学费。如果你改动选课注册，费用金额可能会变——遇到这种情况我们会给你发一份新的费用清单。",
+    },
+    "results-legend": {
+        "0–49 You lack satisfactory demonstration of fundamental "
+        "knowledge, skills and expected attributes.":
+            "0–49　你未能令人满意地展现出应有的基础知识、技能与素养。",
+        "45 This grade means you didn't satisfactorily complete all "
+        "hurdle requirements but would have otherwise achieved a mark "
+        "of 45 or above in the unit.":
+            "45　这个成绩表示你未能达标完成全部及格门槛要求，否则本可以在该课程取得 45 分或以上。",
+        "50 to <60":
+            "50 至 <60",
+        "50–59 Satisfactory. You’ve demonstrated fundamental "
+        "knowledge, skills and attributes at a satisfactory level.":
+            "50–59　合格。你在基础知识、技能与素养上达到了合格水平。",
+        "60 to <70":
+            "60 至 <70",
+        "60–69 You’ve demonstrated fundamental knowledge, skills and "
+        "attributes at a proficient level, showing fluency in concepts.":
+            "60–69　你在基础知识、技能与素养上达到熟练水平，对概念的运用较为流畅。",
+        "70 to <80":
+            "70 至 <80",
+        "70–79 You’ve demonstrated extended knowledge, skills and "
+        "attributes at a superior level, showing fluency, emerging "
+        "originality and integration of concepts.":
+            "70–79　你在拓展性的知识、技能与素养上达到优秀水平，运用流畅，已显现出一定的原创性，并能把概念融会贯通。",
+        "80–100 You’ve demonstrated extended knowledge, skills and "
+        "attributes at an exceptional level, showing fluency, "
+        "originality and integration of concepts.":
+            "80–100　你在拓展性的知识、技能与素养上达到卓越水平，运用流畅、富有原创性，并能把概念融会贯通。",
+        "A (MBA results pre-1990)":
+            "A（1990 年前 MBA 成绩）",
+        "A deferred assessment is an assessment postponed to a later "
+        "date. These are held:":
+            "延期考核指的是被推迟到之后进行的考核，安排在：",
+        "A fail grade used for study abroad, exchange, and "
+        "complementary study units when Monash has not taught and "
+        "assessed the unit. The mark provided by the other institution "
+        "is not recorded.":
+            "用于海外学习、交换和辅修课程的不及格成绩，适用于该课程并非由 Monash 授课和评核的情形。对方院校给出的分数不予记录。",
+        "A pass grade used for study abroad, exchange, and "
+        "complementary study units when Monash has not taught and "
+        "assessed the unit. The mark provided by the other institution "
+        "is not recorded.":
+            "用于海外学习、交换和辅修课程的及格成绩，适用于该课程并非由 Monash 授课和评核的情形。对方院校给出的分数不予记录。",
+        "A+ (MBA results pre-1990)":
+            "A+（1990 年前 MBA 成绩）",
+        "Assessment Incomplete: Subject assessed over more than one "
+        "semester":
+            "考核未完成：该科目的评核跨越一个以上学期",
+        "B (MBA results pre-1990)":
+            "B（1990 年前 MBA 成绩）",
+        "C (MBA results pre-1990)":
+            "C（1990 年前 MBA 成绩）",
+        "Chisholm Institute of Technology and Caulfield Institute of "
+        "TechnologyThe following grades were used:Monash University "
+        "College Gippsland and Gippsland Institute of Advanced "
+        "EducationThese grades were used before 1993. Gippsland "
+        "changed its point system in 1994:Frankston Teachers "
+        "College/State College of Victoria at Frankston "
+        "(1959-1981)Course started before 1973Course started after 1972":
+            "Chisholm Institute of Technology 与 Caulfield Institute of "
+            "Technology\n使用过下列成绩等级：\nMonash University College Gippsland 与 "
+            "Gippsland Institute of Advanced Education\n下列成绩等级用于 1993 "
+            "年之前；Gippsland 于 1994 年更改了计分体系：\nFrankston Teachers College / "
+            "State College of Victoria at Frankston（1959–1981）\n1973 "
+            "年之前入学\n1972 年之后入学",
+        "Code, grade and mark range for academic transcript results "
+        "for 2017 to 2019":
+            "2017 至 2019 年成绩单上的代码、成绩等级与分数区间",
+        "D (MBA results pre-1990)":
+            "D（1990 年前 MBA 成绩）",
+        "Did not complete assessment requirement":
+            "未完成考核要求",
+        "Eligible to sit for Supplementary Examination":
+            "符合参加补考的条件",
+        "Extended assessment period":
+            "延长的考核期",
+        "F (MBA results pre-1990)":
+            "F（1990 年前 MBA 成绩）",
+        "Faculty Requirements Unsatisfied":
+            "未满足学院要求",
+        "Fail - Supplementary Examination Granted":
+            "不及格——已获准补考",
+        "From 2020 to 2021, Monash University introduced a modified "
+        "grading scale system in response to the COVID-19 pandemic.":
+            "2020 至 2021 年，为应对新冠疫情，Monash 大学启用过一套调整后的评分体系。",
+        "From 6 October 2021, students graduating with a master’s "
+        "degree by coursework with a WAM of 80 or above will see "
+        "Awarded with distinction on their official academic record "
+        "(transcript), award certificate (testamur) and Australian "
+        "Higher Education Graduation Statement (AHEGS).":
+            "自 2021 年 10 月 6 日起，授课型硕士毕业生若 WAM（加权平均分）达到 80 "
+            "或以上，其正式学业记录（成绩单）、学位证书（testamur）以及澳大利亚高等教育毕业说明书（AHEGS）上，都会注明 "
+            "Awarded with distinction（优等授予）。",
+        "Grade and description on academic transcripts for Chisholm "
+        "Institute of Technology and Caulfield Institute of Technology.":
+            "Chisholm Institute of Technology 与 Caulfield Institute of "
+            "Technology 成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for Monash "
+        "University College Gippsland and Gippsland Institute of "
+        "Advanced Education.":
+            "Monash University College Gippsland 与 Gippsland Institute of "
+            "Advanced Education 成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for Monash "
+        "before 1992.":
+            "1992 年之前 Monash 成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for course "
+        "listed above.":
+            "该学位课程成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for the five "
+        "courses listed above.":
+            "上列五个学位课程成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for the four "
+        "courses listed above.":
+            "上列四个学位课程成绩单上的成绩等级与说明。",
+        "Grade and description on academic transcripts for the three "
+        "courses listed above.":
+            "上列三个学位课程成绩单上的成绩等级与说明。",
+        "Grade and mark in academic transcripts before 1997.":
+            "1997 年之前成绩单上的成绩等级与分数。",
+        "Grade point average (GPA)":
+            "GPA（平均绩点）",
+        "Grade, description and dates of use in academic transcript "
+        "results from 1992 to 2016.":
+            "1992 至 2016 年成绩单上的成绩等级、说明及使用年份。",
+        "Help with your results":
+            "成绩方面需要帮助",
+        "High level of achievement":
+            "达成度较高",
+        "Honours Discipline assessed over more than one year":
+            "荣誉学位专业方向的评核跨越一年以上",
+        "Incomplete (still to be assessed)":
+            "未完成（尚待评核）",
+        "NSR was also used in eligible teaching periods during "
+        "2020–2021 to allow students to exclude failed units from "
+        "their GPA/CGPA and WAM calculations. This was in recognition "
+        "of the impact of the COVID-19 pandemic on their studies.":
+            "2020–2021 年的部分开课学期也使用过 NSR，让学生可以把不及格课程排除在 GPA／CGPA 和 WAM "
+            "的计算之外，以体谅新冠疫情对学业造成的影响。",
+        "Next 10% of students":
+            "其后 10% 的学生",
+        "Next 20% of students":
+            "其后 20% 的学生",
+        "Next 40% of students":
+            "其后 40% 的学生",
+        "No Pass (Lower Standard)":
+            "不及格（较低标准）",
+        "Outstanding level of achievement":
+            "达成度卓越",
+        "Pass (Higher Standard)":
+            "及格（较高标准）",
+        "Pass (Lower Standard)":
+            "及格（较低标准）",
+        "Pass (No Higher Grade Available)":
+            "及格（无更高等级可授）",
+        "Pass Division II - Supplementary Examination":
+            "及格 二等——补考",
+        "Pass Grade Only. No higher grade available":
+            "仅记及格，无更高等级可授",
+        "Pass Laboratory Work":
+            "实验课作业及格",
+        "Pass after supplementary examination":
+            "补考后及格",
+        "Pass, Qualified to continue - No higher grade is awarded":
+            "及格，具备继续修读资格——不授予更高等级",
+        "Result Subject to Review":
+            "成绩待复核",
+        "Result annulled by Discipline Committee - deemed to be a "
+        "failure":
+            "成绩经纪律委员会裁定作废——视为不及格",
+        "Results cancelled by Discipline Committee":
+            "成绩经纪律委员会取消",
+        "Results – reading your marks":
+            "成绩——如何看懂分数",
+        "SFR was also used in eligible teaching periods during "
+        "2020–2021 to allow students to exclude units with a passing "
+        "grade from their GPA/CGPA and WAM calculations. This was in "
+        "recognition of the impact of the COVID-19 pandemic on their "
+        "studies.":
+            "2020–2021 年的部分开课学期也使用过 SFR，让学生可以把已及格的课程排除在 GPA／CGPA 和 WAM "
+            "的计算之外，以体谅新冠疫情对学业造成的影响。",
+        "Satisfactorily completed (ungraded)":
+            "达标完成（不评等级）",
+        "Supplementary Assessment Granted":
+            "已获准补考",
+        "The assessment marking is incomplete and a final grade has "
+        "not yet been determined. This could be because:":
+            "考核尚未评阅完毕，最终成绩等级还没确定。可能的原因有：",
+        "This allowed students to exclude eligible units from their "
+        "GPA/CGPA and WAM calculations by applying NSR to failed units "
+        "and SFR to units with a passing grade.":
+            "这使学生可以对不及格课程使用 NSR、对已及格课程使用 SFR，从而把符合条件的课程排除在 GPA／CGPA 和 WAM "
+            "的计算之外。",
+        "This grade is used to finalise a unit undertaken on a "
+        "non-assessed, non-award basis.":
+            "该成绩用于结清以「不评核、不计学位」方式修读的课程。",
+        "This grade used to be awarded based on extreme circumstances, "
+        "occuring or taking effect after the Withdrawn Fail period. "
+        "The WI grade was not a passing grade because it meant you "
+        "hadn’t completed the requirements of the unit. \n This grade "
+        "is not included in GPA or WAM calculations and only applied "
+        "to units that started before 22 July 2024. \nStudents are no "
+        "longer awarded Withdrawn Incomplete grades.":
+            "该成绩过去用于在 Withdrawn Fail 期之后发生或生效的极端情况。WI "
+            "不是及格成绩，因为它意味着你没有完成该课程的要求。\n 该成绩不计入 GPA 或 WAM，且仅适用于 2024 年 7 月 "
+            "22 日之前开始的课程。\n学校已不再授予 Withdrawn Incomplete（退课未完成）成绩。",
+        "This table outlines the Monash grading system, providing a "
+        "key to results on the academic record (transcript) according "
+        "to the year of study. You should also refer to the Grading "
+        "Schema Procedure (pdf, 0.30 mb).":
+            "下表列出 Monash 的评分体系，按修读年份提供学业记录（成绩单）上成绩的对照说明。你也可以参阅 Grading "
+            "Schema Procedure（成绩等级体系规程，pdf，0.30 mb）。",
+        "Top 10% of students":
+            "前 10% 的学生",
+        "Weighted average mark (WAM)":
+            "WAM（加权平均分）",
+        "Withdrawal without penalty":
+            "无处罚退课",
+        "Withdrawn No Load or Withdrawn Late":
+            "退课不计负荷，或逾期退课",
+        "Withdrawn without Approval":
+            "未经批准退课",
+        "You haven’t fulfilled the unit requirements.":
+            "你没有满足该课程的要求。",
+        "You withdrew from this unit after the census date and before "
+        "the Withdrawn Fail period. The WDN grade is not a pass grade, "
+        "because the unit requirements have not been completed. This "
+        "grade is not included in the WAM or GPA.":
+            "你是在 census date（学籍统计日）之后、Withdrawn Fail 期之前退选这门课程的。WDN "
+            "不是及格成绩，因为课程要求并未完成。该成绩不计入 WAM 或 GPA。",
+        "You withdrew from this unit between the start of the "
+        "Withdrawn Fail period and the end of the teaching period.":
+            "你是在 Withdrawn Fail 期开始之后、开课学期结束之前退选这门课程的。",
+        "You've been granted a supplementary assessment.":
+            "你已获准补考。",
+        "You’ve fulfilled the unit requirements.":
+            "你已满足该课程的要求。",
+        "during the official deferred assessment period":
+            "在官方规定的延期考核期内",
+        "or at a time determined by your faculty. They will email your "
+        "Monash account with the details, giving you at least five "
+        "University working days' notice.":
+            "或由你所在学院另行确定时间。学院会把详情发到你的 Monash 邮箱，并至少提前五个学校工作日通知。",
+        "the host institution for your Study Abroad or complementary "
+        "units hasn't yet submitted your results from your time "
+        "overseas":
+            "你海外学习或辅修课程的接收院校尚未提交你在海外期间的成绩",
+        "you have a pending academic misconduct investigation":
+            "你有一项学术不端调查尚未了结",
+        "you have an extension to finish outstanding assessment tasks":
+            "你获得了延期，用于完成尚未做完的考核任务",
+        "you haven’t finished all your assessments":
+            "你还没有完成全部考核",
+        "your assessment is still being marked and your final unit "
+        "result will be updated shortly.":
+            "你的考核仍在评阅中，该课程的最终成绩很快就会更新。",
+    },
     "academic-transcripts": {
+        "About your academic record":
+            "关于你的学业记录",
+        "Academic records (transcripts)":
+            "学业记录（成绩单）",
+        "Access your transcript in My eQuals (you’ll receive an email "
+        "with instructions).":
+            "在 My eQuals 中获取成绩单（我们会发邮件告诉你具体怎么做）。",
+        "An academic record (or transcript) is a formal record of your "
+        "academic history at the University. You’ll get a free "
+        "transcript, in digital format, when you graduate.":
+            "学业记录（academic record，也叫 transcript "
+            "成绩单）是你在本校学业历程的正式记录。毕业时你会免费获得一份电子版成绩单。",
+        "As a past student, you can buy your official academic record "
+        "(transcript) in digital format.":
+            "作为往届学生，你可以购买电子版的正式学业记录（成绩单）。",
+        "At the top of the screen, select your name to see the "
+        "drop-down menu.":
+            "点击页面顶部你的姓名，展开下拉菜单。",
+        "At the top right of the screen, select your name to see a "
+        "drop-down menu.":
+            "点击页面右上角你的姓名，展开下拉菜单。",
+        "Award certificate (testamur)":
+            "学位证书（testamur）",
+        "Before ordering a transcript, you’ll need to check your "
+        "details are up to date in the Web Enrolment System (WES).":
+            "订购成绩单之前，请先在 WES（学生系统）里确认你的个人信息是最新的。",
+        "Before viewing your documents, you’ll need to make sure your "
+        "personal email address is verified in My eQuals:":
+            "查看文件之前，需要先确认你的个人邮箱已在 My eQuals 中通过验证：",
+        "Check if I'm course completed":
+            "查看我是否已完成学位课程",
+        "Check your email for how to activate your account.\nIf you "
+        "don’t see the activation email, check your spam folder or "
+        "click Can’t sign in?":
+            "查收邮件，按说明激活账户。\n如果没看到激活邮件，请查看垃圾邮件文件夹，或点击 Can't sign in?（无法登录？）",
+        "Check your email for how to activate your account. \nIf you "
+        "don’t see the activation email, check your spam folder or "
+        "click Can’t sign in?":
+            "查收邮件，按说明激活账户。\n如果没看到激活邮件，请查看垃圾邮件文件夹，或点击 Can't sign in?（无法登录？）",
+        "Check your inbox for the verification email from My eQuals "
+        "and select Verify.":
+            "在收件箱中找到 My eQuals 发来的验证邮件，点击 Verify（验证）。",
+        "Click Account settings.":
+            "点击 Account settings（账户设置）。",
+        "Click Profile settings.":
+            "点击 Profile settings（个人资料设置）。",
+        "Click Submit Request\nYou’ll see a request summary and be "
+        "asked whether you want to make another request":
+            "点击 Submit Request（提交申请）\n你会看到申请摘要，并被询问是否要再提交一份申请",
+        "Click on your name on the top-right corner of the screen.":
+            "点击页面右上角你的姓名。",
+        "Courier fee (contact Monash Connect for exact fee based on "
+        "location) in addition to hard-copy fee: $31–$93":
+            "在纸质版费用之外另加快递费（具体金额视寄送地区而定，请联系 Monash Connect（学生服务中心）确认）：31–93 "
+            "澳元",
+        "Digital (My eQuals portal): $26":
+            "电子版（My eQuals 门户）：26 澳元",
+        "Enter your credit or debit card details and click Pay Now.":
+            "填写信用卡或借记卡信息，点击 Pay Now（立即支付）。",
+        "Enter your personal email address.":
+            "填入你的个人邮箱地址。",
+        "For details on how My eQuals collects and handles your "
+        "personal information, see the My eQuals HES Privacy Policy.":
+            "My eQuals 如何收集和处理你的个人信息，详见 My eQuals HES 隐私政策。",
+        "For faster overseas delivery, you can make a payment and "
+        "arrange for Express Post delivery by calling Monash Connect "
+        "on +61 3 9902 6011. This can take up to two weeks.":
+            "寄往海外若想更快，可以致电 Monash Connect（学生服务中心）+61 3 9902 6011 付款并安排 "
+            "Express Post 快递，最长约需两周。",
+        "For more information, see course completion.":
+            "更多信息见「学位课程完成」。",
+        "For more information, see how to view your graduation "
+        "documents.":
+            "更多信息见「如何查看你的毕业文件」。",
+        "GPA – Grade Point Average":
+            "GPA — 平均绩点",
+        "Go to Account settings.":
+            "进入 Account settings（账户设置）。",
+        "Graduates and past students":
+            "毕业生与往届学生",
+        "Graduation statement (AHEGS)":
+            "毕业说明书（AHEGS）",
+        "Hard copies take five to ten days to deliver (or three to "
+        "five weeks if you’re overseas).":
+            "纸质版寄送需要 5 至 10 天（寄往海外则需 3 至 5 周）。",
+        "Hard copy (standard mail): $53":
+            "纸质版（普通邮寄）：53 澳元",
+        "How to order your digital academic record":
+            "如何订购电子版学业记录",
+        "How to order your digital record":
+            "如何订购电子版记录",
+        "How to use My eQuals":
+            "怎么用 My eQuals",
+        "If you can't log in because you've forgotten your details, "
+        "you can recover your login through the My eQuals portal – "
+        "just select Can’t sign in? on the login screen.If this isn’t "
+        "the problem, there could be a few reasons why you’re not able "
+        "to log into My eQuals.You need to sign into My eQuals with "
+        "the personal (non-Monash) email address you provided in WES "
+        "when you applied to graduate. You’ll receive an email a few "
+        "weeks after your graduation round confirming the email "
+        "address you need to use.You’ll only be able to log in and see "
+        "your digital transcript if your My eQuals account uses the "
+        "same personal email address you have in WES.Haven’t received "
+        "the emailIf you're unsure what non-Monash email you provided, "
+        "and you haven't received the email with your sign-up details, "
+        "check your email spam folder. If it's not there, contact "
+        "Monash Connect for help.Changed personal email addressIf "
+        "you’ve changed your personal email address and now you can’t "
+        "sign into My eQuals, get in touch with Monash Connect.":
+            "如果因为忘了登录信息而进不去，可以在 My eQuals 门户找回——在登录页点击 Can't sign "
+            "in?（无法登录？）即可。如果问题不在这里，登不上 My eQuals 还可能有别的原因。你必须用申请毕业时在 "
+            "WES（学生系统）里填写的个人邮箱（非 Monash 邮箱）登录 My "
+            "eQuals。毕业批次结束后几周，你会收到一封邮件，确认应当使用哪个邮箱地址。只有当你的 My "
+            "eQuals账户使用的邮箱与 WES "
+            "里填的那个一致时，你才能登录并看到电子成绩单。没收到邮件：如果你不确定当初填的是哪个非 Monash "
+            "邮箱，又没收到含注册信息的邮件，请先看垃圾邮件文件夹；仍然没有的话，请联系 Monash "
+            "Connect（学生服务中心）求助。换过个人邮箱：如果你换了个人邮箱、现在登不上 My eQuals，请联系 Monash "
+            "Connect（学生服务中心）。",
+        "If you’re currently enrolled at Monash University, you can "
+        "buy an official academic record in digital format. You’ll "
+        "also be able to provide potential employers (and other "
+        "people) with a link so they can view a verified copy of the "
+        "transcript online.":
+            "如果你目前在 Monash "
+            "大学在读，可以购买电子版的正式学业记录。你还可以把一个链接发给潜在雇主（或其他人），让他们在线查看经过验证的成绩单副本。",
+        "In the week following your graduation round, you’ll receive "
+        "your official academic record in digital format. We'll email "
+        "you once it’s available.":
+            "毕业批次结束后的那一周，你会收到电子版的正式学业记录。可以领取时我们会发邮件通知你。",
+        "Link your account to your personal email":
+            "把账户与你的个人邮箱关联",
+        "Log into the Web Enrolment System (WES).":
+            "登录 WES（学生系统）。",
+        "Log into your Monash University account when prompted (this "
+        "will link your account).":
+            "按提示登录你的 Monash 大学账号（这一步会完成账户关联）。",
+        "Make sure your My eQuals account is linked to Monash "
+        "University, otherwise you won't be able to access your "
+        "academic record.":
+            "请确认你的 My eQuals账户已与 Monash 大学关联，否则无法查看学业记录。",
+        "Make sure you’ve verified your email address:New (or soon to "
+        "be) graduatesIf you’ve signed into My eQuals and can’t see "
+        "any documents, it could be because:Past studentsIf you’ve "
+        "signed into My eQuals and can’t see any documents, it could "
+        "be because:If you bought an academic record, you might not be "
+        "able to see it because:Past students (who graduated before "
+        "2017)You can access your academic record (transcript) in My "
+        "eQuals – for step-by-step instructions, see our academic "
+        "records (transcripts) page.Other documents like your testamur "
+        "and AHEGS are only available in hard copy.For instructions, "
+        "see:":
+            "请先确认你的邮箱已通过验证：\n应届（或即将）毕业生\n如果你已登录 My "
+            "eQuals却看不到任何文件，可能是因为：\n往届学生\n如果你已登录 My "
+            "eQuals却看不到任何文件，可能是因为：\n如果你买过学业记录却看不到，可能是因为：\n2017 "
+            "年之前毕业的往届学生\n你可以在 My "
+            "eQuals中获取学业记录（成绩单）——具体步骤见我们的「学业记录（成绩单）」页面。\n学位证书（testamur）和 "
+            "AHEGS 等其他文件只有纸质版。\n具体说明见：",
+        "My eQuals troubleshooting":
+            "My eQuals 问题排查",
+        "Once you're in WES:":
+            "进入 WES（学生系统）之后：",
+        "Once your account is activated, log into My eQuals.":
+            "账户激活之后，登录 My eQuals。",
+        "Option 1: Go to the Documents screen and click Share in the "
+        "Actions column.":
+            "方式一：进入 Documents（文件）页面，在 Actions（操作）一列点击 Share（分享）。",
+        "Option 2: Open the document and click Share.":
+            "方式二：打开该文件，点击 Share（分享）。",
+        "Option 3: Create a learner profile in My eQuals, which "
+        "includes your name, some details about you (including a "
+        "photo, if you’d like) and the documents you want to share. "
+        "Then share your profile. See this video for instructions.":
+            "方式三：在 My eQuals里创建一份学习者档案（learner "
+            "profile），内含你的姓名、一些个人信息（愿意的话还可以放照片），以及你想分享的文件，然后把这份档案分享出去。具体操作见这段视频。",
+        "Order and pay for your transcript.\nWithin one working day, "
+        "you'll receive your transcript in My eQuals.":
+            "订购并支付成绩单费用。\n一个工作日之内，成绩单会出现在 My eQuals里。",
+        "Order your digital academic record (transcript)":
+            "订购电子版学业记录（成绩单）",
+        "Ordering a record after completing your course":
+            "完成学位课程之后订购学业记录",
+        "Other official documents":
+            "其他正式文件",
+        "Please visit our page on qualification verification and "
+        "replacement documents for former MSA students, for important "
+        "information.":
+            "原 MSA 学生请查看「学历验证与补发文件」页面，那里有重要信息。",
+        "Provide your personal email address.":
+            "填写你的个人邮箱地址。",
+        "Select Address update > Postal address to check your postal "
+        "address, and update it if needed.":
+            "依次选择 Address update（地址更新）>  Postal "
+            "address（邮寄地址），核对邮寄地址，如有需要请更新。",
+        "Select Link another email.":
+            "点击 Link another email（关联另一个邮箱）。",
+        "Select Monash University as the institution.":
+            "在院校一栏选择 Monash University。",
+        "Sharing your digital documents View":
+            "分享你的电子文件 查看",
+        "Sign up to My eQuals using your Monash email account (choose "
+        "Monash as your institution).":
+            "用你的 Monash 邮箱注册 My eQuals（院校选择 Monash）。",
+        "Sign up to My eQuals using your personal email.":
+            "用你的个人邮箱注册 My eQuals。",
+        "Signing up to My eQuals View":
+            "注册 My eQuals 查看",
+        "Tick the checkbox to agree to the terms and conditions":
+            "勾选复选框，同意条款与条件",
+        "To complete the transaction, click No, Finish Transaction":
+            "点击 No, Finish Transaction（否，完成交易）以结束本次交易",
+        "To get a complete record after completing your course, you "
+        "need to be course completed. This isn't the same as "
+        "completing your course and your faculty does this to verify "
+        "you have met all requirements of the course.":
+            "读完之后要拿到完整的学业记录，学籍状态必须是「已完成学位课程」（course "
+            "completed）。这与你自己读完课程不是一回事——它是由学院核实你已满足学位课程全部要求之后才标记的。",
+        "To link your personal email:":
+            "关联个人邮箱的方法：",
+        "Under Education provider accounts:":
+            "在 Education provider accounts（院校账户）下：",
+        "Under Email accounts, check that your personal email address "
+        "is either verified or primary.":
+            "在 Email accounts（邮箱账户）下，确认你的个人邮箱状态是 verified（已验证）或 "
+            "primary（主邮箱）。",
+        "Under Email accounts:":
+            "在 Email accounts（邮箱账户）下：",
+        "Use the WES (login) for past students. If you studied before "
+        "1997, you may not have access to your unofficial record in "
+        "WES. If you receive an error when trying to order a "
+        "transcript, contact Monash Connect.":
+            "请使用往届学生的 WES（学生系统）登录入口。如果你是 1997 年之前就读的，可能无法在 WES "
+            "里看到非正式记录。订购成绩单时如果报错，请联系 Monash Connect（学生服务中心）。",
+        "Verify your email address in My e Q uals":
+            "在 My eQuals中验证你的邮箱地址",
+        "WAM – Weighted Average Mark":
+            "WAM — 加权平均分",
+        "Web Enrolment System (WES)":
+            "WES（学生系统）",
+        "Within one working-day, your record will become available in "
+        "My eQuals. You'll receive an email with instructions on how "
+        "to set up your My eQuals account and collect your digital "
+        "transcript.":
+            "一个工作日之内，你的记录就会出现在 My eQuals里。我们会发一封邮件告诉你如何设置 My "
+            "eQuals账户并领取电子成绩单。",
+        "You can check your course completion status in our virtual "
+        "assistant (VA). It only takes a moment and you’ll need to be "
+        "logged in to your Monash student account.":
+            "你可以在我们的虚拟助手（VA）里查询学位课程完成状态，只需片刻，但需要先登录 Monash 学生账号。",
+        "You can order a hard copy online using the WES (login) for "
+        "past students. If you attended or completed your course "
+        "before 1997, allow three to four weeks for delivery.":
+            "你可以用往届学生的 WES（学生系统）登录入口在线订购纸质版。如果你是 1997 "
+            "年之前就读或毕业的，请预留三到四周的寄送时间。",
+        "You can order and pay for a hard copy academic record in WES, "
+        "which will be sent by mail. After paying, you can check the "
+        "progress of your order online.":
+            "你可以在 WES（学生系统）里订购并支付纸质版学业记录，我们会邮寄给你。付款之后可以在线查看订单进度。",
+        "You can order and pay for an official record at any time "
+        "during your studies. Digital copies are faster to receive and "
+        "cheaper than hard copies.":
+            "在读期间你随时可以订购并支付正式学业记录。电子版比纸质版更快、也更便宜。",
+        "You can share your documents in My eQuals in a number of "
+        "different ways:":
+            "在 My eQuals里分享文件有好几种方式：",
+        "You can view an unofficial record of your results (unless "
+        "you're encumbered) in the:":
+            "你可以在下列位置查看非正式的成绩记录（账户被施加 encumbrance（学籍限制）时除外）：",
+        "Your academic record confirms your progress or, when you're "
+        "complete, your final qualification. You can use it to:":
+            "学业记录用于证明你的学业进度；读完之后，则用于证明你最终取得的学历。它可以用来：",
+        "Your digital transcript will be issued to My eQuals using "
+        "your personal email address. Just make sure your My eQuals "
+        "account uses the same email address (otherwise you won’t be "
+        "able to see your transcript).":
+            "电子成绩单会以你的个人邮箱签发到 My eQuals。请务必确认你的 My "
+            "eQuals账户使用的是同一个邮箱地址，否则看不到成绩单。",
+        "Your record usually includes all unit attempts and your grade "
+        "for each unit. If you were enrolled in more than one course, "
+        "it lists all courses and all units studied at Monash. You can "
+        "also request a hard copy transcript for a specific course "
+        "only – we’ll include a statement that the document is not a "
+        "complete record of all your studies at Monash.":
+            "学业记录通常包含你所有课程的修读记录和每门课的成绩等级。如果你注册过不止一个学位课程，记录会列出你在 Monash "
+            "修读的全部学位课程和全部课程。你也可以只针对某一个学位课程申请纸质成绩单——那样我们会加上一句声明，说明该文件并非你在 "
+            "Monash 全部学业的完整记录。",
+        "You’ll also need to link your My eQuals account to Monash "
+        "University to be able to access your digital documents:":
+            "你还需要把 My eQuals账户与 Monash 大学关联，才能查看电子文件：",
+        "You’ll need to have signed up to My eQuals to receive any "
+        "digital documents. To order your academic transcript:":
+            "要领取任何电子文件，都必须先注册 My eQuals。订购成绩单的方法：",
+        "You’ll need to link your account to a personal email address "
+        "so you can access your documents after you graduate.":
+            "你需要把账户关联到一个个人邮箱，这样毕业之后才能继续查看自己的文件。",
         "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
             "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
         "Your academic record has the following information about you:If a unit is marked as Incomplete on your academic transcript, it simply means the result isn't available yet.Masters awarded with distinctionFrom 6 October 2021, a student graduating with a master’s degree by coursework with a WAM of 80 or above will see ‘awarded with distinction’ on their transcript.Credit points not showing for some unit exemptionsSometimes exempted units listed in your academic record don’t have credit points attached. This is because you’ve been exempted from studying a particular unit (based on prior study), but you’re required to complete another unit in its place.":
@@ -1678,6 +2433,133 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "在课程的 census date（学籍统计日）当天 23:59（墨尔本时间）之后退选的课程，在多数开课学期适用下列处罚。想知道自己的课程适用哪一种，请查看你所在开课学期的 census date（学籍统计日）。",
     },
     "assessment-at-monash": {
+        "Assessment at Monash":
+            "Monash 的考核",
+        "Assessment deadlines":
+            "考核截止期限",
+        "Assessments of learning provide a measure of your achievement "
+        "in relation to the learning outcomes of the unit. These "
+        "assessments are designed to test how much you’ve learnt (i.e. "
+        "your knowledge, understanding and skills), and they’re "
+        "usually set after the teaching weeks end.":
+            "「对学习的考核」衡量的是你相对于课程学习成果的达成度。这类考核用来检验你学到了多少（即知识、理解与技能），通常安排在教学周结束之后。",
+        "Before you start an assessment task, you should check the "
+        "marking criteria and use it as a guide in developing your "
+        "response to the task.":
+            "着手做某项考核任务之前，先看看评分标准，并据此规划你的作答思路。",
+        "Blind marking policy":
+            "匿名评阅制度",
+        "Each assessment you do will either be for your learning or of "
+        "your learning:":
+            "你做的每一项考核，要么是「为了学习」，要么是「对学习的检验」：",
+        "For each additional day the assessment is overdue (up to "
+        "seven days after the due date), a further 5% penalty will be "
+        "applied (maximum total penalty of 35%). You can find the "
+        "marking penalty information for your unit (including any "
+        "exceptions) in Moodle.":
+            "此后每逾期一天（最多到截止日后第七天），再扣 5%，累计最高扣 35%。你所在课程的扣分规则（含各种例外）可以在 "
+            "Moodle 上查到。",
+        "For related policy and procedures, see assessment policy and "
+        "processes.":
+            "相关政策与流程请见「考核政策与流程」。",
+        "Go to defer or reschedule your final assessment (exam) for "
+        "details about deferring your scheduled final assessment or "
+        "rescheduling your deferred assessment.":
+            "已排定期末考核的延期、以及延期考核的改期，详见「为已排定的期末考核（考试）申请延期或改期」。",
+        "If you submit an assessment task more than seven days after "
+        "the due date, your assessment won’t be marked – you’ll "
+        "receive a mark of zero and you won’t get any feedback.":
+            "如果考核任务在截止日之后超过七天才提交，我们不会评阅——你会得零分，也不会收到任何反馈。",
+        "It’s likely that you’ll complete a variety of different "
+        "assessments that will give you lots of opportunities to "
+        "develop your skills and demonstrate your progression.":
+            "你多半会做到各种不同类型的考核，它们能给你许多机会去锻炼能力、展现自己的进步。",
+        "Most assessment tasks you complete will contribute to your "
+        "overall result for the unit. For more information, see:":
+            "你完成的多数考核任务都会计入该课程的总成绩。更多信息见：",
+        "Some of your assessments will have deadlines (which you can "
+        "find in Moodle), but most will be scheduled – you’ll find a "
+        "timetable of your scheduled assessments in Allocate+. For "
+        "more information, see dates and timetables.":
+            "有些考核有截止期限（可以在 Moodle 上查到），但多数是排定时间的——已排定考核的时间表可以在 Allocate+ "
+            "里找到。更多信息见「日期与课表」。",
+        "The marking criteria for an assessment helps you understand "
+        "what’s expected of you, and how your performance can be "
+        "improved. The format of the marking criteria will vary on "
+        "your unit and the type of assessment you’re doing.":
+            "考核的评分标准能帮你弄清别人对你的期待是什么、以及可以从哪里改进。评分标准的具体形式，因课程和考核类型而异。",
+        "The types of assessments you’ll need to complete will depend "
+        "on the unit and course you’re enrolled in – your unit "
+        "information will outline how and when your learning will be "
+        "assessed.":
+            "你需要完成哪些类型的考核，取决于你注册的课程和学位课程——课程信息里会写明你的学习将以何种方式、在什么时候受到检验。",
+        "We use blind marking for final assessments. Blind marking is "
+        "anonymous, and ensures consistency. For example, when your "
+        "chief examiner is reviewing an eExam, they won’t see your "
+        "name (just your student ID number and your responses).":
+            "期末考核采用匿名评阅。匿名评阅不显示身份，以保证评分的一致性。例如，主考官在评阅 "
+            "eExam（线上考试）时看不到你的姓名，只能看到你的学号和作答内容。",
+        "When you start a unit, you’ll be able to access your "
+        "assessment information in Moodle, including:":
+            "开始一门课程之后，你就可以在 Moodle 上看到该课程的考核信息，包括：",
+        "When you submit work for assessment, you must adhere to the "
+        "values of honesty, trust, fairness, respect and "
+        "responsibility. To ensure that you complete your assessments "
+        "with integrity, see academic integrity, plagiarism and "
+        "collusion.":
+            "提交作业接受考核时，你必须守住诚实、信任、公平、尊重与负责这些价值。如何以符合学术诚信的方式完成考核，请见「学术诚信、抄袭与合谋作弊」。",
+        "You can apply for a short extension of two calendar days if "
+        "you can’t complete your assessment on time due to short-term "
+        "difficult circumstances, such as a medical condition, carer "
+        "responsibilities (including for your children) or a car "
+        "accident. A short extension is available for most types of "
+        "assessments (e.g. an assignment or quiz), but not for an "
+        "in-class test, a mid-semester test or a scheduled final "
+        "assessment. No reason is needed on your first application for "
+        "a particular unit.":
+            "如果你因短期困难而无法按时完成考核——例如健康问题、照护责任（包括照顾子女）或遭遇车祸——可以申请两个日历日的短期延期。多数类型的考核都可以申请短期延期（例如作业或小测），但课堂测验、期中测验和已排定的期末考核不行。同一门课程的第一次申请不需要说明理由。",
+        "Your assessments may involve some or all of the following:":
+            "你的考核可能涉及下列部分或全部形式：",
+        "case studies":
+            "案例分析",
+        "electronic exams (eExams).":
+            "电子考试（eExams）。",
+        "essays and reports":
+            "论文与报告",
+        "group projects":
+            "小组项目",
+        "how you can apply for an extension":
+            "如何申请延期",
+        "laboratory work":
+            "实验课作业",
+        "online quizzes (Moodle)":
+            "线上小测（Moodle）",
+        "oral assessments and presentations":
+            "口头考核与口头报告",
+        "peer-to-peer assessments":
+            "同侪互评",
+        "performance and studio assessments":
+            "表演与工作室考核",
+        "posters and presentations":
+            "海报与展示",
+        "problem-based learning scenarios":
+            "问题导向学习情境",
+        "reading your marks.":
+            "如何看懂分数。",
+        "self-assessment":
+            "自我评估",
+        "take-home assessments":
+            "带回家完成的考核",
+        "the marking penalties applied for late submissions.":
+            "迟交的扣分规则。",
+        "the types of assessments you’ll complete":
+            "你要完成哪些类型的考核",
+        "when and how you can access your results":
+            "什么时候、以什么方式查成绩",
+        "when they’re due":
+            "各项考核什么时候截止",
+        "when you’ll receive feedback":
+            "什么时候能收到反馈",
         "Assessment is an integral part of your studies. It’s much more than a critical step in passing your units. Completing assessments and receiving feedback allows you to track the progress of your academic performance, and find ways of improving it.":
             "考核是学习中不可分割的一部分，远不只是通过课程的一道关口。完成考核并获得反馈，可以让你了解自己学业表现的变化，并找到改进的方法。",
         "Assessments for learning are designed to help you build and consolidate your knowledge, understanding and skills, and provide you with feedback on your progress. They’re usually set during the teaching weeks, and sometimes contribute to your overall unit results (but not always).":
@@ -1806,6 +2688,138 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "接受录取通知后，你会收到 CoE（入学确认书）（澳大利亚奖学金 Australia Awards Scholarship 学生除外）。在 Monash 内部转读另一个学位课程时也同样会收到。",
     },
     "course-advice": {
+        "Allocate+ dates\n \nTake a look at the Allocate+ dates to find "
+        "out when you can enter preferences and make changes to your "
+        "timetable.":
+            "Allocate+ 日期\n \n查看 Allocate+ 日期，了解什么时候可以填志愿、什么时候可以调整课表。",
+        "Ask our virtual assistant\n \nOur virtual assistant has answers "
+        "to most common questions, including finding unit information, "
+        "choosing a major or minor, getting credit for prior study, "
+        "and much more. If it can’t find an answer, it can connect you "
+        "to a real person or help you make an online enquiry.":
+            "问问我们的虚拟助手\n "
+            "\n常见问题它多半答得上来，包括查课程信息、选主修或副修、既往学习学分减免等等。如果它答不上来，可以帮你转接真人，或协助你提交在线咨询。",
+        "Can’t complete your assessment?\n \nLearn about your options if "
+        "you couldn’t – or can’t – complete an assessment when "
+        "required.":
+            "无法完成考核？\n \n了解在你当时无法、或现在无法按要求完成考核时，有哪些选择。",
+        "Census dates and teaching periods\n \nCheck the census date for "
+        "your teaching period before you withdraw from a unit or make "
+        "changes to your enrolment.":
+            "census dates（学籍统计日）与开课学期\n \n退选课程或改动选课注册之前，先查清你所在开课学期的 census "
+            "date（学籍统计日）。",
+        "Changing my enrolment":
+            "变更我的选课注册",
+        "Changing my study load":
+            "改变我的学习负荷",
+        "Changing units?\nCheck the deadlines for adding or dropping "
+        "units\n\n\nView dates":
+            "要改课？\n查看加课和退课的截止日期\n\n\n查看日期",
+        "Choose a topicChanging my study loadCourse or campus "
+        "transferCredit for prior learningEnrolling in units and areas "
+        "of studyChanging my enrolment":
+            "选择一个主题：改变我的学习负荷／转学位课程或转校区／既往学习学分减免／选课与专业方向注册／变更我的选课注册",
+        "Complementary study\n \nYou can apply to study a unit at "
+        "another institution within Australia or New Zealand and "
+        "receive credit towards your course.":
+            "辅修学习（complementary study）\n "
+            "\n你可以申请到澳大利亚或新西兰境内的其他院校修读一门课程，并计入你的学位课程。",
+        "Course maps\n \nIf you need help choosing units, check the "
+        "course map for your degree. Course maps give you a visual "
+        "outline of your degree’s structure, including units and "
+        "electives.":
+            "课程地图\n \n如果你在选课上拿不定主意，看看自己学位的课程地图。课程地图会用图示的方式呈现学位结构，包括各门课程和选修安排。",
+        "Course or campus transfer":
+            "转学位课程或转校区",
+        "Course planning tools View":
+            "课程规划工具 查看",
+        "Course progression check\n \nTo check how you’re progressing "
+        "through your degree, submit a Course Advice Request.":
+            "学业进度查询\n \n想知道自己学位读到哪一步了，请提交 Course Advice Request（课程咨询申请）。",
+        "Credit for prior learning":
+            "既往学习的学分减免",
+        "Discontinuing your course\n \nIf you’re unsure about continuing "
+        "your course, we’re here to help you understand your options "
+        "so you can make the decision that’s right for you.":
+            "退课\n \n如果你对是否继续读拿不定主意，我们可以帮你把各种选择弄清楚，好让你做出适合自己的决定。",
+        "Enquiry response times":
+            "咨询回复时长",
+        "Enrolling in units and areas of study":
+            "选课与专业方向注册",
+        "Enrolment and credit":
+            "选课注册与学分减免",
+        "Graduating with an alternative exit\n \nIf you choose to leave "
+        "your course early, you may be eligible for an alternative "
+        "exit. Check your course details in the Handbook to find out "
+        "if you're eligible.":
+            "以替代出口学位毕业\n \n如果你选择提前离开学位课程，可能符合替代出口学位的条件。请在 Handbook "
+            "里查看你的学位课程详情，确认自己是否符合。",
+        "If you’re seeking an alternative exit, you should get some "
+        "course advice first. All you have to do is submit a Course "
+        "Advice Request form and we’ll get back to you.":
+            "如果你想走替代出口学位，最好先做一次课程咨询。只要提交一份 Course Advice "
+            "Request（课程咨询申请）表，我们就会回复你。",
+        "Important dates View":
+            "重要日期 查看",
+        "Industry experiences\n \nTake a look at the various ways you "
+        "can gain industry experience while at Monash.":
+            "行业实践\n \n看看在 Monash 期间可以通过哪些方式积累行业经验。",
+        "Monash Enrich\n \nGot a free elective space? Diversify your "
+        "learning with units and programs from across the University.":
+            "Monash Enrich\n \n还有自由选修的名额？用全校各院系的课程和项目，把学习的面铺得更开。",
+        "Request course advice\n If you still need help, you can "
+        "request course advice using this form. Right now we have a "
+        "large number of enquiries so it may take a bit longer than "
+        "usual to get back to you (up to five working days).You’ll "
+        "need to be enrolled in at least one unit before you can "
+        "access course advice through this form. We recommend you "
+        "enrol in units as best you can before seeking course "
+        "advice.\n\n Course Advice Request form":
+            "申请课程咨询\n "
+            "如果你还需要帮助，可以用这份表格申请课程咨询。目前咨询量较大，回复可能比平时慢一些（最长五个工作日）。你需要至少注册了一门课程，才能通过这份表格获得课程咨询。建议你先尽可能把课选好，再来寻求课程咨询。\n\n "
+            "Course Advice Request（课程咨询申请）表",
+        "Right now we have a large number of enquiries, so it will "
+        "take a bit longer than usual to get back to you. If you’ve "
+        "sent an enquiry, please wait for a reply before contacting us "
+        "again. We anticipate a response time of five working days. "
+        "Thanks for your patience.":
+            "目前咨询量较大，回复会比平时慢一些。如果你已经提交过咨询，请先等回复，不必重复联系。预计回复时长为五个工作日。谢谢你的耐心。",
+        "Semester dates\n \nFind the key dates for semesters one and two "
+        "(including swot vac, mid-semester break, final assessment "
+        "period, etc.).":
+            "学期日期\n \n查看第一、第二学期的关键日期（含 swot vac 复习周、学期中假期、期末考核期等）。",
+        "Student placement and opportunities View":
+            "学生实习与各类机会 查看",
+        "Study abroad and exchange programs\n \nGo to our Monash Abroad "
+        "page to learn how you can experience the world through your "
+        "studies.":
+            "海外学习与交换项目\n \n打开 Monash Abroad（海外学习与交换）页面，看看如何借由学业去看世界。",
+        "Supplementary assessments\n \nIf you fail a unit, you may be "
+        "eligible for a supplementary assessment. Go to our "
+        "supplementary assessment page to learn how they work and if "
+        "you’re eligible.":
+            "补考\n \n如果某门课程不及格，你可能符合补考的条件。请打开「补考」页面，了解补考如何进行、以及自己是否符合条件。",
+        "Support services\nCheck out all the ways we provide support to "
+        "students\n\n\nTake a look":
+            "支持服务\n看看我们为学生提供的各种支持\n\n\n去看看",
+        "Taking a break or leaving your course View":
+            "暂停学业或离开学位课程 查看",
+        "Taking a study break\n \nThere are many reasons why you might "
+        "need to take a break – make sure you explore your options and "
+        "the support available before you make a decision.":
+            "暂停学业\n \n需要暂停学业的原因有很多——做决定之前，务必把各种选择和能拿到的支持都了解一遍。",
+        "The Handbook\n \nYou can see your course requirements in the "
+        "Handbook from the year you started your course. Once you’ve "
+        "checked your course requirements, use the current year’s "
+        "Handbook to find units to enrol in.":
+            "Handbook\n \n你入学那一年的 Handbook 里写着你的学位课程要求。确认过要求之后，再用当年度的 "
+            "Handbook 去找可选的课程。",
+        "What would you like help with?":
+            "你想了解哪方面？",
+        "eExams\n \nFind out everything you need to know about eExams: "
+        "learn how they work, what the rules are, and how you can "
+        "prepare.":
+            "eExams（线上考试）\n \n关于 eExams 你需要知道的一切：它怎么进行、有哪些规定，以及该如何准备。",
         "If you apply to take a break or discontinue your course, we’ll automatically get in contact with you to discuss your options.":
             "如果你申请休息一段时间或退出学位课程，我们会主动联系你，一起讨论可选的方案。",
     },
@@ -2638,6 +3652,158 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你在注册且学期已经开始之后决定休息一段时间——请在 census date（学籍统计日）当天 23:59（墨尔本时间）之前提出申请。",
     },
     "oshc": {
+        "2026 OSHC price list":
+            "2026 年 OSHC（留学生医疗保险）价目表",
+        "Allianz Care Australia OSHC Essentials":
+            "Allianz Care Australia OSHC（留学生医疗保险）要点",
+        "Allianz Care Australia Policy Wording Documents":
+            "Allianz Care Australia 保单条款文件",
+        "Allianz Care Australia pregnancy fact sheet (pdf, 0.74 mb)":
+            "Allianz Care Australia 孕产保障说明（pdf，0.74 mb）",
+        "Allianz Care OSHC doesn’t cover you for services like dental, "
+        "optical and physiotherapy. You can purchase an extras policy "
+        "for common health services like dental, optical, "
+        "physiotherapy, chiropractic and osteopathy. Learn more about "
+        "extras for international students.":
+            "Allianz Care 的 "
+            "OSHC（留学生医疗保险）不涵盖牙科、验光配镜和物理治疗等服务。你可以另外购买附加保障保单，涵盖牙科、验光配镜、物理治疗、脊椎按摩治疗和整骨治疗等常见医疗服务。详见「国际学生附加保障」。",
+        "As a Monash student, you also have access to all the "
+        "University Health Services.":
+            "作为 Monash 学生，你还可以使用 University Health Services（校内医疗服务）的全部服务。",
+        "Belgian student who has a Europese ziekteverzekeringskaart "
+        "(EZVK) – Carte Européenne d'Assurance Maladie (CEAM) from "
+        "your mutualiteit – mutualité in Belgium.":
+            "比利时学生，且持有本国医保机构（mutualiteit / mutualité）签发的欧洲健康保险卡（Europese "
+            "ziekteverzekeringskaart，EZVK／Carte Européenne d'Assurance "
+            "Maladie，CEAM）。",
+        "Continuing students – calculate 2026 prices":
+            "在读学生——计算 2026 年价格",
+        "DOWNLOAD AND REGISTER FOR SONDER":
+            "下载并注册 Sonder",
+        "Download the Sonder app from your app store.":
+            "从应用商店下载 Sonder app。",
+        "Enter the three fields below:":
+            "填写下面三项：",
+        "Extras cover for ancillary services (optional)":
+            "附加服务保障（可选）",
+        "Go to the MyHealth portal.":
+            "打开 MyHealth 门户。",
+        "If an organisation or scholarship pays for your OSHC policy, "
+        "you may need to upgrade the policy at your own expense. "
+        "Please refer to your International Student Course Agreement "
+        "(ISCA) or your sponsorship/scholarship letter for further "
+        "information.":
+            "如果你的 OSHC（留学生医疗保险）保单由某个机构或奖学金支付，你可能需要自费升级保单。详情请查看你的 "
+            "International Student Course "
+            "Agreement（ISCA，国际学生入学协议）或资助／奖学金函件。",
+        "If you choose for Monash to arrange your OSHC for you, we’ll "
+        "arrange your OSHC policy with Allianz Care Australia and will "
+        "provide your personal details to them so they can schedule "
+        "your policy. Monash receives an administration fee from "
+        "Allianz Care for the services performed by Monash for "
+        "students and Allianz in respect of the provision of Allianz "
+        "Care’s OSHC policies. View the Allianz Care Australia Policy "
+        "Wording Documents.":
+            "如果你选择由 Monash 代为办理 OSHC（留学生医疗保险），我们会向 Allianz Care Australia "
+            "为你投保，并把你的个人信息提供给他们以便安排保单。就 Monash 为学生和 Allianz 双方在提供 Allianz "
+            "Care 的 OSHC（留学生医疗保险）保单方面所做的工作，Monash 会从 Allianz Care "
+            "收取一笔管理费。详见 Allianz Care Australia 保单条款文件。",
+        "If you haven’t received your COI or can’t find it, contact "
+        "Allianz Care Australia.":
+            "如果你没收到 COI（保险凭证）、或者找不到了，请联系 Allianz Care Australia。",
+        "If you need to extend your stay in Australia, it's important "
+        "you have ongoing health cover for the duration of your visa.":
+            "如果你需要延长在澳大利亚停留的时间，务必确保在整个签证有效期内都有持续的医疗保险保障。",
+        "If you're with Allianz Care Australia, you can find out the "
+        "total cost of dual or multi-family cover by obtaining a quote "
+        "or calling a representative on 13 67 42 from 8.30am–5pm, "
+        "Monday–Friday (Melbourne time). If you're with another "
+        "provider, contact them directly to do this.":
+            "如果你投保的是 Allianz Care Australia，可以在周一至周五 8:30–17:00（墨尔本时间）拨打 "
+            "13 67 42 索取报价或咨询客服，了解双人或多人家庭保障的总费用。如果你投保的是其他保险公司，请直接联系该公司办理。",
+        "International students on a student visa must have health "
+        "cover for the length of their visa while studying in "
+        "Australia. The Monash-preferred OSHC provider is Allianz Care "
+        "Australia and the benefits of this policy include:":
+            "持学生签证的国际学生，在澳大利亚学习期间必须在整个签证有效期内持有医疗保险保障。Monash 首选的 "
+            "OSHC（留学生医疗保险）承保方是 Allianz Care Australia，这份保单的保障包括：",
+        "New students – calculate 2026 prices":
+            "新生——计算 2026 年价格",
+        "Norwegian student who is a member of the Norwegian Health "
+        "Economics Administration (HELFO)":
+            "挪威学生，且为挪威健康经济管理局（HELFO）的参保人",
+        "Once you've purchased your Allianz Care Australia OSHC policy":
+            "在你购买 Allianz Care Australia 的 OSHC（留学生医疗保险）保单之后",
+        "Once you've renewed your cover, notify Monash University:":
+            "续保之后，请通知 Monash 大学：",
+        "Open the email on your phone and select the link to complete "
+        "the process.":
+            "在手机上打开这封邮件，点击其中的链接完成后续步骤。",
+        "Overseas Student Health Cover (OSHC)":
+            "留学生医疗保险（OSHC）",
+        "Overseas Student Health Cover Policy – see section 6 of the "
+        "Student Fees Policy (pdf, 0.1mb)":
+            "留学生医疗保险政策——见 Student Fees Policy（学费政策，pdf，0.1mb）第 6 节",
+        "Overseas Student Health Cover fact sheet (pdf)":
+            "留学生医疗保险说明（pdf）",
+        "REGISTER FOR ALLIANZ MYHEALTH":
+            "注册 Allianz MyHealth",
+        "Swedish student who is a member of CSN International (the "
+        "Swedish National Board of Student Aid) or Kammarkollegiet "
+        "(the Swedish Legal, Financial and Administration Agency) or":
+            "瑞典学生，且为 CSN International（瑞典国家学生资助委员会）或 "
+            "Kammarkollegiet（瑞典法律、财务与行政事务管理局）的成员；或者",
+        "Tap reset password and enter your Monash email address.":
+            "点击「重置密码」，填入你的 Monash 邮箱地址。",
+        "Tap the log in button.":
+            "点击登录按钮。",
+        "The Department of Health also has information about health "
+        "cover for students and visitors.":
+            "澳大利亚卫生部也有面向学生和访客的医疗保险信息。",
+        "Times to meet an OSHC adviser on campus":
+            "校内 OSHC（留学生医疗保险）顾问的接待时间",
+        "Upgrading your OSHC to dual or multi-family cover":
+            "把你的 OSHC（留学生医疗保险）升级为双人或多人家庭保障",
+        "We strongly encourage international visitors who are not on a "
+        "student visa to purchase personal health cover for their time "
+        "in Australia. See health cover options for overseas visitors.":
+            "对于不持学生签证的海外访客，我们强烈建议自行购买在澳期间的个人医疗保险。请查看「海外访客医疗保险选择」。",
+        "Work out how many more months of OSHC you need.":
+            "算一算你还需要多少个月的 OSHC（留学生医疗保险）。",
+        "You don’t need to purchase OSHC if you’re a:":
+            "属于下列情形的，不需要购买 OSHC（留学生医疗保险）：",
+        "You will receive a password reset email.":
+            "你会收到一封重置密码的邮件。",
+        "You'll receive your COI through email.":
+            "COI（保险凭证）会通过邮件发给你。",
+        "access to Sonder at no extra cost (which includes 24/7 "
+        "safety, mental health and medical support)":
+            "免费使用 Sonder（含 7×24 小时的安全、心理健康与医疗支持）",
+        "access to the Allianz Care Australia Student Hub to help you "
+        "get the most from your cover.":
+            "可使用 Allianz Care Australia Student Hub，帮你把保险保障用足。",
+        "complete the declaration with the start and end dates of your "
+        "OSHC.":
+            "填写声明，写明你 OSHC（留学生医疗保险）的起止日期。",
+        "date of birth":
+            "出生日期",
+        "first three characters of your family name.":
+            "姓氏的前三个字符。",
+        "log into WES (Web Enrolment System)":
+            "登录 WES（学生系统）",
+        "on-campus Allianz Care Australia agent":
+            "校内 Allianz Care Australia 代表",
+        "policy number (on your Certificate of Insurance – COI)":
+            "保单号（在你的 Certificate of Insurance（COI，保险凭证）上）",
+        "read the statement and click Continue":
+            "阅读声明后点击 Continue（继续）",
+        "select Overseas Student Health Cover (OSHC)":
+            "选择 Overseas Student Health Cover（OSHC）",
+        "waived waiting periods for mental health":
+            "心理健康服务免等待期",
+        "waived waiting periods for pregnancy-related claims on "
+        "policies with a duration of two years or more":
+            "保单期限满两年及以上的，孕产相关理赔免等待期",
         # *Quote* is 报价 here and 引用 on the academic integrity page, so it
         # cannot go in the glossary - this sentence is written out instead.
         "Get an online quote with Allianz Care Australia OSHC (by purchasing OSHC with Allianz Care through this link, Allianz Care will provide Monash with your policy information for administrative and billing purposes). Or speak to an OSHC representative. If you're with another provider, please contact them directly to do this.":
@@ -4899,6 +6065,189 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "请注意：当你的选课注册发生变动时，Monash 必须通知澳大利亚内政部（Department of Home Affairs）。这包括申请休学（intermission，即 study leave）、更换学位课程、延长学习年限，以及学籍被终止或暂停。",
     },
     "wam": {
+        "All other year levels":
+            "其他所有年级",
+        "All units designated as first year are weighted 0.5, "
+        "regardless of the sequence or year in which you take the "
+        "unit. For example, if you complete a first-year unit in your "
+        "third year of study, it will be weighted 0.5, not 1.0.":
+            "凡被划为一年级的课程，权重一律是 "
+            "0.5，与你在第几年修读、按什么顺序修读无关。举例来说，你在第三年修一门一年级课程，它的权重仍然是 0.5，不是 1.0。",
+        "An example of how WAM is calculated for nine units with a "
+        "range of grades and unit credit points across year levels.":
+            "一个示例：九门课程、成绩等级各异、学分不同、分属不同年级，WAM（加权平均分）是怎么算出来的。",
+        "Assessment and Academic Integrity Policy (pdf)":
+            "Assessment and Academic Integrity Policy（考核与学术诚信政策，pdf）",
+        "Calculate to three decimal places.":
+            "计算保留三位小数。",
+        "Calculating Honours Weighted Average (HWA) for honours "
+        "courses that started before Jan 2021:":
+            "2021 年 1 月之前开始的荣誉学位课程，其 Honours Weighted "
+            "Average（HWA，荣誉学位加权平均分）的算法：",
+        "Correcting a mark or grade":
+            "更正分数或成绩等级",
+        "Divide the sum of the weighted marks by the sum of the "
+        "weighted credit points":
+            "用加权分数之和除以加权学分之和",
+        "Examples of marking or grading errors may include:":
+            "评分或定级错误的例子包括：",
+        "Final assessments:":
+            "期末考核：",
+        "Final calculation:":
+            "最终计算：",
+        "First year (undergraduate)":
+            "一年级（本科）",
+        "Format and deadlines":
+            "格式与截止期限",
+        "Grades not included in the calculation:":
+            "不计入计算的成绩等级：",
+        "Grading Schema Procedure (pdf)":
+            "Grading Schema Procedure（成绩等级体系规程，pdf）",
+        "How to find out your WAM":
+            "怎么查自己的 WAM（加权平均分）",
+        "If you believe your WAM is incorrect, message Monash Connect "
+        "and we’ll investigate it for you.":
+            "如果你认为自己的 WAM（加权平均分）算错了，请给 Monash Connect（学生服务中心）留言，我们会为你核查。",
+        "If you fail a major assessment (worth 20% or more of your "
+        "unit’s total mark) it will be automatically re-marked before "
+        "your result is finalised – so there’s no need to request one.":
+            "如果你某项主要考核不及格（占该课程总分 20% 或以上），系统会在成绩最终确定前自动重新评阅一次，不需要你另行申请。",
+        "If you think there’s been a mistake in how your mark or grade "
+        "was calculated, you can contact the chief examiner about "
+        "having it corrected.":
+            "如果你认为分数或成绩等级的计算有误，可以联系主考官（chief examiner）请求更正。",
+        "If you want to know what the GPA equivalent of your WAM is, "
+        "simply use our Grade point average (GPA) calculator.":
+            "想知道自己的 WAM（加权平均分）大致相当于多少 GPA（平均绩点），用我们的 GPA 计算器算一下即可。",
+        "In-semester assessments – within ten working days of your "
+        "mark’s release.":
+            "学期内考核——自分数公布起十个工作日之内。",
+        "Just keep in mind, while your work is being marked, you can’t "
+        "contact staff about an assessment or thesis examination issue "
+        "– not even to complain informally.":
+            "但要记住：在你的作业还在评阅期间，你不能就该考核或论文评审的问题联系工作人员，非正式的抱怨也不行。",
+        "Keep in mind that the following are not considered marking "
+        "errors:":
+            "请注意，下列情形不算评分错误：",
+        "Marking and Feedback Procedure (pdf)":
+            "Marking and Feedback Procedure（评分与反馈规程，pdf）",
+        "Multiply the unit credit point value by the year level "
+        "weighting":
+            "把课程学分乘以年级权重",
+        "Multiply the unit mark by unit credit point value and then by "
+        "the year level weighting":
+            "把课程分数乘以课程学分，再乘以年级权重",
+        "NSR (not satisfied faculty requirements)":
+            "NSR（未满足学院要求）",
+        "Outside of this process, in most cases you’re not entitled to "
+        "a re-mark, and it’s unlikely that a complaint about a "
+        "faculty’s refusal to re-mark will be successful.":
+            "除上述流程之外，多数情况下你无权要求重新评阅；就学院拒绝重新评阅一事提出投诉，也很难得到支持。",
+        "PGO (pass grade only)":
+            "PGO（仅记及格）",
+        "Policy and procedure":
+            "政策与流程",
+        "SFR (satisfied faculty requirements)":
+            "SFR（已满足学院要求）",
+        "Scheduled Final Assessments Procedure (pdf)":
+            "Scheduled Final Assessments Procedure（已排定期末考核规程，pdf）",
+        "Seeking feedback on your assessments\n \nFind out where you can "
+        "view feedback for an explanation of why you received a "
+        "certain mark for an assessment.":
+            "查看考核反馈\n \n了解可以在哪里查看反馈，弄清自己某项考核为何得到这个分数。",
+        "Sum the resulting values (weighted credit points)":
+            "把所得数值相加（加权学分）",
+        "Sum the resulting values (weighted marks)":
+            "把所得数值相加（加权分数）",
+        "The Weighted Average Mark (WAM) is a more precise measurement "
+        "of your academic performance than the Grade Point Average. "
+        "This is because we base the calculation on your actual marks "
+        "(eg: 78, 89, 63, 48 and so on) and the year level of each "
+        "unit. Therefore, the WAM is the average mark you achieve "
+        "across all completed units in a course, including any failed "
+        "and repeated units. The WAM is out of 100.":
+            "WAM（加权平均分）比 GPA（平均绩点）更能精确地反映你的学业表现，因为它以你的实际分数（例如 78、89、63、48 "
+            "等）和每门课程的年级为依据。也就是说，WAM 是你在一个学位课程中所有已修课程分数的平均值，包括不及格和重修的课程。WAM "
+            "满分为 100。",
+        "This is your first step in addressing your complaint. If "
+        "you’re unable to resolve the issue with your chief examiner, "
+        "see how to raise and resolve a complaint for what to do next.":
+            "这是处理投诉的第一步。如果你无法与主考官（chief "
+            "examiner）把问题解决，请查看「如何提出并解决投诉」了解下一步该怎么做。",
+        "Use the online calculator to estimate your WAM.":
+            "用在线计算器估算你的 WAM（加权平均分）。",
+        "WAM =\n\nΣ (first year unit marks x unit credit points x 0.5) + "
+        "Σ (later year unit marks x unit credit points × 1.0) \n÷\n Σ "
+        "(first year unit credit points x 0.5) + Σ (later year unit "
+        "credit points x 1.0)":
+            "WAM =\n\nΣ（一年级课程分数 × 课程学分 × 0.5）＋ Σ（其他年级课程分数 × 课程学分 × 1.0）\n÷\n "
+            "Σ（一年级课程学分 × 0.5）＋ Σ（其他年级课程学分 × 1.0）",
+        "WAM = 4692 ÷ 63\nWAM = 74.476":
+            "WAM = 4692 ÷ 63\nWAM = 74.476",
+        "WAM is weighted according to the:":
+            "WAM（加权平均分）的权重取决于：",
+        "WI (withdrawn incomplete)":
+            "WI（退课未完成）",
+        "We use the WAM as an entry requirement for some honours and "
+        "graduate courses.":
+            "部分荣誉学位课程和研究生课程会把 WAM（加权平均分）作为入学要求。",
+        "We will calculate your WAM for your award course if you "
+        "started on or after semester one, 2008. We don't calculate "
+        "the WAM for Masters by Research and PhD courses.":
+            "如果你是 2008 年第一学期或之后入学的，我们会为你的学位课程计算 WAM（加权平均分）。研究型硕士和博士学位课程不计算 "
+            "WAM。",
+        "Weighted average mark (WAM)":
+            "WAM（加权平均分）",
+        "Year level of unit and its weighting.":
+            "课程所属年级及其权重。",
+        "Year level weighting":
+            "年级权重",
+        "You can also see your WAM in the Student Portal (either in "
+        "the course progress screen or through the GPA/WAM widget).":
+            "你也可以在学生门户里看到自己的 WAM（加权平均分）（在「课程进度」页面，或通过 GPA/WAM 小工具）。",
+        "You can use our online calculator below to estimate your WAM.":
+            "可以用下面的在线计算器估算你的 WAM（加权平均分）。",
+        "You can view your latest WAM in your unofficial academic "
+        "record in the Web Enrolment System (WES) at any time. It will "
+        "be calculated using the results from all of your completed "
+        "semesters.":
+            "你随时可以在 WES（学生系统）的非正式学业记录里查看最新的 WAM（加权平均分）。它是用你已完成的所有学期的成绩算出来的。",
+        "Your WAM will also appear on your academic record "
+        "(transcript). You’ll receive a free academic record when you "
+        "graduate.":
+            "你的 WAM（加权平均分）也会出现在学业记录（成绩单）上。毕业时你会免费获得一份学业记录。",
+        "Your request for a correction needs to be in writing, so "
+        "email the chief examiner. Make sure you do this within this "
+        "timeframe below:":
+            "更正请求必须以书面形式提出，请发邮件给主考官（chief examiner），并务必在下列时限之内：",
+        "credit point value of each unit":
+            "每门课程的学分",
+        "friends or colleagues think you deserved a higher mark.":
+            "朋友或同学认为你该拿更高的分。",
+        "receiving a late penalty even though you submitted on time.":
+            "明明按时提交却被扣了迟交分。",
+        "semester one –- within six weeks of the release of your unit "
+        "results.":
+            "第一学期——自课程成绩公布起六周之内。",
+        "semester two –- before the end of week one of semester one "
+        "the next year.":
+            "第二学期——在次年第一学期第一周结束之前。",
+        "the marker doesn’t agree with your summary, data or findings":
+            "评阅人不认同你的结论、数据或研究发现",
+        "year level weighting of each unit.":
+            "每门课程的年级权重。",
+        "you disagree with how the marker weighed parts of your "
+        "assessment":
+            "你不认同评阅人对考核各部分的权重处理",
+        "you expected a higher mark based on your past performance":
+            "你根据以往表现，本以为能拿更高的分",
+        "you feel you didn’t get enough explanation for your mark":
+            "你觉得关于分数的解释不够充分",
+        "your mark is inconsistent with what you received for similar "
+        "assessments":
+            "你的分数与类似考核所得的分数不一致",
+        "your marks having been been summed up incorrectly":
+            "你的分数被加总错了",
         "DEF (deferred assessment)":
             "DEF（延期考核）",
         "NS (supplementary assessment)":
