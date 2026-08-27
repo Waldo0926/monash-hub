@@ -2021,12 +2021,14 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果因为忘了登录信息而进不去，可以在 My eQuals 门户找回——在登录页点击 Can't sign "
             "in?（无法登录？）即可。如果问题不在这里，登不上 My eQuals 还可能有别的原因。你必须用申请毕业时在 "
             "WES（学生系统）里填写的个人邮箱（非 Monash 邮箱）登录 My "
-            "eQuals。毕业批次结束后几周，你会收到一封邮件，确认应当使用哪个邮箱地址。只有当你的 My "
-            "eQuals账户使用的邮箱与 WES "
-            "里填的那个一致时，你才能登录并看到电子成绩单。没收到邮件：如果你不确定当初填的是哪个非 Monash "
-            "邮箱，又没收到含注册信息的邮件，请先看垃圾邮件文件夹；仍然没有的话，请联系 Monash "
+            "eQuals。毕业批次结束后几周，你会收到一封邮件，确认应当使用哪个邮箱地址。只有当你的 My eQuals "
+            "账户使用的邮箱与 WES 里填的那个一致时，你才能登录并看到电子成绩单。没收到邮件：如果你不确定当初填的是哪个非 "
+            "Monash 邮箱，又没收到含注册信息的邮件，请先看垃圾邮件文件夹；仍然没有的话，请联系 Monash "
             "Connect（学生服务中心）求助。换过个人邮箱：如果你换了个人邮箱、现在登不上 My eQuals，请联系 Monash "
             "Connect（学生服务中心）。",
+        "If you’re a past student, you can buy digital letters for up "
+        "to 12 months after you’ve been course completed.":
+            "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
         "If you’re currently enrolled at Monash University, you can "
         "buy an official academic record in digital format. You’ll "
         "also be able to provide potential employers (and other "
@@ -2048,7 +2050,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "Make sure your My eQuals account is linked to Monash "
         "University, otherwise you won't be able to access your "
         "academic record.":
-            "请确认你的 My eQuals账户已与 Monash 大学关联，否则无法查看学业记录。",
+            "请确认你的 My eQuals 账户已与 Monash 大学关联，否则无法查看学业记录。",
         "Make sure you’ve verified your email address:New (or soon to "
         "be) graduatesIf you’ve signed into My eQuals and can’t see "
         "any documents, it could be because:Past studentsIf you’ve "
@@ -2060,11 +2062,10 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "records (transcripts) page.Other documents like your testamur "
         "and AHEGS are only available in hard copy.For instructions, "
         "see:":
-            "请先确认你的邮箱已通过验证：\n应届（或即将）毕业生\n如果你已登录 My "
-            "eQuals却看不到任何文件，可能是因为：\n往届学生\n如果你已登录 My "
-            "eQuals却看不到任何文件，可能是因为：\n如果你买过学业记录却看不到，可能是因为：\n2017 "
-            "年之前毕业的往届学生\n你可以在 My "
-            "eQuals中获取学业记录（成绩单）——具体步骤见我们的「学业记录（成绩单）」页面。\n学位证书（testamur）和 "
+            "请先确认你的邮箱已通过验证：\n应届（或即将）毕业生\n如果你已登录 My eQuals "
+            "却看不到任何文件，可能是因为：\n往届学生\n如果你已登录 My eQuals "
+            "却看不到任何文件，可能是因为：\n如果你买过学业记录却看不到，可能是因为：\n2017 年之前毕业的往届学生\n你可以在 My "
+            "eQuals 中获取学业记录（成绩单）——具体步骤见我们的「学业记录（成绩单）」页面。\n学位证书（testamur）和 "
             "AHEGS 等其他文件只有纸质版。\n具体说明见：",
         "My eQuals troubleshooting":
             "My eQuals 问题排查",
@@ -2081,11 +2082,11 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "includes your name, some details about you (including a "
         "photo, if you’d like) and the documents you want to share. "
         "Then share your profile. See this video for instructions.":
-            "方式三：在 My eQuals里创建一份学习者档案（learner "
+            "方式三：在 My eQuals 里创建一份学习者档案（learner "
             "profile），内含你的姓名、一些个人信息（愿意的话还可以放照片），以及你想分享的文件，然后把这份档案分享出去。具体操作见这段视频。",
         "Order and pay for your transcript.\nWithin one working day, "
         "you'll receive your transcript in My eQuals.":
-            "订购并支付成绩单费用。\n一个工作日之内，成绩单会出现在 My eQuals里。",
+            "订购并支付成绩单费用。\n一个工作日之内，成绩单会出现在 My eQuals 里。",
         "Order your digital academic record (transcript)":
             "订购电子版学业记录（成绩单）",
         "Ordering a record after completing your course":
@@ -2142,7 +2143,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "请使用往届学生的 WES（学生系统）登录入口。如果你是 1997 年之前就读的，可能无法在 WES "
             "里看到非正式记录。订购成绩单时如果报错，请联系 Monash Connect（学生服务中心）。",
         "Verify your email address in My e Q uals":
-            "在 My eQuals中验证你的邮箱地址",
+            "在 My eQuals 中验证你的邮箱地址",
         "WAM – Weighted Average Mark":
             "WAM — 加权平均分",
         "Web Enrolment System (WES)":
@@ -2151,8 +2152,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "My eQuals. You'll receive an email with instructions on how "
         "to set up your My eQuals account and collect your digital "
         "transcript.":
-            "一个工作日之内，你的记录就会出现在 My eQuals里。我们会发一封邮件告诉你如何设置 My "
-            "eQuals账户并领取电子成绩单。",
+            "一个工作日之内，你的记录就会出现在 My eQuals 里。我们会发一封邮件告诉你如何设置 My eQuals "
+            "账户并领取电子成绩单。",
         "You can check your course completion status in our virtual "
         "assistant (VA). It only takes a moment and you’ll need to be "
         "logged in to your Monash student account.":
@@ -2172,19 +2173,36 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "在读期间你随时可以订购并支付正式学业记录。电子版比纸质版更快、也更便宜。",
         "You can share your documents in My eQuals in a number of "
         "different ways:":
-            "在 My eQuals里分享文件有好几种方式：",
+            "在 My eQuals 里分享文件有好几种方式：",
         "You can view an unofficial record of your results (unless "
         "you're encumbered) in the:":
             "你可以在下列位置查看非正式的成绩记录（账户被施加 encumbrance（学籍限制）时除外）：",
         "Your academic record confirms your progress or, when you're "
         "complete, your final qualification. You can use it to:":
             "学业记录用于证明你的学业进度；读完之后，则用于证明你最终取得的学历。它可以用来：",
+        "Your academic record has the following information about "
+        "you:If a unit is marked as Incomplete on your academic "
+        "transcript, it simply means the result isn't available "
+        "yet.Masters awarded with distinctionFrom 6 October 2021, a "
+        "student graduating with a master’s degree by coursework with "
+        "a WAM of 80 or above will see ‘awarded with distinction’ on "
+        "their transcript.Credit points not showing for some unit "
+        "exemptionsSometimes exempted units listed in your academic "
+        "record don’t have credit points attached. This is because "
+        "you’ve been exempted from studying a particular unit (based "
+        "on prior study), but you’re required to complete another unit "
+        "in its place.":
+            "你的学业记录包含以下关于你的信息：如果成绩单上某门课程标注为 "
+            "Incomplete（未完成），只是表示成绩尚未公布。硕士优等毕业（awarded with distinction）：自 "
+            "2021 年 10 月 6 日起，以授课型硕士学位毕业且 WAM（加权平均分）达到 80 "
+            "分及以上的学生，成绩单上会显示「awarded with "
+            "distinction」。部分免修课程不显示学分：成绩单上列出的免修课程有时没有对应学分，这是因为你（基于此前的学习）获准免修某门课程，但需要另修一门课程来替代。",
         "Your digital transcript will be issued to My eQuals using "
         "your personal email address. Just make sure your My eQuals "
         "account uses the same email address (otherwise you won’t be "
         "able to see your transcript).":
-            "电子成绩单会以你的个人邮箱签发到 My eQuals。请务必确认你的 My "
-            "eQuals账户使用的是同一个邮箱地址，否则看不到成绩单。",
+            "电子成绩单会以你的个人邮箱签发到 My eQuals。请务必确认你的 My eQuals "
+            "账户使用的是同一个邮箱地址，否则看不到成绩单。",
         "Your record usually includes all unit attempts and your grade "
         "for each unit. If you were enrolled in more than one course, "
         "it lists all courses and all units studied at Monash. You can "
@@ -2196,17 +2214,13 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "Monash 全部学业的完整记录。",
         "You’ll also need to link your My eQuals account to Monash "
         "University to be able to access your digital documents:":
-            "你还需要把 My eQuals账户与 Monash 大学关联，才能查看电子文件：",
+            "你还需要把 My eQuals 账户与 Monash 大学关联，才能查看电子文件：",
         "You’ll need to have signed up to My eQuals to receive any "
         "digital documents. To order your academic transcript:":
             "要领取任何电子文件，都必须先注册 My eQuals。订购成绩单的方法：",
         "You’ll need to link your account to a personal email address "
         "so you can access your documents after you graduate.":
             "你需要把账户关联到一个个人邮箱，这样毕业之后才能继续查看自己的文件。",
-        "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
-            "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
-        "Your academic record has the following information about you:If a unit is marked as Incomplete on your academic transcript, it simply means the result isn't available yet.Masters awarded with distinctionFrom 6 October 2021, a student graduating with a master’s degree by coursework with a WAM of 80 or above will see ‘awarded with distinction’ on their transcript.Credit points not showing for some unit exemptionsSometimes exempted units listed in your academic record don’t have credit points attached. This is because you’ve been exempted from studying a particular unit (based on prior study), but you’re required to complete another unit in its place.":
-            "你的学业记录包含以下关于你的信息：如果成绩单上某门课程标注为 Incomplete（未完成），只是表示成绩尚未公布。硕士优等毕业（awarded with distinction）：自 2021 年 10 月 6 日起，以授课型硕士学位毕业且 WAM（加权平均分）达到 80 分及以上的学生，成绩单上会显示「awarded with distinction」。部分免修课程不显示学分：成绩单上列出的免修课程有时没有对应学分，这是因为你（基于此前的学习）获准免修某门课程，但需要另修一门课程来替代。",
     },
     "add-or-withdraw-units": {
         "If you can’t add or withdraw from a unit":
@@ -2570,6 +2584,246 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你因无法控制的特殊情况而无法完成考核，可能符合条件通过特殊考虑（special consideration）获得通常更长的延期。除原定的期末考核外，任何类型的考核都可以通过特殊考虑申请延期。申请需要提交证明材料。",
     },
     "census-dates": {
+        "1 Nov 2027 – 11 Feb 2028":
+            "2027年11月1日至2028年2月11日",
+        "1 Nov 2027 – 23 Jun 2028":
+            "2027年11月1日至2028年6月23日",
+        "1 Nov 2028 – 16 Feb 2029":
+            "2028年11月1日至2029年2月16日",
+        "10 Jan – 18 Mar 2028":
+            "2028年1月10日至3月18日",
+        "10 Jan – 25 Feb 2028":
+            "2028年1月10日至2月25日",
+        "10 May – 30 Jul 2027":
+            "2027年5月10日至7月30日",
+        "11 May – 31 Jul 2026":
+            "2026年5月11日至7月31日",
+        "11 Sep – 15 Dec 2028":
+            "2028年9月11日至12月15日",
+        "13 Sep – 17 Dec 2027":
+            "2027年9月13日至12月17日",
+        "14 Sep – 18 Dec 2026":
+            "2026年9月14日至12月18日",
+        "15 Jun – 17 Jul 2026":
+            "2026年6月15日至7月17日",
+        "17 Apr – 10 Jun 2028":
+            "2028年4月17日至6月10日",
+        "17 Jan – 17 Nov 2028":
+            "2028年1月17日至11月17日",
+        "17 Jan – 23 Jun 2028":
+            "2028年1月17日至6月23日",
+        "18 Jan – 19 Nov 2027":
+            "2027年1月18日至11月19日",
+        "18 Jan – 25 Jun 2027":
+            "2027年1月18日至6月25日",
+        "19 Apr – 12 Jun 2027":
+            "2027年4月19日至6月12日",
+        "19 Jan – 20 Nov 2026":
+            "2026年1月19日至11月20日",
+        "19 Jan – 26 Jun 2026":
+            "2026年1月19日至6月26日",
+        "19 Jun – 17 Nov 2028":
+            "2028年6月19日至11月17日",
+        "19 Jun – 21 Jul 2028":
+            "2028年6月19日至7月21日",
+        "2 Nov 2026 – 12 Feb 2027":
+            "2026年11月2日至2027年2月12日",
+        "2 Nov 2026 – 25 Jun 2027":
+            "2026年11月2日至2027年6月25日",
+        "20 Jul – 12 Sep 2026":
+            "2026年7月20日至9月12日",
+        "2026 Census dates for all teaching periods (sorted by census "
+        "date) Close":
+            "2026 年全部开课学期的 census dates（学籍统计日）（按学籍统计日排序） 收起",
+        "2027 Census dates for all teaching periods (sorted by census "
+        "date) View":
+            "2027 年全部开课学期的 census dates（学籍统计日）（按学籍统计日排序） 查看",
+        "2028 Census dates for all teaching periods (sorted by census "
+        "date) View":
+            "2028 年全部开课学期的 census dates（学籍统计日）（按学籍统计日排序） 查看",
+        "21 Aug – 10 Nov 2028":
+            "2028年8月21日至11月10日",
+        "21 Feb – 23 Jun 2028":
+            "2028年2月21日至6月23日",
+        "21 Jun – 19 Nov 2027":
+            "2027年6月21日至11月19日",
+        "21 Jun – 23 Jul 2027":
+            "2027年6月21日至7月23日",
+        "22 Feb – 25 Jun 2027":
+            "2027年2月22日至6月25日",
+        "22 Jun – 20 Nov 2026":
+            "2026年6月22日至11月20日",
+        "23 Feb – 26 Jun 2026":
+            "2026年2月23日至6月26日",
+        "23 Nov 2026 – 12 Feb 2027":
+            "2026年11月23日至2027年2月12日",
+        "23 Oct 2028 – 9 Feb 2029":
+            "2028年10月23日至2029年2月9日",
+        "24 Jul 2028 – 16 Feb 2029":
+            "2028年7月24日至2029年2月16日",
+        "24 Jul 2028 – 22 Jun 2029":
+            "2028年7月24日至2029年6月22日",
+        "24 Jul – 17 Nov 2028":
+            "2028年7月24日至11月17日",
+        "24 Jul – 18 Nov 2028":
+            "2028年7月24日至11月18日",
+        "25 Oct 2027 – 11 Feb 2028":
+            "2027年10月25日至2028年2月11日",
+        "25 Sep – 18 Nov 2028":
+            "2028年9月25日至11月18日",
+        "26 Jul 2027 – 11 Feb 2028":
+            "2027年7月26日至2028年2月11日",
+        "26 Jul 2027 – 23 Jun 2028":
+            "2027年7月26日至2028年6月23日",
+        "26 Jul – 19 Nov 2027":
+            "2027年7月26日至11月19日",
+        "26 Oct 2026 – 12 Feb 2027":
+            "2026年10月26日至2027年2月12日",
+        "27 Apr – 20 Jun 2026":
+            "2026年4月27日至6月20日",
+        "27 Jul 2026 – 12 Feb 2027":
+            "2026年7月27日至2027年2月12日",
+        "27 Jul 2026 – 25 Jun 2027":
+            "2026年7月27日至2027年6月25日",
+        "27 Jul – 18 Nov 2026":
+            "2026年7月27日至11月18日",
+        "27 Sep – 20 Nov 2027":
+            "2027年9月27日至11月20日",
+        "28 Aug – 13 Oct 2028":
+            "2028年8月28日至10月13日",
+        "28 Feb – 17 Nov 2028":
+            "2028年2月28日至11月17日",
+        "28 Feb – 23 Jun 2028":
+            "2028年2月28日至6月23日",
+        "28 Jun – 13 Aug 2027":
+            "2027年6月28日至8月13日",
+        "28 Sep – 21 Nov 2026":
+            "2026年9月28日至11月21日",
+        "29 Jun – 14 Aug 2026":
+            "2026年6月29日至8月14日",
+        "3 Nov 2025 – 26 Jun 2026":
+            "2025年11月3日至2026年6月26日",
+        "30 Oct 2028 – 9 Feb 2029":
+            "2028年10月30日至2029年2月9日",
+        "31 Jan – 10 Jun 2028":
+            "2028年1月31日至6月10日",
+        "Census dates and teaching periods":
+            "census dates（学籍统计日）与开课学期",
+        "Census dates and teaching periods 2026–2028":
+            "2026–2028 年 census dates（学籍统计日）与开课学期",
+        "Census dates for 2023 teaching periods (sorted by teaching "
+        "period start date)":
+            "2023 年各开课学期的 census dates（学籍统计日）（按开课学期开始日期排序）",
+        "Final assessment dates":
+            "期末考核日期",
+        "Financial penalties apply Academic penalties apply to some "
+        "teaching periods":
+            "会产生费用方面的处罚；部分开课学期还会有学业方面的处罚",
+        "Find out more about census dates and why they're so important.":
+            "进一步了解 census dates（学籍统计日），以及它为什么这么重要。",
+        "For on-campus units, you have up until the end of the first "
+        "two weeks of the teaching period.":
+            "校内课程可以加课到开课学期前两周结束为止。",
+        "Full-year (extended) (FY-32)":
+            "全学年（延长）（FY-32）",
+        "If you’re studying a postgraduate law degree, your faculty "
+        "might refer to your start dates as follows:":
+            "如果你读的是法学研究生学位，学院可能会用下面这些说法来指代你的开学日期：",
+        "Monash Indonesia Semester 1 (MI-S1)":
+            "Monash Indonesia（印尼校区） 第一学期（MI-S1）",
+        "Monash Indonesia Semester 2 (MI-S2)":
+            "Monash Indonesia（印尼校区） 第二学期（MI-S2）",
+        "Monash Indonesia term 1 (MI-T1-6)":
+            "Monash Indonesia（印尼校区） 第 1 学季（MI-T1-6）",
+        "Monash Indonesia term 2 (MI-T2-6)":
+            "Monash Indonesia（印尼校区） 第 2 学季（MI-T2-6）",
+        "Monash Indonesia term 3 (MI-T3-6)":
+            "Monash Indonesia（印尼校区） 第 3 学季（MI-T3-6）",
+        "Monash Indonesia term 4 (MI-T4-6)":
+            "Monash Indonesia（印尼校区） 第 4 学季（MI-T4-6）",
+        "Monash Online 1 (MO-TP1-01)":
+            "Monash Online（在线） 1（MO-TP1-01）",
+        "Monash Online 2 (MO-TP2-01)":
+            "Monash Online（在线） 2（MO-TP2-01）",
+        "Monash Online 3 (MO-TP3-01)":
+            "Monash Online（在线） 3（MO-TP3-01）",
+        "Monash Online 4 (MO-TP4-01)":
+            "Monash Online（在线） 4（MO-TP4-01）",
+        "Monash Online 5 (MO-TP5-01)":
+            "Monash Online（在线） 5（MO-TP5-01）",
+        "Monash Online 6 (MO-TP6-01)":
+            "Monash Online（在线） 6（MO-TP6-01）",
+        "Non-standard unit withdrawal dates":
+            "非标准的课程退选日期",
+        "November intake – Australia (NOV12)":
+            "11 月入学（澳大利亚）（NOV12）",
+        "October intake – Malaysia (OCT-MY-01)":
+            "10 月入学（马来西亚）（OCT-MY-01）",
+        "Other important dates":
+            "其他重要日期",
+        "Research Q1 (RES-Q1)":
+            "研究季度 1（RES-Q1）",
+        "Research Q2 (RES-Q2)":
+            "研究季度 2（RES-Q2）",
+        "Research Q3 (RES-Q3)":
+            "研究季度 3（RES-Q3）",
+        "Research Q4 (RES-Q4)":
+            "研究季度 4（RES-Q4）",
+        "Semester 1 (extended) (S1-32)":
+            "第一学期（延长）（S1-32）",
+        "Semester 1 (northern) (S1-60)":
+            "第一学期（北半球）（S1-60）",
+        "Semester 2 (extended) (S2-32)":
+            "第二学期（延长）（S2-32）",
+        "Semester 2 (northern) (S2-60)":
+            "第二学期（北半球）（S2-60）",
+        "Semester 2 – semester 1 (S2-S1-02)":
+            "第二学期 – 第一学期（S2-S1-02）",
+        "Semester 2 – summer A (S2-SS-02)":
+            "第二学期 – 夏季学期 A（S2-SS-02）",
+        "Semester dates summary":
+            "学期日期一览",
+        "Semester one (S1-01)":
+            "第一学期（S1-01）",
+        "Semester two (S2-01)":
+            "第二学期（S2-01）",
+        "Some units have different withdrawal dates to the standard "
+        "dates of the same teaching period. To check the dates and "
+        "enrolment information for these units, see units with "
+        "non-standard dates.":
+            "有些课程的退选日期与同一开课学期的标准日期不同。这类课程的日期和选课注册信息，请查看「非标准日期的课程」。",
+        "Summer A – semester 1 (SS-S1-01)":
+            "夏季学期 A – 第一学期（SS-S1-01）",
+        "Summer semester A (SSA-02)":
+            "夏季学期 A（SSA-02）",
+        "Summer semester B (SSB-01)":
+            "夏季学期 B（SSB-01）",
+        "Teaching period (includes teaching weeks through to final "
+        "assessment period)":
+            "开课学期（自教学周起，至期末考核期止）",
+        "Teaching weeks end – last day to withdraw from units":
+            "教学周结束——退选课程的最后一天",
+        "The census date is the last day:":
+            "census date（学籍统计日）是以下事项的最后一天：",
+        "The deadline to add units to your enrolment is earlier than "
+        "withdrawing.":
+            "加课的截止日比退选更早。",
+        "Winter semester (WS-01)":
+            "冬季学期（WS-01）",
+        "Withdrawn Fail starts":
+            "Withdrawn Fail（退课不及格）期开始",
+        "Withdrawn Late starts":
+            "Withdrawn Late（逾期退课）期开始",
+        "academic and financial penalties":
+            "学业与费用方面的处罚",
+        "before you become liable for fees for the units in which "
+        "you're enrolled":
+            "在你开始为已注册课程承担学费之前",
+        "past census dates and teaching periods archive":
+            "往年 census dates（学籍统计日）与开课学期存档",
+        "you can withdraw from a unit without Withdrawn showing on "
+        "your academic record (there are some exceptions).":
+            "你可以退选一门课程而不在成绩单上留下 Withdrawn（退课）记录（有少数例外）。",
         "Check the details at add or withdraw from units.":
             "详情请见「添加或退选课程」页面。",
         "If you withdraw from a unit after a certain date, your academic record may show Withdrawn or Withdrawn Fail. You should understand how census and withdrawal dates can affect your fees and academic record. For more information, see:":
@@ -3319,6 +3573,305 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "在读学生必须在规定的重新注册期内，完成次年整年的重新注册，或者申请休学（intermission）。",
     },
     "final-assessment-dates": {
+        "10 Aug 2026 (if eExams are scheduled)":
+            "2026年8月10日（如已排定 eExams 线上考试）",
+        "17 Jul 2024 for semester one (S1-01) 2024":
+            "2024年7月17日（用于（S1-01）2024）",
+        "18 May 2026 (if eExams are scheduled)":
+            "2026年5月18日（如已排定 eExams 线上考试）",
+        "19 Oct 2026 (if eExams are scheduled)":
+            "2026年10月19日（如已排定 eExams 线上考试）",
+        "2 Feb 2026 (if eExams are scheduled)":
+            "2026年2月2日（如已排定 eExams 线上考试）",
+        "2024 teaching periods View":
+            "2024 年各开课学期 查看",
+        "2025 teaching periods View":
+            "2025 年各开课学期 查看",
+        "2026 teaching periods View":
+            "2026 年各开课学期 查看",
+        "22 Jul 2026 for semester one (S1-01) 2026":
+            "2026年7月22日（用于（S1-01）2026）",
+        "23 Jul 2025 for semester one (S1-01) 2025":
+            "2025年7月23日（用于（S1-01）2025）",
+        "25 Jan – 29 Jan 2027":
+            "2027年1月25日至1月29日",
+        "28 Oct – 15 Nov 2024":
+            "2024年10月28日至11月15日",
+        "28 Sep –- 1 Oct 2025":
+            "9月28日 –- 2025年10月1日",
+        "3 Jan 2025 for semester two (S2-01) 2024.":
+            "2025年1月3日（用于（S2-01）2024.）",
+        "4 Jan 2027  for semester two (S2-01) 2026.":
+            "2027年1月4日（用于（S2-01）2026.）",
+        "5 Jan 2026 for semester two (S2-01) 2025.":
+            "2026年1月5日（用于（S2-01）2025.）",
+        "5 Oct 2026 (if eExams are scheduled)":
+            "2026年10月5日（如已排定 eExams 线上考试）",
+        "Allocate+: The dates and times for some final assessments "
+        "(including eExams) are published in Allocate+ from 12pm on "
+        "the timetable release dates (shown in the tables below).":
+            "Allocate+：部分期末考核（含 eExams 线上考试）的日期和时间，会在课表发布日当天 12:00 起在 "
+            "Allocate+ 上公布（发布日见下表）。",
+        "Alternative assessment arrangements":
+            "替代考核安排",
+        "Assessment timetable publication":
+            "考核课表公布",
+        "Assessment timetable release":
+            "考核课表发布",
+        "Can't complete your assessment?":
+            "无法完成考核？",
+        "Census dates and teaching periods\n \nCheck the census date for "
+        "your teaching period to find out until when you can withdraw "
+        "from units.":
+            "census dates（学籍统计日）与开课学期\n \n查看你所在开课学期的 census "
+            "date（学籍统计日），弄清可以退选课程到哪一天为止。",
+        "Deadline for deferred, supplementary & rescheduled assessments":
+            "延期考核、补考与改期考核的截止期限",
+        "Deferred and supplementary assessment period":
+            "延期考核与补考期",
+        "Deferred and supplementary assessment timetables are released "
+        "on:":
+            "延期考核与补考的课表发布日期：",
+        "Deferred and supplementary assessments":
+            "延期考核与补考",
+        "Deferred assessments":
+            "延期考核",
+        "Final assessment dates":
+            "期末考核日期",
+        "Final assessment period":
+            "期末考核期",
+        "For all other teaching periods, you’ll be given notice of at "
+        "least five University working days of the date of your "
+        "deferred or supplementary assessment.":
+            "其余各开课学期，延期考核或补考的日期会至少提前五个学校工作日通知你。",
+        "Full-year (extended)":
+            "全学年（延长）",
+        "Full-year (extended) (FY-32)":
+            "全学年（延长）（FY-32）",
+        "If your teaching period isn’t listed, there is no defined "
+        "final assessment period. If you’re unsure when your final "
+        "assessments will be held, check Moodle or contact your "
+        "faculty.":
+            "如果表里没有你的开课学期，说明它没有固定的期末考核期。不确定期末考核什么时候进行的话，请查看 Moodle 或联系所在学院。",
+        "It applies to these teaching periods:":
+            "适用于下列开课学期：",
+        "MBA 1 ( MBA-TP1-01 )":
+            "MBA 1（MBA-TP1-01）",
+        "MBA 2 ( MBA-TP2-01 )":
+            "MBA 2（MBA-TP2-01）",
+        "Monash Indonesia Semester 2 (MI-S2)":
+            "Monash Indonesia（印尼校区） 第二学期（MI-S2）",
+        "Monash Indonesia Term 4 (MI-T4-6)":
+            "Monash Indonesia（印尼校区） 第 4 学季（MI-T4-6）",
+        "Monash Indonesia term 1 ( MI-T1-6 )":
+            "Monash Indonesia（印尼校区） 第 1 学季（MI-T1-6）",
+        "Monash Indonesia term 1 (2024)":
+            "Monash Indonesia（印尼校区） 第 1 学季（2024）",
+        "Monash Indonesia term 1 (MI-T1-6)":
+            "Monash Indonesia（印尼校区） 第 1 学季（MI-T1-6）",
+        "Monash Indonesia term 2 (2023–2024)":
+            "Monash Indonesia（印尼校区） 第 2 学季（2023–2024）",
+        "Monash Indonesia term 2 (2024)":
+            "Monash Indonesia（印尼校区） 第 2 学季（2024）",
+        "Monash Indonesia term 2 (2025)":
+            "Monash Indonesia（印尼校区） 第 2 学季（2025）",
+        "Monash Indonesia term 2 (MI-T2-6)":
+            "Monash Indonesia（印尼校区） 第 2 学季（MI-T2-6）",
+        "Monash Indonesia term 3 ( MI-T3-6 )":
+            "Monash Indonesia（印尼校区） 第 3 学季（MI-T3-6）",
+        "Monash Indonesia term 3 (2023–2024)":
+            "Monash Indonesia（印尼校区） 第 3 学季（2023–2024）",
+        "Monash Indonesia term 3 (2024)":
+            "Monash Indonesia（印尼校区） 第 3 学季（2024）",
+        "Monash Indonesia term 3 (MI-T3-6)":
+            "Monash Indonesia（印尼校区） 第 3 学季（MI-T3-6）",
+        "Monash Indonesia term 4 ( MI-T4-6 )":
+            "Monash Indonesia（印尼校区） 第 4 学季（MI-T4-6）",
+        "Monash Indonesia term 4 (2023–2024)":
+            "Monash Indonesia（印尼校区） 第 4 学季（2023–2024）",
+        "Monash Indonesia term 4 (2024)":
+            "Monash Indonesia（印尼校区） 第 4 学季（2024）",
+        "Monash Indonesia term 4 (MI-T4-6)":
+            "Monash Indonesia（印尼校区） 第 4 学季（MI-T4-6）",
+        "Monash Indonesia term 5 (MI-T5-6)":
+            "Monash 印尼校区第 5 学季（MI-T5-6）",
+        "Monash Online 1 (MO-TP1-01)":
+            "Monash Online（在线） 1（MO-TP1-01）",
+        "Monash Online 2 (MO-TP2-01)":
+            "Monash Online（在线） 2（MO-TP2-01）",
+        "Monash Online 3 (MO-TP3-01":
+            "Monash Online（在线） 3（MO-TP3-01",
+        "Monash Online 3 (MO-TP3-01)":
+            "Monash Online（在线） 3（MO-TP3-01）",
+        "Monash Online 4 ( MO-TP4-01 )":
+            "Monash Online（在线） 4（MO-TP4-01）",
+        "Monash Online 4 (MO-TP4-01)":
+            "Monash Online（在线） 4（MO-TP4-01）",
+        "Monash Online 5 ( MO-TP5-01 )":
+            "Monash Online（在线） 5（MO-TP5-01）",
+        "Monash Online 5 (MO-TP5-01)":
+            "Monash Online（在线） 5（MO-TP5-01）",
+        "Monash Online 6 ( MO-TP6-01 )":
+            "Monash Online（在线） 6（MO-TP6-01）",
+        "Monash Online 6 (MO-TP6-01)":
+            "Monash Online（在线） 6（MO-TP6-01）",
+        "Moodle: Take a look at each unit’s final assessment "
+        "information for any assignments, department-run assessments "
+        "or other types of assessment due in the final assessment "
+        "period.":
+            "Moodle：查看每门课程的期末考核信息，了解在期末考核期内到期的作业、院系自行组织的考核，以及其他类型的考核。",
+        "Most teaching periods have swot vac – a week without teaching "
+        "activities so you can prepare for your final assessments.":
+            "多数开课学期都有 swot vac（复习周）——这一周没有教学活动，供你准备期末考核。",
+        "November intake (Australia)":
+            "11 月入学（澳大利亚）",
+        "November intake – Australia":
+            "11 月入学（澳大利亚）",
+        "November intake – Australia (NOV12)":
+            "11 月入学（澳大利亚）（NOV12）",
+        "October intake (Malaysia)":
+            "10 月入学（马来西亚）",
+        "October intake – Malaysia":
+            "10 月入学（马来西亚）",
+        "October intake – Malaysia ( OCT-MY-01 )":
+            "10 月入学（马来西亚）（OCT-MY-01）",
+        "October intake – Malaysia (OCT-MY-01)":
+            "10 月入学（马来西亚）（OCT-MY-01）",
+        "Rescheduled deferred assessment period":
+            "改期后的延期考核期",
+        "Rescheduled deferred assessments":
+            "改期后的延期考核",
+        "Research Q1 (RES-Q1)":
+            "研究季度 1（RES-Q1）",
+        "Research Q2 (RES-Q2)":
+            "研究季度 2（RES-Q2）",
+        "Research Q3 (RES-Q3)":
+            "研究季度 3（RES-Q3）",
+        "Research Q4 (RES-Q4)":
+            "研究季度 4（RES-Q4）",
+        "Search by teaching period or code. Results will appear as you "
+        "type.":
+            "可按开课学期或代码搜索，边输入边出结果。",
+        "See the final assessment and results release dates for the "
+        "2024 teaching periods below – only scheduled assessments "
+        "(those included in your Allocate+ timetable) are listed here.":
+            "2024 年各开课学期的期末考核与成绩公布日期见下——这里只列出已排定的考核（即出现在你 Allocate+ "
+            "课表上的那些）。",
+        "See the final assessment periods and results release dates "
+        "for the 2025 teaching periods below.":
+            "2025 年各开课学期的期末考核期与成绩公布日期见下。",
+        "See the final assessment periods and results release dates "
+        "for the 2026 teaching periods below.":
+            "2026 年各开课学期的期末考核期与成绩公布日期见下。",
+        "Semester 1 (extended)":
+            "第一学期（延长）",
+        "Semester 1 (extended) (S1-32)":
+            "第一学期（延长）（S1-32）",
+        "Semester 1 (northern)":
+            "第一学期（北半球）",
+        "Semester 1 (northern) (S1-60)":
+            "第一学期（北半球）（S1-60）",
+        "Semester 2 (extended)":
+            "第二学期（延长）",
+        "Semester 2 (extended) (S2-32)":
+            "第二学期（延长）（S2-32）",
+        "Semester 2 (northern)":
+            "第二学期（北半球）",
+        "Semester 2 (northern) (S2-60)":
+            "第二学期（北半球）（S2-60）",
+        "Semester 2 – semester 1":
+            "第二学期 – 第一学期",
+        "Semester 2 – semester 1 ( S2-S1-02 )":
+            "第二学期 – 第一学期（S2-S1-02）",
+        "Semester 2 – semester 1 (S2-S1-02)":
+            "第二学期 – 第一学期（S2-S1-02）",
+        "Semester 2 – summer A":
+            "第二学期 – 夏季学期 A",
+        "Semester 2 – summer A ( S2-SS-02 )":
+            "第二学期 – 夏季学期 A（S2-SS-02）",
+        "Semester 2 – summer A (S2-SS-02)":
+            "第二学期 – 夏季学期 A（S2-SS-02）",
+        "Semester dates summary\n \nTake a look at the most important "
+        "dates for your semester, including orientation week, swot "
+        "vac, mid-sem break and more.":
+            "学期日期一览\n \n查看本学期最重要的那些日期，包括迎新周、swot vac（复习周）、学期中假期等。",
+        "Semester one (S1-01)":
+            "第一学期（S1-01）",
+        "Semester one (S1-01) and associated teaching periods":
+            "第一学期（S1-01）及相关开课学期",
+        "Semester one (and associated teaching periods)":
+            "第一学期（及相关开课学期）",
+        "Semester one: 27–31 May 2024\nSemester two: 21–25 Oct "
+        "2024\nNovember intake 2024: 27–31 Jan 2025":
+            "第一学期：2024年5月27日至31日\n第二学期：2024年10月21日至25日\n11 月入学 2024: "
+            "2025年1月27日至31日",
+        "Semester two (S2-01)":
+            "第二学期（S2-01）",
+        "Semester two (S2-01) and associated teaching periods":
+            "第二学期（S2-01）及相关开课学期",
+        "Semester two (S2-02)":
+            "第二学期（S2-02）",
+        "Semester two (and associated teaching periods)":
+            "第二学期（及相关开课学期）",
+        "Summer A – semester 1":
+            "夏季学期 A – 第一学期",
+        "Summer A – semester 1 ( SS-S1-01 )":
+            "夏季学期 A – 第一学期（SS-S1-01）",
+        "Summer A – semester 1 (SS-S1-01)":
+            "夏季学期 A – 第一学期（SS-S1-01）",
+        "Summer semester A (SSA-02)":
+            "夏季学期 A（SSA-02）",
+        "Summer semester A (SSA-02), summer semester B (SSB-01), "
+        "October intake – Malaysia (OCT-MY-01) and November intake – "
+        "Australia (NOV12)":
+            "夏季学期 A（SSA-02）、夏季学期 B（SSB-01）、10 月入学（马来西亚）（OCT-MY-01）、11 "
+            "月入学（澳大利亚）（NOV12）",
+        "Summer semester B (SSB-01)":
+            "夏季学期 B（SSB-01）",
+        "Summer, October and November teaching periods":
+            "夏季、10 月与 11 月教学期",
+        "Supplementary assessments":
+            "补考",
+        "Teaching period, code and their deferred and supplementary "
+        "assessment period with rescheduled deferred and supplementary "
+        "assessments deadline.":
+            "开课学期、代码，及其延期考核与补考期，以及改期后延期考核与补考的截止期限。",
+        "Teaching period, code and their final assessment period and "
+        "results release date":
+            "开课学期、代码，及其期末考核期与成绩公布日期",
+        "The deadline to complete a rescheduled assessment is 90 "
+        "calendar days from the results release date of the original "
+        "assessment period.":
+            "改期后的考核必须在原考核期成绩公布之日起 90 个日历日内完成。",
+        "Timetable release 12pm in Allocate+":
+            "课表于 12:00 在 Allocate+ 发布",
+        "To find out when your final assessments will be, you’ll need "
+        "to check Allocate+ and Moodle:":
+            "想知道期末考核什么时候进行，需要同时查看 Allocate+ 和 Moodle：",
+        "Trimester 1 (Faculty of Law units only)":
+            "第 1 学段（仅限法学院课程）",
+        "Trimester 1 (T1-58) (Except Faculty of Law units)":
+            "第 1 学段（T1-58）（法学院课程除外）",
+        "Trimester 1 (T1-58) (Except JD Law units)":
+            "第 1 学段（T1-58）（JD 法学课程除外）",
+        "Trimester 1 (T1-58) (Faculty of Law units only)":
+            "第 1 学段（T1-58）（仅限法学院课程）",
+        "Trimester 1 (T1-58) (JD Law units only)":
+            "第 1 学段（T1-58）（仅限 JD 法学课程）",
+        "Trimester 2 (Faculty of Law units only)":
+            "第 2 学段（仅限法学院课程）",
+        "Trimester 2 (T2-58) (Except Faculty of Law units)":
+            "第 2 学段（T2-58）（法学院课程除外）",
+        "Trimester 2 (T2-58) (Faculty of Law units only)":
+            "第 2 学段（T2-58）（仅限法学院课程）",
+        "Trimester 3 (Faculty of Law units only)":
+            "第 3 学段（仅限法学院课程）",
+        "Trimester 3 (T3-58) (Except Faculty of Law units)":
+            "第 3 学段（T3-58）（法学院课程除外）",
+        "Trimester 3 (T3-58) (Faculty of Law units only)":
+            "第 3 学段（T3-58）（仅限法学院课程）",
+        "Winter semester (WS-01)":
+            "冬季学期（WS-01）",
         "For all other teaching periods, you’ll be given notice of at least five University working-days of the date of your deferred or supplementary assessment.":
             "在其他所有开课学期，学校会在你的延期考核或补考日期之前，至少提前 5 个大学工作日通知你。",
         "Not every teaching period has a defined set of dates to run deferred and supplementary assessments and the dates may vary from unit to unit. Check with your faculty if you’re unsure when to sit your deferred or supplementary assessment.":
@@ -3814,6 +4367,651 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "这三项例外适用于所有人，但套餐中已包含 OSHC（海外学生医疗保险）的 Study Abroad 交流学生除外。",
     },
     "principal-dates": {
+        "2025 Principal dates":
+            "2025 年重要日期",
+        "Allocate+ allocation adjustment closes at 5pm: November "
+        "intake (NOV12)":
+            "Allocate+ 分配调整于 17:00 关闭：11 月入学（NOV12）",
+        "Allocate+ allocation adjustment closes at 5pm: Semester one "
+        "(S1-01)":
+            "Allocate+ 分配调整于 17:00 关闭：第一学期（S1-01）",
+        "Allocate+ allocation adjustment closes at 5pm: Semester two "
+        "(S2-01)":
+            "Allocate+ 分配调整于 17:00 关闭：第二学期（S2-01）",
+        "Allocate+ allocation adjustment opens at 10am: November "
+        "intake (NOV12) and summer A (SSB-02)":
+            "Allocate+ 分配调整于 10:00 开放：11 月入学（NOV12）、夏季学期 A（SSB-02）",
+        "Allocate+ allocation adjustment opens at 10am: Semester one "
+        "(S1-01)":
+            "Allocate+ 分配调整于 10:00 开放：第一学期（S1-01）",
+        "Allocate+ allocation adjustment opens at 10am: Semester two "
+        "(S2-01)":
+            "Allocate+ 分配调整于 10:00 开放：第二学期（S2-01）",
+        "Allocate+ allocation adjustment opens at 10am: Summer B "
+        "(SSB-01) 2027":
+            "Allocate+ 分配调整于 10:00 开放：夏季学期 B（SSB-01）2027",
+        "Allocate+ preference entry closes at 5pm: Semester one (S1-01)":
+            "Allocate+ 志愿填报于 17:00 关闭：第一学期（S1-01）",
+        "Allocate+ preference entry closes at 5pm: Semester two (S2-01)":
+            "Allocate+ 志愿填报于 17:00 关闭：第二学期（S2-01）",
+        "Allocate+ preference entry opens at 10am: Semester one (S1-01)":
+            "Allocate+ 志愿填报于 10:00 开放：第一学期（S1-01）",
+        "Allocate+ preference entry opens at 10am: Semester two (S2-01)":
+            "Allocate+ 志愿填报于 10:00 开放：第二学期（S2-01）",
+        "Bachelor of Pharmacy placement dates for years three and four.":
+            "药学学士学位第三、第四年的实习日期。",
+        "Census date: Full-year extended (FY-32). Last day to withdraw "
+        "from units without incurring fees. Units withdrawn after this "
+        "date will show as Withdrawn on your academic record":
+            "census "
+            "date（学籍统计日）：全学年（延长）（FY-32）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: November intake (NOV12). Last day to withdraw "
+        "from units without incurring fees. Units withdrawn after this "
+        "date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：11 "
+            "月入学（NOV12）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Semester 1 (northern) (S1-60). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census "
+            "date（学籍统计日）：第一学期（北半球）（S1-60）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: Semester 2 (extended) (S2-32). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census "
+            "date（学籍统计日）：第二学期（延长）（S2-32）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: Semester 2 (northern) (S2-60). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census "
+            "date（学籍统计日）：第二学期（北半球）（S2-60）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: Semester 2 - semester 1 (S2-S1-02). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第二学期 - "
+            "第一学期（S2-S1-02）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: Semester 2 - summer A (S2-SS-02). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第二学期 - 夏季学期 "
+            "A（S2-SS-02）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Summer A - semester 1 (SS-S1-01). Last day to "
+        "withdraw from units without incurring fees. Units withdrawn "
+        "after this date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：夏季学期 A - "
+            "第一学期（SS-S1-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 "
+            "Withdrawn（退课）",
+        "Census date: Summer semester A (SSA-02). Last day to withdraw "
+        "from units without incurring fees. Units withdrawn after this "
+        "date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：夏季学期 "
+            "A（SSA-02）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Summer semester B (SSB-01). Last day to withdraw "
+        "from units without incurring fees. Units withdrawn after this "
+        "date will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：夏季学期 "
+            "B（SSB-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Term 4 (T4-57). Last day to withdraw from units "
+        "without incurring fees. Units withdrawn after this date will "
+        "show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 4 "
+            "学季（T4-57）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Census date: Trimester 3 (T3-58). Last day to withdraw from "
+        "units without incurring fees. Units withdrawn after this date "
+        "will show as Withdrawn on your academic record":
+            "census date（学籍统计日）：第 3 "
+            "学段（T3-58）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
+        "Course transfers: Applications close at 11.59pm (Melbourne "
+        "time) for semester one (S1-01) 2027":
+            "转学位课程：申请于 23:59（墨尔本时间）截止——第一学期（S1-01）2027",
+        "Course transfers: Applications close at 11.59pm (Melbourne "
+        "time) for semester two (S2-01)":
+            "转学位课程：申请于 23:59（墨尔本时间）截止——第二学期（S2-01）",
+        "Course transfers: Applications open at 9am (Melbourne time) "
+        "for semester one (S1-01) 2027":
+            "转学位课程：申请于 09:00（墨尔本时间）开放——第一学期（S1-01）2027",
+        "Course transfers: Applications open at 9am (Melbourne time) "
+        "for semester two (S2-01)":
+            "转学位课程：申请于 09:00（墨尔本时间）开放——第二学期（S2-01）",
+        "Course transfers: Change of preference deadline at 11.59pm "
+        "(Melbourne time) for semester one (S1-01) 2027":
+            "转学位课程：更改志愿的截止时间为 23:59（墨尔本时间）——第一学期（S1-01）2027",
+        "Course transfers: Change of preference deadline at 11.59pm "
+        "(Melbourne time) for semester two (S2-01)":
+            "转学位课程：更改志愿的截止时间为 23:59（墨尔本时间）——第二学期（S2-01）",
+        "Course transfers: Eligible international students will "
+        "receive an International Student Course Agreement (ISCA). To "
+        "accept an offer for semester one (S1-01) 2027, students must "
+        "return their completed ISCA by Sunday 31 January 2027":
+            "转学位课程：符合条件的国际学生会收到 International Student Course "
+            "Agreement（ISCA，国际学生入学协议）。要接受 2027 年第一学期（S1-01）的录取，须在 2027 年 1 "
+            "月 31 日（周日）前交回填妥的 ISCA",
+        "Course transfers: Eligible international students will "
+        "receive an International Student Course Agreement (ISCA). To "
+        "accept an offer for semester two (S2-01), students must "
+        "return their completed ISCA by Wed 22 July":
+            "转学位课程：符合条件的国际学生会收到 International Student Course "
+            "Agreement（ISCA，国际学生入学协议）。要接受第二学期（S2-01）的录取，须在 7 月 22 "
+            "日（周三）前交回填妥的 ISCA",
+        "Course transfers: Last day for domestic students to accept an "
+        "offer for semester one (S1-01) 2027":
+            "转学位课程：本地学生接受录取的最后一天——第一学期（S1-01）2027",
+        "Course transfers: Last day for domestic students to accept an "
+        "offer for semester two (S2-01)":
+            "转学位课程：本地学生接受录取的最后一天——第二学期（S2-01）",
+        "Course transfers: Last day for international students to "
+        "accept an offer for semester one (S1-01) by submitting their "
+        "ISCA":
+            "转学位课程：国际学生接受录取的最后一天——第一学期（S1-01），方式是提交 ISCA（国际学生入学协议）",
+        "Course transfers: Last day for international students to "
+        "accept an offer for semester two (S2-01) by submitting their "
+        "ISCA":
+            "转学位课程：国际学生接受录取的最后一天——第二学期（S2-01），方式是提交 ISCA（国际学生入学协议）",
+        "Course transfers: Offer notifications sent to students by 5pm "
+        "(Melbourne time) for semester one (S1-01) 2027":
+            "转学位课程：录取通知于 17:00（墨尔本时间）前发送给学生——第一学期（S1-01）2027",
+        "Course transfers: Offer notifications sent to students by 5pm "
+        "(Melbourne time) for semester two (S2-01)":
+            "转学位课程：录取通知于 17:00（墨尔本时间）前发送给学生——第二学期（S2-01）",
+        "Coursework scholarship applications close: 2026":
+            "授课型奖学金申请截止：2026",
+        "Coursework scholarship applications close: Mid-year 2026":
+            "授课型奖学金申请截止：年中2026",
+        "Coursework scholarship applications open: 2026":
+            "授课型奖学金申请开放：2026",
+        "Coursework scholarship applications open: Mid-year 2026":
+            "授课型奖学金申请开放：年中2026",
+        "Daylight saving ends: Turn clocks back one hour":
+            "夏令时结束：时钟拨慢一小时",
+        "Daylight saving starts: Turn clocks forward one hour":
+            "夏令时开始：时钟拨快一小时",
+        "Deferred and supplementary assessments end: Semester one "
+        "(S1-01)":
+            "延期考核与补考结束：第一学期（S1-01）",
+        "Deferred and supplementary assessments start: Semester one "
+        "(S1-01)":
+            "延期考核与补考开始：第一学期（S1-01）",
+        "Deferred and supplementary final assessments end: Semester "
+        "two (S2-01) 2025":
+            "延期期末考核与补考结束：第二学期（S2-01）2025",
+        "Deferred and supplementary final assessments end: Summer "
+        "semester A (SSA-02) 2025, November intake (NOV12) 2025, and "
+        "summer semester B (SSB-01) 2026":
+            "延期期末考核与补考结束：夏季学期 A（SSA-02）2025、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）2026",
+        "Deferred and supplementary final assessments start: Semester "
+        "two (S2-01) 2025":
+            "延期期末考核与补考开始：第二学期（S2-01）2025",
+        "Deferred and supplementary final assessments start: Summer "
+        "semester A (SSA-02) 2025, November intake (NOV12) 2025, and "
+        "summer semester B (SSB-01) 2026":
+            "延期期末考核与补考开始：夏季学期 A（SSA-02）2025、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）2026",
+        "Deferred and supplementary final assessments timetable "
+        "published: Semester one (S1-01)":
+            "延期期末考核与补考课表公布：第一学期（S1-01）",
+        "Deferred and supplementary final assessments timetable "
+        "published: Semester two (S1-02) 2025":
+            "延期期末考核与补考课表公布：第二学期（S1-02）2025",
+        "Faculty of Medicine, Nursing and Health Science":
+            "医学、护理与健康科学学院",
+        "Faculty of Pharmacy and Pharmaceutical Sciences":
+            "药学与制药科学学院",
+        "Fees due: Semester 2 - semester 1 (S2-S1-02), semester 2 - "
+        "summer A (S2-SS-02), trimester 3 (T3-58), semester 1 "
+        "(northern) (S1-60), and term 4 (T4-57). A late payment "
+        "penalty will apply after this date (typically an encumbrance)":
+            "学费到期：第二学期 - 第一学期（S2-S1-02）、第二学期 - 夏季学期 A（S2-SS-02）、第 3 "
+            "学段（T3-58）、第一学期（北半球）（S1-60）、第 4 学季（T4-57）。逾期缴纳会产生滞纳处罚，通常是 "
+            "encumbrance（学籍限制）",
+        "Fees due: Semester one (S1-01). A late payment penalty will "
+        "apply after this date (typically an encumbrance)":
+            "学费到期：第一学期（S1-01）。逾期缴纳会产生滞纳处罚，通常是 encumbrance（学籍限制）",
+        "Fees due: Summer semester 3 (MC) (SS-29A), summer semester A "
+        "(SSA-02), and November intake (NOV12). A late payment penalty "
+        "will apply after this date (typically an encumbrance)":
+            "学费到期：夏季学期 3（MC）（SS-29A）、夏季学期 A（SSA-02）、11 "
+            "月入学（NOV12）。逾期缴纳会产生滞纳处罚，通常是 encumbrance（学籍限制）",
+        "Fees due: Summer semester B (SSB-01) 2026, summer A - "
+        "semester 1 (SS-S1-01), term 1 (T1-57), trimester 1 (T1-58), "
+        "and semester 1 (extended) (S1-32). A late payment penalty "
+        "will apply after this date (typically an encumbrance)":
+            "学费到期：夏季学期 B（SSB-01）2026、夏季学期 A - 第一学期（SS-S1-01）、第 1 "
+            "学季（T1-57）、第 1 学段（T1-58）、第一学期（延长）（S1-32）。逾期缴纳会产生滞纳处罚，通常是 "
+            "encumbrance（学籍限制）",
+        "Fees due: Winter teaching period (WS-01). A late payment "
+        "penalty will apply after this date (typically an encumbrance)":
+            "学费到期：冬季开课学期（WS-01）。逾期缴纳会产生滞纳处罚，通常是 encumbrance（学籍限制）",
+        "Final assessment and teaching periods end: Summer semester A "
+        "(SSA-02) 2025, November intake (NOV12) 2025, and summer "
+        "semester B (SSB-01) 2026":
+            "期末考核与开课学期结束：夏季学期 A（SSA-02）2025、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）2026",
+        "Final assessment dates":
+            "期末考核日期",
+        "Final assessments and teaching period end: Trimester 1 (T1-58)":
+            "期末考核与开课学期结束：第 1 学段（T1-58）",
+        "Final assessments and teaching period end: Trimester 2 (T2-58)":
+            "期末考核与开课学期结束：第 2 学段（T2-58）",
+        "Final assessments and teaching periods end: Semester two "
+        "(S2-01), full-year (FY-01), and full-year (extended) (FY-32)":
+            "期末考核与开课学期结束：第二学期（S2-01）、全学年（FY-01）、全学年（延长）（FY-32）",
+        "Final assessments end: Semester one (S1-01), semester 1 "
+        "(extended) (S1-32), semester 2 (northern) (S2-60), and summer "
+        "A - semester 1 (SS-S1-01)":
+            "期末考核结束：第一学期（S1-01）、第一学期（延长）（S1-32）、第二学期（北半球）（S2-60）、夏季学期 A - "
+            "第一学期（SS-S1-01）",
+        "Final assessments end: Trimester 3 (T3-58) (Faculty of Law "
+        "units only)":
+            "期末考核结束：第 3 学段（T3-58）（仅限法学院课程）",
+        "Final assessments end: Trimester 3 (T3-58) (except Faculty of "
+        "Law units)":
+            "期末考核结束：第 3 学段（T3-58）（法学院课程除外）",
+        "Final assessments start: November intake (NOV12) 2025 and "
+        "summer semester B (SSB-01) 2026":
+            "期末考核开始：11 月入学（NOV12）2025、夏季学期 B（SSB-01）2026",
+        "Final assessments start: Semester one (S1-01), semester 1 "
+        "(extended) (S1-32), semester 2 (northern) (S2-60), and summer "
+        "A - semester 1 (SS-S1-01)":
+            "期末考核开始：第一学期（S1-01）、第一学期（延长）（S1-32）、第二学期（北半球）（S2-60）、夏季学期 A - "
+            "第一学期（SS-S1-01）",
+        "Final assessments start: Semester two (S2-01), full-year "
+        "(FY-01), full-year (extended) (FY-32) and trimester 3 (T3-58) "
+        "(except Faculty of Law units)":
+            "期末考核开始：第二学期（S2-01）、全学年（FY-01）、全学年（延长）（FY-32）、第 3 "
+            "学段（T3-58）（法学院课程除外）",
+        "Final assessments start: Summer semester A (SSA-02) 2025":
+            "期末考核开始：夏季学期 A（SSA-02）2025",
+        "Final assessments start: Trimester 1 (T1-58)":
+            "期末考核开始：第 1 学段（T1-58）",
+        "Final assessments start: Trimester 2 (T2-58)":
+            "期末考核开始：第 2 学段（T2-58）",
+        "Final assessments start: Trimester 3 (T3-58) (Faculty of Law "
+        "units only)":
+            "期末考核开始：第 3 学段（T3-58）（仅限法学院课程）",
+        "Final assessments timetable published: Semester one (S1-01), "
+        "semester 1 (extended) (S1-32), and summer A - semester 1 "
+        "(SS-S1-01)":
+            "期末考核课表公布：第一学期（S1-01）、第一学期（延长）（S1-32）、夏季学期 A - 第一学期（SS-S1-01）",
+        "Final assessments timetable published: Semester two (S2-01), "
+        "full-year (FY-01), full-year (extended) (FY-32) and and "
+        "semester 2 (extended) (S2-32)":
+            "期末考核课表公布：第二学期（S2-01）、全学年（FY-01）、全学年（延长）（FY-32）、第二学期（延长）（S2-32）",
+        "Final assessments timetable published: Summer semester A "
+        "(SSA-02) 2025, November intake (NOV12) 2025, semester 2 - "
+        "summer A (S2-SS-02), and summer semester B (SSB-01) 2026":
+            "期末考核课表公布：夏季学期 A（SSA-02）2025、11 月入学（NOV12）2025、第二学期 - 夏季学期 "
+            "A（S2-SS-02）、夏季学期 B（SSB-01）2026",
+        "Graduate research scholarships close: Round 1/2026 "
+        "(international students)":
+            "研究生研究奖学金申请截止：1 批次／2026 年（国际学生）",
+        "Graduate research scholarships close: Round 2/2026 (domestic "
+        "students)":
+            "研究生研究奖学金申请截止：2 批次／2026 年（本地学生）",
+        "Graduate research scholarships close: Round 3/2026 "
+        "(international students)":
+            "研究生研究奖学金申请截止：3 批次／2026 年（国际学生）",
+        "Graduate research scholarships open: Round 1/2026 "
+        "(international students)":
+            "研究生研究奖学金申请开放：1 批次／2026 年（国际学生）",
+        "Graduate research scholarships open: Round 2/2026 (domestic "
+        "students)":
+            "研究生研究奖学金申请开放：2 批次／2026 年（本地学生）",
+        "Graduate research scholarships open: Round 3/2026 "
+        "(international students)":
+            "研究生研究奖学金申请开放：3 批次／2026 年（国际学生）",
+        "Graduate research scholarships open: Round 4/2026 (domestic "
+        "students)":
+            "研究生研究奖学金申请开放：4 批次／2026 年（本地学生）",
+        "Graduate research scholarships: close for Round 4/2026 "
+        "(domestic students)":
+            "研究生研究奖学金申请截止——4 批次／2026 年（本地学生）",
+        "Graduation applications close: April/May round (Australia)":
+            "毕业申请截止：4／5 月批次（澳大利亚）",
+        "Graduation applications close: December round (Australia)":
+            "毕业申请截止：12 月批次（澳大利亚）",
+        "Graduation applications close: October round (Australia)":
+            "毕业申请截止：10 月批次（澳大利亚）",
+        "Graduation applications open: December round (Australia)":
+            "毕业申请开放：12 月批次（澳大利亚）",
+        "Graduation applications open: October round (Australia)":
+            "毕业申请开放：10 月批次（澳大利亚）",
+        "Graduation ceremonies end: April/May round (Australia)":
+            "毕业典礼结束：4／5 月批次（澳大利亚）",
+        "Graduation ceremonies end: December round (Australia)":
+            "毕业典礼结束：12 月批次（澳大利亚）",
+        "Graduation ceremonies end: October round (Australia)":
+            "毕业典礼结束：10 月批次（澳大利亚）",
+        "Graduation ceremonies start: April/May round (Australia)":
+            "毕业典礼开始：4／5 月批次（澳大利亚）",
+        "Graduation ceremonies start: December round (Australia)":
+            "毕业典礼开始：12 月批次（澳大利亚）",
+        "Graduation ceremonies start: October round (Australia)":
+            "毕业典礼开始：10 月批次（澳大利亚）",
+        "Important dates home page":
+            "重要日期首页",
+        "Last day to add on-campus units: Semester one (S1-01) and "
+        "full-year (FY-01)":
+            "校内课程加课截止日：第一学期（S1-01）、全学年（FY-01）",
+        "Last day to add on-campus units: Semester two (S2-01)":
+            "校内课程加课截止日：第二学期（S2-01）",
+        "Last day to withdraw from semester 1 (extended) (S1-32) units "
+        "with Withdrawn showing on your academic record. Units "
+        "withdrawn after this date will show as Withdrawn Fail":
+            "退选截止日——第一学期（延长）（S1-32）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from semester 2 (extended) (S2-32) units "
+        "with Withdrawn showing on your academic record. Units "
+        "withdrawn after this date will show as Withdrawn Fail":
+            "退选截止日——第二学期（延长）（S2-32）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from semester 2 (northern) (S2-60) units "
+        "with Withdrawn showing on your academic record. Units "
+        "withdrawn after this date will show as Withdrawn Fail":
+            "退选截止日——第二学期（北半球）（S2-60）的课程，成绩单上会显示 "
+            "Withdrawn（退课）。此日期之后退选的课程会记为 Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from semester two (S2-01) units with "
+        "Withdrawn showing on your academic record. Units withdrawn "
+        "after this date will show as Withdrawn Fail":
+            "退选截止日——第二学期（S2-01）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from term 1 (T1-57) units with Withdrawn "
+        "showing on your academic record. Units withdrawn after this "
+        "date will show as Withdrawn Fail":
+            "退选截止日——第 1 学季（T1-57）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from term 2 (T2-57) units with Withdrawn "
+        "showing on your academic record. Units withdrawn after this "
+        "date will show as Withdrawn Fail":
+            "退选截止日——第 2 学季（T2-57）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Last day to withdraw from term 3 (T3-57) units with Withdrawn "
+        "showing on your academic record. Units withdrawn after this "
+        "date will show as Withdrawn Fail":
+            "退选截止日——第 3 学季（T3-57）的课程，成绩单上会显示 Withdrawn（退课）。此日期之后退选的课程会记为 "
+            "Withdrawn Fail（退课不及格）",
+        "Mid-semester break ends: Semester one (S1-01)":
+            "学期中假期结束：第一学期（S1-01）",
+        "Mid-semester break ends: Semester two (S2-01)":
+            "学期中假期结束：第二学期（S2-01）",
+        "Mid-semester break starts: Semester one (S1-01)":
+            "学期中假期开始：第一学期（S1-01）",
+        "Mid-semester break starts: Semester two (S2-01)":
+            "学期中假期开始：第二学期（S2-01）",
+        "Mid-year Orientation Week ends: Semester two (S2-01)":
+            "年中迎新周结束：第二学期（S2-01）",
+        "Mid-year Orientation Week starts: Semester two (S2-01)":
+            "年中迎新周开始：第二学期（S2-01）",
+        "Monash Online 6 (MO-TP6-01)":
+            "Monash Online（在线） 6（MO-TP6-01）",
+        "November teaching period (2026–2027)":
+            "11 月教学期（2026–2027）",
+        "Orientation ends: Semester one (S1-01)":
+            "迎新结束：第一学期（S1-01）",
+        "Orientation starts: Semester one (S1-01)":
+            "迎新开始：第一学期（S1-01）",
+        "Other campuses and locations":
+            "其他校区与地点",
+        "Other important dates":
+            "其他重要日期",
+        "Pre-Orientation events start: Semester one (S1-01)":
+            "迎新前活动开始：第一学期（S1-01）",
+        "Principal dates archive":
+            "重要日期存档",
+        "Principal dates for Monash Indonesia":
+            "Monash 印尼校区重要日期",
+        "Principal dates for Monash Malaysia":
+            "Monash 马来西亚校区重要日期",
+        "Re-enrolment (late) ends: 2027":
+            "逾期重新注册结束：2027",
+        "Re-enrolment (late) starts: 2027 (a late fee applies)":
+            "逾期重新注册开始：2027（会收取滞纳金）",
+        "Re-enrolment (timely) ends: 2027":
+            "正常重新注册结束：2027",
+        "Re-enrolment (timely) starts: 2027":
+            "正常重新注册开始：2027",
+        "Rescheduled deferred and supplementary final assessments end: "
+        "Summer semester A (SSA-02), November intake (NOV12) 2025, and "
+        "summer semester B (SSB-01)":
+            "改期后的延期期末考核与补考结束：夏季学期 A（SSA-02）、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）",
+        "Rescheduled deferred and supplementary final assessments "
+        "start: Summer semester A (SSA-02), November intake (NOV12) "
+        "2025, and summer semester B (SSB-01)":
+            "改期后的延期期末考核与补考开始：夏季学期 A（SSA-02）、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）",
+        "Rescheduled deferred and supplementary final assessments "
+        "timetable published: Summer semester A (SSA-02), November "
+        "intake (NOV12) 2025, and summer semester B (SSB-01)":
+            "改期后的延期期末考核与补考课表公布：夏季学期 A（SSA-02）、11 月入学（NOV12）2025、夏季学期 "
+            "B（SSB-01）",
+        "Rescheduled deferred assessments end: Semester one (S1-01) "
+        "and associated teaching periods":
+            "改期后的延期考核结束：第一学期（S1-01）及相关开课学期",
+        "Rescheduled deferred assessments start: Semester one (S1-01) "
+        "and associated teaching periods":
+            "改期后的延期考核开始：第一学期（S1-01）及相关开课学期",
+        "Rescheduled deferred assessments timetable published: "
+        "Semester one (S1-01) and associated teaching periods":
+            "改期后的延期考核课表公布：第一学期（S1-01）及相关开课学期",
+        "Rescheduled deferred final assessments end: Semester two "
+        "(S2-01) 2025 and associated teaching periods":
+            "改期后的延期期末考核结束：第二学期（S2-01）2025及相关开课学期",
+        "Rescheduled deferred final assessments start: Semester two "
+        "(S2-01) 2025 and associated teaching periods":
+            "改期后的延期期末考核开始：第二学期（S2-01）2025及相关开课学期",
+        "Results released: Semester 2 - summer A (S2-SS-02) 2025":
+            "成绩公布：第二学期 - 夏季学期 A（S2-SS-02）2025",
+        "Results released: Semester one (S1-01), semester 1 (extended) "
+        "(S1-32), semester 2 (northern) (S2-60), and summer A - "
+        "semester 1 (SS-S1-01)":
+            "成绩公布：第一学期（S1-01）、第一学期（延长）（S1-32）、第二学期（北半球）（S2-60）、夏季学期 A - "
+            "第一学期（SS-S1-01）",
+        "Results released: Semester two (S2-01), full-year (FY-01), "
+        "full-year (extended) (FY-32), semester 2 (extended) (S2-32), "
+        "and trimester 3 (T3-58) (except Faculty of Law units)":
+            "成绩公布：第二学期（S2-01）、全学年（FY-01）、全学年（延长）（FY-32）、第二学期（延长）（S2-32）、第 "
+            "3 学段（T3-58）（法学院课程除外）",
+        "Results released: Summer semester A (SSA-02) 2025, November "
+        "intake (NOV12) 2025, semester 1 (northern) (S1-60) 2025, term "
+        "4 (T4-57) 2025, and summer semester B (SSB-01) 2026":
+            "成绩公布：夏季学期 A（SSA-02）2025、11 "
+            "月入学（NOV12）2025、第一学期（北半球）（S1-60）2025、第 4 学季（T4-57）2025、夏季学期 "
+            "B（SSB-01）2026",
+        "Results released: Term 1 (T1-57)":
+            "成绩公布：第 1 学季（T1-57）",
+        "Results released: Term 2 (T2-57)":
+            "成绩公布：第 2 学季（T2-57）",
+        "Results released: Term 3 (T3-57)":
+            "成绩公布：第 3 学季（T3-57）",
+        "Results released: Trimester 1 (T1-58) (including Faculty of "
+        "Law units)":
+            "成绩公布：第 1 学段（T1-58）（含法学院课程）",
+        "Results released: Trimester 2 (T2-58) (Faculty of Law units "
+        "only)":
+            "成绩公布：第 2 学段（T2-58）（仅限法学院课程）",
+        "Results released: Trimester 2 (T2-58) (except Faculty of Law "
+        "units)":
+            "成绩公布：第 2 学段（T2-58）（法学院课程除外）",
+        "Results released: Trimester 3 (T3-58) (Faculty of Law units "
+        "only)":
+            "成绩公布：第 3 学段（T3-58）（仅限法学院课程）",
+        "Results released: Winter semester (WS-01)":
+            "成绩公布：冬季学期（WS-01）",
+        "See all dates for the November teaching period (NOV12).":
+            "查看 11 月教学期（NOV12）的全部日期。",
+        "See full year listing":
+            "查看全年列表",
+        "Summer and winter semester":
+            "夏季学期与冬季学期",
+        "Swot vac ends: Semester one (S1-01), semester 2 - semester 1 "
+        "(S2-S1-02), semester 2 (northern) (S2-60), and summer A - "
+        "semester 1 (SS-S1-01)":
+            "swot vac（复习周）结束：第一学期（S1-01）、第二学期 - "
+            "第一学期（S2-S1-02）、第二学期（北半球）（S2-60）、夏季学期 A - 第一学期（SS-S1-01）",
+        "Swot vac ends: Semester two (S2-01) and full-year (FY-01)":
+            "swot vac（复习周）结束：第二学期（S2-01）、全学年（FY-01）",
+        "Swot vac starts: Semester one (S1-01), semester 2 - semester "
+        "1 (S2-S1-02), semester 2 (northern) (S2-60), and summer A - "
+        "semester 1 (SS-S1-01)":
+            "swot vac（复习周）开始：第一学期（S1-01）、第二学期 - "
+            "第一学期（S2-S1-02）、第二学期（北半球）（S2-60）、夏季学期 A - 第一学期（SS-S1-01）",
+        "Swot vac starts: Semester two (S2-01) and full-year (FY-01)":
+            "swot vac（复习周）开始：第二学期（S2-01）、全学年（FY-01）",
+        "Teaching ends: Full-year extended (FY-32), semester 2 "
+        "(extended) (S2-32) and trimester 3 (T3-58). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：全学年（延长）（FY-32）、第二学期（延长）（S2-32）、第 3 "
+            "学段（T3-58）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 1 (MO-TP1-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 1（MO-TP1-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 2 (MO-TP2-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 2（MO-TP2-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 3 (MO-TP3-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 3（MO-TP3-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 4 (MO-TP4-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 4（MO-TP4-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 5 (MO-TP5-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 5（MO-TP5-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Monash Online 6 (MO-TP6-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：Monash Online（在线） 6（MO-TP6-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Semester 1 (extended) (S1-32). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：第一学期（延长）（S1-32）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Semester 1 (northern) (S1-60). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：第一学期（北半球）（S1-60）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Semester one (S1-01), semester 2 (northern) "
+        "(S2-60), semester 2 - semester 1 (S2-S1-02), and summer A - "
+        "semester 1 (SS-S1-01). Last day to withdraw from units (units "
+        "cannot be withdrawn after this date)":
+            "教学结束：第一学期（S1-01）、第二学期（北半球）（S2-60）、第二学期 - 第一学期（S2-S1-02）、夏季学期 "
+            "A - 第一学期（SS-S1-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Semester two (S2-01) and full-year (FY-01). "
+        "Last day to withdraw from units with Withdrawn Fail showing "
+        "on your academic record (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：第二学期（S2-01）、全学年（FY-01）。退选课程的最后一天，成绩单上会显示 Withdrawn "
+            "Fail（退课不及格）（此日期之后无法再退选课程）",
+        "Teaching ends: Summer semester A (SSA-02) 2025. Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：夏季学期 A（SSA-02）2025。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Summer semester B (SSB-01). Last day to "
+        "withdraw from units (units cannot be withdrawn after this "
+        "date)":
+            "教学结束：夏季学期 B（SSB-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Term 1 (T1-57). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 1 学季（T1-57）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Term 2 (T2-57). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 2 学季（T2-57）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Term 3 (T3-57). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 3 学季（T3-57）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Term 4 (T4-57). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 4 学季（T4-57）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Trimester 1 (T1-58). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 1 学段（T1-58）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Trimester 2 (T2-58). Last day to withdraw from "
+        "units (units cannot be withdrawn after this date)":
+            "教学结束：第 2 学段（T2-58）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching ends: Winter semester (WS-01). Last day to withdraw "
+        "from units (units cannot be withdrawn after this date)":
+            "教学结束：冬季学期（WS-01）。退选课程的最后一天（此日期之后无法再退选课程）",
+        "Teaching periods for Bachelor of Medicine and Bachelor of "
+        "Surgery":
+            "医学学士与外科学学士的开课学期",
+        "Teaching starts: Monash Online 3 (MO-TP3-01)":
+            "开课：Monash Online（在线） 3（MO-TP3-01）",
+        "Teaching starts: Monash Online 4 (MO-TP4-01)":
+            "开课：Monash Online（在线） 4（MO-TP4-01）",
+        "Teaching starts: Monash Online 5 (MO-TP5-01)":
+            "开课：Monash Online（在线） 5（MO-TP5-01）",
+        "Teaching starts: November intake (NOV12)":
+            "开课：11 月入学（NOV12）",
+        "Teaching starts: Semester 1 (extended) (S1-32) and full-year "
+        "extended (FY-32)":
+            "开课：第一学期（延长）（S1-32）、全学年（延长）（FY-32）",
+        "Teaching starts: Semester 1 (northern) (S1-60)":
+            "开课：第一学期（北半球）（S1-60）",
+        "Teaching starts: Semester 2 (extended) (S2-32)":
+            "开课：第二学期（延长）（S2-32）",
+        "Teaching starts: Semester 2 (northern) (S2-60)":
+            "开课：第二学期（北半球）（S2-60）",
+        "Teaching starts: Semester one (S1-01), full-year (FY-01), and "
+        "Monash Online 2 (MO-TP2-01)":
+            "开课：第一学期（S1-01）、全学年（FY-01）、Monash Online（在线） 2（MO-TP2-01）",
+        "Teaching starts: Semester two (S2-01), semester 2 - summer A "
+        "(S2-SS-02), and semester 2 - semester 1 (S2-S1-02)":
+            "开课：第二学期（S2-01）、第二学期 - 夏季学期 A（S2-SS-02）、第二学期 - 第一学期（S2-S1-02）",
+        "Teaching starts: Summer semester A (SSA-02)":
+            "开课：夏季学期 A（SSA-02）",
+        "Teaching starts: Summer semester B (SSB-01) 2026, Monash "
+        "Online 1 (MO-TP1-01), term 1 (T1-57), and trimester 1 (T1-58)":
+            "开课：夏季学期 B（SSB-01）2026、Monash Online（在线） 1（MO-TP1-01）、第 1 "
+            "学季（T1-57）、第 1 学段（T1-58）",
+        "Teaching starts: Term 2 (T2-57)":
+            "开课：第 2 学季（T2-57）",
+        "Teaching starts: Term 3 (T3-57)":
+            "开课：第 3 学季（T3-57）",
+        "Teaching starts: Term 4 (T4-57)":
+            "开课：第 4 学季（T4-57）",
+        "Teaching starts: Trimester 2 (T2-58)":
+            "开课：第 2 学段（T2-58）",
+        "Teaching starts: Trimester 3 (T3-58)":
+            "开课：第 3 学段（T3-58）",
+        "Teaching starts: Winter semester (WS-01)":
+            "开课：冬季学期（WS-01）",
+        "The dates for summer and winter semester vary from unit to "
+        "unit. For more information, see summer and winter units.":
+            "夏季学期和冬季学期的日期因课程而异。更多信息见「夏季与冬季课程」。",
+        "Type a search term, such as census or assessments, to find "
+        "these listings for the whole year.":
+            "输入搜索词（例如 census 或 assessments），即可在全年列表中查找。",
+        "University closed: Anzac Day (no replacement holiday)":
+            "学校放假：澳新军团日（不另行补假）",
+        "University closed: Boxing Day":
+            "学校放假：节礼日",
+        "University closed: Christmas Day":
+            "学校放假：圣诞节",
+        "University closed: Easter Monday":
+            "学校放假：复活节星期一",
+        "University closed: Easter Tuesday":
+            "学校放假：复活节星期二",
+        "University closed: Good Friday":
+            "学校放假：耶稣受难日",
+        "University closed: Grand Final Friday":
+            "学校放假：总决赛星期五",
+        "University closed: New Year's Day":
+            "学校放假：元旦",
+        "University closed: Public holiday":
+            "学校放假：公共假日",
+        "University closed: Reopens Monday 4 January 2027":
+            "学校放假：重新开放：2027年1月4日（周一）",
         "Census date: Full-year (FY-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
             "census date（学籍统计日）：全学年（FY-01）。退选课程且不产生学费的最后一天。此日期之后退选的课程，会在成绩单上记为 Withdrawn（退课）",
         "Census date: Monash Online 1 (MO-TP1-01). Last day to withdraw from units without incurring fees. Units withdrawn after this date will show as Withdrawn on your academic record":
