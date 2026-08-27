@@ -3,6 +3,12 @@ import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 
 const { $t } = useNuxtApp()
 
+// The logo is dropped into frontend/public/ by hand. Until it is there the
+// request 404s, and a broken image is worse than no image, so the wordmark
+// takes over on the error rather than on a guess about the file existing.
+const avatar = '/mamo-avatar.png'
+const avatarMissing = ref(false)
+
 useSeoMeta({
   title: () => `${$t('mamo.title')} — Monash Hub`,
   description: MAMO_ACCOUNT.about
@@ -17,7 +23,14 @@ function formatted(date: string) {
 <template>
   <div class="container narrow">
     <header class="head">
-      <div class="avatar" aria-hidden="true">马莫</div>
+      <img
+        v-if="!avatarMissing"
+        :src="avatar"
+        class="avatar avatar--image"
+        :alt="MAMO_ACCOUNT.name"
+        @error="avatarMissing = true"
+      >
+      <div v-else class="avatar" aria-hidden="true">马莫</div>
       <div>
         <h1>{{ MAMO_ACCOUNT.name }}</h1>
         <p class="tiny muted">{{ MAMO_ACCOUNT.region }} · {{ $t('mamo.tagline') }}</p>
@@ -51,8 +64,6 @@ function formatted(date: string) {
         </component>
         <p v-if="post.summary" class="small muted">{{ post.summary }}</p>
         <p class="tiny muted meta">
-          <span v-if="post.reads">{{ $t('mamo.reads', { n: post.reads }) }}</span>
-          <span v-if="post.likes">{{ $t('mamo.likes', { n: post.likes }) }}</span>
           <span v-if="post.url" class="open">{{ $t('mamo.openInWeChat') }} ↗</span>
           <span v-else class="missing">{{ $t('mamo.noLink') }}</span>
         </p>
@@ -64,6 +75,7 @@ function formatted(date: string) {
 <style scoped>
 .narrow { max-width: 720px; }
 .head { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s4); }
+.avatar--image { object-fit: cover; background: none; }
 .avatar {
   display: grid;
   place-items: center;
