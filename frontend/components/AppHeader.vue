@@ -14,7 +14,8 @@ const links = computed(() => [
   { to: '/units', label: $t('nav.units') },
   { to: '/guides', label: $t('nav.guides') },
   { to: '/community', label: $t('nav.community') },
-  { to: '/exchange', label: $t('nav.exchange') }
+  { to: '/exchange', label: $t('nav.exchange') },
+  { to: '/mamo', label: $t('nav.mamo') }
 ])
 
 const query = ref('')
@@ -84,10 +85,14 @@ function search(value: string) {
   font-size: 0.8rem;
   letter-spacing: 0.02em;
 }
-.nav { display: flex; gap: var(--s4); }
-.nav-link { color: rgba(255, 255, 255, 0.88); font-size: 0.95rem; }
+/* The navigation takes the space between the brand and the search rather than
+   sitting in a clump against the brand with a hole after it. `space-evenly`
+   rather than `space-between` so the first link does not end up flush against
+   the wordmark. */
+.nav { display: flex; flex: 1; justify-content: space-evenly; gap: var(--s3); }
+.nav-link { color: rgba(255, 255, 255, 0.88); font-size: 0.95rem; white-space: nowrap; }
 .nav-link:hover, .router-link-active { color: #fff; }
-.header-search { flex: 1; max-width: 360px; margin-left: auto; }
+.header-search { flex: 1; max-width: 420px; }
 .account { display: flex; align-items: center; gap: var(--s2); }
 
 .bell {
