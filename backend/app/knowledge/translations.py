@@ -237,6 +237,9 @@ def translate_blocks(blocks: list[dict[str, Any]], tr: Translation) -> list[dict
 # link, and it is not.
 WHOLE_RUN = 0.9
 
+# Punctuation an anchor may end in and the sentence around it may not.
+_EDGE = " :：.。,，;；、-–—"
+
 
 def _translate_spans(spans: list[dict[str, Any]], tr: Translation) -> list[dict[str, Any]]:
     joined = "".join(s.get("text", "") for s in spans).strip()
@@ -281,8 +284,13 @@ def _relinked(
         anchor = span.get("text", "").strip()
         if not url or not anchor:
             continue
-        for needle in (tr.strings.get(anchor), anchor):
-            needle = (needle or "").strip()
+        for candidate in (tr.strings.get(anchor), anchor):
+            needle = (candidate or "").strip()
+            if needle and needle not in rest:
+                # The anchor often ends in punctuation the translation writes
+                # the other way round: "servicedesk@monash.edu:" against
+                # ……servicedesk@monash.edu：.
+                needle = needle.rstrip(_EDGE)
             if not needle or needle not in rest:
                 continue
             before, _, rest = rest.partition(needle)

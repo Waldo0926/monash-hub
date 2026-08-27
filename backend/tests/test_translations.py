@@ -216,6 +216,19 @@ def test_a_link_on_a_few_words_does_not_swallow_the_paragraph():
     assert "".join(s["text"] for s in item).startswith("如果模块卡住")
 
 
+def test_an_anchor_is_found_past_its_trailing_punctuation():
+    """The English anchor ends in a colon; the Chinese sentence uses a full-width one."""
+    english = "If the module freezes, you need to email servicedesk@monash.edu:"
+    item = _translated_item(
+        [
+            {"text": "If the module freezes, you need to email "},
+            {"text": "servicedesk@monash.edu:", "url": "mailto:servicedesk@monash.edu"},
+        ],
+        {english: "如果模块卡住，请发邮件到 servicedesk@monash.edu："},
+    )
+    assert [s["text"] for s in item if s.get("url")] == ["servicedesk@monash.edu"]
+
+
 def test_a_link_whose_words_cannot_be_found_is_dropped_not_moved():
     """A link on the wrong words is worse than no link.
 
