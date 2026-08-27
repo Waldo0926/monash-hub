@@ -1907,6 +1907,1011 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "result will be updated shortly.":
             "你的考核仍在评阅中，该课程的最终成绩很快就会更新。",
     },
+    "malaysia-student-pass": {
+        "1. Explanation Letter of the reason for the change of course; "
+        "2. Optional: Supporting documents":
+            "1. 说明更换学位课程原因的说明信；2. 可选：证明材料",
+        "1. If you are in Malaysia and planning to stay until the "
+        "commencement of the new semester, you will need to ensure "
+        "that your student pass is valid at all times. A Special Pass "
+        "may apply to you if your student pass has expired/ will be "
+        "expiring in 14 days. 2. If you are in Malaysia and planning "
+        "to return to your home country until you receive an eVAL "
+        "before returning to Malaysia. Please submit your passport to "
+        "ISP (Building 2, Level 1) for the cancellation of your "
+        "student pass.":
+            "1. 如果你人在马来西亚，并打算一直留到新学期开学，就必须确保学生准证（student "
+            "pass）始终在有效期内。若你的学生准证（student pass）已过期、或将在 14 "
+            "天内到期，可能需要申请特别准证（Special Pass）。2. 如果你人在马来西亚，并打算先回国、等拿到 eVAL "
+            "再返回马来西亚，请把护照交到 ISP（2 号楼 1 层）办理学生准证（student pass）注销。",
+        "1. If your student pass exceeds one year validity, you will "
+        "need to cancel your student pass, exit Malaysia and apply for "
+        "a new student pass that takes eight (8) weeks processing "
+        "time. 2. If your student pass is valid for a year: If you "
+        "have studied less than a year of the current enrolled course, "
+        "you do not need to exit Malaysia during your new student pass "
+        "application processing. If you have studied more than a year "
+        "of the current enrolled course, you will need to cancel your "
+        "student pass, exit Malaysia and apply for a new student pass "
+        "that takes eight (8) weeks processing time. 3. Application "
+        "for a new student pass due to a change of course is permitted "
+        "up to a maximum of two times throughout your period of study "
+        "in Malaysia.":
+            "1. 如果你的学生准证（student "
+            "pass）有效期超过一年，需要先注销准证、离境马来西亚，再重新申请新的学生准证（student pass），办理约需 8 "
+            "周。\n2. 如果你的学生准证（student "
+            "pass）有效期为一年：当前所读学位课程就读不满一年的，在新准证办理期间无需离境；就读超过一年的，则需要注销准证、离境马来西亚，再重新申请新的学生准证（student "
+            "pass），办理约需 8 周。\n3. 因更换学位课程而申请新学生准证（student "
+            "pass），在你于马来西亚就读期间最多只能办理两次。",
+        "1. Letter of confirmation of enrolment by your home "
+        "institution on your home institution's letterhead that has "
+        "been issued recently (must be entirely in English; otherwise, "
+        "English translations must be stamped and verified by your "
+        "home institution). You may refer to this sample; 2. Insurance "
+        "coverage premium.":
+            "1. "
+            "由你所属院校出具、使用该校信笺抬头且近期签发的在读证明信（必须全文为英文；否则英文译本须经所属院校盖章确认）。可参考这份样本；2. "
+            "保险费。",
+        "1. Release Letter and attendance report (attendance should "
+        "not be less than 80%); 2. A copy of the latest valid pass "
+        "and/or exit stamp (if the previous pass has been cancelled "
+        "and you are outside Malaysia). 3. Optional : A Special Pass "
+        "may apply to you if you are in Malaysia and your pass has "
+        "expired/ will be expiring in 14 days.":
+            "1. 放行信（Release Letter）与出勤报告（出勤率不得低于 80%）；2. "
+            "最新有效准证的复印件，和／或出境章（若原准证已注销且你人在马来西亚境外）。3. "
+            "可选：如果你人在马来西亚，且准证已过期或将在 14 天内到期，可能需要申请特别准证（Special Pass）。",
+        "Additional documents and/or actions required":
+            "需要补充的材料和／或需要办理的事项",
+        "After the Immigration Department of Malaysia approves your "
+        "student pass application, you will receive an email "
+        "notification from ISP. You may download a softcopy of your "
+        "Electronic Visa Approval Letter, which is also known as eVAL.":
+            "马来西亚移民局批准你的学生准证（student pass）申请之后，你会收到 ISP "
+            "发来的邮件通知，并可以下载电子签证批准函（eVAL）的电子版。",
+        "As an international student coming to study at the University "
+        "for a full-time course, you must accept your offer and apply "
+        "for a student pass before coming to Malaysia to start your "
+        "course.":
+            "作为来本校就读全日制学位课程的国际学生，你必须先接受录取并申请学生准证（student "
+            "pass），然后才能来马来西亚开始学业。",
+        "Before arriving Malaysia, you will need to ensure that you "
+        "have prepared and completed the necessary pre-arrival steps "
+        "as per the Entry Guideline and follow on with the arrival "
+        "steps accordingly, as it is unlikely that you will have "
+        "difficulties with the Immigration Officer upon arrival at the "
+        "airport if you followed the steps provided.":
+            "抵达马来西亚之前，你需要按照 Entry "
+            "Guideline（入境指引）把行前各项准备做完，抵达后再依次完成入境步骤。按这些步骤办理的话，在机场遇到移民官时一般不会有麻烦。",
+        "Changing course within Monash (Internal Course Transfer)":
+            "在 Monash 内部更换学位课程（校内转课程）",
+        "Country of citizenship":
+            "国籍",
+        "Do not make any arrangements to enter Malaysia until you have "
+        "obtained the approval of your visa application.":
+            "在签证申请获批之前，不要做任何入境马来西亚的安排。",
+        "Documents required (softcopy):Additional documents and/or "
+        "actions are required and to be provided during the submission "
+        "of your student pass application if you are under these "
+        "categories:":
+            "所需材料（电子版）：如果你属于下列情形，提交学生准证（student pass）申请时还需要补充材料和／或办理其他事项：",
+        "Exchange and Study Abroad":
+            "交换与海外学习",
+        "For Undergraduates and Post Graduate Coursework students, you "
+        "can start applying for your student pass as early as four "
+        "months but no later than two months before the commencement "
+        "of your course.":
+            "本科生和授课型研究生最早可在开课前四个月开始申请学生准证（student pass），但最迟不得晚于开课前两个月。",
+        "For research students, please submit your request to amend "
+        "your course commencement date in your offer letter if it is "
+        "lesser than the minimum two months processing time.":
+            "研究型学生如果距开课不足两个月的最短办理时间，请提交申请，修改录取通知书上的开课日期。",
+        "Have you lodged an application for a Malaysian student pass "
+        "before?":
+            "你此前申请过马来西亚学生准证（student pass）吗？",
+        "IMPORTANT The estimated Student Pass Endorsement processing "
+        "time by the Immigration Department of Malaysia is 6 weeks. "
+        "You are advised not to make any travel plans until your "
+        "passport has been returned with your student pass sticker.":
+            "重要提示：马来西亚移民局办理学生准证签注预计需要 6 周。在护照连同学生准证贴纸退回给你之前，建议不要做任何出行计划。",
+        "If your student pass has expired/will be expiring in 14 days "
+        "from the date of your submission to ISP, you will be advised "
+        "to apply for a Special Pass. A Special Pass ensures you have "
+        "a valid pass while your renewal application is being "
+        "processed and is issued at the discretion of Immigration.If "
+        "advised by ISP to apply for a Special Pass, please submit the "
+        "following documents to ISP, Building 2 Level 1:Make payment "
+        "for the Special Pass fee of RM300 and submit the proof of "
+        "payment at the Finance Helpdesk.Do you have more questions? "
+        "Fret not, we have a collection of frequently asked questions "
+        "here.":
+            "如果自你向 ISP 提交之日起，学生准证（student pass）已过期或将在 14 天内到期，ISP "
+            "会建议你申请特别准证（Special "
+            "Pass）。特别准证的作用是在续期申请办理期间让你保持有效身份，是否签发由移民局酌情决定。如果 ISP "
+            "建议你申请，请把下列材料提交到 ISP（2 号楼 1 层）：并在 Finance Helpdesk（财务服务台）缴纳 "
+            "RM300 特别准证费用、提交付款凭证。还有其他疑问？别担心，我们整理了一份常见问题集。",
+        "Please follow the steps below1. Medical screening must be "
+        "completed within seven (7) days at an EMGS appointed clinic "
+        "or hospital. The nearest clinics to Monash University "
+        "Malaysia are located in Subang Jaya. Please ensure that the "
+        "clinic has an in-house X-ray facility for your convenience. "
+        "Bring along the following:**You are only required to print "
+        "the above documents2. Please drop by the ISP Counter located "
+        "at Building 2, Level 1, with the following items:3. Wait for "
+        "the release of your passport with the issuance of a student "
+        "pass sticker. This process will take an estimated time of six "
+        "(6) working weeks and you are not advised to make any travel "
+        "arrangements without a physical passport.4. You will be "
+        "notified via email once your passport is ready for "
+        "collection.5. An i-Kad will be issued two weeks after you "
+        "receive your passport. You will also receive an email "
+        "notification from us once it is ready for collection. An "
+        "i-Kad is an identification card for international students "
+        "and can be used as a means of identification, but not as a "
+        "replacement of your passport. A renewal of i-Kad for Direct "
+        "Applicants (one-off) is required three months prior to expiry.":
+            "请按下列步骤办理：\n1. 体检必须在 7 天内、到 EMGS 指定的诊所或医院完成。离 Monash "
+            "马来西亚校区最近的诊所在 Subang Jaya。为方便起见，请确认该诊所自带 X "
+            "光设备。请携带以下材料：**以上材料只需打印即可\n2. 请携带以下物品到 2 号楼 1 层的 ISP 柜台：\n3. "
+            "等待护照连同已签发的学生准证贴纸退回。此过程预计需要 6 个工作周，在拿到实体护照之前，建议不要做出行安排。\n4. "
+            "护照可领取时，我们会发邮件通知你。\n5. 领到护照两周后会发放 i-Kad。可以领取时我们同样会发邮件通知你。i-Kad "
+            "是国际学生的身份识别卡，可用于证明身份，但不能替代护照。直接申请者（Direct Applicants）需在 i-Kad "
+            "到期前三个月办理一次性续期。",
+        "Please liaise with the respective Embassy in Malaysia for the "
+        "required document if you are a citizen from: Iran - Letter of "
+        "Eligibility (LOE) . Oman - No Objection Letter (NOL) . Sudan "
+        "- No Objection Certificate (NOC) . Libya - Letter of "
+        "Eligibility (LOE) .":
+            "如果你是下列国家的公民，请与该国驻马来西亚使馆联系，取得所需文件：伊朗——Letter of "
+            "Eligibility（LOE，资格函）；阿曼——No Objection Letter（NOL，无异议函）；苏丹——No "
+            "Objection Certificate（NOC，无异议证明）；利比亚——Letter of "
+            "Eligibility（LOE，资格函）。",
+        "Progressing or transferring from another institution":
+            "从其他院校升学或转学而来",
+        "Progressing within Monash":
+            "在 Monash 内部升学",
+        "Students coming for an exchange or study abroad program must "
+        "apply directly with EMGS for one (1) semester , and must "
+        "apply for a student pass duration of six (6) months , while "
+        "students attending two (2) semesters must apply for a student "
+        "pass duration of twelve (12) months .":
+            "参加交换或海外学习项目的学生必须直接向 EMGS 申请：读一个学期的，申请 6 个月有效期的学生准证（student "
+            "pass）；读两个学期的，申请 12 个月有效期的学生准证（student pass）。",
+        "You are required to opt for DIRECT STUDENT PASS APPLICATION* "
+        "where you have to apply directly to EMGS . Read this guide "
+        "prior to applying for your student pass. *All direct "
+        "applicants are advised to apply for a one-off student pass "
+        "which covers the entire course duration.":
+            "你需要选择 DIRECT STUDENT PASS APPLICATION（直接申请）*，即自行向 EMGS "
+            "提交申请。申请前请先阅读这份指南。*建议所有直接申请者申请一次性覆盖整个学位课程期限的学生准证（student pass）。",
+        "You are required to opt for NON-DIRECT STUDENT PASS "
+        "APPLICATION where Monash will apply for your student pass. "
+        "Fill out this form to start applying for your student pass.":
+            "你需要选择 NON-DIRECT STUDENT PASS APPLICATION（非直接申请），即由 Monash "
+            "代你提交学生准证（student pass）申请。请填写这份表格开始办理。",
+        "You may check the status of your student pass application "
+        "after 14 working days upon submitting the complete documents "
+        "and payment to either EMGS (DA) or through the University "
+        "(NDA).":
+            "在向 EMGS（直接申请）或学校（非直接申请）提交完整材料并付款后，满 14 个工作日即可查询学生准证（student "
+            "pass）申请进度。",
+    },
+    "malaysia-insurance": {
+        "100 % Capital Sum Insured":
+            "保额的 100%",
+        "Accidental Death on Public Common Conveyance":
+            "乘坐公共交通工具时的意外身故",
+        "All Monash University Malaysia students are covered in this "
+        "policy.":
+            "Monash 马来西亚校区全体学生均在本保单承保范围内。",
+        "For more information about the policy, kindly refer to the "
+        "full policy.":
+            "关于本保单的更多信息，请查阅完整保单条款。",
+        "Group Personal Accident (GPA) Insurance Policy":
+            "团体人身意外险（GPA）保单",
+        "International Student Insurance":
+            "国际学生保险",
+        "International Travel Insurance":
+            "国际旅行保险",
+        "International students with a valid Student Pass studying at "
+        "Monash University Malaysia.":
+            "在 Monash 马来西亚校区就读、且持有有效学生准证（Student Pass）的国际学生。",
+        "Kindly refer to the information page on medical insurance for "
+        "international students website for more details.":
+            "更多细节请查看国际学生医疗保险信息页。",
+        "Kindly refer to the information page on medical insurance for "
+        "international students website.":
+            "请查看国际学生医疗保险信息页。",
+        "Medical Reimbursement":
+            "医疗费用报销",
+        "Monash University Malaysia has appointed AXA Affin General "
+        "Insurance Berhad as our Medical Insurance provider with "
+        "effect from 1st January 2021.":
+            "自 2021 年 1 月 1 日起，Monash 马来西亚校区指定 AXA Affin General Insurance "
+            "Berhad 为医疗保险承保方。",
+        "Monash University Malaysia has appointed Willis Tower Watson "
+        "as our insurance broker and AIG Malaysia Insurance Berhad as "
+        "our provider for the Group Personal Accident insurance.":
+            "Monash 马来西亚校区指定 Willis Tower Watson 为保险经纪，AIG Malaysia "
+            "Insurance Berhad 为团体人身意外险的承保方。",
+        "Monash University Malaysia students studying abroad on "
+        "University-approved programs only.":
+            "仅限参加学校批准项目、在海外学习的 Monash 马来西亚校区学生。",
+        "Permanent Disablement":
+            "永久伤残",
+        "Policy Summary: Sum Insured: RM 30,000Main benefits :":
+            "保单摘要：保额 RM 30,000。主要保障：",
+        "RM 2,000":
+            "RM 2,000",
+        "RM 30,000":
+            "RM 30,000",
+        "The Student Group Personal Accident policy also provides "
+        "coverage during internship or placement periods.":
+            "学生团体人身意外险在实习或实践期间同样提供保障。",
+        "The policy number is HCR/04697625/64.":
+            "保单号为 HCR/04697625/64。",
+        "The policy number is PA20002720.":
+            "保单号为 PA20002720。",
+        "The travel insurance provider is Liberty International "
+        "Underwriters":
+            "旅行保险的承保方为 Liberty International Underwriters",
+        "Up to RM 3,000":
+            "最高 RM 3,000",
+        "Up to RM 30,000.00":
+            "最高 RM 30,000.00",
+        "Up to RM 5,000":
+            "最高 RM 5,000",
+        "We ensure that you are all covered with the required "
+        "insurance coverage while studying in Monash Malaysia.":
+            "我们会确保你在 Monash 马来西亚校区就读期间，都有所需的保险保障。",
+        "You may submit your claim here.":
+            "理赔申请请在此提交。",
+    },
+    "malaysia-student-admin": {
+        "Assessments & Results":
+            "考核与成绩",
+        "Check out here for Student forms, application for student "
+        "letters, MPass cards, official documents and education "
+        "verifications.":
+            "学生表格、学生证明信申请、MPass 卡、正式文件与学历验证，都在这里。",
+        "Find out how to apply to graduate so that you receive your "
+        "award at the earliest possible time.":
+            "了解如何申请毕业，好尽早拿到你的学位。",
+        "Find out when exams are held and when results are released.":
+            "了解考试什么时候进行、成绩什么时候公布。",
+        "For information on when you can re-enrol, exam dates, results "
+        "release and those all important census dates.":
+            "关于什么时候可以重新注册、考试日期、成绩公布，以及那些至关重要的 census dates（学籍统计日）。",
+        "Graduations & Verify Qualifications":
+            "毕业与学历验证",
+        "Learn how to setup your class timetable and avoid potential "
+        "clashes":
+            "了解如何排课表，以及怎样避开可能的时间冲突",
+        "Online Forms Now Available!":
+            "在线表格现已开放！",
+        "STUDENT ADMINISTRATION\nHow can we assist you?":
+            "学生事务\n有什么可以帮你？",
+        "Student administration - Monash University Malaysia":
+            "学生事务 — Monash 马来西亚校区",
+        "Student forms, Letters, Documents & Identity":
+            "学生表格、证明信、文件与身份证件",
+        "Try out the course planner here. Plan your course and select "
+        "the right units.":
+            "试试这里的课程规划工具，规划你的学位课程、选对课程。",
+        "Whether you are new to Monash or re-enrolling, find out how "
+        "to manage your enrolment.":
+            "无论你是刚来 Monash 还是要重新注册，都可以在这里了解如何管理自己的选课注册。",
+    },
+    "malaysia-exam-rules": {
+        "Books, study materials":
+            "书籍、学习资料",
+        "Cap, hooded top":
+            "帽子、连帽衫",
+        "Cheating can come in many forms, and can occur in exams and "
+        "other types of assessments. To cheat could be to copy the "
+        "work of others, to get someone to do your assessment for you, "
+        "or to bring unauthorised materials into an eExam. Cheating "
+        "breaches academic integrity and Monash University has various "
+        "methods of detecting it.":
+            "作弊有很多种形式，可能发生在考试里，也可能发生在其他类型的考核中。抄袭他人作业、找人代做考核、把未经许可的材料带进 "
+            "eExam（线上考试），都属于作弊。作弊违反学术诚信。",
+        "Cheating is a very serious offence and could result in "
+        "suspension or exclusion from the University.":
+            "作弊是非常严重的违规行为，可能导致停学或被学校退学处理（exclusion）。",
+        "Closed-book exams don’t allow you to take notes, books or any "
+        "other reference material into the exam. You need to rely "
+        "entirely on your memory to answer questions.":
+            "闭卷考试不允许你带笔记、书本或任何其他参考资料进场，只能完全靠记忆作答。",
+        "Closed-book remote eExams":
+            "远程闭卷 eExam（线上考试）",
+        "Dictionaries (electronic)":
+            "词典（电子版）",
+        "Dictionaries (hard copy)":
+            "词典（纸质版）",
+        "During the eExam, you must not have a calculator, pencil "
+        "case, mobile phone, smart watch/device, or any books, notes, "
+        "paper, writing on any part of your body, or any other "
+        "materials which haven’t been authorised for the exam. "
+        "Possession of unauthorised materials, or attempting to cheat "
+        "or cheating in an exam, is a disciplinary offence.":
+            "考试期间不得携带计算器、笔袋、手机、智能手表或智能设备，也不得有任何书本、笔记、纸张、写在身体任何部位的字迹，或其他未经本场考试许可的材料。持有未经许可的材料本身即构成违规。",
+        "During your exam, you must not speak with other students or "
+        "persons outside the University. You should only communicate "
+        "with your online supervisor or exam staff. Colluding with "
+        "others to gain an unfair advantage in your assessment is a "
+        "disciplinary offence.":
+            "考试期间不得与其他学生或校外人员交谈，只能与线上监考员或考务人员沟通。与他人串通以在考核中取得不正当优势，属于纪律违规。",
+        "If your eExam is supervised, you must stay in sight of your "
+        "webcam throughout the eExam session. If you need to leave the "
+        "room to use the toilet, you’ll need to leave your phone and "
+        "any exam materials in the exam room in front of the camera so "
+        "it’s visible. The session will continue to be recorded while "
+        "you’re out of the room.":
+            "如果你的 "
+            "eExam（线上考试）有监考，全程都必须待在摄像头可见范围内。如需离开房间上洗手间，要把手机和所有考试材料留在考场内、放在摄像头前可见的位置。",
+        "Learn more about academic integrity, plagiarism and collusion.":
+            "进一步了解学术诚信、抄袭与合谋作弊。",
+        "Mask-wearing is required for indoor settings and optional in "
+        "an outdoor setting. You’ll also need to use the hand "
+        "sanitiser provided on arrival and follow social distancing "
+        "guidelines.":
+            "室内须佩戴口罩，室外可自行选择。抵达时还需使用现场提供的免洗洗手液，并遵守社交距离规定。",
+        "Monash University is committed to honesty and academic "
+        "integrity. There are serious consequences for plagiarism, "
+        "collusion and cheating.":
+            "Monash 大学重视诚实与学术诚信。抄袭、合谋作弊和作弊都会带来严重后果。",
+        "On-campus eExams eExams with online supervision: You’ll need "
+        "to bring a headset or headphones with a built-in microphone "
+        "so you can communicate with your online supervisor clearly "
+        "and minimise disruption to other students in the same exam "
+        "room. eExams without online supervision: You can use the "
+        "noise-cancelling function of headphones, or earplugs, to "
+        "minimise distractions. Off-campus eExams Headsets or "
+        "headphones with a built-in microphone are optional for "
+        "off-campus supervised eExams. They must be used only for "
+        "communicating with your online supervisor. You’re not allowed "
+        "to listen to music, audio files or speak with anyone other "
+        "than your online supervisor during your exam.":
+            "校内 eExam（线上考试）　有线上监考的 "
+            "eExam（线上考试）：你需要自带带麦克风的耳机或耳麦，以便与线上监考员清楚沟通，同时尽量不打扰同一考场的其他学生。",
+        "Open-book exams allow you to access notes, texts or resource "
+        "materials in your exam.":
+            "开卷考试允许你在考试中查阅笔记、教材或参考资料。",
+        "Open-book remote eExams":
+            "远程开卷 eExam（线上考试）",
+        "Paper, including blank A4 paper":
+            "纸张，包括空白 A4 纸",
+        "Specifically permitted items":
+            "特别许可携带的物品",
+        "There is an inbuilt timer on your eExam screen that will "
+        "count down the time you have left.":
+            "eExam（线上考试）界面自带计时器，会倒数你剩余的时间。",
+        "This information will also appear on the landing page of your "
+        "eExam. You should read this information carefully before you "
+        "start your eExam and make sure all of your materials and "
+        "devices are authorised. We'll regard any material or item on "
+        "your desk, chair, or person to be in your possession. Having "
+        "any unauthorised materials in an exam is a disciplinary "
+        "offence.":
+            "这些信息也会显示在 "
+            "eExam（线上考试）的首页上。开考前请仔细阅读，确认你的所有材料和设备都是经许可的。桌上出现的任何材料或物品，只要未经许可，我们都会视为违规。",
+        "To ensure you get your full exam time, log into the "
+        "eAssessment platform 30 minutes before the scheduled start "
+        "time (if it’s supervised) or 10 minutes before if you have an "
+        "exam without supervision.":
+            "为确保你能用满全部考试时间：有监考的，请在预定开始时间前 30 分钟登录 eAssessment 平台；无监考的，请提前 "
+            "10 分钟登录。",
+        "Watches (digital and smart watches)":
+            "手表（电子表与智能手表）",
+        "What you’re allowed to bring to your eExam":
+            "eExam（线上考试）可以带什么",
+        "Where any of our monitoring identifies a suspected breach of "
+        "exam rules, footage of your exam session and session logs may "
+        "be referred to a Monash faculty administrator for "
+        "investigation. See privacy and security for more information.":
+            "如果监控发现疑似违反考试规则的情况，你本场考试的录像和会话日志可能会被移交 Monash "
+            "学院管理人员进行调查。详见隐私与安全说明。",
+        "Yes, but you’re not allowed to access soft copy notes on the "
+        "device you’re using for your eExam (unless specifically "
+        "instructed by your teaching staff or faculty).":
+            "可以，但不得在你用来考 eExam（线上考试）的那台设备上查看电子版笔记（除非任课教师或学院另有明确指示）。",
+        "Yes, food and drink are allowed in your private exam space. "
+        "If you have an on-campus eExam, please ensure any food you "
+        "bring with you won't disturb those around you.":
+            "可以，你自己的考试空间里允许饮食。如果是校内 eExam（线上考试），请确保带来的食物不会打扰周围的人。",
+        "Yes. You can have blue or black pens or HB/2B pencils. You "
+        "can't have glitter ink pens, as the ink may affect the photo "
+        "quality of any handwritten responses that may be required.":
+            "可以。你可以带蓝色或黑色的笔，以及 HB/2B 铅笔。不能用闪粉墨水笔，因为墨水会影响手写作答拍照的清晰度。",
+        "You can check your unit’s Moodle page to find out if:":
+            "你可以在该课程的 Moodle 页面上查看：",
+        "You can have your smartphone with you, but it must be "
+        "switched to 'do not disturb' mode and placed face down on "
+        "your desk. You'll need to use your phone to log in to your "
+        "eExam with multi-factor authentication and again, at the end "
+        "of your exam, to upload photographs of any required "
+        "handwritten responses – don't access your phone until the "
+        "instructions appear on your screen.":
+            "你可以带智能手机，但必须调到「勿扰」模式并正面朝下放在桌上。手机的用途是：用多因素认证登录 "
+            "eExam（线上考试），以及在考试结束时上传手写作答的照片（如需要）。",
+        "You can wear a cap or hooded top, but you may be asked to "
+        "remove it as part of your online supervision so we can verify "
+        "your identity. Your online supervisor may ask you to remove "
+        "your hood at any time.":
+            "你可以戴帽子或穿连帽衫，但线上监考过程中可能会被要求摘下，以便核验身份。线上监考员可以随时要求你放下帽兜。",
+        "You can’t cancel or reschedule your eExam. By starting your "
+        "eExam, you’re confirming that you’re well enough to do the "
+        "exam. If you suddenly become unwell during your exam, tell "
+        "your supervisor straight away – they’ll tell you what you "
+        "need to do. We recommend you try to finish your exam if "
+        "you’re able to because in most circumstances, if you’ve seen "
+        "and/or attempted to answer the exam questions, you won't be "
+        "eligible for a deferred assessment.":
+            "你不能取消或改期 "
+            "eExam（线上考试）。一旦开考，就等于确认自己身体状况适合参加考试。如果考试中途突然不适，请立刻告知监考员，他们会告诉你该怎么做。",
+        "You must have your M-Pass (student ID card) or a "
+        "government-issued photo ID (e.g. your passport) if you’re "
+        "sitting a supervised eExam or an unsupervised eExam on "
+        "campus. If you have a supervised eExam, your webcam and "
+        "microphone must be working – if the online supervisor can't "
+        "see or hear you, you won't be allowed to sit your eExam.":
+            "参加有监考的 eExam（线上考试）、或在校内参加无监考 eExam（线上考试）时，必须携带 "
+            "M-Pass（学生证）或政府签发的带照片身份证件（例如护照）。有监考的场次，摄像头和麦克风必须正常工作。",
+        "You must remove your smartwatch and place it face down on "
+        "your desk for the duration of your eExam. The eExam on-screen "
+        "timer will show you how much exam time you have left.":
+            "整场 eExam（线上考试）期间，必须摘下智能手表并正面朝下放在桌上。屏幕上的计时器会显示你还剩多少考试时间。",
+        "Your exam duration includes reading time; however, you can "
+        "start answering as soon as the exam begins if you want to.":
+            "考试时长包含阅读时间；不过如果你愿意，开考即可开始作答。",
+        "Your lecturer can confirm whether your eExam is an open or "
+        "closed-book assessment.":
+            "你的 eExam（线上考试）是开卷还是闭卷，可以向任课教师确认。",
+        "Your lecturer will tell you if there are any specifically "
+        "permitted items you need to take into your exam. These will "
+        "also be listed on your exam home screen if they apply. For "
+        "example, you may be permitted to use a translation dictionary "
+        "for your exam or a single A4 page of pre-prepared notes.":
+            "如果有特别许可携带进考场的物品，任课教师会告知你；适用时，这些物品也会列在考试首页上。例如，某些考试可能允许你使用翻译词典。",
+        "Your personal belongings are allowed to be in the room, but "
+        "they must not be in reach during your exam.":
+            "个人物品可以放在房间里，但考试期间不得放在伸手可及之处。",
+        "Your phone must be switched to 'do not disturb' mode and "
+        "placed faced down on your desk. You must only use your phone "
+        "to log in to your eExam with multi-factor authentication and, "
+        "at the end off your exam, to upload photographs of any "
+        "required handwritten responses – don’t access your phone "
+        "until the instructions appear on your screen.":
+            "手机必须调到「勿扰」模式并正面朝下放在桌上。只能用于两件事：用多因素认证登录 "
+            "eExam（线上考试），以及在考试结束时上传所需的手写作答照片。",
+        "You’ll need to check with your lecturer to see whether your "
+        "exam requires the use of a calculator and, if so, whether "
+        "there are restrictions on the type you’re allowed to use.":
+            "你需要向任课教师确认本场考试是否需要用计算器，以及对可用机型是否有限制。",
+        "You’re only allowed to have sheets of paper with you if "
+        "they’re authorised for your exam. Check the list of "
+        "authorised materials on your unit’s Moodle page and the "
+        "landing page of your eExam.":
+            "只有经本场考试许可的纸张才可以带在身边。许可材料清单请查看该课程的 Moodle 页面，以及 eExam（线上考试）的首页。",
+        "eExam rules":
+            "eExam（线上考试）规则",
+        "the eExam spell check function will be disabled.":
+            "eExam（线上考试）的拼写检查功能会被停用。",
+        "you need any additional authorised materials or approved "
+        "devices":
+            "你是否需要额外的许可材料或经批准的设备",
+    },
+    "malaysia-special-consideration": {
+        "A few important tips...":
+            "几点提醒……",
+        "Applications received after the final results for the unit "
+        "are released will not be taken into consideration under any "
+        "circumstances.":
+            "在该课程最终成绩公布之后收到的申请，任何情况下都不予受理。",
+        "Apply for fee reversal and Withdrawn grade (special "
+        "circumstances)\n \nIf special circumstances that were beyond "
+        "your control made it impossible for you to complete unit "
+        "requirements, you may be eligible for a fee reversal or "
+        "Withdrawn grade.":
+            "申请学费冲销与 Withdrawn（退课）成绩（特殊情形）\n "
+            "\n如果确有你无法控制的特殊情形，使你不可能完成该课程的要求，你可能符合申请学费冲销或 Withdrawn（退课）成绩的条件。",
+        "Assessment Regime Procedure (pdf)":
+            "Assessment Regime Procedure（考核制度规程，pdf）",
+        "Assessment and Academic Integrity Policy (pdf)":
+            "Assessment and Academic Integrity Policy（考核与学术诚信政策，pdf）",
+        "Certain assessments aren’t available for special "
+        "consideration (e.g. placements) – this is determined by the "
+        "dean (or delegate) of the faculty. If you can’t complete the "
+        "assessment and it’s not available for special consideration, "
+        "check the Handbook to see the alternative arrangements.":
+            "某些考核不适用特殊考虑（special "
+            "consideration）（例如实习），这由学院院长（或其授权人）决定。如果你无法完成该考核、而它又不适用特殊考虑（special "
+            "consideration），请查看 Handbook 了解替代安排。",
+        "Defer your final assessment":
+            "申请期末考核延期",
+        "Extension through special consideration (generally longer)":
+            "通过特殊考虑（special consideration）申请延期（时长通常更久）",
+        "Extensions and special consideration":
+            "延期与特殊考虑（special consideration）",
+        "Get a short extension":
+            "申请短期延期",
+        "Get an extension through special consideration":
+            "通过特殊考虑（special consideration）申请延期",
+        "How to apply\nSubmit an application as soon as possible, but "
+        "no later than 11.55pm on the day your assessment is due.\n\n "
+        "Short extension form":
+            "如何申请\n请尽快提交申请，最迟不得晚于考核截止当天 23:55。\n\n 短期延期申请表",
+        "How to apply\nSubmit an application as soon as possible, but "
+        "no later than 11.55pm on the day your assessment is due. Make "
+        "sure you attach all required supporting documents as evidence "
+        "of your exceptional circumstances.Applications can still be "
+        "submitted without supporting documents (not having your "
+        "supporting documents ready is not a sufficient reason to "
+        "apply late). You'll need to submit your application on time "
+        "without your documents and include a date for when you will "
+        "provide them.\n\n Apply for an extension":
+            "如何申请\n请尽快提交申请，最迟不得晚于考核截止当天 "
+            "23:55，并务必附上全部所需的证明材料，作为你所处特殊情况的证据。没有证明材料也仍然可以先提交申请（材料没准备好不构成迟交申请的正当理由）——你需要按时提交申请，并在其中写明将于哪一天补交材料。\n\n "
+            "申请延期",
+        "If an extension isn’t appropriate, we may arrange an "
+        "alternative and equivalent form of your assessment. If the "
+        "outcome of your application is an alternative assessment, "
+        "you’ll need to complete it (you can’t get an extension "
+        "instead)":
+            "如果延期并不合适，我们可能会为你安排一种替代的、难度相当的考核形式。如果你的申请结果是替代考核，你就必须完成它（不能改成延期）",
+        "If an extension isn’t appropriate, we may arrange an "
+        "alternative and equivalent form of your assessment. If the "
+        "outcome of your application is an alternative assessment, "
+        "you’ll need to complete it (you can’t get an extension "
+        "instead).":
+            "如果延期并不合适，我们可能会为你安排一种替代的、难度相当的考核形式。如果你的申请结果是替代考核，你就必须完成它（不能改成延期）。",
+        "If an extension or alternative assessment isn’t appropriate, "
+        "you may be exempt from completing your assessment if the task "
+        "makes up 10% or less of your assessments overall. Your "
+        "teaching faculty will determine which assessments are "
+        "eligible and will reweight your other assessments for your "
+        "unit.":
+            "如果延期和替代考核都不合适，而该项任务占你全部考核的 10% "
+            "或以下，你可能会被免于完成这项考核。哪些考核符合条件由授课学院判定，学院也会相应调整你这门课其他考核的权重。",
+        "If an extension or alternative assessment isn’t appropriate, "
+        "you may be exempt from completing your assessment if the task "
+        "makes up 10% or less of your assessments overall.Your "
+        "teaching faculty will determine which assessments are "
+        "eligible and will reweight your other assessments for your "
+        "unit.":
+            "如果延期和替代考核都不合适，而该项任务占你全部考核的 10% "
+            "或以下，你可能会被免于完成这项考核。哪些考核符合条件由授课学院判定，学院也会相应调整你这门课其他考核的权重。",
+        "If exceptional circumstances prevented you from attending "
+        "your practical activity, it’s best to speak to your chief "
+        "examiner to see if there’s another scheduled activity you can "
+        "attend. If there isn’t, you may be eligible to apply for "
+        "special consideration for the assessment task that’s "
+        "associated with your practical/lab activity.":
+            "如果确有特殊情况使你无法参加实践活动，最好先联系主考官（chief "
+            "examiner），看看有没有另一场已排定的活动可以参加。如果没有，你可能符合为该实践或实验活动所对应的考核任务申请特殊考虑（special "
+            "consideration）的条件。",
+        "If we approve your application, in most cases your extension "
+        "will align with the days recommended in your supporting "
+        "documents.An extension starts on the original due date of "
+        "your assessment and applies to the day or set of days "
+        "specified in your supporting documents. For example, if your "
+        "original due date is 1 October and your doctor states on your "
+        "medical certificate that you’re unfit to study for five days "
+        "(23 September through 27 September), the new due date will be "
+        "6 October.If you apply late or provide your supporting "
+        "documents late, you may receive a response after the new due "
+        "date for your assessment. If you’re well enough, it’s "
+        "important that you continue working on your assessment. We "
+        "won't be able to grant you an extension longer than the "
+        "timeframe in your supporting documentation.":
+            "如果你的申请获批，多数情况下延期天数会与你证明材料中建议的天数一致。延期从考核原定截止日起算，按你证明材料中载明的那一天或那几天顺延。举例来说：原定截止日是 "
+            "10 月 1 日，医生在 medical certificate（医疗证明）上写明你有五天（9 月 23 日至 27 "
+            "日）不适宜学习，那么新的截止日就是 10 月 6 "
+            "日。如果你申请得晚、或材料交得晚，回复可能会在新截止日之后才到。只要身体允许，请务必继续做你的考核。我们无法给出超过你证明材料所载时长的延期。",
+        "If we approve your application, you’ll get an extension of "
+        "two calendar days from the original due date of the "
+        "assessment task.":
+            "如果申请获批，你将从考核任务的原定截止日起获得 2 个日历日的延期。",
+        "If we don’t approve your application, you’ll still need to "
+        "submit your assessment.":
+            "如果申请未获批，你仍然需要提交考核。",
+        "If you apply and get an extension, it doesn’t guarantee that "
+        "the rest of your group will be granted one as well. Your "
+        "chief examiner will decide which outcome best suits your "
+        "circumstances and let you know.":
+            "你申请并拿到延期，并不代表小组里其他人也会一并获批。主考官（chief "
+            "examiner）会判断哪种处理最符合你的情况，并通知你。",
+        "If you give false information":
+            "提供虚假信息的后果",
+        "If you need an additional extension":
+            "如果你需要再一次延期",
+        "If you require prolonged extension across the teaching "
+        "period, we may decline your application and instead recommend "
+        "that you withdraw from your unit. You may be eligible to "
+        "apply for special circumstances.":
+            "如果你需要跨越整个开课学期的长期延期，我们可能会驳回你的申请，转而建议你退选这门课程。你可能符合按特殊情形（special "
+            "circumstances）提出申请的条件。",
+        "If you submitted an application without supporting documents "
+        "and didn't provide them by the date stated in your "
+        "application, we’ll cancel your application.":
+            "如果你提交申请时没有附证明材料，又没有在申请中写明的日期之前补交，我们会撤销你的申请。",
+        "If you're registered with DSS and were prevented from "
+        "applying on time due to the nature or exacerbation of your "
+        "DSS registered condition, you’ll just need to provide "
+        "supporting documents that explain why you were prevented from "
+        "applying on time.":
+            "如果你已在 DSS "
+            "登记，并且是因为登记状况本身或其加重而无法按时申请，你只需要提交证明材料，说明是什么使你无法按时申请即可。",
+        "If your application is approved, we’ll give you a new date to "
+        "complete your assessment. In some cases, a second (and final) "
+        "reschedule may be considered – but only if extreme "
+        "circumstances beyond your control directly impact your "
+        "ability to attend the new date.":
+            "如果申请获批，我们会给你一个新的完成日期。在某些情况下，可以考虑第二次（也是最后一次）改期——但前提是确有你无法控制的极端情况，直接影响了你按新日期参加的能力。",
+        "If your application is approved, you may receive one of the "
+        "following outcomes.":
+            "如果申请获批，你可能会收到下列结果之一。",
+        "If your application is not approved":
+            "如果申请未获批",
+        "If you’re affected by long-term or ongoing circumstances, "
+        "such as a recurring medical condition or carer "
+        "responsibilities (including for your children), we encourage "
+        "you to register with Disability Support Services (DSS). If "
+        "you’re registered with DSS and the circumstances for which "
+        "you’re registered prevent you from completing your assessment "
+        "on time, you may be eligible for an extension through special "
+        "consideration (as long as DSS has approved you for flexible "
+        "deadlines). DSS can also support you with other reasonable "
+        "adjustments to support your learning.":
+            "如果你受长期或持续性情况影响，例如反复发作的健康问题或照护责任（包括照顾子女），我们建议你到 Disability "
+            "Support "
+            "Services（DSS，无障碍支持服务）登记。登记之后，若你登记的这些情况使你无法按时完成考核，你可能符合通过特殊考虑（special "
+            "consideration）申请延期的条件（前提是 DSS 已批准你使用 flexible "
+            "deadlines（弹性截止日期））。DSS 还可以为你安排其他合理调整，以支持你的学习。",
+        "If you’re unable to attend your in-class assessment (for "
+        "example, a class test or presentation), mid-semester test or "
+        "practical assessment, you’ll need to provide supporting "
+        "documents showing the exceptional circumstances that "
+        "prevented you from completing it on the scheduled day. If "
+        "you’re providing a medical certificate, it needs to be from "
+        "an in-person consultation from a fully registered "
+        "practitioner in the country you’re enrolled in. Video/phone "
+        "consultation will only be accepted if it was impractical for "
+        "you to attend in person. Make sure you check our supporting "
+        "documents page for more details on these requirements.":
+            "如果你无法参加课堂考核（例如课堂测验或口头报告）、期中测验或实践考核，需要提交证明材料，说明是什么样的特殊情况使你不能在排定当天完成。如果提交的是 "
+            "medical "
+            "certificate（医疗证明），它必须来自你就读所在国家、经完全注册的执业人员的当面就诊；只有在当面就诊确实不可行时，视频或电话问诊才会被接受。更多要求请查看「证明材料」页面。",
+        "If you’re waiting for an outcome to an application and "
+        "realise you need more time than what you requested, you’ll "
+        "need to submit a new application. When you submit a new "
+        "application, your previous application will be withdrawn "
+        "immediately – so make sure you include all the supporting "
+        "documents needed in your new application.":
+            "如果你还在等结果，却发现需要的时间比申请时更多，就需要重新提交一份申请。新申请一经提交，之前那份会立即作废——所以请务必把所需的全部证明材料都放进新申请里。",
+        "If you’ve already attempted an assessment task (or if you’ve "
+        "exhausted all your attempts for a task that allowed multiple "
+        "attempts), you won’t be able to get a short extension.":
+            "如果你已经作答过某项考核任务（或者对允许多次作答的任务已经用完全部次数），就无法再申请短期延期。",
+        "If you’ve already attempted or submitted an assessment task, "
+        "we can’t grant you a second attempt or the ability to "
+        "resubmit. If you’ve exhausted all your attempts for a task "
+        "that allowed multiple attempts (e.g. a quiz), you won’t be "
+        "eligible for special consideration. This includes situations "
+        "where you've started an assessment and it's automatically "
+        "submitted when closed.":
+            "如果你已经作答或提交过某项考核任务，我们无法再给你一次作答机会或重新提交的机会。对允许多次作答的任务（例如小测），一旦用完全部次数，就不再符合特殊考虑（special "
+            "consideration）的条件。这也包括你已经开始作答、系统在关闭时自动提交的情形。",
+        "If you’ve already been given a short extension and then find "
+        "that changed circumstances prevent you from completing your "
+        "assessment by the revised due date, you may be eligible for "
+        "an extension through special consideration, with supporting "
+        "documents.":
+            "如果你已经拿到过短期延期，之后情况有变、使你无法在新截止日前完成考核，你可能符合凭证明材料通过特殊考虑（special "
+            "consideration）申请延期的条件。",
+        "If you’ve already been given a short extension for an "
+        "assessment but you need more time, you’ll need to then apply "
+        "for an extension through special consideration with "
+        "supporting documents.":
+            "如果你已经为某项考核拿到短期延期但仍需更多时间，接下来需要通过特殊考虑（special "
+            "consideration）申请延期，并提交证明材料。",
+        "If you’ve already been given an extension but you're unable "
+        "to complete your assessment by the revised due date, you’ll "
+        "need to submit a new application with new supporting "
+        "documents. Your supporting documents must explain why you are "
+        "unable to complete your assessment by the revised due date "
+        "and how much longer you need.":
+            "如果你已经拿到过延期，但仍无法在新截止日前完成考核，就需要提交一份新申请和新的证明材料。材料中必须说明你为何无法在新截止日前完成，以及还需要多久。",
+        "In-class assessments and mid-semester tests":
+            "课堂考核与期中测验",
+        "Long-term or ongoing circumstances":
+            "长期或持续性的情况",
+        "Marking and Feedback Procedure (pdf)":
+            "Marking and Feedback Procedure（评分与反馈规程，pdf）",
+        "Medical certificate from UHS\n \nYou can get a medical "
+        "certificate from a Monash University Health Services (UHS) "
+        "doctor to support your application for special consideration.":
+            "UHS 开具的 medical certificate（医疗证明）\n \n你可以找 Monash University "
+            "Health Services（UHS，校内医疗服务）的医生开具 medical "
+            "certificate（医疗证明），用于支持你的特殊考虑（special consideration）申请。",
+        "Medical documentation clarifications":
+            "医疗材料要求说明",
+        "Missed lab: If you have a laboratory in week 1 that you’re "
+        "unable to complete because of an illness, and the associated "
+        "assessment is due in week 2, you’ll need to submit an "
+        "application for the assessment task due in week 2. You'll "
+        "need to apply by 11.55pm on the date of the lab/practical "
+        "activity you missed (e.g. the date in week 1) – the "
+        "application information and supporting documents need to show "
+        "why you missed this activity.\n\nCompleted lab but unable to "
+        "complete the assessment: If you’ve completed the "
+        "practical/lab activity but exceptional circumstances prevent "
+        "you from completing the associated assessment, you may be "
+        "eligible to apply for special consideration for the "
+        "assessment task. The deadline for the application is 11.55pm "
+        "of the date of the assessment task.":
+            "错过实验课：如果你在第 1 周有一节实验课，因病无法参加，而对应的考核在第 2 周截止，那么你需要为第 2 "
+            "周截止的那项考核任务提交申请，并且必须在你错过的那节实验或实践活动当天（即第 1 周的那一天）23:55 "
+            "之前提交——申请信息和证明材料需要说明你为何错过了这项活动。\n\n已完成实验课但无法完成考核：如果你已经完成了实践或实验活动，但确有特殊情况使你无法完成对应的考核，你可能符合为该考核任务申请特殊考虑（special "
+            "consideration）的条件。申请截止时间是该考核任务当天的 23:55。",
+        "Need an extension?":
+            "需要延期？",
+        "Need help? Ask our virtual assistant. It can help you check "
+        "your eligibility and figure out what documents and "
+        "information you’ll need.":
+            "需要帮忙？问问我们的虚拟助手。它可以帮你确认自己是否符合条件，以及需要准备哪些材料和信息。",
+        "Not sure about your options? Ask our virtual assistant!\nWhen "
+        "you’re faced with exceptional circumstances, our virtual "
+        "assistant can help you check your eligibility and figure out "
+        "what documents and information you’ll need to provide.":
+            "不确定自己有哪些选择？问问我们的虚拟助手！\n遇到特殊情况时，虚拟助手可以帮你确认是否符合条件，以及需要提供哪些材料和信息。",
+        "Once your situation improves, it’s best to keep working on "
+        "your assessment and try to submit it as soon as you can. "
+        "Otherwise, you may risk a late penalty if we don’t approve "
+        "your application. Also, an extension may delay any feedback "
+        "on your assessment.":
+            "情况一好转，最好就继续做你的考核，并尽快提交。否则万一申请未获批，你可能会被扣迟交分。另外，延期也会推迟你拿到考核反馈的时间。",
+        "Practical activities (including laboratories) and associated "
+        "assessments":
+            "实践活动（含实验课）及其对应的考核",
+        "Reschedule your deferred assessment":
+            "为延期考核改期",
+        "Short extension (two calendar days)":
+            "短期延期（两个日历日）",
+        "Some assessments will require complex arrangements to be put "
+        "in place and additional time may be needed to assess your "
+        "application and provide an outcome.":
+            "有些考核需要安排的事项比较复杂，评估你的申请并给出结果可能需要更长时间。",
+        "Special Consideration Procedure (pdf)":
+            "Special Consideration Procedure（特殊考虑规程，pdf）",
+        "Successful application":
+            "申请获批",
+        "Support and advice\n \nIf you need assistance with an "
+        "assessment, get support and advice that will help you meet "
+        "your course commitments.":
+            "支持与建议\n \n如果你在某项考核上需要帮助，这里有能帮你完成学业要求的支持与建议。",
+        "Supporting documents\n \nMake sure you provide the correct "
+        "supporting documents as evidence of your exceptional or "
+        "extreme circumstances when you apply for special "
+        "consideration.":
+            "证明材料\n \n申请特殊考虑（special "
+            "consideration）时，请务必提交正确的证明材料，用以证明你所处的特殊或极端情况。",
+        "The application deadline is 11.55pm on the day your "
+        "assessment is due or scheduled.":
+            "申请截止时间是考核截止或排定当天的 23:55。",
+        "The exceptional circumstances approved for your deferred "
+        "assessment are still unresolved. You’ll need to provide "
+        "updated supporting documents demonstrating the unresolved or "
+        "ongoing circumstances that have impacted your original and "
+        "deferred assessments.":
+            "当初获批延期考核时的那些特殊情况至今仍未解决。你需要提交更新后的证明材料，说明这些尚未解决或仍在持续的情况如何影响了你原定的考核和延期后的考核。",
+        "The special consideration process applies to students at all "
+        "Monash University campuses and locations.":
+            "特殊考虑（special consideration）流程适用于 Monash 大学所有校区和地点的学生。",
+        "To be eligible for a second (and final) reschedule of your "
+        "in-class, mid-semester or practical assessment, you’ll need "
+        "to meet one of the following criteria:":
+            "要符合课堂考核、期中测验或实践考核第二次（也是最后一次）改期的条件，你需要满足下列标准之一：",
+        "We can’t accept late applications. You’ll need to apply, with "
+        "supporting documents, for an extension through special "
+        "consideration instead. Your supporting documents will need to "
+        "show that you weren’t able to apply on time due to extreme "
+        "circumstances beyond your control (e.g. hospitalisation).":
+            "我们无法受理迟交的申请。你需要改为凭证明材料通过特殊考虑（special "
+            "consideration）申请延期，材料中必须显示你是因为无法控制的极端情况（例如住院）才没能按时申请。",
+        "We can’t give you an extension for things like:":
+            "下列这类原因我们不会给予延期：",
+        "We understand that unexpected circumstances beyond your "
+        "control may prevent you from completing your assessment. If "
+        "this happens, you may be eligible to apply for more time. "
+        "Your options will depend on the type of assessment and "
+        "circumstances.":
+            "我们理解，你无法控制的突发情况可能使你无法完成考核。遇到这种情况，你可能符合申请更多时间的条件。具体有哪些选择，取决于考核类型和你的处境。",
+        "We won’t normally accept an application for an extension "
+        "after the deadline – 11.55pm on the day that your assessment "
+        "is due – but we understand that extreme circumstances could "
+        "prevent you from applying on time (e.g. you were hospitalised "
+        "with a serious illness). If this is the case, you’ll need to "
+        "provide evidence of these circumstances and how they "
+        "prevented you from applying on time.":
+            "延期申请一旦超过截止时间——即考核截止当天 "
+            "23:55——通常不予受理。但我们也明白，极端情况可能使你无法按时申请（例如你因重病住院）。若是如此，你需要提交证据，说明这些情况本身、以及它们如何使你无法按时申请。",
+        "We’ll email you the outcome of your application within one "
+        "University working day, with one of the following outcomes.":
+            "我们会在一个学校工作日内把申请结果邮件发给你，结果为下列之一。",
+        "We’ll email you the outcome of your application within three "
+        "University working days as long as you’ve submitted a "
+        "complete application with all the required supporting "
+        "documents.":
+            "只要你提交的申请完整、所需证明材料齐备，我们会在三个学校工作日内把结果邮件发给你。",
+        "We’ll email you the outcome within three University working "
+        "days of when you submit your new application (complete and "
+        "with all the required supporting documents).":
+            "自你提交新申请（完整且所需证明材料齐备）起，我们会在三个学校工作日内把结果邮件发给你。",
+        "We’ve clarified the requirements for medical documentation "
+        "from online or overseas medical providers. To make sure your "
+        "application gets processed as quickly as possible, review the "
+        "requirements on our supporting documents for special "
+        "consideration page before you submit your application.":
+            "我们已经把来自线上或海外医疗机构的医疗材料要求写得更清楚了。为使申请尽快得到处理，请在提交前先查看「特殊考虑（special "
+            "consideration）证明材料」页面上的要求。",
+        "When you apply for a short extension, you don’t need to give "
+        "a reason on your first application for an assessment in a "
+        "particular unit. All other applications for assessments in "
+        "that unit will require a reason. Make sure to apply as soon "
+        "as possible, but no later than 11.55pm on the day your "
+        "assessment is due.":
+            "申请短期延期时，你为某门课程的第一次申请不需要说明理由；同一门课程的其他考核再申请时就需要写明理由。请尽快提交，最迟不得晚于考核截止当天 "
+            "23:55。",
+        "When you apply for an extension through special "
+        "consideration, you need to provide supporting documents to "
+        "show why you can’t complete your assessment as scheduled due "
+        "to immediate and exceptional circumstances beyond your "
+        "control. Make sure to apply as soon as possible, but no later "
+        "than 11.55pm on the day your assessment is due.":
+            "通过特殊考虑（special "
+            "consideration）申请延期时，你需要提交证明材料，说明自己为何因突发且无法控制的特殊情况而不能按时完成考核。请尽快提出申请，最迟不得晚于考核截止当天 "
+            "23:55。",
+        "When you apply for an extension, you must give us information "
+        "that’s true, accurate and complete, without intending to "
+        "mislead or gain advantage. If you make a false statement or "
+        "provide a falsified supporting document, we won't approve "
+        "your application and we'll refer the matter to Student "
+        "Conduct and Complaints to investigate for academic misconduct.":
+            "申请延期时，你提供的信息必须真实、准确、完整，不得有误导或谋取便利的意图。如果你作出虚假陈述，或提交伪造的证明材料，我们不会批准你的申请，并会将此事移交 "
+            "Student Conduct and Complaints（学生行为与投诉办公室）按学术不端立案调查。",
+        "When you’re not eligible":
+            "不符合条件的情形",
+        "While you’re waiting for an outcome, and once your situation "
+        "improves, it’s best to keep working on your assessment and "
+        "try to submit it as soon as possible. Otherwise, you may risk "
+        "a late penalty.":
+            "在等待结果期间，一旦情况好转，最好就继续做你的考核并尽快提交，否则可能会被扣迟交分。",
+        "You can apply for a short extension for most assessments (see "
+        "exceptions below), for example, an assignment or quiz.":
+            "多数考核都可以申请短期延期（例外见下文），例如作业或小测。",
+        "You can apply for an extension (of generally more than two "
+        "days) through special consideration for any type of "
+        "assessment except a scheduled final assessment (exam) as long "
+        "as you can provide documents to support your exceptional "
+        "circumstances. These will include:":
+            "除已排定的期末考核（考试）外，任何类型的考核都可以通过特殊考虑（special "
+            "consideration）申请延期（通常超过两天），前提是你能提供材料证明所处的特殊情况。这些情况包括：",
+        "You can apply for special consideration for a group "
+        "assessment – the application process is the same. If your "
+        "application is approved (for group assessments where other "
+        "students are impacted):":
+            "小组考核也可以申请特殊考虑（special "
+            "consideration），申请流程相同。如果申请获批（且该小组考核涉及其他同学）：",
+        "You can't apply to reschedule a supplementary assessment or "
+        "an additional assessment on a competency hurdle task.":
+            "补考、以及能力门槛任务的附加考核，都不能申请改期。",
+        "You can't request an extension from your chief examiner – "
+        "instead, use the form below to apply for a short extension, "
+        "or an extension through special consideration.":
+            "你不能直接向主考官（chief examiner）要延期——请用下面的表格申请短期延期，或通过特殊考虑（special "
+            "consideration）申请延期。",
+        "You can’t apply for a short extension for:":
+            "下列情形不能申请短期延期：",
+        "You have an ongoing disability registered with Disability "
+        "Support Services (DSS) that prevented you from attending your "
+        "deferred assessment. You’ll need to provide supporting "
+        "documents showing that the exceptional circumstances were "
+        "beyond your control and directly related to your registered "
+        "condition.":
+            "你有已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记的持续性障碍，并因此无法参加延期考核。你需要提交证明材料，显示这些特殊情况是你无法控制的、且与你登记的状况直接相关。",
+        "You may be eligible for a short extension of two calendar "
+        "days if you can’t complete your assessment on time due to "
+        "short-term difficult circumstances, such as a medical "
+        "condition, carer responsibilities (including for your "
+        "children) or a car accident.":
+            "如果你因短期困难而无法按时完成考核——例如健康问题、照护责任（包括照顾子女）或遭遇车祸——你可能符合申请两个日历日短期延期的条件。",
+        "Your application may also be declined if your exceptional "
+        "circumstances mean that you require prolonged extensions "
+        "during or beyond the teaching period. We may instead "
+        "recommend that you withdraw from your unit. You may be "
+        "eligible to apply for special circumstances.":
+            "如果你的特殊情况意味着你在开课学期之内或之后需要长期延期，申请也可能被驳回。我们可能转而建议你退选这门课程。你可能符合按特殊情形（special "
+            "circumstances）提出申请的条件。",
+        "You’ll be asked to provide supporting documents at the time "
+        "of application. Check our supporting documents page for "
+        "information on what documents you need and what to do if "
+        "you’re facing delays while trying to get them.":
+            "申请时我们会请你提交证明材料。需要哪些材料、以及在取得材料受阻时该怎么办，请查看「证明材料」页面。",
+        "You’ve experienced (and can provide evidence of) extreme "
+        "circumstances beyond your control, such as:":
+            "你确实经历了（并且能提供证据的）无法控制的极端情况，例如：",
+        "a group assessment":
+            "小组考核",
+        "a mid-semester test":
+            "期中测验",
+        "a practical assessment (including laboratories)":
+            "实践考核（含实验课）",
+        "a scheduled final assessment.":
+            "已排定的期末考核。",
+        "all the members of your group might be granted an extension.":
+            "小组全体成员可能一并获得延期。",
+        "an in-class test/assessment (including presentations)":
+            "课堂测验或课堂考核（含口头报告）",
+        "disruption caused by international conflict":
+            "国际冲突造成的影响",
+        "family (relationship breakdown)":
+            "家庭（关系破裂）",
+        "financial/employment issues":
+            "经济或就业问题",
+        "gender-based violence":
+            "性别暴力",
+        "losing your Moodle access because you didn’t complete a "
+        "compulsory module":
+            "因为没完成必修模块而被停用 Moodle",
+        "loss or bereavement":
+            "亲人离世与哀伤",
+        "loss or bereavement: death of a person with whom you had a "
+        "significant relationship":
+            "亲人离世与哀伤：与你有重要关系的人过世",
+        "medical condition (including COVID-19)":
+            "健康问题（含新冠）",
+        "mental health condition":
+            "心理健康问题",
+        "military, jury or emergency services obligations":
+            "兵役、陪审团或紧急救援服务义务",
+        "mistaking your assessment due date":
+            "记错了考核截止日期",
+        "obligations as athlete, artist or performer registered with "
+        "Elite Student Performer Scheme or as representative of "
+        "University in other key events and programs":
+            "作为已在 Elite Student Performer "
+            "Scheme（ESPS，精英学生表现者计划）登记的运动员、艺术家或表演者所负的义务，或代表学校参加其他重要赛事和项目的义务",
+        "other exceptional circumstances beyond your control.":
+            "其他你无法控制的特殊情况。",
+        "other extreme circumstances.":
+            "其他极端情况。",
+        "religious or cultural obligations":
+            "宗教或文化义务",
+        "representing a club or society as a volunteer":
+            "以志愿者身份代表某个社团或学会",
+        "scheduled final assessment (exam) (apply for a deferred "
+        "assessment instead).":
+            "已排定的期末考核（考试）——请改为申请延期考核。",
+        "serious and debilitating medical condition":
+            "严重且使人失能的健康问题",
+        "severe mental health condition":
+            "严重心理健康问题",
+        "technical disruption":
+            "技术故障",
+        "technical issues you might have avoided by uploading the "
+        "correct files, allowing enough time for uploading and having "
+        "the right equipment":
+            "本可以避免的技术问题，例如上传了正确的文件、留出足够的上传时间、或备好合适的设备就不会发生的那些",
+        "the method for marking the work of your group members (who "
+        "did not apply for special consideration) might change, or":
+            "对小组中未申请特殊考虑（special consideration）的其他成员，其作业的评分方式可能会有所调整；或者",
+        "victim of crime or concerns about safety":
+            "遭受犯罪侵害，或对人身安全的担忧",
+        "you could be given an alternative assessment task":
+            "你可能会被安排一项替代的考核任务",
+    },
     "academic-transcripts": {
         "About your academic record":
             "关于你的学业记录",

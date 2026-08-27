@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import { MONASH_SYSTEMS } from '~/data/systems'
+</script>
+
 <template>
   <footer class="footer">
     <div class="container inner">
@@ -28,6 +32,31 @@
         <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
           {{ $t('footer.monashStudents') }} ↗
         </a>
+        <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+          {{ $t('footer.monashMalaysia') }} ↗
+        </a>
+      </nav>
+
+      <!-- The systems a student logs into. Kept apart from the reference sites
+           above because these are things you do, not things you read - and
+           split by campus, because half of them are Malaysia's own. -->
+      <nav class="col" :aria-label="$t('footer.systems')">
+        <h2 class="tiny muted heading">{{ $t('footer.systems') }}</h2>
+        <a
+          v-for="system in MONASH_SYSTEMS"
+          :key="system.url"
+          :href="system.url"
+          rel="noopener external"
+          target="_blank"
+          class="system"
+        >
+          <span>{{ system.name }} ↗</span>
+          <CampusNotice
+            v-if="system.appliesTo === 'malaysia'"
+            :applies-to="system.appliesTo"
+            compact
+          />
+        </a>
       </nav>
     </div>
   </footer>
@@ -35,7 +64,7 @@
 
 <style scoped>
 /*
- * Three columns rather than one.
+ * Four columns rather than one.
  *
  * The disclaimer is the longest single piece of text on the site and it sits at
  * the bottom of every page, so left on its own it either runs the full window
@@ -51,7 +80,7 @@
 }
 .inner {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr) minmax(140px, 1fr);
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(130px, 1fr));
   gap: var(--s6);
   align-items: start;
 }
@@ -82,6 +111,10 @@
 
 @media (max-width: 900px) {
   .inner { grid-template-columns: 1fr 1fr; gap: var(--s5); }
+  /* The disclaimer spans the row on a narrow screen; the three link
+     columns pair up under it rather than each taking a half-width
+     column of their own and leaving one stranded. */
+  .about { grid-column: 1 / -1; }
   .about { grid-column: 1 / -1; }
 }
 @media (max-width: 980px) {
