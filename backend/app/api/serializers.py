@@ -167,6 +167,10 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
         "official_url": entry.official_url
         or (entry.official_page.canonical_url if entry.official_page else None),
         "official_title": entry.official_page.title if entry.official_page else None,
+        # Taken from the page the answer is traceable to rather than stored
+        # again here: an answer about the 48-hour work limit is Australian
+        # because the page it cites is, and the two must never disagree.
+        "applies_to": entry.official_page.applies_to if entry.official_page else None,
         "last_checked": _iso(entry.official_page.last_checked) if entry.official_page else None,
     }
 

@@ -85,7 +85,10 @@ useSeoMeta({
           </div>
           <div v-else-if="group.kind === 'faq' && group.results.length" class="grid">
             <article v-for="faq in group.results" :key="faq.slug" class="faq card">
-              <SourceBadge kind="official" />
+              <div class="faq-top">
+                <SourceBadge kind="official" />
+                <CampusNotice :applies-to="faq.applies_to" compact />
+              </div>
               <h3>{{ faq.question }}</h3>
               <p class="small">{{ faq.answer }}</p>
               <a
@@ -116,5 +119,6 @@ useSeoMeta({
 .section-head h2 { display: flex; align-items: center; gap: var(--s3); font-size: 1.1rem; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); }
 .faq { padding: var(--s4); }
+.faq-top { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .faq h3 { margin: var(--s2) 0; font-size: 1rem; }
 </style>

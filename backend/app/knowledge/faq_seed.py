@@ -104,7 +104,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     ),
     FaqSeed(
         "student-visa-work-hours",
-        "How many hours can I work on a student visa?",
+        "How many hours can I work on a student visa? (Australia)",
+        "This is about the Australian campuses. In Malaysia the right to stay is a student "
+        "pass issued by the Immigration Department through EMGS, and its conditions are not "
+        "the ones below - check monash.edu.my. "
         "Work rights for student visa holders are set by the Australian Government, not by "
         "Monash, and the cap has changed several times in recent years. Monash's page links to "
         "the current Department of Home Affairs conditions - always confirm the number there "
@@ -117,7 +120,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     ),
     FaqSeed(
         "what-is-coe",
-        "What is a CoE and when do I need a new one?",
+        "What is a CoE and when do I need a new one? (Australia)",
+        "This is about the Australian campuses; Malaysia issues a student pass through EMGS "
+        "instead. "
         "A Confirmation of Enrolment (CoE) is the document your student visa is granted against. "
         "You generally need a new one if your course, campus or completion date changes - "
         "including if you take intermission or reduce your load. Request it before your current "
