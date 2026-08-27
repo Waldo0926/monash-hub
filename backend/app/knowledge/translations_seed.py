@@ -1019,6 +1019,200 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "通过特殊考虑（special consideration）申请延期时，你需要提交证明材料，说明自己为何因突发且无法控制的特殊情况而不能按时完成考核。请尽快提出申请，最迟不得晚于考核截止当天 23:55。",
     },
     "student-visa": {
+        "Apply for a student visa":
+            "申请学生签证",
+        "Applying for your visa":
+            "递交签证申请",
+        "Attach any documents required.":
+            "上传所需的各项材料。",
+        "If your visa is cancelled":
+            "签证被取消时",
+        "Keeping your visa valid":
+            "保持签证有效",
+        "Receiving an outcome":
+            "收到审理结果",
+        "Visas for family members":
+            "家庭成员的签证",
+        "your partner":
+            "你的伴侣",
+        "As an international student, you can only apply to reduce "
+        "your study load or take a study break (intermission) under "
+        "compassionate or compelling circumstances.":
+            "作为国际学生，只有在具备体恤或不可抗因素（compassionate or compelling "
+            "circumstances）的情况下，你才可以申请减少学习负荷或休学（intermission）。",
+        "As an international student, you need a student visa "
+        "(subclass 500) to study at Monash. If you’re a new student, "
+        "you’ll need to apply for a student visa. If you’re a "
+        "returning student, you’ll need to make sure your visa remains "
+        "valid for the duration of your course.":
+            "作为国际学生，你需要持学生签证（subclass 500）才能在 Monash "
+            "学习。如果你是新生，需要申请学生签证；如果你是在读学生，则要确保签证在整个学位课程期间保持有效。",
+        "Changing your enrolment\n \nHow changes to your enrolment can "
+        "affect your visa.":
+            "变更选课注册\n \n选课注册的变动会怎样影响你的签证。",
+        "Confirmation of Enrolment (CoE)\n \nYour CoE should reflect "
+        "your course enrolment and duration. You’ll need to apply for "
+        "a new CoE if you can’t complete your course in the set time "
+        "and need a new student visa.":
+            "入学确认书（CoE）\n \n你的 CoE "
+            "应当如实反映你的学位课程注册情况和学习年限。如果你无法在规定时间内完成学位课程、需要办新的学生签证，就要申请一份新的 "
+            "CoE。",
+        "Create or log into your ImmiAccount – this is where you’ll "
+        "apply.":
+            "创建或登录你的 ImmiAccount 账户——申请就在这里提交。",
+        "Extending your stay\n \nFind out what to do if you need to "
+        "extend your stay in Australia.":
+            "延长在澳停留时间\n \n如果你需要延长在澳大利亚停留的时间，看看该怎么办。",
+        "Familiarise yourself with the application process – take a "
+        "look at the Department of Home Affairs’ page on Student visa "
+        "(Subclass 500) so you know what to expect.":
+            "先熟悉申请流程——看一看 Department of Home Affairs（澳大利亚内政部） 关于 Student "
+            "visa (Subclass 500) 的页面，对整个过程心里有数。",
+        "For more information, check your visa details and conditions "
+        "(Department of Home Affairs).":
+            "更多信息，请查看你的签证详情与签证条件（Department of Home Affairs（澳大利亚内政部））。",
+        "Get your documents ready – use the Department of Home "
+        "Affairs’ Document Checklist Tool to see what you’ll need (do "
+        "this early, as you’ll need to organise things like Overseas "
+        "Student Health Cover).":
+            "把材料准备好——用 Department of Home Affairs（澳大利亚内政部） 的 Document "
+            "Checklist "
+            "Tool（材料清单工具）查清自己需要哪些材料。这件事要早做，因为像留学生医疗保险（OSHC）这类事项需要时间安排。",
+        "Home Affairs no longer issues visa labels – instead, they now "
+        "hold your visa information electronically. You can confirm "
+        "your visa conditions (including work restrictions) using the "
+        "Visa Entitlement Verification Online (VEVO) system.":
+            "内政部已不再签发签证贴纸，改为以电子方式保存你的签证信息。你可以通过 Visa Entitlement "
+            "Verification Online（VEVO，签证权利在线核验系统）确认自己的签证条件，包括工作限制。",
+        "If you're on a student visa, you must complete your course in "
+        "the time stated on your CoE. The standard undergraduate study "
+        "load per year is 48 credit points (24 credit points per "
+        "semester).":
+            "如果你持学生签证，必须在 CoE 上载明的时间内完成学位课程。本科阶段每年的标准学习负荷是 48 学分（每学期 24 "
+            "学分）。",
+        "If your current visa is due to expire before you finish your "
+        "course, you’ll need to apply for a new one.":
+            "如果你现有签证会在学业结束前到期，就需要申请一份新签证。",
+        "If your visa is approved, make sure you read through this "
+        "communication carefully and keep a copy of it. It will "
+        "include important information like your visa grant number, "
+        "expiry date and conditions.":
+            "如果签证获批，请仔细阅读这份通知并留存副本。里面会有签证批准号、到期日和签证条件等重要信息。",
+        "If you’re coming to study at Monash on an Australia Awards "
+        "scholarship, see family members of AAS students for relevant "
+        "visa details.":
+            "如果你是持 Australia Awards 奖学金来 Monash 学习的，相关签证事项请查看「AAS "
+            "学生的家庭成员」页面。",
+        "If you’re experiencing delays and your course start date is "
+        "approaching, reach out to Monash Connect for advice. While we "
+        "can’t speed up your application, we can discuss some study "
+        "options with you.":
+            "如果你的申请出现延误、而开课日期又临近，可以联系 Monash "
+            "Connect（学生服务中心）咨询。我们没办法加快你的签证审理，但可以和你一起讨论几种学业上的安排。",
+        "If you’re in Australia or immigration clearance, the "
+        "Department of Home Affairs will usually notify you if they're "
+        "considering cancelling your visa and give you the opportunity "
+        "to explain why your visa should not be cancelled.":
+            "如果你人在澳大利亚境内或正在办理入境查验，Department of Home "
+            "Affairs（澳大利亚内政部）在考虑取消你的签证时，通常会先通知你，并给你机会陈述不应取消的理由。",
+        "If you’re on a student visa, you need to be in Australia to "
+        "attend face-to-face classes during your course. You can only "
+        "study up to one-third of your course by distance education or "
+        "online. For example, if your course has 24 units to be "
+        "completed over a three-year period, you can only complete "
+        "eight units by distance education or online.":
+            "如果你持学生签证，就需要人在澳大利亚参加面授课程。你最多只能有三分之一的学位课程通过远程或线上方式修读。举例来说，如果你的学位课程需要在三年内修完 "
+            "24 门课，其中最多只能有 8 门通过远程或线上完成。",
+        "If you’re planning to study in Australia on another type of "
+        "visa, go to immigration and citizenship (Department of Home "
+        "Affairs) to check your visa rights and restrictions.":
+            "如果你打算持其他类型的签证在澳大利亚学习，请到 Department of Home "
+            "Affairs（澳大利亚内政部）的移民与公民事务页面查看该签证的权利与限制。",
+        "It’s a good idea to prepare a few things so you’re ready when "
+        "it’s time to apply:":
+            "提前准备好几样东西，到要申请的时候就不会手忙脚乱：",
+        "Once your application has been processed, the Department of "
+        "Home Affairs will send an outcome to you in writing.":
+            "申请审理完成后，Department of Home Affairs（澳大利亚内政部）会以书面形式把结果发给你。",
+        "Pay the application charge for you and any family members.":
+            "为你本人及随行家庭成员缴纳申请费。",
+        "Students coming with family\n \nFind out what you need to "
+        "consider (such as living expenses and cultural adjustment) "
+        "before deciding to bring your family to Australia.":
+            "携家庭成员同行的学生\n \n在决定把家人带来澳大利亚之前，先了解需要考虑哪些事情（例如生活开销和文化适应）。",
+        "The independent Administrative Appeals Tribunal (AAT) is "
+        "responsible for reviewing Home Affairs decisions, including "
+        "visa cancellation decisions.":
+            "独立的 Administrative Appeals "
+            "Tribunal（AAT，行政上诉裁判所）负责复核内政部的决定，包括取消签证的决定。",
+        "This way family members can be assessed for visa entry at the "
+        "same time as you. Among other things, they must take a "
+        "medical examination and have health insurance. You’ll also "
+        "need to provide evidence that you have enough money to "
+        "support your dependents in Australia.":
+            "这样家庭成员就可以和你同时接受签证入境审核。除其他事项外，他们必须接受体检并购买医疗保险。你还需要提供证明，说明自己有足够的资金在澳大利亚供养受抚养的家属。",
+        "To keep things moving in the meantime, make sure you:":
+            "在等待期间，为了不耽误进度，请务必：",
+        "Visa conditions are set by the Australian Government. It's "
+        "important to follow these conditions to avoid having your "
+        "visa cancelled. Student visa conditions include:":
+            "签证条件由澳大利亚政府设定。务必遵守这些条件，以免签证被取消。学生签证的条件包括：",
+        "We understand that waiting for an outcome can be "
+        "nerve-wracking. Most of the time, it takes the Department of "
+        "Home Affairs up to eight weeks to process an application. "
+        "However, it can take longer during peak periods. We recommend "
+        "using the visa processing times guide to see how long your "
+        "application should take.":
+            "我们明白等结果的滋味不好受。多数情况下，Department of Home "
+            "Affairs（澳大利亚内政部）审理一份申请最长需要八周，但在高峰期可能更久。建议用签证审理时长指南查看你的申请大概需要多长时间。",
+        "When you apply for a student visa, you can include these "
+        "family members:":
+            "申请学生签证时，你可以把下列家庭成员一并列入：",
+        "Working on a student visa\n \nAlthough you receive permission "
+        "to work automatically with your student visa, make sure you "
+        "understand the current rules for working on a student visa.":
+            "持学生签证工作\n \n虽然学生签证会自动附带工作许可，但仍请你弄清目前持学生签证工作的具体规定。",
+        "You can apply for a student visa online through the "
+        "Department of Home Affairs. Here’s what you’ll need to do:":
+            "你可以在 Department of Home Affairs（澳大利亚内政部）的网站上在线申请学生签证。具体要做的是：",
+        "You can't enrol exclusively in distance education or online "
+        "study (unless it's your final unit in your final semester).":
+            "你不能只注册远程或线上课程（除非那是你最后一个学期的最后一门课）。",
+        "You need to declare all family members on your application, "
+        "even if they don’t plan to travel with you to Australia. This "
+        "will allow them to apply to join you after you have started "
+        "your course.":
+            "申请时必须申报所有家庭成员，即便他们并不打算和你一起来澳大利亚。这样他们才能在你开学之后再申请来与你团聚。",
+        "Your student visa will remain valid unless you’re no longer "
+        "enrolled in a registered course. Your enrolment ends when you "
+        "complete the course, even if this is earlier than the end "
+        "date on your Confirmation of Enrolment (CoE).":
+            "只要你仍注册在册于某个已登记的学位课程，学生签证就保持有效。学业在你完成学位课程时即告结束——即便这比入学确认书（CoE）上的结束日期更早。",
+        "You’ll receive a confirmation email from the Department of "
+        "Home Affairs, who’ll get to work assessing your application.":
+            "你会收到 Department of Home Affairs（澳大利亚内政部）的确认邮件，之后他们就会开始审核你的申请。",
+        "check your email regularly for updates and requests from the "
+        "Department of Home Affairs":
+            "经常查看邮箱，留意 Department of Home Affairs（澳大利亚内政部）的进展通知和补件要求",
+        "log into your ImmiAccount and check if there are any new "
+        "requirements (for example, you may be asked to have a health "
+        "assessment)":
+            "登录 ImmiAccount 账户，查看是否有新的要求（例如可能会要求你做健康检查）",
+        "maintaining Overseas Student Health Cover (OSHC) for the "
+        "duration of your visa":
+            "在整个签证有效期内持续持有留学生医疗保险（OSHC）",
+        "maintaining your enrolment, satisfactory attendance (if "
+        "applicable) and course progress for each study period":
+            "保持选课注册有效、出勤达标（如适用），并在每个学习期保持学业进度合格",
+        "not working more than the allowable hours per two-week period.":
+            "每两周的工作时长不超过允许的上限。",
+        "update the Department of Home Affairs if your details or "
+        "situation changes.":
+            "个人信息或情况发生变化时，及时向 Department of Home Affairs（澳大利亚内政部）更新。",
+        "your or your partner’s dependent child if they’re unmarried "
+        "and under 18 (otherwise, they’ll need to apply for their own "
+        "visa).":
+            "你或你伴侣所抚养的、未婚且未满 18 周岁的子女（否则他们需要自行申请签证）。",
         "Check visa processing times (Department of Home Affairs). If you’re outside Australia, you’ll need enough time to get your visa before your course starts. If you’re already in Australia, make sure you apply in time before your current visa expires.":
             "查看签证审理时长（澳大利亚内政部 Department of Home Affairs）。如果你人在澳大利亚境外，需要留出足够时间在学位课程开始前拿到签证；如果你已在澳大利亚境内，请务必在现有签证到期前及时提交申请。",
         "If you’re starting your studies with us, you’ll need to apply for a student visa once you’ve accepted your offer and received your Confirmation of Enrolment (CoE).":
@@ -2321,6 +2515,92 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果申请获批，你的身体状况能够在原定考核所属开课学期成绩公布日起 90 天内参加改期后的延期考核。",
     },
     "visa-changes": {
+        "Changes affecting your visa":
+            "会影响签证的变动",
+        "Compliance reporting":
+            "合规上报",
+        "Enrolment, assessments and results":
+            "选课注册、考核与成绩",
+        "Transferring to another Monash course":
+            "转到 Monash 的其他学位课程",
+        "Transferring to another university":
+            "转学到其他大学",
+        "deferred your course start date":
+            "推迟了学位课程的开课日期",
+        "failed one or more units":
+            "有一门或多门课程不及格",
+        "lost your place at Monash":
+            "失去了在 Monash 的学籍",
+        "reduced your study load":
+            "减少了学习负荷",
+        "took intermission (study leave)":
+            "申请了休学（intermission，即 study leave）",
+        "transferred to another Monash course":
+            "转到了 Monash 的其他学位课程",
+        "Changing your citizenship or visa type":
+            "更改国籍或签证类型",
+        "However, you do need a new student visa if:":
+            "但在下列情况下，你确实需要办新的学生签证：",
+        "If you change your citizenship or visa type, you need to let "
+        "us know straight away. For details, see change of residency "
+        "status.":
+            "如果你更改了国籍或签证类型，请立即告知我们。详情见「居留身份变更」页面。",
+        "If you don’t intend to complete further studies, you may wish "
+        "to extend your time in Australia to work or travel. While you "
+        "can’t get a student visa for this purpose, you can apply for "
+        "a range of other visa types through the Department of Home "
+        "Affairs.":
+            "如果你不打算继续升学，可能会想延长在澳大利亚的时间以工作或旅行。这种情况下拿不到学生签证，但你可以通过 "
+            "Department of Home Affairs（澳大利亚内政部）申请其他多种类型的签证。",
+        "If your current visa is due to expire before you finish your "
+        "course, you’ll need to apply for a new one. You may find "
+        "yourself in this situation because you:":
+            "如果你现有签证会在学业结束前到期，就需要申请一份新签证。出现这种情况，可能是因为你：",
+        "There's a chance you may need to apply for a new visa if you "
+        "change your course.":
+            "如果你更换学位课程，有可能需要申请新签证。",
+        "To stay in Australia, you need a valid visa. If your visa "
+        "does not have a condition that prevents you from extending "
+        "your stay, you may be able to apply for a new visa while your "
+        "current visa is still valid. Find out what you can do to "
+        "extend your stay.":
+            "要留在澳大利亚，你需要持有有效签证。如果你的签证没有附带禁止延长停留的条件，就可能在现有签证仍然有效期间申请新签证。请了解可以怎样延长在澳停留时间。",
+        "You don't need a new student visa if you:":
+            "在下列情况下，你不需要办新的学生签证：",
+        "You don't need to tell the Department of Home Affairs that "
+        "you're changing your course, as they will have this "
+        "information through your Confirmation of Enrolment (CoE).":
+            "更换学位课程不需要另行告知 Department of Home "
+            "Affairs（澳大利亚内政部）——他们会通过你的入学确认书（CoE）得知这一信息。",
+        "You’ll need a release to transfer to another college or "
+        "university, and you won’t be able to accept any offers until "
+        "your release has been approved. But you won't need approval "
+        "for release if you’re transferring to another course after "
+        "having studied six calendar months of your course at Monash.":
+            "转学到其他学院或大学需要取得 release（放行同意），在获批之前你不能接受任何录取。但如果你已在 Monash "
+            "就读满六个自然月后再转到其他学位课程，则无需申请 release（放行同意）。",
+        "are sitting deferred or supplementary assessments":
+            "正在参加延期考核或补考",
+        "expect to finish your studies before your current visa "
+        "expires.":
+            "预计会在现有签证到期之前完成学业。",
+        "plan to remain in Australia while under examination after "
+        "submitting your thesis.":
+            "打算在提交论文后、评审期间继续留在澳大利亚。",
+        "submitted your thesis later than expected":
+            "提交论文比预期晚",
+        "transfer to a course of the same type (e.g. bachelor degree "
+        "to bachelor degree) and":
+            "转到同一层次的学位课程（例如从学士学位转到学士学位），并且",
+        "transferred to another college or university":
+            "转学到了其他学院或大学",
+        "you transfer to a course of a different type (e.g. diploma to "
+        "bachelor degree) or":
+            "你转到了不同层次的学位课程（例如从文凭课程转到学士学位），或者",
+        "your new course will take longer and you won't finish before "
+        "your current visa expires. In this case, make sure to apply "
+        "for a new student visa just before your current one expires.":
+            "你的新学位课程耗时更长，无法在现有签证到期前完成。这种情况下，请务必在现有签证到期前不久申请新的学生签证。",
         "Keep in mind that Monash is required to inform the Department of Home Affairs when you make changes to your enrolment. This includes taking intermission (study leave), changing course, extending the duration of your studies or having your enrolment terminated or suspended.":
             "请注意：当你的选课注册发生变动时，Monash 必须通知澳大利亚内政部（Department of Home Affairs）。这包括申请休学（intermission，即 study leave）、更换学位课程、延长学习年限，以及学籍被终止或暂停。",
     },
