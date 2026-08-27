@@ -38,6 +38,23 @@ function isExternal(url?: string): boolean {
 }
 
 /**
+ * Drop the blank lines a source page uses as spacing.
+ *
+ * Paragraphs render with `white-space: pre-line`, because a heading and the
+ * sentence under it arrive in one string and the break between them is real.
+ * The runs of empty lines around them are not: monash.edu writes
+ * "Indigenous PhD scholarships now open\n \n\n\n \n Monash University is
+ * proud ..." and pre-line turns each of those into a gap, so the page reads as
+ * a column of white with sentences adrift in it.
+ *
+ * One break survives; a run of them becomes one. The strings themselves are
+ * left alone - they are the keys every hand-written translation is matched on.
+ */
+function spaced(text: string): string {
+  return (text || '').replace(/[ \t]*\n(?:[ \t]*\n)+/g, '\n')
+}
+
+/**
  * Whether a cell holds a sentence rather than a date or a code.
  *
  * Long enough that keeping it on one line makes the table wider than any phone,
@@ -73,9 +90,9 @@ function hasHeader(block: Block): boolean {
             :href="span.url"
             :target="isExternal(span.url) ? '_blank' : undefined"
             :rel="isExternal(span.url) ? 'noopener external' : undefined"
-          >{{ span.text }}</a>
-          <strong v-else-if="span.bold">{{ span.text }}</strong>
-          <template v-else>{{ span.text }}</template>
+          >{{ spaced(span.text) }}</a>
+          <strong v-else-if="span.bold">{{ spaced(span.text) }}</strong>
+          <template v-else>{{ spaced(span.text) }}</template>
         </template>
       </p>
 
@@ -91,9 +108,9 @@ function hasHeader(block: Block): boolean {
               :href="span.url"
               :target="isExternal(span.url) ? '_blank' : undefined"
               :rel="isExternal(span.url) ? 'noopener external' : undefined"
-            >{{ span.text }}</a>
-            <strong v-else-if="span.bold">{{ span.text }}</strong>
-            <template v-else>{{ span.text }}</template>
+            >{{ spaced(span.text) }}</a>
+            <strong v-else-if="span.bold">{{ spaced(span.text) }}</strong>
+            <template v-else>{{ spaced(span.text) }}</template>
           </template>
         </li>
       </component>
