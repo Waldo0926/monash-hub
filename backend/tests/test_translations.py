@@ -172,20 +172,66 @@ def test_a_paragraph_is_translated_as_one_sentence_not_span_by_span(gpa_blocks):
     assert "举例来说……" in _paragraphs(translations.translate_blocks(gpa_blocks, tr))
 
 
-def test_a_link_survives_translation(gpa_blocks):
+def _one_list(spans):
+    return [{"type": "list", "ordered": False, "items": [spans]}]
+
+
+def _translated_item(spans, strings):
     tr = translations.Translation("zh")
-    tr.strings = {
-        "You can view your latest GPA in the Web Enrolment System (WES) at any time.":
-            "你随时可以在选课系统（WES）里查看最新的 GPA。"
-    }
-    items = [
-        item
-        for block in translations.translate_blocks(gpa_blocks, tr)
-        if block["type"] == "list"
-        for item in block["items"]
+    tr.strings = strings
+    blocks = translations.translate_blocks(_one_list(spans), tr)
+    return blocks[0]["items"][0]
+
+
+def test_a_run_that_is_all_link_keeps_it():
+    item = _translated_item(
+        [{"text": "Check your census date", "url": "https://monash.edu/census"}],
+        {"Check your census date": "查看你的 census date（学籍统计日）"},
+    )
+    assert item == [
+        {"text": "查看你的 census date（学籍统计日）", "url": "https://monash.edu/census"}
     ]
-    translated = next(i for i in items if "".join(s["text"] for s in i).startswith("你随时"))
-    assert any(s.get("url", "").startswith("https://my.monash.edu") for s in translated)
+
+
+def test_a_link_on_a_few_words_does_not_swallow_the_paragraph():
+    """The reported bug: a paragraph blue from end to end, opening a mail client.
+
+    A single mailto on an address inside a long paragraph was being carried by
+    the whole translated paragraph, so clicking anywhere in it sent mail.
+    """
+    english = (
+        "If the module freezes, you need to email servicedesk@monash.edu "
+        "with the subject line CUP merge required."
+    )
+    item = _translated_item(
+        [
+            {"text": "If the module freezes, you need to email "},
+            {"text": "servicedesk@monash.edu", "url": "mailto:servicedesk@monash.edu"},
+            {"text": " with the subject line CUP merge required."},
+        ],
+        {english: "如果模块卡住，请发邮件到 servicedesk@monash.edu，主题写 CUP merge required。"},
+    )
+    linked = [s for s in item if s.get("url")]
+    assert [s["text"] for s in linked] == ["servicedesk@monash.edu"]
+    assert "".join(s["text"] for s in item).startswith("如果模块卡住")
+
+
+def test_a_link_whose_words_cannot_be_found_is_dropped_not_moved():
+    """A link on the wrong words is worse than no link.
+
+    The anchor here is a third of the sentence and its Chinese is nowhere in the
+    translation, so there is no honest place to put it.
+    """
+    english = "You can view your latest GPA in the Web Enrolment System (WES) at any time."
+    item = _translated_item(
+        [
+            {"text": "You can view your latest GPA in the "},
+            {"text": "Web Enrolment System (WES)", "url": "https://my.monash.edu"},
+            {"text": " at any time."},
+        ],
+        {english: "你随时可以在选课系统里查看最新的 GPA。"},
+    )
+    assert item == [{"text": "你随时可以在选课系统里查看最新的 GPA。"}]
 
 
 def test_the_outline_and_the_headings_cannot_disagree(gpa_blocks):

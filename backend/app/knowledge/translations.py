@@ -228,6 +228,16 @@ def translate_blocks(blocks: list[dict[str, Any]], tr: Translation) -> list[dict
     return out
 
 
+# How much of a run its link has to cover before the whole translated run may
+# carry it. Measured over the guides: of the 207 runs where a single link sat
+# among plain text, 13 covered nine tenths of the run and 149 covered under a
+# third - including a 1,767-character paragraph made clickable end to end by a
+# link on "University Health Services". A reader who clicks anywhere in a
+# paragraph and lands in their mail client is being told the paragraph is a
+# link, and it is not.
+WHOLE_RUN = 0.9
+
+
 def _translate_spans(spans: list[dict[str, Any]], tr: Translation) -> list[dict[str, Any]]:
     joined = "".join(s.get("text", "") for s in spans).strip()
     translated = tr.strings.get(joined)
@@ -237,11 +247,52 @@ def _translate_spans(spans: list[dict[str, Any]], tr: Translation) -> list[dict[
         return [{**s, "text": tr.strings.get(s.get("text", "").strip(), s.get("text", ""))}
                 for s in spans]
 
+    urls = {s.get("url") for s in spans}
+    if len(urls) == 1 and None not in urls:
+        # The run was a link from end to end - a linked heading, a "read more".
+        return [{"text": translated, "url": spans[0]["url"]}]
+
     links = [s for s in spans if s.get("url")]
-    span: dict[str, Any] = {"text": translated}
-    if len(links) == 1:
-        span["url"] = links[0]["url"]
-    return [span]
+    if len(links) == 1 and len(links[0]["text"].strip()) >= WHOLE_RUN * len(joined):
+        # A list item that is a linked phrase with a word or two around it.
+        return [{"text": translated, "url": links[0]["url"]}]
+    return _relinked(translated, spans, tr)
+
+
+def _relinked(
+    translated: str, spans: list[dict[str, Any]], tr: Translation
+) -> list[dict[str, Any]]:
+    """Put each link back on the words it was on, not on the whole paragraph.
+
+    The translation is one string, so where the links belong inside it has to be
+    found again. What is looked for is the anchor's own text: either its stored
+    translation, or - for an address, a code, a name kept in English - the
+    English itself. Carrying the link on the whole run instead is how a reader
+    got a paragraph that was blue from end to end and opened their mail client
+    wherever they clicked in it.
+
+    A link whose anchor cannot be found is dropped rather than guessed at. The
+    sentence still reads; a link on the wrong words does not.
+    """
+    out: list[dict[str, Any]] = []
+    rest = translated
+    for span in spans:
+        url = span.get("url")
+        anchor = span.get("text", "").strip()
+        if not url or not anchor:
+            continue
+        for needle in (tr.strings.get(anchor), anchor):
+            needle = (needle or "").strip()
+            if not needle or needle not in rest:
+                continue
+            before, _, rest = rest.partition(needle)
+            if before:
+                out.append({"text": before})
+            out.append({"text": needle, "url": url})
+            break
+    if rest:
+        out.append({"text": rest})
+    return out or [{"text": translated}]
 
 
 def translated_headings(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
