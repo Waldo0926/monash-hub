@@ -1031,6 +1031,72 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你的成绩会以 SFR（已满足学院要求）或 Fail（不及格）的形式出现在成绩单上。如果你不提交接收院校出具的成绩记录，这些课程在 Monash 成绩单上会被记为 Fail（不及格）。",
     },
     "supporting-documents": {
+        "Carer responsibilities View":
+            "照护责任 查看",
+        "DSS-registered condition View":
+            "已在 DSS 登记的状况 查看",
+        "Deferred assessment documents":
+            "申请延期考核所需的材料",
+        "Extension or deferred assessment documents":
+            "申请延期或延期考核所需的材料",
+        "Family (relationship breakdown)":
+            "家庭（关系破裂）",
+        "Family (relationship breakdown) View":
+            "家庭（关系破裂） 查看",
+        "Financial/employment issues View":
+            "经济或就业问题 查看",
+        "Gender-based violence View":
+            "性别暴力 查看",
+        "How to provide your documents":
+            "如何提交你的材料",
+        "If you give false information":
+            "提供虚假信息的后果",
+        "Loss or bereavement View":
+            "亲人离世与哀伤 查看",
+        "Medical condition View":
+            "健康问题 查看",
+        "Mental health condition View":
+            "心理健康问题 查看",
+        "Other exceptional circumstances View":
+            "其他特殊情况 查看",
+        "Other extreme circumstances View":
+            "其他极端情况 查看",
+        "Religious or cultural obligations View":
+            "宗教或文化义务 查看",
+        "Rescheduled deferred assessment documents":
+            "申请改期延期考核所需的材料",
+        "Scheduled assessments":
+            "已排定的考核",
+        "Severe mental health condition View":
+            "严重心理健康问题 查看",
+        "Students enrolled at Australian campuses":
+            "在澳大利亚校区注册的学生",
+        "Students enrolled at international campuses":
+            "在海外校区注册的学生",
+        "Supporting documents for special consideration":
+            "特殊考虑（special consideration）所需的证明材料",
+        "Technical disruption View":
+            "技术故障 查看",
+        "This may include:":
+            "这可能包括：",
+        "Unacceptable statement":
+            "不可接受的写法",
+        "Unscheduled assessments":
+            "非排定的考核",
+        "Why it's unacceptable":
+            "为什么不可接受",
+        "Why it’s unacceptable":
+            "为什么不可接受",
+        "a deferred assessment":
+            "延期考核",
+        "a rescheduled deferred assessment.":
+            "改期后的延期考核。",
+        "any medical condition requiring hospitalisation":
+            "任何需要住院的健康问题",
+        "recent discharge from hospital.":
+            "近期刚出院。",
+        "scheduled medical procedures":
+            "已排定的医疗操作或手术",
         "A medical letter of support from a doctor (or other "
         "appropriate health professional) stating how your "
         "circumstances have affected your studies and your ability to "
