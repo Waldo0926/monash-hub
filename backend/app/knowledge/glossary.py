@@ -283,6 +283,39 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "単位数",
         "ko": "학점",
     },
+    # *Credit* is three different words here and only one of them is banking.
+    # A bare "credit" is left out on purpose: on the finance units - credit
+    # risk, credit scoring, consumer credit - 信贷 is right, and pinning the
+    # word would break them. What is pinned is the phrases where it is not:
+    # the exchange boilerplate that says 189 times over that fees and credit
+    # are handled accurately, and the grade that sits between a pass and a
+    # distinction.
+    "fees and credit": {
+        "zh": "学费与学分", "ja": "授業料と単位", "ko": "학비와 학점",
+    },
+    "academic credit": {
+        "zh": "学分减免", "ja": "単位認定", "ko": "학점 인정",
+    },
+    "credit for prior learning": {
+        "zh": "既往学习的学分减免", "ja": "既修学習の単位認定", "ko": "기존 학습 학점 인정",
+    },
+    "Pass with Credit": {
+        "zh": "Pass with Credit（良好通过）",
+        "ja": "Pass with Credit（良）",
+        "ko": "Pass with Credit(양호)",
+    },
+    "High distinction": {
+        "zh": "High distinction（最高优等）",
+        "ja": "High distinction（最優秀）",
+        "ko": "High distinction(최우수)",
+    },
+    "Distinction": {
+        "zh": "Distinction（优等）",
+        "ja": "Distinction（優）",
+        "ko": "Distinction(우수)",
+    },
+    "credit card": {"zh": "信用卡", "ja": "クレジットカード", "ko": "신용카드"},
+    "debit card": {"zh": "借记卡", "ja": "デビットカード", "ko": "체크카드"},
     "credit transfer": {
         "zh": "学分减免",
         "ja": "単位認定",
