@@ -42,6 +42,7 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           </div>
           <p class="muted">{{ guide.source_name }}</p>
           <LastChecked :value="guide.last_checked" />
+          <CampusNotice :applies-to="guide.applies_to" class="mt" />
           <p class="mt">
             <a :href="guide.url" rel="noopener external" target="_blank" class="btn">
               {{ $t('guides.viewOfficial') }}

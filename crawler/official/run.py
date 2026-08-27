@@ -60,6 +60,7 @@ def register(seeds: tuple[Seed, ...]) -> int:
                 category=seed.category,
                 tags=list(seed.tags),
                 refresh_tier=seed.tier,
+                applies_to=seed.applies_to,
             )
         db.commit()
     log.info("registered %d seed pages", len(seeds))

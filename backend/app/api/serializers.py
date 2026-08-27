@@ -126,6 +126,10 @@ def official_brief(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dict
         "slug": page.slug,
         "title": tr.field("title", page.title),
         "category": page.category,
+        # Which campus the page was written for. The reader has to see this on
+        # the card as well as on the page: a student pass in Malaysia is not the
+        # Australian subclass 500 visa, and OSHC does not exist there.
+        "applies_to": page.applies_to,
         "tags": list(page.tags or []),
         "summary": tr.field("summary", page.summary),
         "translation": tr.meta(),
