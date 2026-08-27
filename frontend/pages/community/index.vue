@@ -163,7 +163,7 @@ useSeoMeta({
 .compose { padding: var(--s5); margin-bottom: var(--s5); display: grid; gap: var(--s3); }
 .field-row { display: grid; gap: var(--s1); }
 .body { min-height: 120px; padding: var(--s3); font-family: inherit; }
-.row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
+.row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
 .err { color: var(--danger); }
 .cats { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin: var(--s4) 0 var(--s5); }
 .cat {

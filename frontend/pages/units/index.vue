@@ -149,7 +149,7 @@ useSeoMeta({
 
 <style scoped>
 h1 { margin-bottom: var(--s2); }
-.layout { display: grid; grid-template-columns: 260px 1fr; gap: var(--s6); margin-top: var(--s5); }
+.layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
 .filters { display: grid; gap: var(--s4); align-content: start; }
 .filter { display: grid; gap: var(--s1); }
 .note { margin: 0; }

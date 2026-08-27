@@ -282,7 +282,7 @@ useHead(() => ({
 .chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s2); }
 .chip { padding: 2px 10px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: 0.78rem; }
 
-.body { display: grid; grid-template-columns: 1fr 280px; gap: var(--s5); align-items: start; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--s5); align-items: start; }
 /* A grid item defaults to min-width:auto, so a wide table inside .scroll-x
    stretches its own column instead of scrolling, and the whole page ends up
    scrolling sideways on a phone. This is the line that keeps the scroll inside

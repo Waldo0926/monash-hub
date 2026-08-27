@@ -110,7 +110,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 .col a { font-size: 0.9rem; }
 
 @media (max-width: 900px) {
-  .inner { grid-template-columns: 1fr 1fr; gap: var(--s5); }
+  .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
   /* The disclaimer spans the row on a narrow screen; the three link
      columns pair up under it rather than each taking a half-width
      column of their own and leaving one stranded. */
