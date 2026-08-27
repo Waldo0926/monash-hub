@@ -14,7 +14,6 @@ const links = computed(() => [
   { to: '/units', label: $t('nav.units') },
   { to: '/guides', label: $t('nav.guides') },
   { to: '/community', label: $t('nav.community') },
-  { to: '/exchange', label: $t('nav.exchange') },
   { to: '/mamo', label: $t('nav.mamo') }
 ])
 
