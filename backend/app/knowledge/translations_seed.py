@@ -1459,6 +1459,496 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "退选 冬季学期（WS-01）和第 2 学段（T2-58） 课程、并在成绩单上记为 Withdrawn（退课）的最后一天。此日期之后退选的课程会记为 Withdrawn Fail（退课记为不及格）",
     },
     "special-consideration": {
+        "A few important tips...":
+            "几点提醒……",
+        "Assessment Regime Procedure (pdf)":
+            "Assessment Regime Procedure（考核制度规程，pdf）",
+        "Defer your final assessment":
+            "申请期末考核延期",
+        "Extensions and special consideration":
+            "延期与特殊考虑（special consideration）",
+        "Get a short extension":
+            "申请短期延期",
+        "If you give false information":
+            "提供虚假信息的后果",
+        "In-class assessments and mid-semester tests":
+            "课堂考核与期中测验",
+        "Long-term or ongoing circumstances":
+            "长期或持续性的情况",
+        "Marking and Feedback Procedure (pdf)":
+            "Marking and Feedback Procedure（评分与反馈规程，pdf）",
+        "Medical documentation clarifications":
+            "医疗材料要求说明",
+        "Need an extension?":
+            "需要延期？",
+        "Reschedule your deferred assessment":
+            "为延期考核改期",
+        "Short extension (two calendar days)":
+            "短期延期（两个日历日）",
+        "Special Consideration Procedure (pdf)":
+            "Special Consideration Procedure（特殊考虑规程，pdf）",
+        "Successful application":
+            "申请获批",
+        "When you’re not eligible":
+            "不符合条件的情形",
+        "a group assessment":
+            "小组考核",
+        "a mid-semester test":
+            "期中测验",
+        "a practical assessment (including laboratories)":
+            "实践考核（含实验课）",
+        "a scheduled final assessment.":
+            "已排定的期末考核。",
+        "disruption caused by international conflict":
+            "国际冲突造成的影响",
+        "family (relationship breakdown)":
+            "家庭（关系破裂）",
+        "financial/employment issues":
+            "经济或就业问题",
+        "gender-based violence":
+            "性别暴力",
+        "loss or bereavement":
+            "亲人离世与哀伤",
+        "medical condition (including COVID-19)":
+            "健康问题（含新冠）",
+        "mental health condition":
+            "心理健康问题",
+        "mistaking your assessment due date":
+            "记错了考核截止日期",
+        "other extreme circumstances.":
+            "其他极端情况。",
+        "religious or cultural obligations":
+            "宗教或文化义务",
+        "serious and debilitating medical condition":
+            "严重且使人失能的健康问题",
+        "severe mental health condition":
+            "严重心理健康问题",
+        "technical disruption":
+            "技术故障",
+        "If an extension isn’t appropriate, we may arrange an "
+        "alternative and equivalent form of your assessment. If the "
+        "outcome of your application is an alternative assessment, "
+        "you’ll need to complete it (you can’t get an extension "
+        "instead)":
+            "如果延期并不合适，我们可能会为你安排一种替代的、难度相当的考核形式。如果你的申请结果是替代考核，你就必须完成它（不能改成延期）",
+        "Applications received after the final results for the unit "
+        "are released will not be taken into consideration under any "
+        "circumstances.":
+            "在该课程最终成绩公布之后收到的申请，任何情况下都不予受理。",
+        "Apply for fee reversal and Withdrawn grade (special "
+        "circumstances)\n \nIf special circumstances that were beyond "
+        "your control made it impossible for you to complete unit "
+        "requirements, you may be eligible for a fee reversal or "
+        "Withdrawn grade.":
+            "申请学费冲销与 Withdrawn（退课）成绩（特殊情形）\n "
+            "\n如果确有你无法控制的特殊情形，使你不可能完成该课程的要求，你可能符合申请学费冲销或 Withdrawn（退课）成绩的条件。",
+        "Assessment and Academic Integrity Policy (pdf)":
+            "Assessment and Academic Integrity Policy（考核与学术诚信政策，pdf）",
+        "Certain assessments aren’t available for special "
+        "consideration (e.g. placements) – this is determined by the "
+        "dean (or delegate) of the faculty. If you can’t complete the "
+        "assessment and it’s not available for special consideration, "
+        "check the Handbook to see the alternative arrangements.":
+            "某些考核不适用特殊考虑（special "
+            "consideration）（例如实习），这由学院院长（或其授权人）决定。如果你无法完成该考核、而它又不适用特殊考虑（special "
+            "consideration），请查看 Handbook 了解替代安排。",
+        "Extension through special consideration (generally longer)":
+            "通过特殊考虑（special consideration）申请延期（时长通常更久）",
+        "Get an extension through special consideration":
+            "通过特殊考虑（special consideration）申请延期",
+        "How to apply\nSubmit an application as soon as possible, but "
+        "no later than 11.55pm on the day your assessment is due.\n\n "
+        "Short extension form":
+            "如何申请\n请尽快提交申请，最迟不得晚于考核截止当天 23:55。\n\n 短期延期申请表",
+        "How to apply\nSubmit an application as soon as possible, but "
+        "no later than 11.55pm on the day your assessment is due. Make "
+        "sure you attach all required supporting documents as evidence "
+        "of your exceptional circumstances.Applications can still be "
+        "submitted without supporting documents (not having your "
+        "supporting documents ready is not a sufficient reason to "
+        "apply late). You'll need to submit your application on time "
+        "without your documents and include a date for when you will "
+        "provide them.\n\n Apply for an extension":
+            "如何申请\n请尽快提交申请，最迟不得晚于考核截止当天 "
+            "23:55，并务必附上全部所需的证明材料，作为你所处特殊情况的证据。没有证明材料也仍然可以先提交申请（材料没准备好不构成迟交申请的正当理由）——你需要按时提交申请，并在其中写明将于哪一天补交材料。\n\n "
+            "申请延期",
+        "If an extension isn’t appropriate, we may arrange an "
+        "alternative and equivalent form of your assessment. If the "
+        "outcome of your application is an alternative assessment, "
+        "you’ll need to complete it (you can’t get an extension "
+        "instead).":
+            "如果延期并不合适，我们可能会为你安排一种替代的、难度相当的考核形式。如果你的申请结果是替代考核，你就必须完成它（不能改成延期）。",
+        "If an extension or alternative assessment isn’t appropriate, "
+        "you may be exempt from completing your assessment if the task "
+        "makes up 10% or less of your assessments overall. Your "
+        "teaching faculty will determine which assessments are "
+        "eligible and will reweight your other assessments for your "
+        "unit.":
+            "如果延期和替代考核都不合适，而该项任务占你全部考核的 10% "
+            "或以下，你可能会被免于完成这项考核。哪些考核符合条件由授课学院判定，学院也会相应调整你这门课其他考核的权重。",
+        "If an extension or alternative assessment isn’t appropriate, "
+        "you may be exempt from completing your assessment if the task "
+        "makes up 10% or less of your assessments overall.Your "
+        "teaching faculty will determine which assessments are "
+        "eligible and will reweight your other assessments for your "
+        "unit.":
+            "如果延期和替代考核都不合适，而该项任务占你全部考核的 10% "
+            "或以下，你可能会被免于完成这项考核。哪些考核符合条件由授课学院判定，学院也会相应调整你这门课其他考核的权重。",
+        "If exceptional circumstances prevented you from attending "
+        "your practical activity, it’s best to speak to your chief "
+        "examiner to see if there’s another scheduled activity you can "
+        "attend. If there isn’t, you may be eligible to apply for "
+        "special consideration for the assessment task that’s "
+        "associated with your practical/lab activity.":
+            "如果确有特殊情况使你无法参加实践活动，最好先联系主考官（chief "
+            "examiner），看看有没有另一场已排定的活动可以参加。如果没有，你可能符合为该实践或实验活动所对应的考核任务申请特殊考虑（special "
+            "consideration）的条件。",
+        "If we approve your application, in most cases your extension "
+        "will align with the days recommended in your supporting "
+        "documents.An extension starts on the original due date of "
+        "your assessment and applies to the day or set of days "
+        "specified in your supporting documents. For example, if your "
+        "original due date is 1 October and your doctor states on your "
+        "medical certificate that you’re unfit to study for five days "
+        "(23 September through 27 September), the new due date will be "
+        "6 October.If you apply late or provide your supporting "
+        "documents late, you may receive a response after the new due "
+        "date for your assessment. If you’re well enough, it’s "
+        "important that you continue working on your assessment. We "
+        "won't be able to grant you an extension longer than the "
+        "timeframe in your supporting documentation.":
+            "如果你的申请获批，多数情况下延期天数会与你证明材料中建议的天数一致。延期从考核原定截止日起算，按你证明材料中载明的那一天或那几天顺延。举例来说：原定截止日是 "
+            "10 月 1 日，医生在 medical certificate（医疗证明）上写明你有五天（9 月 23 日至 27 "
+            "日）不适宜学习，那么新的截止日就是 10 月 6 "
+            "日。如果你申请得晚、或材料交得晚，回复可能会在新截止日之后才到。只要身体允许，请务必继续做你的考核。我们无法给出超过你证明材料所载时长的延期。",
+        "If we don’t approve your application, you’ll still need to "
+        "submit your assessment.":
+            "如果申请未获批，你仍然需要提交考核。",
+        "If you apply and get an extension, it doesn’t guarantee that "
+        "the rest of your group will be granted one as well. Your "
+        "chief examiner will decide which outcome best suits your "
+        "circumstances and let you know.":
+            "你申请并拿到延期，并不代表小组里其他人也会一并获批。主考官（chief "
+            "examiner）会判断哪种处理最符合你的情况，并通知你。",
+        "If you need an additional extension":
+            "如果你需要再一次延期",
+        "If you require prolonged extension across the teaching "
+        "period, we may decline your application and instead recommend "
+        "that you withdraw from your unit. You may be eligible to "
+        "apply for special circumstances.":
+            "如果你需要跨越整个开课学期的长期延期，我们可能会驳回你的申请，转而建议你退选这门课程。你可能符合按特殊情形（special "
+            "circumstances）提出申请的条件。",
+        "If you submitted an application without supporting documents "
+        "and didn't provide them by the date stated in your "
+        "application, we’ll cancel your application.":
+            "如果你提交申请时没有附证明材料，又没有在申请中写明的日期之前补交，我们会撤销你的申请。",
+        "If you're registered with DSS and were prevented from "
+        "applying on time due to the nature or exacerbation of your "
+        "DSS registered condition, you’ll just need to provide "
+        "supporting documents that explain why you were prevented from "
+        "applying on time.":
+            "如果你已在 DSS "
+            "登记，并且是因为登记状况本身或其加重而无法按时申请，你只需要提交证明材料，说明是什么使你无法按时申请即可。",
+        "If your application is approved, we’ll give you a new date to "
+        "complete your assessment. In some cases, a second (and final) "
+        "reschedule may be considered – but only if extreme "
+        "circumstances beyond your control directly impact your "
+        "ability to attend the new date.":
+            "如果申请获批，我们会给你一个新的完成日期。在某些情况下，可以考虑第二次（也是最后一次）改期——但前提是确有你无法控制的极端情况，直接影响了你按新日期参加的能力。",
+        "If your application is approved, you may receive one of the "
+        "following outcomes.":
+            "如果申请获批，你可能会收到下列结果之一。",
+        "If your application is not approved":
+            "如果申请未获批",
+        "If you’re affected by long-term or ongoing circumstances, "
+        "such as a recurring medical condition or carer "
+        "responsibilities (including for your children), we encourage "
+        "you to register with Disability Support Services (DSS). If "
+        "you’re registered with DSS and the circumstances for which "
+        "you’re registered prevent you from completing your assessment "
+        "on time, you may be eligible for an extension through special "
+        "consideration (as long as DSS has approved you for flexible "
+        "deadlines). DSS can also support you with other reasonable "
+        "adjustments to support your learning.":
+            "如果你受长期或持续性情况影响，例如反复发作的健康问题或照护责任（包括照顾子女），我们建议你到 Disability "
+            "Support "
+            "Services（DSS，无障碍支持服务）登记。登记之后，若你登记的这些情况使你无法按时完成考核，你可能符合通过特殊考虑（special "
+            "consideration）申请延期的条件（前提是 DSS 已批准你使用 flexible "
+            "deadlines（弹性截止日期））。DSS 还可以为你安排其他合理调整，以支持你的学习。",
+        "If you’re unable to attend your in-class assessment (for "
+        "example, a class test or presentation), mid-semester test or "
+        "practical assessment, you’ll need to provide supporting "
+        "documents showing the exceptional circumstances that "
+        "prevented you from completing it on the scheduled day. If "
+        "you’re providing a medical certificate, it needs to be from "
+        "an in-person consultation from a fully registered "
+        "practitioner in the country you’re enrolled in. Video/phone "
+        "consultation will only be accepted if it was impractical for "
+        "you to attend in person. Make sure you check our supporting "
+        "documents page for more details on these requirements.":
+            "如果你无法参加课堂考核（例如课堂测验或口头报告）、期中测验或实践考核，需要提交证明材料，说明是什么样的特殊情况使你不能在排定当天完成。如果提交的是 "
+            "medical "
+            "certificate（医疗证明），它必须来自你就读所在国家、经完全注册的执业人员的当面就诊；只有在当面就诊确实不可行时，视频或电话问诊才会被接受。更多要求请查看「证明材料」页面。",
+        "If you’re waiting for an outcome to an application and "
+        "realise you need more time than what you requested, you’ll "
+        "need to submit a new application. When you submit a new "
+        "application, your previous application will be withdrawn "
+        "immediately – so make sure you include all the supporting "
+        "documents needed in your new application.":
+            "如果你还在等结果，却发现需要的时间比申请时更多，就需要重新提交一份申请。新申请一经提交，之前那份会立即作废——所以请务必把所需的全部证明材料都放进新申请里。",
+        "If you’ve already attempted an assessment task (or if you’ve "
+        "exhausted all your attempts for a task that allowed multiple "
+        "attempts), you won’t be able to get a short extension.":
+            "如果你已经作答过某项考核任务（或者对允许多次作答的任务已经用完全部次数），就无法再申请短期延期。",
+        "If you’ve already attempted or submitted an assessment task, "
+        "we can’t grant you a second attempt or the ability to "
+        "resubmit. If you’ve exhausted all your attempts for a task "
+        "that allowed multiple attempts (e.g. a quiz), you won’t be "
+        "eligible for special consideration. This includes situations "
+        "where you've started an assessment and it's automatically "
+        "submitted when closed.":
+            "如果你已经作答或提交过某项考核任务，我们无法再给你一次作答机会或重新提交的机会。对允许多次作答的任务（例如小测），一旦用完全部次数，就不再符合特殊考虑（special "
+            "consideration）的条件。这也包括你已经开始作答、系统在关闭时自动提交的情形。",
+        "If you’ve already been given a short extension and then find "
+        "that changed circumstances prevent you from completing your "
+        "assessment by the revised due date, you may be eligible for "
+        "an extension through special consideration, with supporting "
+        "documents.":
+            "如果你已经拿到过短期延期，之后情况有变、使你无法在新截止日前完成考核，你可能符合凭证明材料通过特殊考虑（special "
+            "consideration）申请延期的条件。",
+        "If you’ve already been given an extension but you're unable "
+        "to complete your assessment by the revised due date, you’ll "
+        "need to submit a new application with new supporting "
+        "documents. Your supporting documents must explain why you are "
+        "unable to complete your assessment by the revised due date "
+        "and how much longer you need.":
+            "如果你已经拿到过延期，但仍无法在新截止日前完成考核，就需要提交一份新申请和新的证明材料。材料中必须说明你为何无法在新截止日前完成，以及还需要多久。",
+        "Medical certificate from UHS\n \nYou can get a medical "
+        "certificate from a Monash University Health Services (UHS) "
+        "doctor to support your application for special consideration.":
+            "UHS 开具的 medical certificate（医疗证明）\n \n你可以找 Monash University "
+            "Health Services（UHS，校内医疗服务）的医生开具 medical "
+            "certificate（医疗证明），用于支持你的特殊考虑（special consideration）申请。",
+        "Missed lab: If you have a laboratory in week 1 that you’re "
+        "unable to complete because of an illness, and the associated "
+        "assessment is due in week 2, you’ll need to submit an "
+        "application for the assessment task due in week 2. You'll "
+        "need to apply by 11.55pm on the date of the lab/practical "
+        "activity you missed (e.g. the date in week 1) – the "
+        "application information and supporting documents need to show "
+        "why you missed this activity.\n\nCompleted lab but unable to "
+        "complete the assessment: If you’ve completed the "
+        "practical/lab activity but exceptional circumstances prevent "
+        "you from completing the associated assessment, you may be "
+        "eligible to apply for special consideration for the "
+        "assessment task. The deadline for the application is 11.55pm "
+        "of the date of the assessment task.":
+            "错过实验课：如果你在第 1 周有一节实验课，因病无法参加，而对应的考核在第 2 周截止，那么你需要为第 2 "
+            "周截止的那项考核任务提交申请，并且必须在你错过的那节实验或实践活动当天（即第 1 周的那一天）23:55 "
+            "之前提交——申请信息和证明材料需要说明你为何错过了这项活动。\n\n已完成实验课但无法完成考核：如果你已经完成了实践或实验活动，但确有特殊情况使你无法完成对应的考核，你可能符合为该考核任务申请特殊考虑（special "
+            "consideration）的条件。申请截止时间是该考核任务当天的 23:55。",
+        "Need help? Ask our virtual assistant. It can help you check "
+        "your eligibility and figure out what documents and "
+        "information you’ll need.":
+            "需要帮忙？问问我们的虚拟助手。它可以帮你确认自己是否符合条件，以及需要准备哪些材料和信息。",
+        "Not sure about your options? Ask our virtual assistant!\nWhen "
+        "you’re faced with exceptional circumstances, our virtual "
+        "assistant can help you check your eligibility and figure out "
+        "what documents and information you’ll need to provide.":
+            "不确定自己有哪些选择？问问我们的虚拟助手！\n遇到特殊情况时，虚拟助手可以帮你确认是否符合条件，以及需要提供哪些材料和信息。",
+        "Once your situation improves, it’s best to keep working on "
+        "your assessment and try to submit it as soon as you can. "
+        "Otherwise, you may risk a late penalty if we don’t approve "
+        "your application. Also, an extension may delay any feedback "
+        "on your assessment.":
+            "情况一好转，最好就继续做你的考核，并尽快提交。否则万一申请未获批，你可能会被扣迟交分。另外，延期也会推迟你拿到考核反馈的时间。",
+        "Practical activities (including laboratories) and associated "
+        "assessments":
+            "实践活动（含实验课）及其对应的考核",
+        "Some assessments will require complex arrangements to be put "
+        "in place and additional time may be needed to assess your "
+        "application and provide an outcome.":
+            "有些考核需要安排的事项比较复杂，评估你的申请并给出结果可能需要更长时间。",
+        "Support and advice\n \nIf you need assistance with an "
+        "assessment, get support and advice that will help you meet "
+        "your course commitments.":
+            "支持与建议\n \n如果你在某项考核上需要帮助，这里有能帮你完成学业要求的支持与建议。",
+        "Supporting documents\n \nMake sure you provide the correct "
+        "supporting documents as evidence of your exceptional or "
+        "extreme circumstances when you apply for special "
+        "consideration.":
+            "证明材料\n \n申请特殊考虑（special "
+            "consideration）时，请务必提交正确的证明材料，用以证明你所处的特殊或极端情况。",
+        "The application deadline is 11.55pm on the day your "
+        "assessment is due or scheduled.":
+            "申请截止时间是考核截止或排定当天的 23:55。",
+        "The exceptional circumstances approved for your deferred "
+        "assessment are still unresolved. You’ll need to provide "
+        "updated supporting documents demonstrating the unresolved or "
+        "ongoing circumstances that have impacted your original and "
+        "deferred assessments.":
+            "当初获批延期考核时的那些特殊情况至今仍未解决。你需要提交更新后的证明材料，说明这些尚未解决或仍在持续的情况如何影响了你原定的考核和延期后的考核。",
+        "The special consideration process applies to students at all "
+        "Monash University campuses and locations.":
+            "特殊考虑（special consideration）流程适用于 Monash 大学所有校区和地点的学生。",
+        "To be eligible for a second (and final) reschedule of your "
+        "in-class, mid-semester or practical assessment, you’ll need "
+        "to meet one of the following criteria:":
+            "要符合课堂考核、期中测验或实践考核第二次（也是最后一次）改期的条件，你需要满足下列标准之一：",
+        "We can’t accept late applications. You’ll need to apply, with "
+        "supporting documents, for an extension through special "
+        "consideration instead. Your supporting documents will need to "
+        "show that you weren’t able to apply on time due to extreme "
+        "circumstances beyond your control (e.g. hospitalisation).":
+            "我们无法受理迟交的申请。你需要改为凭证明材料通过特殊考虑（special "
+            "consideration）申请延期，材料中必须显示你是因为无法控制的极端情况（例如住院）才没能按时申请。",
+        "We can’t give you an extension for things like:":
+            "下列这类原因我们不会给予延期：",
+        "We understand that unexpected circumstances beyond your "
+        "control may prevent you from completing your assessment. If "
+        "this happens, you may be eligible to apply for more time. "
+        "Your options will depend on the type of assessment and "
+        "circumstances.":
+            "我们理解，你无法控制的突发情况可能使你无法完成考核。遇到这种情况，你可能符合申请更多时间的条件。具体有哪些选择，取决于考核类型和你的处境。",
+        "We won’t normally accept an application for an extension "
+        "after the deadline – 11.55pm on the day that your assessment "
+        "is due – but we understand that extreme circumstances could "
+        "prevent you from applying on time (e.g. you were hospitalised "
+        "with a serious illness). If this is the case, you’ll need to "
+        "provide evidence of these circumstances and how they "
+        "prevented you from applying on time.":
+            "延期申请一旦超过截止时间——即考核截止当天 "
+            "23:55——通常不予受理。但我们也明白，极端情况可能使你无法按时申请（例如你因重病住院）。若是如此，你需要提交证据，说明这些情况本身、以及它们如何使你无法按时申请。",
+        "We’ll email you the outcome of your application within one "
+        "University working day, with one of the following outcomes.":
+            "我们会在一个学校工作日内把申请结果邮件发给你，结果为下列之一。",
+        "We’ll email you the outcome of your application within three "
+        "University working days as long as you’ve submitted a "
+        "complete application with all the required supporting "
+        "documents.":
+            "只要你提交的申请完整、所需证明材料齐备，我们会在三个学校工作日内把结果邮件发给你。",
+        "We’ll email you the outcome within three University working "
+        "days of when you submit your new application (complete and "
+        "with all the required supporting documents).":
+            "自你提交新申请（完整且所需证明材料齐备）起，我们会在三个学校工作日内把结果邮件发给你。",
+        "We’ve clarified the requirements for medical documentation "
+        "from online or overseas medical providers. To make sure your "
+        "application gets processed as quickly as possible, review the "
+        "requirements on our supporting documents for special "
+        "consideration page before you submit your application.":
+            "我们已经把来自线上或海外医疗机构的医疗材料要求写得更清楚了。为使申请尽快得到处理，请在提交前先查看「特殊考虑（special "
+            "consideration）证明材料」页面上的要求。",
+        "When you apply for a short extension, you don’t need to give "
+        "a reason on your first application for an assessment in a "
+        "particular unit. All other applications for assessments in "
+        "that unit will require a reason. Make sure to apply as soon "
+        "as possible, but no later than 11.55pm on the day your "
+        "assessment is due.":
+            "申请短期延期时，你为某门课程的第一次申请不需要说明理由；同一门课程的其他考核再申请时就需要写明理由。请尽快提交，最迟不得晚于考核截止当天 "
+            "23:55。",
+        "When you apply for an extension, you must give us information "
+        "that’s true, accurate and complete, without intending to "
+        "mislead or gain advantage. If you make a false statement or "
+        "provide a falsified supporting document, we won't approve "
+        "your application and we'll refer the matter to Student "
+        "Conduct and Complaints to investigate for academic misconduct.":
+            "申请延期时，你提供的信息必须真实、准确、完整，不得有误导或谋取便利的意图。如果你作出虚假陈述，或提交伪造的证明材料，我们不会批准你的申请，并会将此事移交 "
+            "Student Conduct and Complaints（学生行为与投诉办公室）按学术不端立案调查。",
+        "While you’re waiting for an outcome, and once your situation "
+        "improves, it’s best to keep working on your assessment and "
+        "try to submit it as soon as possible. Otherwise, you may risk "
+        "a late penalty.":
+            "在等待结果期间，一旦情况好转，最好就继续做你的考核并尽快提交，否则可能会被扣迟交分。",
+        "You can apply for a short extension for most assessments (see "
+        "exceptions below), for example, an assignment or quiz.":
+            "多数考核都可以申请短期延期（例外见下文），例如作业或小测。",
+        "You can apply for an extension (of generally more than two "
+        "days) through special consideration for any type of "
+        "assessment except a scheduled final assessment (exam) as long "
+        "as you can provide documents to support your exceptional "
+        "circumstances. These will include:":
+            "除已排定的期末考核（考试）外，任何类型的考核都可以通过特殊考虑（special "
+            "consideration）申请延期（通常超过两天），前提是你能提供材料证明所处的特殊情况。这些情况包括：",
+        "You can apply for special consideration for a group "
+        "assessment – the application process is the same. If your "
+        "application is approved (for group assessments where other "
+        "students are impacted):":
+            "小组考核也可以申请特殊考虑（special "
+            "consideration），申请流程相同。如果申请获批（且该小组考核涉及其他同学）：",
+        "You can't apply to reschedule a supplementary assessment or "
+        "an additional assessment on a competency hurdle task.":
+            "补考、以及能力门槛任务的附加考核，都不能申请改期。",
+        "You can't request an extension from your chief examiner – "
+        "instead, use the form below to apply for a short extension, "
+        "or an extension through special consideration.":
+            "你不能直接向主考官（chief examiner）要延期——请用下面的表格申请短期延期，或通过特殊考虑（special "
+            "consideration）申请延期。",
+        "You can’t apply for a short extension for:":
+            "下列情形不能申请短期延期：",
+        "You have an ongoing disability registered with Disability "
+        "Support Services (DSS) that prevented you from attending your "
+        "deferred assessment. You’ll need to provide supporting "
+        "documents showing that the exceptional circumstances were "
+        "beyond your control and directly related to your registered "
+        "condition.":
+            "你有已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记的持续性障碍，并因此无法参加延期考核。你需要提交证明材料，显示这些特殊情况是你无法控制的、且与你登记的状况直接相关。",
+        "You may be eligible for a short extension of two calendar "
+        "days if you can’t complete your assessment on time due to "
+        "short-term difficult circumstances, such as a medical "
+        "condition, carer responsibilities (including for your "
+        "children) or a car accident.":
+            "如果你因短期困难而无法按时完成考核——例如健康问题、照护责任（包括照顾子女）或遭遇车祸——你可能符合申请两个日历日短期延期的条件。",
+        "Your application may also be declined if your exceptional "
+        "circumstances mean that you require prolonged extensions "
+        "during or beyond the teaching period. We may instead "
+        "recommend that you withdraw from your unit. You may be "
+        "eligible to apply for special circumstances.":
+            "如果你的特殊情况意味着你在开课学期之内或之后需要长期延期，申请也可能被驳回。我们可能转而建议你退选这门课程。你可能符合按特殊情形（special "
+            "circumstances）提出申请的条件。",
+        "You’ll be asked to provide supporting documents at the time "
+        "of application. Check our supporting documents page for "
+        "information on what documents you need and what to do if "
+        "you’re facing delays while trying to get them.":
+            "申请时我们会请你提交证明材料。需要哪些材料、以及在取得材料受阻时该怎么办，请查看「证明材料」页面。",
+        "You’ve experienced (and can provide evidence of) extreme "
+        "circumstances beyond your control, such as:":
+            "你确实经历了（并且能提供证据的）无法控制的极端情况，例如：",
+        "all the members of your group might be granted an extension.":
+            "小组全体成员可能一并获得延期。",
+        "an in-class test/assessment (including presentations)":
+            "课堂测验或课堂考核（含口头报告）",
+        "losing your Moodle access because you didn’t complete a "
+        "compulsory module":
+            "因为没完成必修模块而被停用 Moodle",
+        "loss or bereavement: death of a person with whom you had a "
+        "significant relationship":
+            "亲人离世与哀伤：与你有重要关系的人过世",
+        "military, jury or emergency services obligations":
+            "兵役、陪审团或紧急救援服务义务",
+        "obligations as athlete, artist or performer registered with "
+        "Elite Student Performer Scheme or as representative of "
+        "University in other key events and programs":
+            "作为已在 Elite Student Performer "
+            "Scheme（ESPS，精英学生表现者计划）登记的运动员、艺术家或表演者所负的义务，或代表学校参加其他重要赛事和项目的义务",
+        "other exceptional circumstances beyond your control.":
+            "其他你无法控制的特殊情况。",
+        "representing a club or society as a volunteer":
+            "以志愿者身份代表某个社团或学会",
+        "scheduled final assessment (exam) (apply for a deferred "
+        "assessment instead).":
+            "已排定的期末考核（考试）——请改为申请延期考核。",
+        "technical issues you might have avoided by uploading the "
+        "correct files, allowing enough time for uploading and having "
+        "the right equipment":
+            "本可以避免的技术问题，例如上传了正确的文件、留出足够的上传时间、或备好合适的设备就不会发生的那些",
+        "the method for marking the work of your group members (who "
+        "did not apply for special consideration) might change, or":
+            "对小组中未申请特殊考虑（special consideration）的其他成员，其作业的评分方式可能会有所调整；或者",
+        "victim of crime or concerns about safety":
+            "遭受犯罪侵害，或对人身安全的担忧",
+        "you could be given an alternative assessment task":
+            "你可能会被安排一项替代的考核任务",
         "If we approve your application, you’ll get an extension of two calendar days from the original due date of the assessment task.":
             "如果申请获批，你将从考核任务的原定截止日起获得 2 个日历日的延期。",
         "If you’ve already been given a short extension for an assessment but you need more time, you’ll need to then apply for an extension through special consideration with supporting documents.":
