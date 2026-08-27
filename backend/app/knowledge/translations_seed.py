@@ -1031,6 +1031,1218 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你的成绩会以 SFR（已满足学院要求）或 Fail（不及格）的形式出现在成绩单上。如果你不提交接收院校出具的成绩记录，这些课程在 Monash 成绩单上会被记为 Fail（不及格）。",
     },
     "supporting-documents": {
+        "A medical letter of support from a doctor (or other "
+        "appropriate health professional) stating how your "
+        "circumstances have affected your studies and your ability to "
+        "complete your assessment on its set date. They don’t need to "
+        "give details about your circumstances, but they must say when "
+        "you’ve been affected by this and for how long.The letter must "
+        "be on the medical surgery/health professional’s letterhead, "
+        "signed and dated.":
+            "由医生（或其他合适的医疗专业人员）出具的 medical letter of "
+            "support（医疗情况说明信），说明你的处境如何影响了你的学习、以及你在规定日期完成考核的能力。他们不需要写出你处境的具体细节，但必须写明你从何时起受到影响、持续了多久。信件必须使用医疗机构或该专业人员的信笺抬头，并有签名和日期。",
+        "Additionally, you need to provide a record confirming the "
+        "problem (e.g. a call log to the Service Desk), along with "
+        "screenshots. If you don’t have this documentation, you can "
+        "instead send us a statutory declaration (or equivalent).":
+            "此外，你还需要提交能证实该故障的记录（例如向 Service "
+            "Desk（服务台）致电的通话记录）以及截图。如果你没有这类材料，可以改为提交一份 statutory "
+            "declaration（法定声明，或同等效力的文件）。",
+        "After you submit your application, we’ll send you an email "
+        "with instructions on how to provide your supporting documents "
+        "once you have them.":
+            "提交申请后，我们会发一封邮件给你，说明拿到材料后该如何补交。",
+        "Disruption caused by international conflict View":
+            "国际冲突造成的影响",
+        "If the conflict has affected your wellbeing or your ability "
+        "to study, a certificate or letter from a doctor or counsellor "
+        "can help certify that you are currently unfit for study.The "
+        "doctor provides the certificate right after a consultation. "
+        "The certificate must be on the medical centre/practitioner’s "
+        "letterhead, signed, stamped and dated. (If the certificate "
+        "has been backdated, the doctor must explain why.)In "
+        "Australia, some pharmacists may also provide a medical "
+        "certificate.\n\nAcceptable medical documentation\n\n\nAcceptable "
+        "documentation must be from an in-person consultation (or "
+        "video/phone consultation if attending in-person was "
+        "impractical) for the following special consideration "
+        "applications:Medical documentation from online medical "
+        "providers, without a video/phone consultation, is normally "
+        "not accepted. It may be considered when all of the following "
+        "apply:You’ll be asked to outline the exceptional "
+        "circumstances that prevented you from having a video/phone "
+        "consultation to obtain your documentation for your special "
+        "consideration application.":
+            "如果这场冲突影响了你的身心状态或学习能力，医生或心理咨询师出具的证明或信函可以证实你目前不适宜学习。证明由医生在就诊后随即开具，必须使用医疗机构或执业人员的信笺抬头，并有签名、盖章和日期。（若证明日期被倒填，医生必须解释原因。）在澳大利亚，部分药剂师也可以开具 "
+            "medical certificate（医疗证明）。\n\n可接受的医疗材料\n\n以下几类特殊考虑（special "
+            "consideration）申请，材料必须来自当面就诊（若当面就诊确实不可行，视频或电话问诊亦可）：来自线上医疗机构、且没有经过视频或电话问诊的医疗材料，通常不予接受；只有在下列条件全部满足时才可能被考虑：届时我们会请你说明，是什么样的特殊情况使你无法通过视频或电话问诊取得材料。",
+        "If the conflict has caused forced relocation or travel "
+        "disruptions, you can provide independent records such as "
+        "cancelled flight itineraries, evacuation notices, or border "
+        "crossing documentation.":
+            "如果这场冲突导致你被迫迁移或行程受阻，你可以提交独立的记录，例如已取消的航班行程单、撤离通知，或过境证明文件。",
+        "If you don’t have your supporting documents ready":
+            "如果你的证明材料还没准备好",
+        "If you were not able to attend the deferred assessment "
+        "because of circumstances that are not directly related to "
+        "your condition registered with DSS, you’ll need to apply "
+        "under another relevant category and provide the required "
+        "supporting documentation.":
+            "如果你未能参加延期考核的原因与你在 DSS "
+            "登记的状况没有直接关系，你需要按其他相应类别提出申请，并提交该类别要求的证明材料。",
+        "If your application relates to the same circumstances for "
+        "which you were given approval for a deferral, you’ll need to "
+        "instead provide updated supporting documents showing that "
+        "your circumstances are ongoing and unresolved.":
+            "如果你这次申请依据的仍是当初获批延期时的同一情况，则需要改为提交更新后的证明材料，以显示该情况仍在持续、尚未解决。",
+        "If you’re not engaged with SCU and we need more details, we "
+        "may require you to provide a statutory declaration (or "
+        "equivalent) in addition to one of the other documents.":
+            "如果你并未与 SCU（校园安全支持中心）接触，而我们需要更多细节，可能会要求你在上述材料之外，再补交一份 "
+            "statutory declaration（法定声明，或同等效力的文件）。",
+        "If you’re unable to provide supporting documents by the "
+        "application deadline due to circumstances beyond your control:":
+            "如果你因无法控制的原因，不能在申请截止前提交证明材料：",
+        "If you’ve been approved for a deferred scheduled final "
+        "assessment, but now need to reschedule it due to new extreme "
+        "circumstances, you’ll need to provide one or more of the "
+        "supporting documents below as evidence.":
+            "如果你已获批延期参加已排定的期末考核，但现在因为新出现的极端情况需要再次改期，需要提交下列证明材料中的一项或多项作为证据。",
+        "If you’ve experienced exceptional circumstances not covered "
+        "elsewhere, a natural disaster, or a serious accident, you "
+        "need to provide sufficient evidence explaining them and how "
+        "they’ve affected your studies and your ability to complete "
+        "your assessment on or before its set date. The evidence must "
+        "also state the duration of this impact. And it needs to "
+        "include some form of independent, verifiable documentation. "
+        "We may contact you to provide additional information.":
+            "如果你遇到的是上述各类之外的特殊情况、自然灾害或严重事故，你需要提交充分的证据，说明这些情况本身、以及它们如何影响了你的学习和你在规定日期或之前完成考核的能力，并写明影响持续了多久。证据中还需要包含某种形式的、可独立核实的书面材料。我们可能会联系你补充更多信息。",
+        "If you’ve experienced extreme circumstances not covered "
+        "elsewhere, a natural disaster, or a serious accident, you "
+        "need to provide sufficient evidence explaining them and how "
+        "they’ve affected your studies and your ability to complete "
+        "your assessment on its set date. The evidence must also state "
+        "the duration of this impact. And it needs to include some "
+        "form of independent, verifiable documentation. We may contact "
+        "you to provide additional information.":
+            "如果你遇到的是上述各类之外的极端情况、自然灾害或严重事故，你需要提交充分的证据，说明这些情况本身、以及它们如何影响了你的学习和你在规定日期完成考核的能力，并写明影响持续了多久。证据中还需要包含某种形式的、可独立核实的书面材料。我们可能会联系你补充更多信息。",
+        "In the event of a major known University technical "
+        "disruption, we’ll let you know what to do.":
+            "如果发生学校层面已知的重大技术故障，我们会另行通知你该怎么做。",
+        "Indicate the reason why your application is incomplete.":
+            "说明你的申请为何不完整。",
+        "Screenshots of your technical problem must include timestamps "
+        "confirming that it took place during your assessment. For "
+        "example, you might provide a time-stamped screenshot of an "
+        "error message, a window not loading or an internet speed "
+        "test. Or you might provide dated communication from an "
+        "electricity provider about the outage or other problem you "
+        "experienced.":
+            "技术故障的截图必须带有时间戳，证明故障发生在你的考核期间。例如，你可以提交带时间戳的报错信息截图、页面加载不出来的截图，或网速测试截图；也可以提交电力公司就此次停电或其他故障发出的、带日期的通知。",
+        "Serious and debilitating medical condition View":
+            "严重且使人失能的健康问题",
+        "State the date by which you will provide the supporting "
+        "documentation.":
+            "写明你将在哪一天之前补交证明材料。",
+        "Submit your application without supporting documents by the "
+        "deadline.":
+            "先在截止日期前提交申请，暂不附证明材料。",
+        "Take a look at the following resources to see if the "
+        "information is relevant to your circumstances:":
+            "看看下列资源里的信息是否适用于你的情况：",
+        "The impact on your studies: How these circumstances prevented "
+        "you from completing your assessment on time.":
+            "对学习的影响：这些处境如何使你无法按时完成考核。",
+        "The letter from the Monash Safer Community Unit must confirm "
+        "that circumstances beyond your control occurred, the "
+        "timeframe of the circumstances and the impact to your "
+        "assessment due dates.":
+            "Monash Safer Community "
+            "Unit（校园安全支持中心）出具的信函必须确认：确实发生了你无法控制的处境、该处境的时间范围，以及它对你考核截止日期造成的影响。",
+        "The letter must be on the medical surgery/health "
+        "professional’s letterhead, signed and dated.":
+            "信件必须使用医疗机构或该专业人员的信笺抬头，并有签名和日期。",
+        "The nature of the conflict: Briefly describe the situation "
+        "and how it relates to you personally.":
+            "冲突的性质：简要描述当时的情况，以及它与你个人有何关联。",
+        "The police will determine the content of this report. If it "
+        "doesn’t give enough detail to indicate how your circumstances "
+        "have prevented you from completing your assessment on the set "
+        "date, we may require you to supplement it with other "
+        "documents.":
+            "报案记录的内容由警方决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期完成考核，我们可能会要求你再补充其他材料。",
+        "The timeline: The specific dates you were affected and how "
+        "long you expect the disruption to last.":
+            "时间线：你受影响的具体日期，以及你预计这一影响还会持续多久。",
+        "This includes documentation from government bodies (such as "
+        "the Department of Foreign Affairs), embassies, or recognised "
+        "international aid organisations regarding the conflict's "
+        "impact on your location or family.":
+            "这包括政府部门（例如外交部）、使领馆或获认可的国际援助组织出具的材料，说明该冲突对你所在地区或你家人造成的影响。",
+        "This includes serious and debilitating medical conditions "
+        "such as neurodegenerative disorders, cardiovascular disease, "
+        "organ dysfunction and certain types of cancer.":
+            "这一类包括严重且使人失能的健康问题，例如神经退行性疾病、心血管疾病、器官功能障碍和某些类型的癌症。",
+        "This includes severe mental health conditions such as bipolar "
+        "disorder, major depressive disorder, schizophrenia and "
+        "post-traumatic stress disorder (PTSD).":
+            "这一类包括严重的心理健康问题，例如双相情感障碍、重性抑郁障碍、精神分裂症，以及创伤后应激障碍（PTSD）。",
+        "This record must show that you contacted Exam Support or the "
+        "Service Desk during your scheduled assessment to report a "
+        "technical problem.":
+            "这份记录必须能显示：你在已排定的考核进行期间联系过 Exam Support（考试支持）或 Service "
+            "Desk（服务台）报告技术故障。",
+        "This refers only to the death of a close family member or "
+        "person with whom you had a significant relationship. Due to "
+        "their death, you’re now experiencing extreme loss or "
+        "bereavement. For example, your grief is so great that you "
+        "find it difficult to carry out normal routines.":
+            "这一类仅指与你关系密切的家人、或与你有重要关系的人过世，你因此正经历极度的失去与哀伤——例如悲痛之深，已使你难以维持日常生活。",
+        "To keep your application valid, make sure you provide your "
+        "documents by the date specified in your application. If we "
+        "don't receive them or hear from you by then, your application "
+        "may be withdrawn without any further notice.":
+            "为使申请保持有效，请务必在你申请中写明的日期之前提交材料。如果到期我们既没收到材料、也没收到你的消息，你的申请可能会被直接撤销，不再另行通知。",
+        "We can’t accept a statutory declaration in support of a "
+        "medical condition. Nor can we accept a laboratory test "
+        "result, hospital identification wristband, vaccination card, "
+        "photograph or medical image (e.g. X-ray, CT and MRI).":
+            "用于证明健康状况时，我们不能接受 statutory "
+            "declaration（法定声明），也不能接受化验结果、住院手环、疫苗接种卡、照片或医学影像（如 X 光、CT、MRI）。",
+        "We can’t accept a statutory declaration in support of a "
+        "severe mental health condition. Nor can we accept a hospital "
+        "identification wristband.":
+            "用于证明严重心理健康问题时，我们不能接受 statutory declaration（法定声明），也不能接受住院手环。",
+        "We understand that global conflicts, wars, and international "
+        "disputes may impact members of our community in different "
+        "ways and that the impacts of international conflict can be "
+        "unpredictable and may fluctuate.":
+            "我们理解，全球冲突、战争和国际争端会以不同方式影响我们社群中的成员，而国际冲突带来的影响往往难以预料，也可能时轻时重。",
+        "We understand that global conflicts, wars, and international "
+        "disputes may impact members of our community in different "
+        "ways. If these events are affecting your wellbeing or your "
+        "ability to study, we’re here to support you.":
+            "我们理解，全球冲突、战争和国际争端会以不同方式影响我们社群中的成员。如果这些事件正在影响你的身心状态或学习能力，我们会为你提供支持。",
+        "We understand that obtaining official documentation during a "
+        "crisis can be challenging. If you have supporting "
+        "documentation, please provide this with your application. "
+        "Otherwise, we’ll assess your application based on the details "
+        "in your impact statement.":
+            "我们理解，在危机之中要取得官方材料并不容易。如果你手上有证明材料，请随申请一并提交；如果没有，我们会依据你影响说明（impact "
+            "statement）中的内容来评估你的申请。",
+        "We understand that obtaining official documentation during an "
+        "international conflict can be challenging. If you have "
+        "supporting documentation, please provide this with your "
+        "application. If you don’t have any documentation available, "
+        "please detail your circumstances as much as possible in the "
+        "impact statement and the Special Consideration team will "
+        "contact you if further documentation is needed.":
+            "我们理解，在国际冲突之中要取得官方材料并不容易。如果你手上有证明材料，请随申请一并提交；如果一份材料也拿不到，请在影响说明（impact "
+            "statement）里尽可能详细地写明你的处境，如需补充材料，特殊考虑（special "
+            "consideration）团队会与你联系。",
+        "You can provide the following supporting documentation to "
+        "support your application (if available).":
+            "如果手上有，你可以提交下列证明材料来支持你的申请。",
+        "You may be eligible for a Rescheduled Deferred Assessment if "
+        "the timing of the international conflict is around the same "
+        "as your deferred assessment or if you continue to be impacted "
+        "by an earlier conflict.":
+            "如果国际冲突发生的时间与你的延期考核大致重合，或者你至今仍受早先某场冲突的影响，你可能符合申请改期延期考核（Rescheduled "
+            "Deferred Assessment）的条件。",
+        "You may be eligible for an extension or special consideration "
+        "if a conflict has directly disrupted your studies. This may "
+        "include direct impacts on you or your family’s safety and "
+        "your wellness, accessibility to learning resources or your "
+        "capacity to engage with your academic responsibilities. Your "
+        "safety and wellbeing are our top priority. Our focus is to "
+        "understand how these events personally affect you rather than "
+        "your physical location or residency.":
+            "如果某场冲突直接扰乱了你的学习，你可能符合申请延期或特殊考虑（special "
+            "consideration）的条件。这可能包括：对你或你家人的人身安全和健康状况的直接影响、你获取学习资源的困难，或你投入学业的能力受到削弱。你的安全与身心健康是我们最优先考虑的事。我们关心的是这些事件对你个人造成了什么影响，而不是你身在何处、居住在哪里。",
+        "You may provide a letter of support from a recognised leader "
+        "who can verify your relationship to the situation and explain "
+        "how it prevents you from completing your academic work.":
+            "你可以提交一封由公认领袖出具的 letter of "
+            "support（情况说明信），由其证实你与该处境的关联，并说明它如何使你无法完成学业任务。",
+        "You may wish to supplement the medical letter of support with "
+        "a record of hospital admission.":
+            "你也可以在 medical letter of support（医疗情况说明信）之外，附上住院记录作为补充。",
+        "You need to provide a medical letter of support from a doctor "
+        "(or other appropriate health professional) explaining how "
+        "your condition has affected your studies and your ability to "
+        "complete your assessment on its set date. The letter must "
+        "also state the duration of this impact. The person writing "
+        "this letter must have knowledge of your medical history and "
+        "condition.":
+            "你需要提交一份由医生（或其他合适的医疗专业人员）出具的 medical letter of "
+            "support（医疗情况说明信），说明你的病情如何影响了你的学习、以及你在规定日期完成考核的能力，信中还必须写明这一影响持续了多久。写这封信的人必须了解你的病史和病情。",
+        "You’ll be asked to complete a brief impact statement as part "
+        "of your application. This will help us understand your "
+        "circumstances and how they have affected your ability to "
+        "complete assessments. Your statement should explain:":
+            "作为申请的一部分，我们会请你填写一份简短的影响说明（impact "
+            "statement），帮助我们了解你的处境、以及它如何影响了你完成考核的能力。说明中应当写清：",
+        "You’ll be asked to complete an impact statement as part of "
+        "your application. This will help us understand your "
+        "circumstances and how they have affected your ability to "
+        "complete assessments. Your statement should explain:":
+            "作为申请的一部分，我们会请你填写一份影响说明（impact "
+            "statement），帮助我们了解你的处境、以及它如何影响了你完成考核的能力。说明中应当写清：",
+        "major or continuous disruption to power and/or internet "
+        "service provision":
+            "电力和／或网络服务出现重大或持续中断",
+        "major technical problem with computer hardware (e.g. screen "
+        "or fan malfunction).":
+            "电脑硬件出现重大技术故障（例如屏幕或风扇失灵）。",
+        "the exceptional circumstances that prevented you from "
+        "completing the deferred assessment were beyond your control "
+        "and directly related to your condition registered with DSS, "
+        "and":
+            "使你无法完成延期考核的特殊情况是你无法控制的，且与你在 DSS 登记的状况直接相关；并且",
+        "A letter of support from a community leader or organisation "
+        "to verify the circumstances and impact on the ability of the "
+        "student to complete the assessment as scheduled. The letter "
+        "should outline the reasons student is concerned about their "
+        "safety on campus and the impact of the circumstances on the "
+        "student’s ability to complete their assessment.":
+            "由社区领袖或社区组织出具的 letter of "
+            "support（情况说明信），用于核实学生的处境、以及它对学生按时完成考核能力造成的影响。信中应当说明该学生为何对自己在校园中的安全有所担忧，以及这一处境如何影响了他完成考核的能力。",
+        "Athlete, artist, performer or representative View":
+            "运动员、艺术家、表演者或校队代表",
+        "If a technical problem prevented you from completing your "
+        "scheduled final assessment, you need to have reported it to "
+        "Exam Support. If you experienced technical issues during an "
+        "in-semester test, you need to have contacted your faculty "
+        "support person.":
+            "如果是技术故障使你无法完成已排定的期末考核，你必须当时就向 Exam "
+            "Support（考试支持）报告过。如果是学期内测验期间出现技术问题，你必须当时就联系过所在学院的支持人员。",
+        "If you’re a victim of crime or have concerns about your "
+        "safety, you need to provide one of these supporting "
+        "documents. (We can’t accept a Notice of Victim email.)":
+            "如果你遭受了犯罪侵害，或对自身安全有所担忧，需要提交下列证明材料中的一种。（我们不能接受 Notice of Victim "
+            "邮件。）",
+        "If you’re not registered with the ESPS, you need to provide a "
+        "letter from the faculty or other area of the University.":
+            "如果你没有在 ESPS 登记，需要提交一封由学院或学校其他部门出具的信函。",
+        "If you’re registered with the ESPS, there’s no need to "
+        "provide a supporting document. We have access to a record of "
+        "your registration and event details.":
+            "如果你已在 ESPS 登记，不需要提交证明材料——我们可以直接查到你的登记记录和赛事信息。",
+        "If you’ve suffered a sudden loss of income or employment, you "
+        "need to provide one of these supporting documents.":
+            "如果你的收入或工作突然中断，需要提交下列证明材料中的一种。",
+        "In a letter, the Safer Community Unit (SCU) addresses a crime "
+        "that has occurred. SCU can provide this letter if you’re a "
+        "victim of a violent crime. They must state that circumstances "
+        "beyond your control prevented you from completing your "
+        "assessment on or before the set date. They don’t need to give "
+        "details about the crime, but they must say when you’ve been "
+        "affected by this and for how long.":
+            "Safer Community "
+            "Unit（SCU，校园安全支持中心）可以就已发生的犯罪事件出具信函。如果你是暴力犯罪的受害者，SCU "
+            "可以为你出具这封信。信中必须写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出该犯罪事件的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In a letter, your employer or former employer must provide "
+        "enough detail to show how circumstances beyond your control "
+        "have prevented you from completing your assessment on or "
+        "before the set date.The letter should include employer "
+        "contact details and ideally be on their letterhead. It should "
+        "also be signed and dated.":
+            "在这封信里，你的现任或前任雇主必须提供足够的细节，说明你无法控制的处境如何使你不能在规定日期或之前完成考核。信中应当载明雇主的联系方式，最好使用其信笺抬头，并有签名和日期。",
+        "In a personal letter of support, a recognised cultural or "
+        "faith leader briefly describes their relationship with you "
+        "and explains how a religious or cultural obligation will "
+        "prevent you from completing your assessment task.The letter "
+        "should be on official letterhead, signed and dated.":
+            "在这封个人 letter of "
+            "support（情况说明信）里，由公认的文化或宗教领袖简要说明他与你的关系，并解释某项宗教或文化义务将如何使你无法完成考核任务。信函应当使用正式信笺抬头，并有签名和日期。",
+        "In this certificate, a practitioner (e.g. financial adviser, "
+        "lawyer or social worker) registered with a relevant "
+        "professional body must state that circumstances beyond your "
+        "control have prevented you from completing your assessment on "
+        "or before the set date. They don’t need to give details about "
+        "your financial issues, but they must say when you’ve been "
+        "affected by this and for how long.The certificate should be "
+        "on the practitioner’s letterhead, signed and dated.":
+            "在这份证明里，由在相应专业机构注册的执业人员（例如财务顾问、律师或社会工作者）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你财务问题的具体细节，但必须写明你从何时起受到影响、持续了多久。证明应当使用执业人员的信笺抬头，并有签名和日期。",
+        "Military, jury or emergency services obligations View":
+            "兵役、陪审团或紧急救援服务义务",
+        "Supporting documents should be on official letterhead, signed "
+        "and dated.":
+            "证明材料应当使用正式信笺抬头，并有签名和日期。",
+        "The circumstances must be beyond your control and include a:":
+            "这些情况必须是你无法控制的，包括：",
+        "The police will determine the content of this report. (This "
+        "is the preferred supporting document if you’ve been a victim "
+        "of crime.) If it doesn’t give enough detail to indicate how "
+        "your circumstances have prevented you from completing your "
+        "assessment on or before the set date, you’ll need to provide "
+        "this information in an impact statement (on your application "
+        "form).In some cases, you may need to provide a statutory "
+        "declaration (or equivalent) explaining in more detail the "
+        "impact of the crime on your studies.":
+            "报案记录的内容由警方决定。（如果你遭受了犯罪侵害，这是我们首选的证明材料。）如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。在某些情况下，你可能还需要提交一份 statutory "
+            "declaration（法定声明，或同等效力的文件），更详细地说明该犯罪事件对你学习造成的影响。",
+        "This includes athletes, artists and performers registered "
+        "with the Elite Student Performer Scheme (ESPS). It also "
+        "includes students representing the University in key events "
+        "and programs, such as debating, who are not registered with "
+        "the ESPS.":
+            "这一类包括已在 Elite Student Performer "
+            "Scheme（ESPS，精英学生表现者计划）登记的运动员、艺术家和表演者，也包括虽未在 ESPS "
+            "登记、但代表学校参加辩论等重要赛事和项目的学生。",
+        "This includes obligations to defence services, Juries "
+        "Commissioner’s Office and emergency services such as the "
+        "Country Fire Authority. It can also include other civic "
+        "obligations required by law in other countries.":
+            "这一类包括对国防部门、Juries Commissioner's Office（陪审团事务专员办公室）以及 Country "
+            "Fire Authority（乡村消防局）等紧急救援机构所负的义务，也可以包括其他国家法律所要求的公民义务。",
+        "This letter must state that you’re participating in a "
+        "required event and include the dates and nature of your "
+        "obligation. It should be on official letterhead, signed and "
+        "dated.":
+            "信中必须写明你正在参加规定的赛事或活动，并载明你所负义务的日期和性质。信函应当使用正式信笺抬头，并有签名和日期。",
+        "This letter must state the dates and nature of your "
+        "obligation and how this has affected your ability to complete "
+        "your assessment on or before its set date. It should be on "
+        "official letterhead, signed and dated.":
+            "信中必须写明你所负义务的日期和性质，以及它如何影响了你在规定日期或之前完成考核的能力。信函应当使用正式信笺抬头，并有签名和日期。",
+        "This letter must state the dates and nature of your "
+        "obligation and how this has affected your studies and your "
+        "ability to complete your assessment on its set date. It "
+        "should be on official letterhead, signed and dated.":
+            "信中必须写明你所负义务的日期和性质，以及它如何影响了你在规定日期或之前完成考核的能力。信函应当使用正式信笺抬头，并有签名和日期。",
+        "Unscheduled assessments (such as assignments, quizzes, "
+        "take-home assessments over a long duration of time, or "
+        "asynchronous online tasks) can generally be completed anytime "
+        "before the due date once they open, giving you flexibility to "
+        "plan ahead. If the due date of one of these falls on a day of "
+        "significant religious or cultural observance, we recommend "
+        "you complete and submit your assessment before the due date "
+        "so you can focus fully on the observance when the day "
+        "arrives. Extensions for an unscheduled assessment due date "
+        "may only be considered when exceptional circumstances, "
+        "supported by evidence, have prevented you from completing "
+        "your work by the due date as planned.":
+            "非排定考核（例如作业、小测、时间跨度较长的带回家考核，或异步的线上任务）一般在开放之后、截止日期之前的任何时间都可以完成，你有余地提前安排。如果其中某项的截止日恰好落在重要的宗教或文化仪节当天，我们建议你提前完成并提交，好在那天专心履行仪节。非排定考核的截止日期延期，只有在你能提供证据、证明确有特殊情况使你无法按原计划在截止日前完成时，才可能被考虑。",
+        "We recognise that religious and cultural observance is an "
+        "important part of many students’ lives. In line with the "
+        "University’s commitment to promoting an inclusive community, "
+        "we want you to feel supported to honour your faith and "
+        "cultural tradition while studying at Monash. This includes "
+        "religious observance and ceremonial duties. If your religious "
+        "or cultural obligation conflicts with your academic "
+        "commitments, we’re here to support you.":
+            "我们理解，宗教与文化上的仪节是许多学生生活中重要的一部分。秉持学校建设包容社群的承诺，我们希望你在 Monash "
+            "学习期间，能够安心地遵行自己的信仰与文化传统，这也包括宗教礼拜和仪式职责。如果你的宗教或文化义务与学业安排发生冲突，我们会为你提供支持。",
+        "You can use a statutory declaration (or equivalent) and "
+        "provide information about the impact of your circumstances on "
+        "your studies.":
+            "你可以使用 statutory declaration（法定声明，或同等效力的文件），在其中说明你的处境对学习造成的影响。",
+        "You may apply for special consideration where the date and "
+        "time of a scheduled assessment conflicts with a significant "
+        "religious or cultural obligation (e.g. timed in-class tests, "
+        "mid‐semester tests, practical/lab assessments, or "
+        "presentations). We understand that these assessment dates are "
+        "normally fixed, and we want to ensure that you’re not "
+        "disadvantaged because of your faith.":
+            "如果已排定考核的日期和时间与重要的宗教或文化义务相冲突（例如限时的课堂测验、期中测验、实践或实验考核、口头报告等），你可以申请特殊考虑（special "
+            "consideration）。我们明白这些考核日期通常是固定的，也希望你不会因为自己的信仰而处于不利地位。",
+        "You need to provide a letter from the appropriate authority "
+        "(e.g. Army Reserve, Juries Commissioner’s Office or Country "
+        "Fire Authority).":
+            "你需要提交一封由相应主管机构出具的信函（例如 Army Reserve（预备役部队）、Juries "
+            "Commissioner's Office（陪审团事务专员办公室）或 Country Fire "
+            "Authority（乡村消防局））。",
+        "You need to provide a personal letter of support from a "
+        "recognised cultural or faith leader.":
+            "你需要提交一封由公认的文化或宗教领袖出具的个人 letter of support（情况说明信）。",
+        "someone in your family (or someone you care for) has "
+        "developed a serious illness.":
+            "你的家人（或受你照护的人）罹患重病。",
+        "you have concerns about your safety that are affecting your "
+        "ability to complete an assessment":
+            "你对自身安全的担忧正在影响你完成考核的能力",
+        "you’re traumatised by a crime that occurred in the past":
+            "你因过去发生的某起犯罪事件而留有心理创伤",
+        "you’ve been the victim of a crime":
+            "你遭受了犯罪侵害",
+        "you’ve had sudden loss of income or employment":
+            "你的收入或工作突然中断",
+        "A death notice or certificate must state the full name of the "
+        "deceased and their date of death.":
+            "讣告或死亡证明必须写明逝者的完整姓名和去世日期。",
+        "A letter of support from a current or former employer which "
+        "verifies your circumstances and the impact on your ability to "
+        "complete your assessment as scheduled.":
+            "由现任或前任雇主出具的 letter of "
+            "support（情况说明信），用于核实你的处境、以及它对你按时完成考核的能力造成的影响。",
+        "A medical letter of support from a doctor (or other "
+        "appropriate health professional) describes your emotional "
+        "state and how it has affected your studies and your ability "
+        "to complete your assessment on its set date. It must also "
+        "state the duration of this impact.The letter must be on the "
+        "medical surgery/health professional’s letterhead, signed and "
+        "dated.":
+            "由医生（或其他合适的医疗专业人员）出具的 medical letter of "
+            "support（医疗情况说明信），用于说明你的情绪状态，以及它如何影响了你的学习和你在规定日期或之前完成考核的能力；信中还必须写明你从何时起受到影响、持续了多久。信件必须使用医疗机构或该专业人员的信笺抬头，并有签名和日期。",
+        "A medical letter of support from a doctor (or other "
+        "appropriate health professional) describes your emotional "
+        "state and how it has affected your studies and your ability "
+        "to complete your assessment on or before the set date. It "
+        "must also say when you’ve been affected by it and for how "
+        "long.The letter must be on the medical surgery/health "
+        "professional’s letterhead, signed and dated.":
+            "由医生（或其他合适的医疗专业人员）出具的 medical letter of "
+            "support（医疗情况说明信），用于说明你的情绪状态，以及它如何影响了你的学习和你在规定日期或之前完成考核的能力；信中还必须写明你从何时起受到影响、持续了多久。信件必须使用医疗机构或该专业人员的信笺抬头，并有签名和日期。",
+        "A medical letter of support from a doctor (or other "
+        "appropriate health professional) describing how your studies "
+        "and your ability to complete your assessment on or before the "
+        "set date have been affected. It must also say when you’ve "
+        "been affected and for how long.The letter must be on the "
+        "medical surgery/health professional’s letterhead, signed and "
+        "dated.":
+            "由医生（或其他合适的医疗专业人员）出具的 medical letter of "
+            "support（医疗情况说明信），说明你的学习、以及你在规定日期或之前完成考核的能力受到了怎样的影响；信中还必须写明你从何时起受到影响、持续了多久。信件必须使用医疗机构或该专业人员的信笺抬头，并有签名和日期。",
+        "A practitioner certificate may supplement your other "
+        "supporting documents. In this certificate, a practitioner "
+        "(e.g. medical practitioner, psychologist, counsellor, social "
+        "worker or lawyer) registered with a relevant professional "
+        "body must state how the death has affected your studies and "
+        "your ability to complete your assessments on its set date. It "
+        "must also state the duration of this impact and explain the "
+        "significance of your relationship to the deceased person.The "
+        "certificate must be on the practitioner’s letterhead, signed "
+        "and dated.":
+            "practitioner "
+            "certificate（执业人员证明）可以作为其他证明材料的补充。在这份证明里，由在相应专业机构注册的执业人员（例如医生、心理学家、心理咨询师、社会工作者或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你失去亲人或哀伤的具体细节，但必须写明你从何时起受到影响、持续了多久，并说明你与逝者之间关系的紧密程度。证明必须使用执业人员的信笺抬头，并有签名和日期。",
+        "A practitioner certificate may supplement your other "
+        "supporting documents. In this certificate, a practitioner "
+        "(e.g. medical practitioner, psychologist, counsellor, social "
+        "worker or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your loss "
+        "or bereavement, but they must say when you’ve been affected "
+        "by it and for how long. They must also explain the "
+        "significance of your relationship to the deceased person.The "
+        "certificate must be on the practitioner’s letterhead, signed "
+        "and dated.":
+            "practitioner "
+            "certificate（执业人员证明）可以作为其他证明材料的补充。在这份证明里，由在相应专业机构注册的执业人员（例如医生、心理学家、心理咨询师、社会工作者或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你失去亲人或哀伤的具体细节，但必须写明你从何时起受到影响、持续了多久，并说明你与逝者之间关系的紧密程度。证明必须使用执业人员的信笺抬头，并有签名和日期。",
+        "A statutory declaration is a written statement that you (the "
+        "declarant) sign and declare to be true and correct in the "
+        "presence of an authorised witness. In the statutory "
+        "declaration, you should declare and explain your specific "
+        "circumstances and how they have affected your studies and "
+        "your ability to complete your assessment on or before its set "
+        "date. You must also state when you’ve been affected, and for "
+        "how long.A statutory declaration (or equivalent) must be "
+        "signed and declared to be true and correct in the presence of "
+        "an authorised witness. By signing it, you agree that the "
+        "information in it is true. You can be charged with a criminal "
+        "offence if the information is false.To find out more about "
+        "statutory declaration, including step-by-step instructions "
+        "for obtaining a statutory declaration and details about who "
+        "is authorised to witness it, visit the Victoria State "
+        "Government web page.":
+            "statutory "
+            "declaration（法定声明）是一份由你（声明人）在获授权的见证人面前签署、并声明其内容真实无误的书面陈述。在这份声明里，你应当陈述并说明自己具体的处境，以及这些处境如何影响了你的学习、和你在规定日期或之前完成考核的能力；你还必须写明自己从何时起受到影响、持续了多久。statutory "
+            "declaration（法定声明，或同等效力的文件）必须在获授权的见证人面前签署，并声明内容真实无误。签署即表示你认可其中信息属实；若信息不实，你可能被追究刑事责任。想进一步了解 "
+            "statutory "
+            "declaration（法定声明）——包括办理的分步说明、以及哪些人有资格担任见证人——请访问维多利亚州政府网页。",
+        "A statutory declaration is a written statement that you (the "
+        "declarant) sign and declare to be true and correct in the "
+        "presence of an authorised witness. In the statutory "
+        "declaration, you should declare and explain your specific "
+        "circumstances and how they have affected your studies and "
+        "your ability to complete your assessment on or before its set "
+        "date. You must also state when you’ve been affected, and for "
+        "how long.A statutory declaration (or equivalent) must be "
+        "signed and declared to be true and correct in the presence of "
+        "an authorised witness. By signing it, you agree that the "
+        "information in it is true. You can be charged with a criminal "
+        "offence if the information is false.To find out more about "
+        "statutory declarations, including step-by-step instructions "
+        "for obtaining a statutory declaration and details about who "
+        "is authorised to witness it, visit the Victoria State "
+        "Government web page.":
+            "statutory "
+            "declaration（法定声明）是一份由你（声明人）在获授权的见证人面前签署、并声明其内容真实无误的书面陈述。在这份声明里，你应当陈述并说明自己具体的处境，以及这些处境如何影响了你的学习、和你在规定日期或之前完成考核的能力；你还必须写明自己从何时起受到影响、持续了多久。statutory "
+            "declaration（法定声明，或同等效力的文件）必须在获授权的见证人面前签署，并声明内容真实无误。签署即表示你认可其中信息属实；若信息不实，你可能被追究刑事责任。想进一步了解 "
+            "statutory "
+            "declaration（法定声明）——包括办理的分步说明、以及哪些人有资格担任见证人——请访问维多利亚州政府网页。",
+        "A statutory declaration is a written statement that you (the "
+        "declarant) sign and declare to be true and correct in the "
+        "presence of an authorised witness. In the statutory "
+        "declaration, you should declare and explain your specific "
+        "circumstances and how they have affected your studies and "
+        "your ability to complete your assessment on or before its set "
+        "date. You must state when you’ve been affected and for how "
+        "long, and explain the significance of your relationship to "
+        "the deceased person.A statutory declaration (or equivalent) "
+        "must be signed and declared to be true and correct in the "
+        "presence of an authorised witness. By signing it, you agree "
+        "that the information in it is true. You can be charged with a "
+        "criminal offence if the information is false.To find out more "
+        "about statutory declaration, including step-by-step "
+        "instructions for obtaining a statutory declaration and "
+        "details about who is authorised to witness it, visit the "
+        "Victoria State Government web page.":
+            "statutory "
+            "declaration（法定声明）是一份由你（声明人）在获授权的见证人面前签署、并声明其内容真实无误的书面陈述。在这份声明里，你应当陈述并说明自己具体的处境，以及这些处境如何影响了你的学习、和你在规定日期或之前完成考核的能力；你还必须写明自己从何时起受到影响、持续了多久。你还需要说明你与逝者之间关系的紧密程度。statutory "
+            "declaration（法定声明，或同等效力的文件）必须在获授权的见证人面前签署，并声明内容真实无误。签署即表示你认可其中信息属实；若信息不实，你可能被追究刑事责任。想进一步了解 "
+            "statutory "
+            "declaration（法定声明）——包括办理的分步说明、以及哪些人有资格担任见证人——请访问维多利亚州政府网页。",
+        "Hardship, trauma, victim of crime or concerns about safety":
+            "生活困境、心理创伤、遭受犯罪侵害，或对人身安全的担忧",
+        "Hardship, trauma, victim of crime or concerns about safety "
+        "View":
+            "生活困境、心理创伤、遭受犯罪侵害，或对人身安全的担忧",
+        "In this certificate or letter, a practitioner (e.g. social "
+        "worker or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your "
+        "relationship breakdown, but they must say when you’ve been "
+        "affected by this and for how long.":
+            "在这份证明或信函里，由在相应专业机构注册的执业人员（例如社会工作者或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你关系破裂的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this certificate, a practitioner (e.g. social worker, "
+        "counsellor or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your "
+        "circumstance, but they must say when you’ve been affected by "
+        "this and for how long.The certificate must be on the "
+        "practitioner’s letterhead, signed and dated.":
+            "在这份证明里，由在相应专业机构注册的执业人员（例如社会工作者、心理咨询师或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你处境的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this certificate, a practitioner (e.g. social worker, "
+        "counsellor or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your "
+        "circumstances, but they must say when you’ve been affected by "
+        "this and for how long.":
+            "在这份证明里，由在相应专业机构注册的执业人员（例如社会工作者、心理咨询师或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你处境的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this certificate, a practitioner (e.g. social worker, "
+        "counsellor or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your "
+        "circumstances, but they must say when you’ve been affected by "
+        "this and for how long.The certificate must be on the "
+        "practitioner’s letterhead, signed and dated.":
+            "在这份证明里，由在相应专业机构注册的执业人员（例如社会工作者、心理咨询师或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你处境的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this certificate, a practitioner (e.g. social worker, "
+        "counsellor or lawyer) registered with a relevant professional "
+        "body must state that circumstances beyond your control have "
+        "prevented you from completing your assessment on or before "
+        "the set date. They don’t need to give details about your "
+        "trauma, but they must say when you’ve been affected by this "
+        "and for how long.":
+            "在这份证明里，由在相应专业机构注册的执业人员（例如社会工作者、心理咨询师或律师）写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出你处境的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this letter, a district nurse or maternal and child health "
+        "nurse must state that circumstances beyond your control (e.g. "
+        "postnatal depression) have prevented you from completing your "
+        "assessment on or before the set date. They don’t need to give "
+        "details about your family situation, but they must say when "
+        "you’ve been affected by this and for how long.":
+            "在这份信函里，由社区护士或母婴健康护士写明：你无法控制的处境（例如产后抑郁）使你不能在规定日期或之前完成考核。他们不需要写出你家庭状况的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "In this letter, a family violence support service must state "
+        "that circumstances beyond your control have prevented you "
+        "from completing your assessment on or before the set date. "
+        "They don’t need to give details about the family violence, "
+        "but they must say when you’ve been affected by this and for "
+        "how long.":
+            "在这份信函里，由家庭暴力支持服务机构写明：你无法控制的处境使你不能在规定日期或之前完成考核。他们不需要写出家庭暴力的具体细节，但必须写明你从何时起受到影响、持续了多久。",
+        "Make sure you provide the supporting document that best fits "
+        "your circumstances. Supporting documents should be on "
+        "official letterhead, signed and dated.":
+            "请提交最贴合你自身处境的那一种证明材料。证明材料应当使用正式信笺抬头，并有签名和日期。",
+        "The court will determine the content of the letter or "
+        "document. If it doesn’t give enough detail to indicate how "
+        "your circumstances have prevented you from completing your "
+        "assessment on or before the set date, you’ll need to provide "
+        "this information in an impact statement (on your application "
+        "form).In some cases, you’ll need to also provide a statutory "
+        "declaration (or equivalent) explaining in more detail the "
+        "impact of your circumstances of family violence or a "
+        "relationship breakdown on your studies.If you need help "
+        "getting court documents, contact the court registrar in your "
+        "jurisdiction.":
+            "信函或文件的内容由法院决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。在某些情况下，你还需要另外提交一份 statutory "
+            "declaration（法定声明，或同等效力的文件），更详细地说明家庭暴力或关系破裂对你学习造成的影响。如果你在获取法院文件时需要帮助，请联系你所在司法辖区的法院登记处。",
+        "The court will determine the content of this letter or "
+        "document, but it must include the date or dates on which the "
+        "crime took place. If it doesn’t give enough detail to "
+        "indicate how your circumstances have prevented you from "
+        "completing your assessment on or before the set date, you’ll "
+        "need to provide this information in an impact statement (on "
+        "your application form).In some cases, you’ll need to also "
+        "provide a statutory declaration (or equivalent) explaining in "
+        "more detail the impact of the crime on your studies.If you "
+        "need help getting court documents, contact the court "
+        "registrar in your jurisdiction.":
+            "信函或文件的内容由法院决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。如果你在获取法院文件时需要帮助，请联系你所在司法辖区的法院登记处。",
+        "The court will determine the content of this letter or "
+        "document. If it doesn’t give enough detail to indicate how "
+        "your circumstances have prevented you from completing your "
+        "assessment on or before the set date, you’ll need to provide "
+        "this information in an impact statement (on your application "
+        "form).If you need help getting court documents, contact the "
+        "court registrar in your jurisdiction.":
+            "信函或文件的内容由法院决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。如果你在获取法院文件时需要帮助，请联系你所在司法辖区的法院登记处。",
+        "The court will determine the content of this letter or "
+        "document. If it doesn’t give enough detail to indicate how "
+        "your circumstances have prevented you from completing your "
+        "assessment on the set date, we may require you to supplement "
+        "it with other documents.If you need help getting court "
+        "documents, contact the court registrar in your jurisdiction.":
+            "信函或文件的内容由法院决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。如果你在获取法院文件时需要帮助，请联系你所在司法辖区的法院登记处。",
+        "The doctor provides the certificate right after a "
+        "consultation (including video/phone consultation if attending "
+        "in-person was impractical). The certificate must be on the "
+        "medical centre/practitioner’s letterhead, signed, stamped and "
+        "dated. (If the certificate has been backdated, the doctor "
+        "must explain why.)In Australia, some pharmacists may also "
+        "provide a medical certificate.\n\nAcceptable medical "
+        "documentation\n\n\nAcceptable documentation must be from an "
+        "in-person consultation (or video/phone consultation if "
+        "attending in-person was impractical) for the following "
+        "special consideration applications:Medical documentation from "
+        "online medical providers, without a video/phone consultation, "
+        "is normally not accepted. It may be considered when all of "
+        "the following apply:You’ll be asked to outline the "
+        "exceptional circumstances that prevented you from having a "
+        "video/phone consultation to obtain your documentation for "
+        "your special consideration application.":
+            "医生在就诊后随即开具证明（若当面就诊确实不可行，视频或电话问诊亦可）。证明必须使用医疗机构或执业人员的信笺抬头，并有签名、盖章和日期。（若证明日期被倒填，医生必须解释原因。）在澳大利亚，部分药剂师也可以开具 "
+            "medical certificate（医疗证明）。\n\n可接受的医疗材料\n\n以下几类特殊考虑（special "
+            "consideration）申请，材料必须来自当面就诊（若当面就诊确实不可行，视频或电话问诊亦可）：来自线上医疗机构、且没有经过视频或电话问诊的医疗材料，通常不予接受；只有在下列条件全部满足时才可能被考虑：届时我们会请你说明，是什么样的特殊情况使你无法通过视频或电话问诊取得材料。",
+        "The letter from the Safer Community Unit must confirm that "
+        "circumstances beyond your control occurred, the timeframe of "
+        "the circumstances and the impact on your assessment due dates.":
+            "Safer Community "
+            "Unit（校园安全支持中心）出具的信函必须确认：确实发生了你无法控制的处境、该处境的时间范围，以及它对你考核截止日期造成的影响。",
+        "The police will determine the content of this report. If it "
+        "doesn’t give enough detail to indicate how your circumstances "
+        "have prevented you from completing your assessment on or "
+        "before the set date, you’ll need to provide this information "
+        "in an impact statement (on your application form).":
+            "报案记录的内容由警方决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。",
+        "The police will determine the content of this report. If it "
+        "doesn’t give enough detail to indicate how your circumstances "
+        "have prevented you from completing your assessment on or "
+        "before the set date, you’ll need to provide this information "
+        "in an impact statement (on your application form).You can "
+        "also provide a statutory declaration (or equivalent) "
+        "explaining in more detail the impact of of your circumstances "
+        "of family violence on your studies.":
+            "报案记录的内容由警方决定。如果其中的细节不足以说明你的处境如何使你不能在规定日期或之前完成考核，你需要在申请表的影响说明（impact "
+            "statement）里补充这些信息。你也可以另外提交一份 statutory "
+            "declaration（法定声明，或同等效力的文件），更详细地说明家庭暴力处境对你学习造成的影响。",
+        "This includes family violence, sexual harm and other forms of "
+        "gender-based violence.":
+            "这一类包括家庭暴力、性侵害，以及其他形式的性别暴力。",
+        "This includes severe disruption to your domestic arrangements.":
+            "这也包括你的居家生活安排受到严重扰乱的情况。",
+        "This includes, but is not limited to, if:":
+            "这一类包括但不限于以下情形：",
+        "We understand that you may not be in a position to provide "
+        "evidence or documentation if you’ve been affected by "
+        "gender-based violence. If this is the case, the Monash Safer "
+        "Community Unit (SCU) can assist you with your application "
+        "(they can even provide you a letter).":
+            "我们理解，如果你受到性别暴力的影响，可能没有条件提供证据或材料。若是如此，Monash Safer Community "
+            "Unit（校园安全支持中心）可以协助你提出申请，甚至可以为你出具一封信函。",
+        "We understand that you may not be in a position to provide "
+        "evidence or documentation if you’ve been affected by "
+        "gender-based violence. If this is the case, the Monash Safer "
+        "Community Unit can assist you with your application (they can "
+        "even provide you a letter).":
+            "我们理解，如果你受到性别暴力的影响，可能没有条件提供证据或材料。若是如此，Monash Safer Community "
+            "Unit（校园安全支持中心）可以协助你提出申请，甚至可以为你出具一封信函。",
+        "A medical certificate must state that the person you care for "
+        "was unwell on or before the date you were meant to complete "
+        "your assessment, and how long they required your care. The "
+        "certificate must name you as the carer.The doctor provides "
+        "the certificate right after a consultation (including "
+        "video/phone consultation if attending in-person was "
+        "impractical). The certificate must be on the medical "
+        "centre/practitioner’s letterhead, signed, stamped and dated. "
+        "(If the certificate has been backdated, the doctor must "
+        "explain why, and give the reason they believe the person you "
+        "care for was unwell at that time.)In Australia, some "
+        "pharmacists may also provide a medical "
+        "certificate.\n\nAcceptable medical documentation\n\n\nAcceptable "
+        "documentation must be from an in-person consultation (or "
+        "video/phone consultation if attending in-person was "
+        "impractical) for the following special consideration "
+        "applications:Medical documentation from online medical "
+        "providers, without a video/phone consultation, is normally "
+        "not accepted. It may be considered when all of the following "
+        "apply:You’ll be asked to outline the exceptional "
+        "circumstances that prevented you from having a video/phone "
+        "consultation to obtain your documentation for your special "
+        "consideration application.":
+            "medical "
+            "certificate（医疗证明）必须写明：受你照护的人在你应当完成考核的日期或之前确实身体不适，以及需要你照护多长时间；证明中必须写明你是照护者。医生在就诊后随即开具（若当面就诊确实不可行，视频或电话问诊亦可）。证明必须使用医疗机构或执业人员的信笺抬头，并有签名、盖章和日期。（若证明日期被倒填，医生必须解释原因，并说明他认为受你照护的人当时确实身体不适的依据。）在澳大利亚，部分药剂师也可以开具 "
+            "medical certificate（医疗证明）。\n\n可接受的医疗材料\n\n以下几类特殊考虑（special "
+            "consideration）申请，材料必须来自当面就诊（若当面就诊确实不可行，视频或电话问诊亦可）：来自线上医疗机构、且没有经过视频或电话问诊的医疗材料，通常不予接受；只有在下列条件全部满足时才可能被考虑：届时我们会请你说明，是什么样的特殊情况使你无法通过视频或电话问诊取得材料。",
+        "If you’re a carer not registered with DSS, you need to "
+        "provide a medical certificate. But if you couldn’t get this "
+        "certificate when the person you care for was unwell, you can "
+        "instead request a medical letter of support. Or you may "
+        "provide a practitioner certificate.":
+            "如果你是未在 DSS 登记的照护者，需要提交一份 medical "
+            "certificate（医疗证明）。如果在受你照护的人患病期间没能开到，可以改为申请一份 medical letter "
+            "of support（医疗情况说明信），或提交一份 practitioner certificate（执业人员证明）。",
+        "If you’re a carer registered with Disability Support Services "
+        "(DSS), you'll only need to provide supporting documents if "
+        "you're applying for:":
+            "如果你是已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记的照护者，只有在下列情况下才需要提交证明材料：",
+        "If you’re registered with Disability Support Services (DSS), "
+        "you'll only need to provide supporting documents if you're "
+        "applying for:":
+            "如果你已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记，只有在下列情况下才需要提交证明材料：",
+        "If you’ve been hospitalised, or recently discharged, as an "
+        "inpatient, you can provide evidence of a hospital discharge "
+        "(e.g. letter).":
+            "如果你曾作为住院病人入院、或近期刚出院，可以提交出院证明（例如 hospital discharge letter）。",
+        "It doesn’t express the medical opinion of the psychiatrist or "
+        "other medical doctor that the student was unwell. It merely "
+        "reports what the student said.":
+            "这份证明没有表达精神科医生或其他医生本人对该学生身体不适的医学判断，只是转述了学生自己的说法。",
+        "It only certifies attendance. It doesn’t certify a mental "
+        "health condition preventing the student from doing their "
+        "assessment.":
+            "这份证明只能证明就诊这件事，并没有证明存在使该学生无法完成考核的心理健康问题。",
+        "This includes mental health conditions, such as severe "
+        "anxiety and depression.":
+            "这也包括心理健康问题，例如重度焦虑和抑郁。",
+        "This is to certify that <student name> attended this centre "
+        "on 10/01/2024 because of a medical condition. I conclude by "
+        "way of the patient’s statement that he was unable to attend a "
+        "university exam on 8 January 2024 .":
+            "兹证明 <student name> 因健康问题于 2024 年 1 月 10 "
+            "日到本中心就诊。据患者本人陈述，我判断他无法参加 2024 年 1 月 8 日的大学考试。",
+        "This is to certify that <student name> attended this "
+        "consulting suite on 10/01/2024 because of a mental health "
+        "condition. I conclude by way of the patient’s statement that "
+        "he was unable to attend a university assessment (exam) on 8 "
+        "January 2024 .":
+            "兹证明 <student name> 因心理健康问题于 2024 年 1 月 10 "
+            "日到本诊所就诊。据患者本人陈述，我判断他无法参加 2024 年 1 月 8 日的大学考核（考试）。",
+        "This is to certify that <student name> attended this "
+        "consulting suite today due to a mental health condition.":
+            "兹证明 <student name> 因心理健康问题于今日到本诊所就诊。",
+        "This is to certify that <student name> attended this "
+        "consulting suite today. She states that she has been unwell "
+        "and was unable to attend her assessment (exam) today.":
+            "兹证明 <student name> 于今日到本诊所就诊。她自述近来身体不适，无法参加今日的考核（考试）。",
+        "This is to certify that <student name> is unfit for their "
+        "usual occupation on 10 January 2024 due to a medical "
+        "condition. He has been unwell since 8th Jan.":
+            "兹证明 <student name> 因健康问题于 2024 年 1 月 10 日不适宜从事其日常工作。他自 1 月 8 "
+            "日起身体不适。",
+        "This is to certify that <student name> is unfit for their "
+        "usual occupation on 10 January 2024 due to a mental health "
+        "condition. He has been unwell since 8th Jan.":
+            "兹证明 <student name> 因心理健康问题于 2024 年 1 月 10 日不适宜从事其日常工作。他自 1 月 "
+            "8 日起状况不佳。",
+        "This is unacceptable for an application to defer an "
+        "assessment on 8 January. The doctor hasn’t certified that the "
+        "illness was consistent with the student being unfit for the "
+        "assessment on 8 January. They’ve only reported something the "
+        "student has said.":
+            "用于申请 1 月 8 日考核的延期时，这份证明不可接受。医生并没有证明该病情足以使该学生在 1 月 8 "
+            "日不适合参加考核，只是转述了学生自己的说法。",
+        "This is unacceptable for an application to defer an "
+        "assessment on 8 January. The doctor or pharmacist hasn’t "
+        "certified that the student is unfit for the assessment date. "
+        "They’ve only reported something the student has said.":
+            "用于申请 1 月 8 "
+            "日考核的延期时，这份证明不可接受。医生或药剂师并没有证明该学生在考核当日状况不适合参加，只是转述了学生自己的说法。",
+        "This is unacceptable for an application to defer an "
+        "assessment on 8 January. The psychiatrist or other medical "
+        "doctor hasn’t certified that the student is unfit for the "
+        "assessment on 8 January. They’ve only reported something the "
+        "student has said.":
+            "用于申请 1 月 8 日考核的延期时，这份证明不可接受。精神科医生或其他医生并没有证明该学生在 1 月 8 "
+            "日不适合参加考核，只是转述了学生自己的说法。",
+        "This is unacceptable for an application to defer an "
+        "assessment on 8 January. The psychiatrist, other medical "
+        "doctor or pharmacist hasn’t certified that the student is "
+        "unfit for the assessment date. They’ve only reported "
+        "something the student has said.":
+            "用于申请 1 月 8 "
+            "日考核的延期时，这份证明不可接受。精神科医生、其他医生或药剂师并没有证明该学生在考核当日状况不适合参加，只是转述了学生自己的说法。",
+        "This refers to the death of a close family member or person "
+        "with whom you had a significant relationship. Due to their "
+        "death, you’re now experiencing great loss or bereavement.":
+            "这一类指的是：与你关系密切的家人、或与你有重要关系的人过世，你因此正经历巨大的失去与哀伤。",
+        "This refers to when you can’t complete your assessment "
+        "because you’re dealing with the illness of a family member "
+        "(including your child) or other person you care for.":
+            "这一类指的是：你因为要照顾生病的家人（包括子女）或其他受你照护的人，而无法完成考核。",
+        "You can provide a certificate from a practitioner (e.g. "
+        "psychologist or counsellor) registered with a relevant "
+        "professional body. The certificate must state that you were "
+        "unfit to complete your assessment on or before the date you "
+        "were meant to complete it, and for how long.The practitioner "
+        "provides the certificate right after a consultation. The "
+        "certificate must be signed and dated. (If the certificate has "
+        "been backdated, your practitioner must explain why, and give "
+        "the reason they believe you were unfit at that time.)The "
+        "certificate must be on the medical centre/practitioner’s "
+        "letterhead.":
+            "你可以提交一份由在相应专业机构注册的执业人员（例如心理学家或心理咨询师）开具的证明。证明必须写明：你在应当完成考核的日期或之前状况不适合完成考核，以及持续了多久。证明由执业人员在就诊后随即开具，须有签名和日期。（若证明日期被倒填，执业人员必须解释原因，并说明他认为你当时状况不适合的依据。）证明必须使用医疗机构或执业人员的信笺抬头。",
+        "You can provide a certificate from a practitioner (e.g. "
+        "social worker or physiotherapist) registered with a relevant "
+        "professional body. The certificate must state that the person "
+        "you care for was unwell on or before the date you were meant "
+        "to complete your assessment, and for how long. The "
+        "certificate must name you as the carer.The practitioner "
+        "provides the certificate right after a consultation. The "
+        "certificate must be signed and dated. (If the certificate has "
+        "been backdated, the doctor must explain why, and give the "
+        "reason they believe the person you care for was unwell at "
+        "that time.)The certificate must be printed on the medical "
+        "centre/practitioner’s letterhead.":
+            "你可以提交一份由在相应专业机构注册的执业人员（例如社会工作者或物理治疗师）开具的证明。证明必须写明：受你照护的人在你应当完成考核的日期或之前确实身体不适，以及持续了多久；证明中必须写明你是照护者。证明由执业人员在就诊后随即开具，须有签名和日期。（若证明日期被倒填，医生必须解释原因，并说明他认为受你照护的人当时确实身体不适的依据。）证明必须打印在医疗机构或执业人员的信笺抬头上。",
+        "You need to provide a document such as a death notice or "
+        "certificate. If this isn’t available, you can provide a "
+        "practitioner certificate or a statutory declaration (or "
+        "equivalent). In the case of extreme and ongoing grief, your "
+        "doctor or counsellor can also provide a medical letter of "
+        "support.":
+            "你需要提交讣告或死亡证明一类的材料。如果拿不到，可以提交 practitioner "
+            "certificate（执业人员证明）或 statutory "
+            "declaration（法定声明，或同等效力的文件）。如果哀伤程度严重且持续，你的医生或心理咨询师也可以出具一份 "
+            "medical letter of support（医疗情况说明信）。",
+        "You need to provide a document such as a death notice or "
+        "certificate. You may wish to supplement this with a "
+        "practitioner certificate or a statutory declaration (or "
+        "equivalent). In the case of extreme and ongoing grief, your "
+        "doctor or counsellor can provide a medical letter of support.":
+            "你需要提交讣告或死亡证明一类的材料。如果拿不到，可以提交 practitioner "
+            "certificate（执业人员证明）或 statutory "
+            "declaration（法定声明，或同等效力的文件）。如果哀伤程度严重且持续，你的医生或心理咨询师也可以出具一份 "
+            "medical letter of support（医疗情况说明信）。",
+        "You need to provide a supporting document, such as a medical "
+        "certificate or a practitioner certificate. But if you "
+        "couldn't get this certificate when you were affected by your "
+        "condition, you can instead:":
+            "你需要提交一份证明材料，例如 medical certificate（医疗证明）或 practitioner "
+            "certificate（执业人员证明）。如果在患病期间没能开到，可以改为：",
+        "You should get a medical letter of support only if you "
+        "couldn’t get a medical certificate when the person you care "
+        "for was unwell.The letter must state that the person you care "
+        "for was unwell on or before the date you were meant to "
+        "complete your assessment, and how long they required your "
+        "care. The doctor writing this letter must have knowledge of "
+        "their medical history and/or condition. Additionally, they "
+        "must explain how they concluded that the condition affected "
+        "this person when they had no consultation with them at that "
+        "time.The letter must be printed on the medical "
+        "centre/doctor’s letterhead and name you as the carer. It must "
+        "be signed and dated.":
+            "只有在受你照护的人患病当时开不到 medical certificate（医疗证明）的情况下，才应改开 medical "
+            "letter of "
+            "support（医疗情况说明信）。信中必须写明：受你照护的人在你应当完成考核的日期或之前确实身体不适，以及需要你照护多长时间。写这封信的医生必须了解其病史或病情；此外，既然当时并未为其诊治，医生还必须说明他是根据什么判断该状况对这个人造成了影响。信件必须打印在医疗机构或医生的信笺抬头上，写明你是照护者，并有签名和日期。",
+        "Your impact statement (on your application form) will need to "
+        "show the significance of the relationship between you and the "
+        "deceased person (e.g. evidence of kinship or family "
+        "connection), and how long you’ve been affected by their "
+        "death. If we need more details, we may require you to provide "
+        "a statutory declaration (or equivalent) in addition to one of "
+        "the other documents.":
+            "你在申请表上写的影响说明（impact "
+            "statement）需要说明你与逝者之间关系的紧密程度（例如亲属关系或家庭关系的证据），以及你受这件事影响了多久。如果我们需要更多细节，可能会要求你在上述材料之外，再补交一份 "
+            "statutory declaration（法定声明，或同等效力的文件）。",
+        "A hospital discharge form should state how long you were "
+        "hospitalised and on what dates.":
+            "hospital discharge form（出院证明）应写明你住院多长时间、具体是哪些日期。",
+        "A medical certificate must state that you were unfit to "
+        "complete your assessment on or before the date you were meant "
+        "to complete it, and for how long.Your doctor can provide the "
+        "certificate at the consultation. The certificate must be on "
+        "the medical centre/practitioner's letterhead, signed, stamped "
+        "and dated.In Australia, some pharmacists may also provide a "
+        "medical certificate if the illness falls within the scope of "
+        "the pharmacist's assessment ability.If you became unwell "
+        "during your scheduled final assessment (exam), you must have "
+        "reported this to the nurse or other medical professional at "
+        "the assessments venue (or online equivalent). If you don’t do "
+        "this, we won’t consider your application for a deferred "
+        "assessment. Only in exceptional circumstances can you defer "
+        "your assessment if you’ve seen and/or attempted to answer "
+        "assessment questions.You may be able to make an appointment "
+        "for a medical certificate at the University Health "
+        "Services.\n\nAcceptable medical documentation\n\n\nAcceptable "
+        "documentation must be from an in-person consultation (or "
+        "video/phone consultation if attending in-person was "
+        "impractical) for the following special consideration "
+        "applications:Medical documentation from online medical "
+        "providers, without a video/phone consultation, is normally "
+        "not accepted. It may be considered when all of the following "
+        "apply:You’ll be asked to outline the exceptional "
+        "circumstances that prevented you from having a video/phone "
+        "consultation to obtain your documentation for your special "
+        "consideration application.\n\nUnacceptable certificate":
+            "medical "
+            "certificate（医疗证明）必须写明：你在应当完成考核的日期或之前身体状况不适合完成考核，以及这种状况持续多久。医生可以在就诊时当场开具。证明必须使用医疗机构或执业人员的信笺抬头，并有签名、盖章和日期。在澳大利亚，若病情在药剂师的评估能力范围内，部分药剂师也可以开具 "
+            "medical "
+            "certificate（医疗证明）。如果你是在已排定的期末考核（考试）进行当中感到不适，必须当场向考场（或线上等效渠道）的护士或其他医疗人员报告；没有报告的，我们不会受理你的延期考核申请。只有在特殊情况下，已经看过、或已经尝试作答考题的人，才可能获准延期。你也可以到 "
+            "University Health Services（校内医疗服务）预约开具 medical "
+            "certificate（医疗证明）。\n\n可接受的医疗材料\n\n以下几类特殊考虑（special "
+            "consideration）申请，材料必须来自当面就诊（若当面就诊确实不可行，视频或电话问诊亦可）：来自线上医疗机构、且没有经过视频或电话问诊的医疗材料，通常不予接受；只有在下列条件全部满足时才可能被考虑：届时我们会请你说明，是什么样的特殊情况使你无法通过视频或电话问诊取得材料。\n\n不可接受的证明",
+        "A medical certificate must state that you were unfit to "
+        "complete your assessment on or before the date you were meant "
+        "to complete it, and for how long.Your psychiatrist or other "
+        "medical doctor can provide the medical certificate right "
+        "after a consultation (including video/phone consultation if "
+        "attending in-person was impractical). The certificate must be "
+        "on the medical centre/practitioner’s letterhead, signed, "
+        "stamped and dated. (If the certificate has been backdated, "
+        "your psychiatrist or other medical doctor must explain why, "
+        "and give the reason they believe you were unfit at that "
+        "time.)In Australia, some pharmacists may also provide a "
+        "medical certificate.If you became unwell during your "
+        "scheduled final assessment (exam), you must have reported "
+        "this to the nurse or other medical professional at the "
+        "assessments venue (or online equivalent). If you don’t do "
+        "this, we won’t consider your application for a deferred "
+        "assessment. Only in exceptional circumstances can you defer "
+        "your assessment if you’ve seen and/or attempted to answer "
+        "assessment questions.You may be able to make an appointment "
+        "for a medical certificate at the University Health "
+        "Services.\n\nAcceptable medical documentation\n\n\nAcceptable "
+        "documentation must be from an in-person consultation (or "
+        "video/phone consultation if attending in-person was "
+        "impractical) for the following special consideration "
+        "applications:Medical documentation from online medical "
+        "providers, without a video/phone consultation, is normally "
+        "not accepted. It may be considered when all of the following "
+        "apply:You’ll be asked to outline the exceptional "
+        "circumstances that prevented you from having a video/phone "
+        "consultation to obtain your documentation for your special "
+        "consideration application.\n\nUnacceptable certificate":
+            "medical "
+            "certificate（医疗证明）必须写明：你在应当完成考核的日期或之前身体状况不适合完成考核，以及这种状况持续多久。医生可以在就诊时当场开具。证明必须使用医疗机构或执业人员的信笺抬头，并有签名、盖章和日期。在澳大利亚，若病情在药剂师的评估能力范围内，部分药剂师也可以开具 "
+            "medical "
+            "certificate（医疗证明）。如果你是在已排定的期末考核（考试）进行当中感到不适，必须当场向考场（或线上等效渠道）的护士或其他医疗人员报告；没有报告的，我们不会受理你的延期考核申请。只有在特殊情况下，已经看过、或已经尝试作答考题的人，才可能获准延期。你也可以到 "
+            "University Health Services（校内医疗服务）预约开具 medical "
+            "certificate（医疗证明）。\n\n可接受的医疗材料\n\n以下几类特殊考虑（special "
+            "consideration）申请，材料必须来自当面就诊（若当面就诊确实不可行，视频或电话问诊亦可）：来自线上医疗机构、且没有经过视频或电话问诊的医疗材料，通常不予接受；只有在下列条件全部满足时才可能被考虑：届时我们会请你说明，是什么样的特殊情况使你无法通过视频或电话问诊取得材料。\n\n不可接受的证明",
+        "Check below to find out which documents you need and the "
+        "acceptable format. All non-English documents must be "
+        "professionally translated into English by a NAATI-accredited "
+        "translator. We cannot accept photographs or medical images.":
+            "下面列出了各种情况需要哪些材料、以及可接受的格式。所有非英文材料都必须由 NAATI "
+            "认证译员专业译成英文。我们不接受照片或医学影像。",
+        "Do not, under any circumstances, submit fraudulent "
+        "documentation":
+            "任何情况下都不要提交伪造材料",
+        "Don’t have your supporting documents ready?":
+            "证明材料还没准备好？",
+        "If you’re applying for an extension or a deferred scheduled "
+        "final assessment, you’ll need to provide one or more of the "
+        "documents below as evidence of your exceptional circumstances.":
+            "如果你申请的是延期，或延期参加已排定的期末考核，需要提交下列材料中的一项或多项，作为你所处特殊情况的证明。",
+        "If you’re granted an extension that is longer than 10 "
+        "calendar days, it’ll start from the original due date of your "
+        "assessment and align with the additional days mentioned in "
+        "your medical documents.":
+            "如果你获批的延期超过 10 个日历日，延期将从考核原定截止日起算，并与你医疗材料中载明的天数相衔接。",
+        "If you’re registered with Disability Support Services (DSS), "
+        "you’ll only need to provide supporting documents if you’re "
+        "applying for:":
+            "如果你已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记，只有在下列情况下才需要提交证明材料：",
+        "If you’ve been hospitalised as an inpatient, you can provide "
+        "evidence of a hospital discharge (e.g. letter).":
+            "如果你曾作为住院病人入院，可以提交出院证明（例如 hospital discharge letter）。",
+        "It doesn’t certify that the student is unfit to sit the "
+        "assessment on 21 January. A short interruption to study is "
+        "not a valid circumstance for deferral of the assessment.":
+            "这份证明并没有证明该学生在 1 月 21 日不适合参加考核。学习上的短暂中断，不足以构成延期考核的正当理由。",
+        "It doesn’t express the medical opinion of the doctor that the "
+        "student was ill. It merely reports what the student said.":
+            "这份证明没有表达医生本人对该学生患病的医学判断，只是转述了学生自己的说法。",
+        "It only certifies attendance. It doesn’t certify an illness "
+        "preventing the student from doing their assessment.":
+            "这份证明只能证明就诊这件事，并没有证明存在使该学生无法完成考核的疾病。",
+        "Make sure you provide the correct supporting documents as "
+        "evidence of your exceptional or extreme circumstances when "
+        "you apply for special consideration (for an extension, a "
+        "deferred scheduled final assessment or a rescheduled deferred "
+        "assessment).":
+            "申请特殊考虑（special "
+            "consideration）时——无论是申请延期、延期参加已排定的期末考核，还是改期后的延期考核——请务必提交正确的证明材料，用以证明你所处的特殊或极端情况。",
+        "This is to certify that <student name> attended this medical "
+        "centre today due to a medical condition.":
+            "兹证明 <student name> 因健康问题于今日到本医疗中心就诊。",
+        "This is to certify that <student name> attended this medical "
+        "centre today. She states that she has been ill and was unable "
+        "to attend her assessment (exam) today.":
+            "兹证明 <student name> 于今日到本医疗中心就诊。她自述近来身体不适，无法参加今日的考核（考试）。",
+        "This is to certify that <student name> is unfit for study "
+        "from 12–16 January 2024 and should be excused from his "
+        "assessment (exam) on 21 January.":
+            "兹证明 <student name> 自 2024 年 1 月 12 日至 16 日不适宜学习，应免于参加其 1 月 21 "
+            "日的考核（考试）。",
+        "To find out more about your responsibilities (and what you "
+        "should do if you don’t have the required supporting "
+        "documents), see our Documentation integrity page.":
+            "想进一步了解你的责任（以及在拿不到所需证明材料时该怎么办），请查看 Documentation "
+            "integrity（材料真实性）页面。",
+        "Unacceptable statements on a medical certificate and the "
+        "reasons why":
+            "medical certificate（医疗证明）上不可接受的写法，以及为什么不可接受",
+        "We can’t accept a statutory declaration alone in support of a "
+        "mental health condition. Nor can we accept a hospital "
+        "identification wristband or COVID-19 test.":
+            "仅凭一份 statutory "
+            "declaration（法定声明）不足以证明健康状况，我们不能接受。化验结果、新冠检测结果、住院手环、疫苗接种卡、照片或医学影像（如 "
+            "X 光、CT、MRI）同样不能接受。",
+        "We can’t accept a statutory declaration alone, in support of "
+        "a medical condition. Nor can we accept a laboratory test "
+        "result, COVID-19 test, hospital identification wristband, "
+        "vaccination card, photograph or medical image (e.g. X-ray, CT "
+        "and MRI).":
+            "仅凭一份 statutory "
+            "declaration（法定声明）不足以证明健康状况，我们不能接受。化验结果、新冠检测结果、住院手环、疫苗接种卡、照片或医学影像（如 "
+            "X 光、CT、MRI）同样不能接受。",
+        "You can get a medical letter of support if you couldn’t get a "
+        "medical certificate when you were unwell.The letter must "
+        "state that you were unwell on or before the date you were "
+        "meant to complete your assessment, and for how long. The "
+        "doctor writing this letter must have knowledge of your "
+        "medical history and/or condition. Additionally, they must "
+        "explain how they concluded that your condition has prevented "
+        "you from completing your assessment when they had no "
+        "consultation with you at that time.The letter must be on the "
+        "medical surgery/doctor’s letterhead, signed and dated.":
+            "如果你在患病当时开不到 medical certificate（医疗证明），可以改开一份 medical letter "
+            "of "
+            "support（医疗情况说明信）。信中必须写明：你在应当完成考核的日期或之前确实身体不适，以及持续了多久。写这封信的医生必须了解你的病史或病情；此外，既然当时并未为你诊治，医生还必须说明他是根据什么判断你的状况使你无法完成考核。信件必须使用医疗机构或医生的信笺抬头，并有签名和日期。",
+        "You can get a medical letter of support if you couldn’t get a "
+        "medical certificate when you were unwell.The letter must "
+        "state that you were unwell on or before the date you were "
+        "meant to complete your assessment, and for how long. The "
+        "psychiatrist or other medical doctor writing this letter must "
+        "have knowledge of your mental health history and/or "
+        "condition. Additionally, they must explain how they concluded "
+        "that your condition has prevented you from completing your "
+        "assessment when they had no consultation with you at that "
+        "time.The letter must be on the psychiatrist’s/other medical "
+        "doctor’s letterhead, signed and dated.":
+            "如果你在患病当时开不到 medical certificate（医疗证明），可以改开一份 medical letter "
+            "of "
+            "support（医疗情况说明信）。信中必须写明：你在应当完成考核的日期或之前确实身体不适，以及持续了多久。写这封信的医生必须了解你的病史或病情；此外，既然当时并未为你诊治，医生还必须说明他是根据什么判断你的状况使你无法完成考核。信件必须使用医疗机构或医生的信笺抬头，并有签名和日期。",
+        "You can provide a certificate from an AHPRA-registered health "
+        "practitioner (e.g. physiotherapist or rehabilitation "
+        "specialist) registered with a relevant professional body. The "
+        "certificate must state that you were unfit to complete your "
+        "assessment on or before the date you were meant to complete "
+        "it, and for how long.The practitioner provides the "
+        "certificate right after a consultation. The certificate must "
+        "be signed and dated. (If the certificate has been backdated, "
+        "your practitioner must explain why, and give the reason they "
+        "believe you were unfit at that time.)The certificate must be "
+        "on the medical centre/practitioner’s letterhead.":
+            "你可以提交一份由 AHPRA "
+            "注册医疗执业人员（例如物理治疗师或康复专科医生）开具的证明，该执业人员须在相应的专业机构注册。证明必须写明：你在应当完成考核的日期或之前身体状况不适合完成考核，以及持续了多久。证明由执业人员在就诊后随即开具，须有签名和日期。（若证明日期被倒填，执业人员必须解释原因，并说明他认为你当时状况不适合的依据。）证明必须使用医疗机构或执业人员的信笺抬头。",
+        "You must give us information that’s true, accurate and "
+        "complete, without intending to mislead or gain advantage. If "
+        "you make a false statement or provide a falsified supporting "
+        "document, we won't approve your application and we'll refer "
+        "the matter to Student Conduct and Complaints for an "
+        "investigation into academic misconduct.":
+            "你提供的信息必须真实、准确、完整，不得有误导或谋取便利的意图。如果你作出虚假陈述，或提交伪造的证明材料，我们不会批准你的申请，并会将此事移交 "
+            "Student Conduct and Complaints（学生行为与投诉办公室）按学术不端立案调查。",
+        "You need to provide a medical certificate. But if you "
+        "couldn’t get this certificate when you were affected by your "
+        "condition, you can instead:":
+            "你需要提交一份 medical certificate（医疗证明）。如果在患病期间没能开到，可以改为：",
+        "Your medical documentation must: be from a health "
+        "practitioner fully registered with the relevant body for that "
+        "practitioner's expertise in the country in which you are "
+        "enrolled be provided by a health practitioner whose expertise "
+        "relates to your diagnosis and treatment include the health "
+        "practitioner’s contact details be in English or include a "
+        "complete English translation by an accredited translator, "
+        "such as NAATI.":
+            "你的医疗材料必须：来自在你就读所在国家、经该专业相应主管机构完全注册的医疗执业人员；由专业领域与你的诊断和治疗相关的医疗执业人员出具；载明该医疗执业人员的联系方式；并且为英文，或附有由 "
+            "NAATI 等认证译员出具的完整英文译文。",
+        "Your medical documentation must: be from an AHPRA-registered "
+        "health practitioner or a social worker accredited with the "
+        "AASW be provided by a health practitioner whose expertise "
+        "relates to your diagnosis and treatment include your provider "
+        "details: name, practice address, contact details, and AHPRA "
+        "registration number or social worker registration number.":
+            "你的医疗材料必须：来自 AHPRA 注册的医疗执业人员，或在 AASW "
+            "认证的社会工作者；由专业领域与你的诊断和治疗相关的医疗执业人员出具；并载明出具人的信息：姓名、执业地址、联系方式，以及 "
+            "AHPRA 注册号或社会工作者注册号。",
+        "You’ll need to make a detailed impact statement on your "
+        "application form in addition to providing supporting "
+        "documents. This statement should explain how circumstances "
+        "beyond your control have affected your studies and your "
+        "ability to complete your assessment on or before the set "
+        "date. It must also say when you’ve been affected and for how "
+        "long.":
+            "除了提交证明材料，你还需要在申请表上写一份详细的影响说明（impact "
+            "statement），说明你无法控制的情况如何影响了你的学习、以及你在规定日期或之前完成考核的能力，并写明你从何时开始受到影响、持续了多久。",
+        "You’re responsible for making sure that the documents you "
+        "supply to us are genuine, accurate and complete. Penalties "
+        "for submitting a forged, altered or falsified document can "
+        "include exclusion from the University, a fine of up to AUD "
+        "$1,000 and a permanent record in Monash systems.":
+            "你有责任确保提交给我们的材料真实、准确、完整。提交伪造、篡改或造假材料的处罚包括：被学校退学处理（exclusion）、最高 "
+            "1000 澳元罚款，以及在 Monash 系统中留下永久记录。",
+        "a scheduled assessment (e.g. mid-semester and in-class test)":
+            "已排定的考核（例如期中测验、课堂测验）",
+        "acute illness or serious injuries (including influenza or "
+        "COVID-19, accidents causing physical injuries, dental issues "
+        "requiring surgery or resulting in significant pain, or severe "
+        "gastritis)":
+            "急性疾病或严重外伤（包括流感或新冠、造成身体损伤的意外事故、需要手术或引起明显疼痛的牙科问题，或重度胃炎）",
+        "an extension and you're not approved for flexible deadlines":
+            "申请延期，且你未获批 flexible deadlines（弹性截止日期）",
+        "an extension and you’re not approved for flexible deadlines":
+            "申请延期，且你未获批 flexible deadlines（弹性截止日期）",
+        "provide a certificate of attendance, along with a statutory "
+        "declaration - only if you're unable to get a medical "
+        "certificate.":
+            "提交一份 certificate of attendance（就诊证明）连同一份 statutory "
+            "declaration（法定声明）——仅限于你确实开不到 medical certificate（医疗证明）的情况。",
+        "provide a certificate of attendance, along with a statutory "
+        "declaration – only if you're unable to get a medical "
+        "certificate.":
+            "提交一份 certificate of attendance（就诊证明）连同一份 statutory "
+            "declaration（法定声明）——仅限于你确实开不到 medical certificate（医疗证明）的情况。",
+        "provide a practitioner certificate to support that your study "
+        "has been affected, or":
+            "提交一份 practitioner certificate（执业人员证明），说明你的学习确实受到了影响；或",
+        "request a letter of support for the affected period from a "
+        "medical practitioner or mental health professional, or":
+            "请医生或心理健康专业人士为受影响的这段时间开一份 letter of support（情况说明信）；或",
+        "request a letter of support for the affected period, from a "
+        "medical practitioner or mental health professional, or":
+            "请医生或心理健康专业人士为受影响的这段时间开一份 letter of support（情况说明信）；或",
+        "serious chronic or episodic conditions (such as migraines, "
+        "allergies with sudden flare ups, endometriosis, severe "
+        "asthma, adenomyosis, or polycystic ovary syndrome (PCOS) and "
+        "related complications)":
+            "严重的慢性或发作性疾病（例如偏头痛、会突然发作的过敏、子宫内膜异位症、重度哮喘、子宫腺肌症，或多囊卵巢综合征（PCOS）及其相关并发症）",
         "If you’re registered with Disability Support Services (DSS) and couldn’t sit your deferred assessment due to circumstances not directly related to your DSS condition, you'll still need to provide the supporting documentation noted above.":
             "如果你已在无障碍支持服务（Disability Support Services，DSS）登记，但未能参加延期考核的原因与你在 DSS 登记的状况没有直接关系，你仍然需要提交上述证明材料。",
         "If you’re registered with Disability Support Services (DSS) and couldn’t sit your deferred assessment, you’ll need to provide supporting documents to prove that:":
