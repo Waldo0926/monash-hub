@@ -548,6 +548,148 @@ RESULTS_LEGEND: dict[str, str] = {
 # match character for character stays in English, which is the safe direction.
 
 GUIDE_BODIES: dict[str, dict[str, str]] = {
+    "academic-integrity": {
+        "A pop-up blocker will prevent you from accessing the "
+        "module.Make sure your browser allows pop-ups in the "
+        "Compulsory Unit Portal (CUP).":
+            "弹窗拦截会导致模块打不开。请把浏览器设置为允许 Compulsory Units "
+            "Portal（CUP，必修模块门户）弹出窗口。",
+        "Academic integrity and what plagiarism, collusion and "
+        "cheating mean":
+            "学术诚信，以及抄袭、合谋作弊和作弊分别指什么",
+        "All students and staff can access the Academic Integrity "
+        "module in the Compulsory Units Portal (CUP) at any time.":
+            "所有学生和教职员工都可以随时在 Compulsory Units Portal（CUP，必修模块门户）中打开学术诚信模块。",
+        "As a Monash student, you’ve joined a community that upholds "
+        "integrity in all of its academic endeavours, and you’ve made "
+        "a personal commitment to studying with academic integrity. "
+        "This means that, whenever you work on an assignment or submit "
+        "an assessment, you do so honestly, fairly, respectfully and "
+        "responsibly.":
+            "作为 Monash "
+            "的学生，你加入的是一个在所有学术活动中恪守诚信的群体，也就等于亲自作出承诺：以符合学术诚信的方式完成学业。这意味着，你在做作业或提交考核时，都要做到诚实、公平、尊重他人、对自己负责。",
+        "Compulsory modules are not graded, so your grade will remain "
+        "0% even after completion. But, once you’ve completed the "
+        "module, your progress will show as 100% on the CUP dashboard.":
+            "必修模块不计分，所以即使你已经完成，成绩仍会显示为 0%——这是正常的。判断是否完成要看 CUP 首页的进度：完成后会显示 "
+            "100%。",
+        "Find out what a report of academic misconduct means for you, "
+        "and what steps you need to take.":
+            "了解被举报学术不端对你意味着什么，以及你需要采取哪些步骤。",
+        "If the module freezes, and you can't select an option or move "
+        "on to the next page, you need to email servicedesk@monash.edu:":
+            "如果模块卡住，选不了选项、也翻不到下一页，请发邮件到 servicedesk@monash.edu：",
+        "If you don’t complete compulsory modules by the deadline, "
+        "you'll lose access to Moodle until the modules are completed. "
+        "So make sure you complete them on time.":
+            "如果到截止日期还没完成必修模块，你会被停用 Moodle，直到补完为止。请务必按时完成。",
+        "If you have trouble accessing the module, see our "
+        "troubleshooting section below.":
+            "如果打不开模块，请看下面的「问题排查」一节。",
+        "If you're having trouble accessing the module:":
+            "如果你打不开模块：",
+        "If you’re still having trouble accessing or completing the "
+        "module, contact Monash Connect. Make sure to give us:":
+            "如果仍然打不开或做不完模块，请联系 Monash Connect（学生服务中心）。联系时请提供：",
+        "If you’re unsure whether you need to complete the Academic "
+        "Integrity module, check in the Web Enrolment System (WES) "
+        "under Enrolment/Re-Enrolment. Your compulsory modules will be "
+        "listed in the Status column of the Enrolment Summary screen.":
+            "如果你不确定自己是否需要完成学术诚信模块，可以到 WES（学生系统）里的 "
+            "Enrolment/Re-enrolment（选课注册／重新注册）查看。你的必修模块会列在 Enrolment "
+            "Summary（选课注册摘要）页面的 Status（状态）一栏。",
+        "Learning how to apply and maintain academic integrity in your "
+        "assessments is essential to your success at Monash. Learn HQ "
+        "resources will help you with:":
+            "学会在考核中践行并保持学术诚信，是你在 Monash 顺利完成学业的关键。Learn HQ（学习支持平台）上的资源可以帮你：",
+        "Monash University is strongly committed to honesty and "
+        "academic integrity.":
+            "Monash 大学高度重视诚实与学术诚信。",
+        "Once you've completed the module, the Compulsory Units Portal "
+        "(CUP) dashboard should show the unit as 100% complete.If you "
+        "signed into CUP with your Monash student account, your "
+        "progress will be recorded in the Web Enrolment System (WES) - "
+        "it takes about 15 minutes.If you signed into CUP using a "
+        "personal email account (or you’re a Monash University "
+        "Accommodation student), your student record won’t be "
+        "automatically updated. We’ll need to do a data merge so "
+        "completion of the module is recorded in WES. Please submit an "
+        "email to servicedesk@monash.edu with the subject line, CUP "
+        "merge required, and we'll fix this for you.You can check "
+        "which email address is linked to your account in CUP under "
+        "the profile icon in the top left corner.":
+            "完成模块后，Compulsory Units Portal（CUP，必修模块门户）首页应显示该模块 100% "
+            "完成。如果你是用 Monash 学生账号登录 CUP 的，进度大约 15 分钟后会记录到 "
+            "WES（学生系统）。如果你用的是个人邮箱（或者你是 Monash "
+            "学生宿舍的住宿生），学生记录不会自动更新：我们需要做一次数据合并，才能把完成记录写进 WES（学生系统）。请发邮件到 "
+            "servicedesk@monash.edu，主题写 CUP merge "
+            "required，我们会帮你处理。想确认账号绑定的是哪个邮箱，点开 CUP 左上角的头像图标即可查看。",
+        "To help you maintain academic integrity throughout your "
+        "studies, we’ve created a short compulsory module. It gives "
+        "you a basic understanding of academic integrity and points "
+        "you to important resources that build on this. You’ll learn:":
+            "为帮助你在整个学习期间守住学术诚信，我们准备了一个简短的必修模块。它会带你建立对学术诚信的基本认识，并指引你找到进一步的重要资源。你将学到：",
+        "Understand that plagiarism, collusion and cheating bring "
+        "serious consequences. Not only while you’re at Monash, but "
+        "well beyond. Such misconduct could harm you personally and "
+        "professionally for the rest of your life.":
+            "要清楚：抄袭、合谋作弊和作弊都会带来严重后果，而且不止于你在 Monash "
+            "的这几年。这类学术不端可能在你此后的人生里，长期影响你的个人声誉与职业发展。",
+        "Use this information if you have trouble accessing or "
+        "completing a module.":
+            "打不开模块、或者做不完时，请参考下面的说明。",
+        "Using your personal email account: If you log into CUP with "
+        "your personal email account (or a Monash University "
+        "Accommodation account), your record of completion won’t "
+        "automatically appear in WES. You’ll need to request that we "
+        "merge your personal CUP account with your Monash student "
+        "account by emailing servicedesk@monash.edu with the subject "
+        "line CUP merge required.":
+            "用个人邮箱登录：如果你用个人邮箱（或 Monash 学生宿舍账号）登录 CUP，完成记录不会自动同步到 "
+            "WES（学生系统）。你需要发邮件到 servicedesk@monash.edu，主题写 CUP merge "
+            "required，请我们把你的个人 CUP 账号与 Monash 学生账号合并。",
+        "Using your student email account: Best to log into CUP with "
+        "your Monash student email account. That way your record of "
+        "completion will also appear in WES (after about 15 minutes).":
+            "用学生邮箱登录：建议用你的 Monash 学生邮箱登录 CUP。这样你的完成记录大约 15 分钟后也会同步到 "
+            "WES（学生系统）。",
+        "What happens if I don’t complete the module?":
+            "不完成这个模块会怎样？",
+        "When do I need to complete this module?":
+            "这个模块要在什么时候完成？",
+        "You can check which email address is linked to your account "
+        "by looking under the profile icon in the top left corner of "
+        "CUP.":
+            "想确认账号绑定的是哪个邮箱，点开 CUP 左上角的头像图标即可查看。",
+        "You should complete the compulsory modules before classes "
+        "start, but we’ll send you a reminder (with a deadline) if you "
+        "haven’t completed them. If you don’t complete them by the "
+        "deadline, you’ll lose access to Moodle until they are "
+        "completed.":
+            "必修模块应当在开课前完成。如果你还没完成，我们会发提醒给你，并告知截止日期。若到期仍未完成，你会被停用 "
+            "Moodle，直到补完为止。",
+        "dos and don’ts of academic integrity":
+            "弄清学术诚信上哪些能做、哪些不能做",
+        "how plagiarism, collusion and cheating differ, and how to "
+        "avoid them":
+            "抄袭、合谋作弊和作弊有什么区别，以及如何避免",
+        "how to deal with common scenarios involving academic integrity":
+            "遇到与学术诚信有关的常见情况该怎么处理",
+        "maintaining your study and research ethically, with honesty "
+        "and integrity.":
+            "在学习和研究中恪守伦理规范，做到诚实、正直。",
+        "understanding terms that refer to different aspects of "
+        "academic integrity":
+            "理解学术诚信各个方面所使用的术语",
+        "understanding what happens if you breach academic integrity":
+            "了解违反学术诚信之后会发生什么",
+        "where to find resources to grow your knowledge and skills for "
+        "greater academic integrity.":
+            "到哪里去找资源，进一步提升自己在学术诚信方面的认识与能力。",
+        "why academic integrity is important to you, Monash and the "
+        "University community":
+            "学术诚信为什么对你、对 Monash、对整个大学群体都重要",
+    },
     "academic-transcripts": {
         "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
             "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
