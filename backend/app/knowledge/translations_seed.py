@@ -836,6 +836,210 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "你的学业记录包含以下关于你的信息：如果成绩单上某门课程标注为 Incomplete（未完成），只是表示成绩尚未公布。硕士优等毕业（awarded with distinction）：自 2021 年 10 月 6 日起，以授课型硕士学位毕业且 WAM（加权平均分）达到 80 分及以上的学生，成绩单上会显示「awarded with distinction」。部分免修课程不显示学分：成绩单上列出的免修课程有时没有对应学分，这是因为你（基于此前的学习）获准免修某门课程，但需要另修一门课程来替代。",
     },
     "add-or-withdraw-units": {
+        "If you can’t add or withdraw from a unit":
+            "如果你无法添加或退选课程",
+        "Academic penalties may apply to some teaching periods":
+            "部分开课学期还可能有学业方面的处罚",
+        "Add or withdraw from units":
+            "添加或退选课程",
+        "Adding units from other faculties":
+            "添加其他学院的课程",
+        "After the start of a teaching period, you need to allow up to "
+        "24 hours for your unit changes to appear in Moodle.":
+            "开课学期开始之后，选课变动最多需要 24 小时才会显示在 Moodle 上。",
+        "After you’ve made unit changes in WES":
+            "在 WES（学生系统）里改完课程之后",
+        "Before making changes to your units, find out more about time "
+        "limits to finish your course and check the processes for "
+        "underloading and overloading.":
+            "改动课程之前，先了解完成学位课程的年限规定，并查看减少学习负荷（underloading）和超额选课（overloading）的办理流程。",
+        "By Friday of week two of the teaching period":
+            "在开课学期第二周的周五之前",
+        "CSP and HELP loan students":
+            "联邦资助学额（CSP）与 HELP 贷款学生",
+        "Census date description, code and penalty for missing it.":
+            "census date（学籍统计日）的说明、代码，以及错过它的处罚。",
+        "Census date for teaching period":
+            "该开课学期的 census date（学籍统计日）",
+        "Changing your study load":
+            "改变学习负荷",
+        "Changing your study load from full-time to part-time could "
+        "affect your Centrelink payments.":
+            "把学习负荷从全日制改为非全日制，可能会影响你的 Centrelink 补助。",
+        "Check your unit enrolment using our VA":
+            "用我们的虚拟助手查看你的课程注册情况",
+        "Click SUBMIT to save your changes.":
+            "点击 SUBMIT（提交）保存改动。",
+        "Click To add units click here at the top of the enrolment "
+        "form.":
+            "点击注册表单顶部的 To add units click here（添加课程请点这里）。",
+        "Confirmation of Enrolment (CoE)":
+            "入学确认书（CoE）",
+        "Coursework Enrolment Procedure (pdf)":
+            "Coursework Enrolment Procedure（授课型选课注册规程，pdf）",
+        "Financial : no refund available (you’ll be liable for your "
+        "fees) Academic : recorded on transcript as 'WDN' (mark not "
+        "included in calculating WAM and GPA)":
+            "财务：不予退费（学费仍需你承担）　学业：在成绩单上记为 WDN（退课），该分数不计入 WAM（加权平均分）和 "
+            "GPA（平均绩点）",
+        "Financial : no refund available (you’ll be liable for your "
+        "fees) Academic : recorded on transcript as a 'WN' fail grade "
+        "(grade of zero included in calculating WAM and GPA)":
+            "财务：不予退费（学费仍需你承担）　学业：在成绩单上记为 WN 不及格，以零分计入 WAM（加权平均分）和 GPA（平均绩点）",
+        "Financial : see fee policies and procedures Academic : not "
+        "recorded on transcript":
+            "财务：见学费政策与流程　学业：不记入成绩单",
+        "Financial: no financial penalty applies (you’re not liable "
+        "for your fees) Academic: not recorded on transcript":
+            "财务：不产生任何费用处罚（学费无需你承担）　学业：不记入成绩单",
+        "Financial: no refund available (you’ll be liable for your "
+        "fees) Academic: recorded on transcript as WDN (not included "
+        "in calculating GPA and WAM)":
+            "财务：不予退费（学费仍需你承担）　学业：在成绩单上记为 WDN（退课），该分数不计入 WAM（加权平均分）和 "
+            "GPA（平均绩点）",
+        "Financial: no refund available (you’ll be liable for your "
+        "fees) Academic: recorded on transcript as a WN fail grade "
+        "(grade of zero included in calculating GPA and WAM )":
+            "财务：不予退费（学费仍需你承担）　学业：在成绩单上记为 WN 不及格，以零分计入 WAM（加权平均分）和 GPA（平均绩点）",
+        "How to withdraw from a unit":
+            "如何退选一门课程",
+        "If you can’t add or withdraw from a unit in WES, submit an "
+        "Enrolment Amendment Form. Research students need to contact "
+        "their Graduate Research Faculty Office.":
+            "如果你在 WES（学生系统）里无法添加或退选课程，请提交 Enrolment Amendment "
+            "Form（选课注册变更表）。研究型学生请联系所在的 Graduate Research Faculty "
+            "Office（研究生研究学院办公室）。",
+        "If you get an error message saying you haven't enrolled in "
+        "enough credit points, you'll need to add more units before "
+        "WES will let you submit. To enrol in less than 48 credit "
+        "points for the year, submit an Enrolment Amendment Form.":
+            "如果系统提示你所选学分不足，就需要先添加更多课程，WES（学生系统）才允许提交。若全年要选不足 48 学分，请提交 "
+            "Enrolment Amendment Form（选课注册变更表）。",
+        "If you have any trouble adding units in WES, see "
+        "troubleshooting in WES.":
+            "如果在 WES（学生系统）里添加课程遇到问题，请查看 WES 的问题排查说明。",
+        "If you need help selecting units or enrolling in WES, take a "
+        "look at our video below.":
+            "如果你在选课或在 WES（学生系统）里注册时需要帮助，可以看下面这段视频。",
+        "If you withdraw from all of your units, you'll need to:":
+            "如果你退选了全部课程，就需要：",
+        "If you're on a student visa then you’ll have study load "
+        "requirements to maintain. Changing your study load may "
+        "require you to update your:":
+            "如果你持学生签证，就必须满足学习负荷方面的要求。改变学习负荷时，你可能需要同步更新：",
+        "If you’ve got free elective space and you’re looking to "
+        "explore another area of study, take a look at Monash Enrich – "
+        "you’ll find electives from other faculties, programs and "
+        "overseas study opportunities.":
+            "如果你还有自由选修的名额，又想接触别的领域，可以看看 Monash "
+            "Enrich——那里有其他学院的选修课、各类项目，以及海外学习机会。",
+        "International students":
+            "国际学生",
+        "It's important to check the census and penalty dates for your "
+        "teaching period before withdrawing from a unit, or you may "
+        "face academic and financial penalties. These include having a "
+        "fail recorded on your academic record and incurring fees or a "
+        "loan debt.":
+            "退选课程之前，一定要先查清你所在开课学期的 census "
+            "date（学籍统计日）和处罚日期，否则可能面临学业和费用上的处罚，包括在成绩单上留下不及格记录、以及产生学费或贷款债务。",
+        "Log into WES and click on Unit Enrolment.":
+            "登录 WES（学生系统），点击 Unit Enrolment（课程注册）。",
+        "Log into the Unit Enrolment section of WES to view a summary "
+        "page of your current unit enrolment.":
+            "登录 WES（学生系统）的 Unit Enrolment（课程注册）一节，即可看到你当前选课情况的汇总页面。",
+        "Once your unit changes appear in Allocate+ you can enter "
+        "preference for new units and change preferences for any other "
+        "units affected. Allocate+ will automatically remove withdrawn "
+        "units.":
+            "课程变动在 Allocate+ 中显示出来之后，你就可以为新课程填写志愿，并调整其他受影响课程的志愿。Allocate+ "
+            "会自动移除已退选的课程。",
+        "Overloading: If you want to enrol in more than the standard "
+        "number of units you need to first request to overload. You’ll "
+        "also need to meet some conditions.":
+            "超额选课（overloading）：如果你想选的课程超出标准数量，需要先提出超额选课申请，并且要满足一些条件。",
+        "Overseas Student Health Cover (OSHC)":
+            "留学生医疗保险（OSHC）",
+        "Part-time: If you’re enrolled as a full-time student you may "
+        "not be able to withdraw from units unless you’re officially "
+        "recorded as part-time. If you’re on a student visa you also "
+        "have study load requirements to maintain. For more about "
+        "this, see underloading.":
+            "非全日制：如果你是以全日制身份注册的，除非学籍上正式记为非全日制，否则可能无法退选课程。持学生签证的学生还必须满足学习负荷要求。详见减少学习负荷（underloading）说明。",
+        "Penalties for withdrawing late":
+            "迟退选的处罚",
+        "Remove your unit/s with the buttons in the Action column next "
+        "to the unit code.":
+            "用课程代码旁 Action（操作）一列中的按钮移除课程。",
+        "Save your changes by clicking SUBMIT ENROLMENT.":
+            "点击 SUBMIT ENROLMENT（提交注册）保存改动。",
+        "Search for the unit/s you want to add, but don’t click SUBMIT "
+        "until you have:":
+            "搜索你想添加的课程，但先别急着点 SUBMIT（提交）——要等你已经：",
+        "See your student visa for more information.":
+            "更多信息见「学生签证」页面。",
+        "Student Fees Policy (pdf)":
+            "Student Fees Policy（学费政策，pdf）",
+        "Student Fees Procedure (pdf)":
+            "Student Fees Procedure（学费流程，pdf）",
+        "Student Fees Refunds Procedure (pdf)":
+            "Student Fees Refunds Procedure（学费退费流程，pdf）",
+        "Teaching period start date":
+            "开课学期开始日期",
+        "Teaching weeks end date: Last day to withdraw from units. "
+        "After this date, you cannot withdraw from units.":
+            "教学周结束日：退选课程的最后一天。此日期之后就无法再退选课程。",
+        "The Friday before the teaching period starts":
+            "开课学期开始前的那个周五",
+        "The University will not backdate your changes to avoid "
+        "payment or academic penalties unless we have made a proven "
+        "error.":
+            "除非确属学校的过失并经查证，否则学校不会把你的变动日期回溯，以规避费用或学业上的处罚。",
+        "Timing of unit withdrawal and their penalty types":
+            "退选课程的时间点与对应的处罚类型",
+        "Unit changes will appear in Allocate+ within two hours. If "
+        "you submit your changes using a form, please allow staff "
+        "several days to process the units.":
+            "课程变动会在两小时内显示到 Allocate+ 中。如果你是用表格提交的变动，请留出几个工作日让工作人员处理。",
+        "Unit types and when to add them":
+            "课程类型，以及各自该在什么时候添加",
+        "Units added (with faculty approval) after the census date "
+        "cannot be Commonwealth-supported. The University charges the "
+        "full course fee and you can't get FEE-HELP for these units. "
+        "Your fee statement will be updated to reflect the changes.":
+            "在 census "
+            "date（学籍统计日）之后（经学院批准）添加的课程，不能算作联邦资助学额（CSP）。学校会按全额学费收取，这些课程也无法使用 "
+            "FEE-HELP 贷款。你的费用清单会相应更新。",
+        "WES will email you a transaction number (starting with U) "
+        "after you’ve successfully updated your enrolment. Keep this "
+        "record.":
+            "成功更新选课注册后，WES（学生系统）会把一个以 U 开头的交易号发到你邮箱，请留存好。",
+        "Withdrawing from units":
+            "退选课程",
+        "You can also use the Handbook to find more information on the "
+        "units you’re interested in.":
+            "你也可以在 Handbook 里查到感兴趣课程的更多信息。",
+        "You can use the Web Enrolment System (WES) to add or withdraw "
+        "from most units.":
+            "多数课程都可以在 WES（学生系统）里添加或退选。",
+        "You need to wait a couple of hours for changes to come "
+        "through from WES before you can log into Allocate+ to update "
+        "your timetable.":
+            "改动从 WES（学生系统）同步过来需要几个小时，之后你才能登录 Allocate+ 调整课表。",
+        "Your fee statement will be updated to reflect the changes. "
+        "See access your fee statement.":
+            "你的费用清单会相应更新。请查看「如何查看费用清单」。",
+        "added all your new units and reached enough credit points for "
+        "the year":
+            "把新课程全部加好，并且全年学分已经达标",
+        "apply for intermission (study leave), if you want to return "
+        "to study.":
+            "如果你还打算回来读书，就申请休学（intermission，即 study leave）。",
+        "discontinue your course, or":
+            "退课；或者",
+        "finished swapping units (dropping one and adding another).":
+            "换课已经换完（退掉一门、加上另一门）。",
+        "student visa":
+            "学生签证",
         "ADD UNITS":
             "添加课程",
         "After 11.59pm (Melbourne time) on the census date":
@@ -942,6 +1146,344 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你申请休息一段时间或退出学位课程，我们会主动联系你，一起讨论可选的方案。",
     },
     "defer-final-assessment": {
+        "A medical support staff member can assess you and, if "
+        "necessary, provide written confirmation that you’re unfit to "
+        "continue and complete your assessment.":
+            "考场医护人员可以为你做评估；必要时会出具书面确认，证明你不适合继续和完成考核。",
+        "Additionally, you need to submit both your application and "
+        "supporting documents in time for us to reschedule your "
+        "assessment and for you to complete it within 90 calendar days "
+        "of results release for the original assessment period (see "
+        "successful application). We may ask you to show that you can "
+        "complete a rescheduled assessment within this timeframe.":
+            "此外，你的申请和证明材料都必须及早提交，好让我们来得及为你重新排考，并让你在原考核期成绩公布之日起 90 "
+            "个日历日内完成（见「申请获批」）。我们可能会要求你证明自己能在这个时限内完成改期后的考核。",
+        "Apply to defer your assessment":
+            "申请延期考核",
+        "Assessment and Academic Integrity Policy (pdf)":
+            "Assessment and Academic Integrity Policy（考核与学术诚信政策，pdf）",
+        "Before you apply View":
+            "申请之前 查看",
+        "Before you apply to reschedule your deferred assessment "
+        "(exam), make sure you carefully check all requirements. They "
+        "are not the same as the ones that you needed to defer your "
+        "assessment.":
+            "在申请为延期考核（考试）改期之前，请仔细核对全部条件——它们与当初申请延期时的条件并不相同。",
+        "Defer or reschedule your scheduled final assessment (exam)":
+            "为已排定的期末考核（考试）申请延期或改期",
+        "Deferring your assessment":
+            "申请考核延期",
+        "Department-run assessments View":
+            "院系自行组织的考核 查看",
+        "Eligibility for deferred assessment":
+            "延期考核的资格条件",
+        "Eligibility for rescheduled deferred assessment":
+            "延期考核改期的资格条件",
+        "Exam medical support staff are available during final "
+        "assessment periods only.":
+            "考场医护人员只在期末考核期间提供服务。",
+        "For details about your course structure, take a look at the "
+        "Handbook (make sure you check the Handbook for the year you "
+        "started your course). You can also check the Handbook for the "
+        "current year for unit prerequisite and co-requisite "
+        "information.":
+            "学位课程结构的细节请查看 Handbook（注意查看你入学那一年的版本）。课程的先修和同修要求，则可以查看当年度的 "
+            "Handbook。",
+        "Here are exceptional circumstances that may make you eligible "
+        "for a deferral:":
+            "下列特殊情况可能使你符合延期的条件：",
+        "If a condition applies, your managing faculty will let you "
+        "know.":
+            "如果对你附加了某项条件，负责你的学院会通知你。",
+        "If this happens, don’t worry, just get in touch with your "
+        "faculty or reach out to Monash Connect and they will let you "
+        "know what you need to do.":
+            "遇到这种情况不必慌张，联系你所在学院、或找 Monash Connect（学生服务中心），他们会告诉你该怎么办。",
+        "If you become unwell during a deferred eExam assessment, you "
+        "must alert your online supervisor or contact the exam support "
+        "hotline. If you don’t inform your supervisor or contact the "
+        "exam support hotline we may not consider your application to "
+        "defer your assessment.":
+            "如果你在延期的 "
+            "eExam（线上考试）过程中身体不适，必须当场告知线上监考员、或拨打考试支持热线。没有告知监考员、也没有联系热线的，我们可能不会受理你的考核延期申请。",
+        "If you can’t complete a scheduled final assessment during the "
+        "time it is set in Allocate+ due to exceptional circumstances, "
+        "you can apply to defer it (or reschedule it if you’ve already "
+        "deferred it).":
+            "如果确有特殊情况使你无法在 Allocate+ 排定的时间内完成期末考核，你可以申请延期（若已经延期过，则申请改期）。",
+        "If you complete a deferred assessment, you won’t be eligible "
+        "for a supplementary assessment.":
+            "参加过延期考核之后，就不再符合补考的条件。",
+        "If you don't have your supporting documents yet, check how to "
+        "submit your application without supporting documents and "
+        "provide them later.":
+            "如果证明材料还没拿到，请查看如何先提交申请、之后再补交材料。",
+        "If you have a non-scheduled final assessment due on the same "
+        "day you have to sit a scheduled final assessment, you can "
+        "apply for a short extension for the non-scheduled assessment "
+        "(but you can’t defer your scheduled one).":
+            "如果某项非排定的期末考核，恰好与你必须参加的已排定期末考核同一天到期，你可以为那项非排定考核申请短期延期（但不能为已排定的那一场申请延期）。",
+        "If you have a scheduled final assessment or you’re approved "
+        "for a deferred assessment and are participating in a Monash "
+        "program overseas or interstate (e.g. GIG), you’re still "
+        "expected to complete your deferred assessment on the "
+        "scheduled date and time – even if it overlaps with your "
+        "program.":
+            "如果你有已排定的期末考核、或已获批延期考核，同时正在参加 Monash 的海外或跨州项目（例如 "
+            "GIG），你仍须按排定的日期和时间完成延期考核——即使它与项目时间冲突。",
+        "If you have questions about re-enrolment, concerns about your "
+        "academic progress or need support, contact your faculty or "
+        "request course advice.":
+            "如果你对重新注册有疑问、对自己的学业进度有担心，或者需要支持，请联系所在学院或申请课程咨询。",
+        "If you missed the assessment because you were unwell, or "
+        "because of some other exceptional circumstances, you need to "
+        "provide supporting documents. For example, you need to "
+        "immediately get a medical certificate (or an approved "
+        "alternative) from your doctor or a campus health service to "
+        "be considered eligible to defer your assessment.":
+            "如果你是因为身体不适、或其他特殊情况错过了考核，就需要提交证明材料。例如，你需要立刻找医生或校内医疗服务开一份 "
+            "medical certificate（医疗证明，或经认可的同等材料），才符合申请考核延期的条件。",
+        "If you provide your documents too late for us to reschedule "
+        "your assessment within 90 calendar days of the results "
+        "release date of your original assessment period, we’ll grant "
+        "you a Withdrawn (WDN) grade for the unit.":
+            "如果你交材料太晚，使我们无法在原考核期成绩公布之日起 90 个日历日内为你重新排考，我们会为这门课程记 "
+            "Withdrawn（WDN，退课）成绩。",
+        "If you're registered with DSS, you’ll still need to provide "
+        "supporting documents.":
+            "即使你已在 DSS 登记，仍然需要提交证明材料。",
+        "If your application is approved, we’ll defer your scheduled "
+        "final assessment and you’ll get an interim DEF (deferred "
+        "assessment) result. This may affect your enrolment in the "
+        "next teaching period if your unit is a prerequisite.":
+            "如果申请获批，我们会为你的已排定期末考核办理延期，你会先拿到一个 "
+            "DEF（延期考核）的临时成绩。如果这门课是别的课程的先修课，这可能会影响你下一个开课学期的选课注册。",
+        "If your deferral application has been approved, but you "
+        "decide to go ahead and sit your assessment on its original "
+        "set date, the deferral is no longer valid.":
+            "如果你的延期申请已获批，却仍决定按原定日期参加考核，那么该延期即告失效。",
+        "If you’re affected by long-term or ongoing circumstances, "
+        "such as a recurring medical condition, we encourage you to "
+        "register with Disability Support Services (DSS). DSS can "
+        "support you with reasonable adjustments.":
+            "如果你受长期或持续性情况影响，例如反复发作的健康问题，我们建议你到 Disability Support "
+            "Services（DSS，无障碍支持服务）登记。DSS 可以为你安排合理调整。",
+        "If you’re approved for a rescheduled deferred assessment and "
+        "are participating in a Monash program overseas or interstate "
+        "(e.g. GIG), you’re still expected to complete your "
+        "rescheduled deferred assessment on the scheduled date and "
+        "time – even if it overlaps with your program.":
+            "如果你的延期考核改期已获批，同时正在参加 Monash 的海外或跨州项目（例如 "
+            "GIG），你仍须按排定的日期和时间完成改期后的延期考核——即使它与项目时间冲突。",
+        "If you’re in a time zone where your final assessment is "
+        "scheduled to start before 5am or finish after 12.30am in your "
+        "local time, you can apply for special arrangements to have "
+        "your assessment start time moved to the next suitable "
+        "timetabled session.":
+            "如果你所在时区使期末考核的开始时间早于当地凌晨 5 点、或结束时间晚于当地次日 0 点 30 "
+            "分，你可以申请特殊安排，把考核开始时间挪到下一个合适的排定场次。",
+        "If you’re in a time zone where your rescheduled deferred "
+        "assessment is scheduled to start before 5am or finish after "
+        "12.30am in your local time, you can apply for special "
+        "arrangements to have your assessment start time moved to the "
+        "next suitable timetabled session.":
+            "如果你所在时区使改期后的延期考核的开始时间早于当地凌晨 5 点、或结束时间晚于当地次日 0 点 30 "
+            "分，你可以申请特殊安排，把考核开始时间挪到下一个合适的排定场次。",
+        "If you’re not eligible to reschedule your deferred "
+        "assessment, we’ll:":
+            "如果你不符合延期考核改期的条件，我们会：",
+        "If you’re sitting a deferred department-run assessment, "
+        "you’ll need to advise your Chief Examiner that you’re unwell "
+        "and arrange to see a medical professional as soon as "
+        "possible. You need to get a medical certificate (or an "
+        "approved alternative) from your doctor or a campus health "
+        "service to be eligible to reschedule your deferred "
+        "assessment. The medical certificate must demonstrate that you "
+        "were affected by a medical condition during the assessment, "
+        "making it impractical for you to continue or complete the "
+        "assessment.":
+            "如果你参加的是院系自行组织的延期考核，需要告知主考官（Chief "
+            "Examiner）你身体不适，并尽快安排就医。你需要找医生或校内医疗服务开一份 medical "
+            "certificate（医疗证明，或经认可的同等材料），才符合为延期考核改期的条件。这份证明必须能显示：你在考核期间确实受某种健康问题影响，以致无法继续或完成考核。",
+        "Impacts on your results and enrolment":
+            "对成绩和选课注册的影响",
+        "Long-term or ongoing circumstances":
+            "长期或持续性的情况",
+        "Make sure you apply by 11.55pm on the date your final "
+        "assessment is set.":
+            "请务必在期末考核排定当天的 23:55 之前提交申请。",
+        "Make sure you attach all supporting documents required as "
+        "evidence of your unresolved circumstances or new extreme "
+        "circumstances. If you don't have your supporting documents "
+        "yet, check  how to submit your application without supporting "
+        "documents and provide them later .":
+            "请务必附上全部所需的证明材料，作为你情况尚未解决、或出现新极端情况的证据。如果材料还没拿到，请查看如何先提交申请、之后再补交材料。",
+        "Marking and Feedback Procedure (pdf)":
+            "Marking and Feedback Procedure（评分与反馈规程，pdf）",
+        "Missed your assessment":
+            "错过了考核",
+        "Off-campus final assessments (eExams)":
+            "校外期末考核（eExams 线上考试）",
+        "On-campus final assessments (eExams)":
+            "校内期末考核（eExams 线上考试）",
+        "Once results are released, we won’t accept any applications "
+        "to defer or reschedule assessments.":
+            "成绩一旦公布，我们就不再受理任何考核延期或改期的申请。",
+        "Other things to know View":
+            "其他需要知道的事 查看",
+        "Policy and procedure":
+            "政策与流程",
+        "Prerequisite units View":
+            "先修课程 查看",
+        "Rescheduling your deferred assessment":
+            "为延期考核改期",
+        "Special Consideration Procedure (pdf)":
+            "Special Consideration Procedure（特殊考虑规程，pdf）",
+        "Successful application View":
+            "申请获批 查看",
+        "Successful applications View":
+            "申请获批 查看",
+        "Time zone differences":
+            "时区差异",
+        "To be eligible, you must:":
+            "要符合条件，你必须：",
+        "Unsuccessful application View":
+            "申请未获批 查看",
+        "Unsuccessful applications View":
+            "申请未获批 查看",
+        "Unwell during your assessment":
+            "考核期间身体不适",
+        "We can’t give you a deferral for things like:":
+            "下列这类原因我们不会给予延期：",
+        "We won’t accept an application for a deferred or rescheduled "
+        "assessment after the deadline (11.55pm on its set date) "
+        "unless you can show with supporting documents that "
+        "exceptional circumstances beyond your control prevented you "
+        "from applying on time (e.g. you might have been hospitalised "
+        "with a serious illness).":
+            "考核延期或改期的申请一旦超过截止时间（排定当天 "
+            "23:55）就不予受理，除非你能凭证明材料显示：确有你无法控制的特殊情况使你不能按时申请（例如你因重病住院）。",
+        "We'll email you the outcome of your application within five "
+        "University working days as long as you've submitted a "
+        "complete application with all the required supporting "
+        "documents.":
+            "只要你提交的申请完整、所需证明材料齐备，我们会在五个学校工作日内把结果邮件发给你。",
+        "We'll email you the outcome of your application within two "
+        "University working days as long as you’ve submitted a "
+        "complete application with all the required supporting "
+        "documents.":
+            "只要你提交的申请完整、所需证明材料齐备，我们会在两个学校工作日内把结果邮件发给你。",
+        "When you should apply":
+            "什么时候该申请",
+        "When you should apply for an extension instead":
+            "什么时候该改为申请延期",
+        "When you're not eligible":
+            "不符合条件的情形",
+        "You can apply to defer your scheduled (in Allocate+ "
+        "timetable) final assessment if you couldn’t complete it on "
+        "the set date due to exceptional circumstances beyond your "
+        "control.":
+            "如果确有你无法控制的特殊情况，使你无法在排定日期完成期末考核（即 Allocate+ 课表上的那一场），你可以申请延期。",
+        "You may be eligible to defer your scheduled final assessment "
+        "(exam) if you couldn’t complete it on the set date due to "
+        "exceptional circumstances beyond your control.":
+            "如果确有你无法控制的特殊情况，使你无法在排定日期完成已排定的期末考核（考试），你可能符合申请延期的条件。",
+        "You may wish to get support and advice.":
+            "你也可以去寻求支持与建议。",
+        "Your managing faculty may place conditions on your enrolment, "
+        "such as:":
+            "负责你的学院可能会对你的选课注册附加条件，例如：",
+        "You’ll need to complete your assessment on the new date and "
+        "within 90 calendar days of results release for the original "
+        "assessment period.":
+            "你需要在新的日期参加考核，并且要在原考核期成绩公布之日起 90 个日历日之内完成。",
+        "You’ll need to provide a copy of this written confirmation "
+        "with your application – along with supplementary supporting "
+        "documents verifying your condition at the time of the "
+        "assessment – to be eligible to apply to reschedule the "
+        "assessment.":
+            "申请时你需要附上这份书面确认的副本，连同能证明你考核当时状况的补充材料，才符合申请考核改期的条件。",
+        "a brief interruption to power and/or internet service where "
+        "you’re given additional time to complete your assessment":
+            "电力或网络短暂中断、而你已经获得额外时间完成考核的情形",
+        "consider you for a Withdrawn (WDN) grade if you meet the "
+        "eligibility requirements, or":
+            "在你符合条件时，考虑为你记 Withdrawn（WDN，退课）成绩；或者",
+        "disruption caused by international conflict":
+            "国际冲突造成的影响",
+        "eExams View":
+            "eExams（线上考试） 查看",
+        "family (relationship breakdown)":
+            "家庭（关系破裂）",
+        "financial/employment issues":
+            "经济或就业问题",
+        "gender-based violence":
+            "性别暴力",
+        "have an ongoing disability registered with Disability Support "
+        "Services (DSS) that directly prevented you from sitting your "
+        "deferred assessment (such as a serious and debilitating "
+        "medical condition or severe mental health condition) – see "
+        "DSS-registered condition for details – or":
+            "你有已在 Disability Support "
+            "Services（DSS，无障碍支持服务）登记的持续性障碍，并因此直接无法参加延期考核（例如严重且使人失能的健康问题、或严重心理健康问题）——详见「已在 "
+            "DSS 登记的状况」；或者",
+        "limit to the credit points you can enrol in for a specific "
+        "teaching period":
+            "限制你在某个开课学期可以选的学分数",
+        "losing your Moodle access because you didn’t complete a "
+        "compulsory module":
+            "因为没完成必修模块而被停用 Moodle",
+        "loss or bereavement":
+            "亲人离世与哀伤",
+        "loss or bereavement: death of a person with whom you had a "
+        "significant relationship":
+            "亲人离世与哀伤：与你有重要关系的人过世",
+        "mandatory enrolment in specific units":
+            "必须选修指定的课程",
+        "medical condition (including COVID-19)":
+            "健康问题（含新冠）",
+        "mental health condition":
+            "心理健康问题",
+        "military, jury or emergency services obligations":
+            "兵役、陪审团或紧急救援服务义务",
+        "missing your assessment due to mistaking its set date, time "
+        "or location":
+            "因为记错考核的日期、时间或地点而错过考核",
+        "obligations as athlete, artist or performer registered with "
+        "Elite Student Performer Scheme or as representative of "
+        "University in other key events and programs":
+            "作为已在 Elite Student Performer "
+            "Scheme（ESPS，精英学生表现者计划）登记的运动员、艺术家或表演者所负的义务，或代表学校参加其他重要赛事和项目的义务",
+        "other exceptional circumstances beyond your control.":
+            "其他你无法控制的特殊情况。",
+        "other extreme circumstances.":
+            "其他极端情况。",
+        "provide evidence of one or more of these extreme "
+        "circumstances beyond your control:":
+            "提供证据，证明存在下列一种或多种你无法控制的极端情况：",
+        "religious or cultural obligations":
+            "宗教或文化义务",
+        "representing a club or society as a volunteer.":
+            "以志愿者身份代表某个社团或学会。",
+        "requirement to successfully pass specific units or a number "
+        "of credit points.":
+            "要求你必须通过指定课程、或修满一定学分。",
+        "serious and debilitating medical condition":
+            "严重且使人失能的健康问题",
+        "severe mental health condition":
+            "严重心理健康问题",
+        "show that the exceptional circumstances approved for your "
+        "deferred assessment have not yet been resolved by providing "
+        "updated supporting documents or":
+            "提交更新后的证明材料，显示当初获批延期考核时的那些特殊情况至今仍未解决；或者",
+        "technical disruption":
+            "技术故障",
+        "technical issues you might have avoided by uploading the "
+        "correct files, allowing enough time for uploading and having "
+        "the right equipment":
+            "本可以避免的技术问题，例如上传了正确的文件、留出足够的上传时间、或备好合适的设备就不会发生的那些",
+        "victim of crime or concerns about safety":
+            "遭受犯罪侵害，或对人身安全的担忧",
         "If there isn’t another suitable session on the same day, you’ll have to sit your deferred assessment at the time it is scheduled.":
             "如果当天没有其他合适的场次，你就必须按原定时间参加延期考核。",
         "If there isn’t another suitable session on the same day, you’ll have to sit your rescheduled deferred assessment at the time it is scheduled.":
