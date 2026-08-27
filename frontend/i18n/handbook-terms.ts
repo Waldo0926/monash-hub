@@ -47,22 +47,22 @@ type Dictionary = Record<string, string>
 // --- campuses -------------------------------------------------------------
 
 const zhCampus: Dictionary = {
-  'Clayton': '克莱顿校区',
-  'Caulfield': '考菲尔德校区',
-  'Peninsula': '半岛校区',
-  'Parkville': '帕克维尔校区',
-  'Gippsland': '吉普斯兰校区',
-  'City (Melbourne)': '墨尔本市中心',
+  'Clayton': 'Clayton 校区',
+  'Caulfield': 'Caulfield 校区',
+  'Peninsula': 'Peninsula 校区',
+  'Parkville': 'Parkville 校区',
+  'Gippsland': 'Gippsland',
+  'City (Melbourne)': '墨尔本市区',
   'Australia (Other)': '澳大利亚（其他地点）',
   'Malaysia': '马来西亚校区',
   'Malaysia (Other)': '马来西亚（其他地点）',
-  'Indonesia': '印尼校区',
+  'Indonesia': '印度尼西亚',
   'Singapore': '新加坡',
   'Hong Kong': '香港',
   'Prato': '普拉托（意大利）',
   'Suzhou (SEU)': '苏州（东南大学）',
   'Overseas': '海外',
-  'Monash Online': 'Monash Online（线上）',
+  'Monash Online': 'Monash Online（在线）',
   'Monash Medical Centre': '莫纳什医疗中心',
   'Monash Suzhou Research Institute': '莫纳什苏州研究院',
   'Monash Medical School - Alfred Hospital': '莫纳什医学院 · 阿尔弗雷德医院'
@@ -73,30 +73,30 @@ const zhCampus: Dictionary = {
 const zhPeriod: Dictionary = {
   'First semester': '第一学期',
   'Second semester': '第二学期',
-  'Summer semester A': '暑期学期 A',
-  'Summer semester B': '暑期学期 B',
+  'Summer semester A': '夏季学期 A',
+  'Summer semester B': '夏季学期 B',
   'Winter semester': '冬季学期',
-  'Full year': '全年',
-  'Full year extended': '全年（延长）',
+  'Full year': '全学年',
+  'Full year extended': '全学年（延长）',
   'First semester (extended)': '第一学期（延长）',
   'Second semester (extended)': '第二学期（延长）',
   // "Northern" is the northern-hemisphere calendar, used by the overseas and
   // Malaysia-linked offerings — not a campus called Northern.
-  'First semester (Northern)': '第一学期（北半球校历）',
-  'Second semester (Northern)': '第二学期（北半球校历）',
-  'Term 1': '第 1 学段',
-  'Term 2': '第 2 学段',
-  'Term 3': '第 3 学段',
-  'Term 4': '第 4 学段',
-  'Trimester 1': '第 1 学季',
-  'Trimester 2': '第 2 学季',
-  'Trimester 3': '第 3 学季',
-  'Teaching period 1': '第 1 教学期',
-  'Teaching period 2': '第 2 教学期',
-  'Teaching period 3': '第 3 教学期',
-  'Teaching period 4': '第 4 教学期',
-  'Teaching period 5': '第 5 教学期',
-  'Teaching period 6': '第 6 教学期',
+  'First semester (Northern)': '第一学期（北半球）',
+  'Second semester (Northern)': '第二学期（北半球）',
+  'Term 1': '第 1 学季',
+  'Term 2': '第 2 学季',
+  'Term 3': '第 3 学季',
+  'Term 4': '第 4 学季',
+  'Trimester 1': '第 1 学段',
+  'Trimester 2': '第 2 学段',
+  'Trimester 3': '第 3 学段',
+  'Teaching period 1': '教学期 1',
+  'Teaching period 2': '教学期 2',
+  'Teaching period 3': '教学期 3',
+  'Teaching period 4': '教学期 4',
+  'Teaching period 5': '教学期 5',
+  'Teaching period 6': '教学期 6',
   'Research quarter 1': '研究季度 1',
   'Research quarter 2': '研究季度 2',
   'Research quarter 3': '研究季度 3',
@@ -150,14 +150,14 @@ const MODE_CODE_RE = /\(([A-Z][A-Z0-9-]*)\)\s*$/
 // --- everything else ------------------------------------------------------
 
 const zhAssessmentType: Dictionary = {
-  'Written': '书面作业',
+  'Written': '书面考核',
   'Exercise': '练习',
   'Quiz / Test': '小测 / 测验',
-  'Project': '项目',
+  'Project': '项目作业',
   'Examination': '考试',
-  'Presentation': '演示汇报',
-  'Demonstration': '实操展示',
-  'Artefact': '作品',
+  'Presentation': '口头报告',
+  'Demonstration': '操作演示',
+  'Artefact': '作品成果',
   'Portfolio': '作品集',
   'Performance': '表演'
 }
@@ -166,7 +166,7 @@ const zhHurdle: Dictionary = {
   // A hurdle is a component you must pass regardless of your total mark. The
   // two kinds differ in what "pass" means, so they are not merged.
   'Threshold': '分数门槛',
-  'Competency': '能力门槛'
+  'Competency': '能力达标'
 }
 
 const zhRequisiteType: Dictionary = {
@@ -186,10 +186,10 @@ const zhActivityType: Dictionary = {
   'Workshops': '工作坊',
   'Laboratories': '实验课',
   'Seminars': '研讨课',
-  'Applied sessions': '应用课',
-  'Studio activities': '工作室活动',
-  'Practical activities': '实践活动',
-  'Assessments': '考核活动'
+  'Applied sessions': '实践课',
+  'Studio activities': '工作室课',
+  'Practical activities': '实操活动',
+  'Assessments': '考核'
 }
 
 const zhFaculty: Dictionary = {

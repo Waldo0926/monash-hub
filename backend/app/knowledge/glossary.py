@@ -1495,7 +1495,10 @@ ENUMS: dict[str, dict[str, str]] = {
     "Folio": {"zh": "作品集", "ja": "作品集", "ko": "작품집"},
     "Artefact": {"zh": "作品成果", "ja": "制作物", "ko": "제작물"},
     "Attendance": {"zh": "出勤", "ja": "出席", "ko": "출석"},
-    "Written": {"zh": "笔试", "ja": "筆記", "ko": "필기"},
+    # *Written* and *Examination* are separate types on the same closed list -
+    # 4,718 assessments against 1,311 - so 笔试 (a written *exam*) said something
+    # the Handbook did not, on a site that also offers a has-an-exam filter.
+    "Written": {"zh": "书面考核", "ja": "筆記", "ko": "필기"},
     "Work integrated": {"zh": "工作实践", "ja": "実務連携", "ko": "현장 연계"},
     "Other": {"zh": "其他", "ja": "その他", "ko": "기타"},
 
