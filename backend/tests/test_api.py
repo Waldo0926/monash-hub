@@ -328,3 +328,48 @@ def test_an_untranslated_requisite_keeps_its_english_name(client, db, handbook_h
         for item in group["items"]
     }
     assert names["FIT1008"] == "Introduction to computer science"
+
+
+def test_a_guide_says_which_campus_it_is_for(client, db):
+    """An Australian page shown to a Malaysian reader is the wrong country's law.
+
+    A student pass in Malaysia is issued by the Immigration Department through
+    EMGS and is not the Australian subclass 500 visa; the work rights on the
+    monash.edu pages do not carry over. So the campus travels with the page,
+    onto the card as well as into the detail.
+    """
+    source = get_or_create_source(db, "monash-my", "Monash Malaysia",
+                                  "https://www.monash.edu.my")
+    page = upsert_seed_page(
+        db,
+        source=source,
+        slug="malaysia-student-pass",
+        url="https://www.monash.edu.my/student-services/international-students/student-pass",
+        title="Student pass (Monash Malaysia)",
+        category="malaysia",
+        tags=["malaysia"],
+        refresh_tier="stable",
+        applies_to="malaysia",
+    )
+    record_fetch(db, page, clean_page("<h1>Student pass</h1><p>EMGS.</p>",
+                                      url=page.canonical_url))
+    db.commit()
+
+    detail = client.get("/api/v1/guides/malaysia-student-pass").json()
+    assert detail["applies_to"] == "malaysia"
+    listing = client.get("/api/v1/guides").json()
+    row = next(g for g in listing["results"] if g["slug"] == "malaysia-student-pass")
+    assert row["applies_to"] == "malaysia"
+
+
+def test_a_page_with_no_campus_stated_is_treated_as_australian():
+    """39 of the 40 pages in the seed list are on monash.edu, so that is the
+    safe default: a page that arrives without a campus is far likelier to be
+    another Australian one than a Malaysian one."""
+    from crawler.official.seeds import SEEDS
+
+    assert {s.applies_to for s in SEEDS} <= {"australia", "malaysia", "all"}
+    for seed in SEEDS:
+        host = "malaysia" if "monash.edu.my" in seed.url else "australia"
+        # "all" is only ever claimed by a page that says so in its own text.
+        assert seed.applies_to in (host, "all"), seed.slug

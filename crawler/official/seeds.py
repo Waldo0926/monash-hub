@@ -1,4 +1,4 @@
-"""The Official Knowledge Seed: 40 hand-picked Monash pages.
+"""The Official Knowledge Seed: hand-picked Monash pages.
 
 Chosen, not discovered. The list covers the things students actually have to
 look up - special consideration, WAM and GPA, census dates, visas, enrolment
@@ -24,6 +24,10 @@ class Seed:
     category: str
     tags: tuple[str, ...]
     tier: str = "medium"
+    #: Which campus the page is written for - see OfficialPage.applies_to. The
+    #: default is the site the URL is on, and all but a handful of these are on
+    #: monash.edu. Only a page that says so itself is marked ``all``.
+    applies_to: str = "australia"
 
 
 CATEGORIES = {
@@ -69,7 +73,10 @@ SEEDS: tuple[Seed, ...] = (
     Seed("special-consideration",
          "https://www.monash.edu/students/admin/assessments/extensions-special-consideration",
          "Extensions and special consideration", "assessment",
-         ("special consideration", "sc", "extension", "特殊考虑")),
+         ("special consideration", "sc", "extension", "特殊考虑"),
+         # This page says so itself: "The special consideration process applies
+         # to students at all Monash University campuses and locations."
+         applies_to="all"),
     Seed("defer-final-assessment",
          "https://www.monash.edu/students/admin/assessments/extensions-special-consideration/defer",
          "Defer or reschedule your final assessment", "assessment",
@@ -151,9 +158,39 @@ SEEDS: tuple[Seed, ...] = (
          "Study abroad and exchange", "exchange", ("exchange", "abroad", "交换")),
 
     # --- Malaysia campus ----------------------------------------------------
+    # --- Monash Malaysia ---------------------------------------------------
+    #
+    # Malaysia runs its own student site, and on the things that matter most it
+    # does not agree with monash.edu: a student pass is issued by the
+    # Immigration Department through EMGS and is not the Australian subclass 500
+    # visa, and health cover is not OSHC. A reader in Malaysia needs these
+    # pages, not their Australian equivalents.
     Seed("malaysia-student-services", "https://www.monash.edu.my/student-services",
          "Student services (Monash Malaysia)", "malaysia",
-         ("malaysia", "student services", "马来西亚")),
+         ("malaysia", "student services", "马来西亚"), applies_to="malaysia"),
+    Seed("malaysia-student-pass",
+         "https://www.monash.edu.my/student-services/international-students/student-pass",
+         "Student pass (Monash Malaysia)", "malaysia",
+         ("malaysia", "student pass", "emgs", "签证", "学生准证"),
+         applies_to="malaysia"),
+    Seed("malaysia-insurance",
+         "https://www.monash.edu.my/student-services/support-services/insurance",
+         "Insurance (Monash Malaysia)", "malaysia",
+         ("malaysia", "insurance", "保险"), applies_to="malaysia"),
+    Seed("malaysia-student-admin",
+         "https://www.monash.edu.my/student-services/student-admin",
+         "Student administration (Monash Malaysia)", "malaysia",
+         ("malaysia", "enrolment", "选课注册"), applies_to="malaysia"),
+    Seed("malaysia-special-consideration",
+         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
+         "/assessments-and-results/special-consideration2",
+         "Special consideration (Monash Malaysia)", "malaysia",
+         ("malaysia", "special consideration", "特殊考虑"), applies_to="malaysia"),
+    Seed("malaysia-exam-rules",
+         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
+         "/exam-rules",
+         "Exam rules (Monash Malaysia)", "malaysia",
+         ("malaysia", "exam", "考试规则"), applies_to="malaysia"),
 )
 
 SEEDS_BY_SLUG = {seed.slug: seed for seed in SEEDS}

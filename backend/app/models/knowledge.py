@@ -72,6 +72,20 @@ class OfficialPage(Base):
     blocks: Mapped[list] = mapped_column(JSONB, default=list)
     headings: Mapped[list] = mapped_column(JSONB, default=list)
 
+    # Which campus the page is written for. Monash publishes a student site per
+    # location and they do not agree: a student pass in Malaysia is issued by
+    # the Immigration Department through EMGS, and has nothing to do with the
+    # Australian subclass 500 visa the monash.edu pages describe. Telling a
+    # Malaysian student they may work 48 hours a fortnight is not a translation
+    # error - it is the wrong country's law.
+    #
+    # So the value records where the page came from, which is a fact, rather
+    # than where it applies, which would be a judgement:
+    #   ``australia`` - from monash.edu, the Australian student site
+    #   ``malaysia``  - from monash.edu.my
+    #   ``all``       - the page itself says it covers every campus
+    applies_to: Mapped[str] = mapped_column(String(16), default="australia", index=True)
+
     # ``dynamic`` pages (dates, deadlines) are re-checked far more often than
     # ``stable`` policy text; see crawler/sync/refresh.py.
     refresh_tier: Mapped[str] = mapped_column(String(16), default="medium")

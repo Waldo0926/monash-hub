@@ -229,6 +229,38 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "小テスト",
         "ko": "퀴즈",
     },
+    # Terms the model reached for an anatomy textbook to render. "in-semester
+    # assessments" - the plural, which was not here - came back as 子宫内评估,
+    # an intrauterine assessment, on the paragraph that says what it takes to
+    # pass; "ductile versus brittle" as 阴道与刚性; "a cover letter" as 封面信,
+    # a letter about a book jacket.
+    "in-semester assessments": {
+        "zh": "学期内考核", "ja": "学期中の評価", "ko": "학기 중 평가",
+    },
+    "in-semester": {"zh": "学期内", "ja": "学期中", "ko": "학기 중"},
+    "cover letter": {"zh": "求职信", "ja": "カバーレター", "ko": "자기소개서"},
+    "ductile": {"zh": "韧性", "ja": "延性", "ko": "연성"},
+    "brittle": {"zh": "脆性", "ja": "脆性", "ko": "취성"},
+    "threshold mark hurdles": {
+        "zh": "及格门槛分数要求", "ja": "最低到達点の要件", "ko": "최저 통과 점수 요건",
+    },
+    "threshold mark": {"zh": "及格门槛分数", "ja": "最低到達点", "ko": "최저 통과 점수"},
+    "fail grade": {"zh": "不及格成绩", "ja": "不合格の成績", "ko": "불합격 성적"},
+
+    # The field names a Handbook entry is most likely to use, and the ones a
+    # general translator renders as ordinary words: "Deep learning" is a unit
+    # title and came back as 深入学习, studying something in depth.
+    "deep learning": {"zh": "深度学习", "ja": "深層学習", "ko": "딥러닝"},
+    "reinforcement learning": {"zh": "强化学习", "ja": "強化学習", "ko": "강화학습"},
+    "supervised learning": {"zh": "监督学习", "ja": "教師あり学習", "ko": "지도학습"},
+    "unsupervised learning": {"zh": "无监督学习", "ja": "教師なし学習", "ko": "비지도학습"},
+    "neural networks": {"zh": "神经网络", "ja": "ニューラルネットワーク", "ko": "신경망"},
+    "neural network": {"zh": "神经网络", "ja": "ニューラルネットワーク", "ko": "신경망"},
+    "natural language processing": {
+        "zh": "自然语言处理", "ja": "自然言語処理", "ko": "자연어 처리",
+    },
+    "computer vision": {"zh": "计算机视觉", "ja": "コンピュータビジョン", "ko": "컴퓨터 비전"},
+    "data science": {"zh": "数据科学", "ja": "データサイエンス", "ko": "데이터 사이언스"},
     "in-semester assessment": {
         "zh": "学期内考核",
         "ja": "学期中の評価",

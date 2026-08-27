@@ -29,6 +29,7 @@ def upsert_seed_page(
     category: str,
     tags: list[str],
     refresh_tier: str,
+    applies_to: str = "australia",
 ) -> OfficialPage:
     """Register a seed URL before it has ever been fetched.
 
@@ -40,6 +41,7 @@ def upsert_seed_page(
         page = OfficialPage(canonical_url=url, slug=slug, title=title, source_id=source.id)
         db.add(page)
     page.category = category
+    page.applies_to = applies_to
     page.tags = tags
     page.refresh_tier = refresh_tier
     if not page.content_hash:
