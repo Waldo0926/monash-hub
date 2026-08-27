@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import and_, case, func, or_, select, text
+from sqlalchemy import and_, case, func, literal, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
@@ -24,6 +24,15 @@ class SearchGroup:
     label: str
     total: int
     results: list[dict[str, Any]] = field(default_factory=list)
+
+
+# A student who half-remembers a unit types the half they remember. "5215" is
+# FIT5215 to them, and matching only from the start of the code answered
+# "nothing indexed for this yet" for a unit that is indexed. A fragment is short,
+# has no spaces and is letters and digits - which is what a code is made of, and
+# what a sentence is not.
+def _is_code_fragment(term: str) -> bool:
+    return term.isalnum() and term.isascii() and 2 <= len(term) <= 8
 
 
 def _ts_query(term: str):
@@ -87,6 +96,7 @@ def search_units(
         else:
             match = or_(
                 Unit.unit_code.ilike(f"{term}%"),
+                *( [Unit.unit_code.ilike(f"%{term}%")] if _is_code_fragment(term) else [] ),
                 Unit.search_vector.op("@@")(_ts_query(term)),
                 func.similarity(Unit.title, term) > 0.25,
             )
@@ -127,8 +137,16 @@ def search_units(
         # Exact code first, then text rank, then trigram similarity on title.
         # A boolean cannot be cast to a number in PostgreSQL, so rank it via CASE.
         exact = case((Unit.unit_code.in_(codes or [term.upper()]), 1), else_=0)
+        # A code carrying the fragment beats a title that merely resembles it:
+        # searching "5215" should put FIT5215 above anything with a 5215 in its
+        # prose.
+        in_code = case((Unit.unit_code.ilike(f"%{term}%"), 1), else_=0) \
+            if _is_code_fragment(term) else literal(0)
         rank = func.ts_rank(Unit.search_vector, _ts_query(term))
-        stmt = stmt.order_by(exact.desc(), rank.desc(), func.similarity(Unit.title, term).desc())
+        stmt = stmt.order_by(
+            exact.desc(), in_code.desc(), rank.desc(),
+            func.similarity(Unit.title, term).desc(),
+        )
     else:
         stmt = stmt.order_by(Unit.unit_code)
 
