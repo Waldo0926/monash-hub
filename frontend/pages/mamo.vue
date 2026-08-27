@@ -3,10 +3,12 @@ import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 
 const { $t } = useNuxtApp()
 
-// The logo is dropped into frontend/public/ by hand. Until it is there the
-// request 404s, and a broken image is worse than no image, so the wordmark
-// takes over on the error rather than on a guess about the file existing.
-const avatar = '/mamo-avatar.png'
+// The logo lives in frontend/public/. The extension has to match what the file
+// actually is - it arrived named .png and was a JPEG, which the server would
+// have sent as image/png. Browsers sniff past that; not everything does.
+// The wordmark takes over on an error, so a missing file shows a name rather
+// than a broken image.
+const avatar = '/mamo-avatar.jpg'
 const avatarMissing = ref(false)
 
 useSeoMeta({
