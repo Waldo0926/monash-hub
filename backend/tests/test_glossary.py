@@ -46,6 +46,18 @@ def test_no_entry_translates_to_itself_by_accident():
     assert same == set(KEEP_IN_ENGLISH)
 
 
+def test_an_email_address_never_reaches_the_translator():
+    """servicedesk@Monash.edu was published as 服务台@Monash.edu."""
+    masked, kept = protect("email servicedesk@Monash.edu with CUP merge", "zh")
+    assert "servicedesk" not in masked
+    assert "servicedesk@Monash.edu" in restore(masked, kept)
+
+
+def test_re_enrolment_is_not_matched_as_enrolment():
+    masked, kept = protect("under Enrolment/Re-enrolment in WES", "zh")
+    assert "Re-" not in restore(masked, kept)
+
+
 def test_placeholders_are_distinct_past_the_alphabet():
     tokens = [placeholder(i) for i in range(60)]
     assert len(set(tokens)) == 60
@@ -219,3 +231,28 @@ def test_a_month_needs_its_capital_to_be_a_date():
     # "3 may be enough" is a sentence, not the third of May.
     assert not has_verbatim("3 may be enough to pass")
     assert has_verbatim("3 May 2026")
+
+
+def test_the_frontend_dictionary_agrees_with_the_glossary():
+    """The filter dropdown and the unit card must not name the same thing twice.
+
+    Facet values come back from ``/units/filters`` in English and are labelled
+    by ``frontend/i18n/handbook-terms.ts``; the values on a unit card come back
+    already translated, through ENUMS. Two dictionaries for one closed list, and
+    they had drifted on 37 of the 66 entries they share - including a straight
+    swap, where *Term 1* was 第 1 学段 in the filter and *Trimester 1* was
+    第 1 学段 on the card. Term and Trimester have different census dates.
+    """
+    import re
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[2] / "frontend" / "i18n" / "handbook-terms.ts"
+    ).read_text(encoding="utf-8")
+
+    disagree = {
+        key: (written, ENUMS[key]["zh"])
+        for key, written in re.findall(r"\n\s*'([^']+)':\s*'([^']*)'", source)
+        if key in ENUMS and ENUMS[key].get("zh") and ENUMS[key]["zh"] != written
+    }
+    assert disagree == {}

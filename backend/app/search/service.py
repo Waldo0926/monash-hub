@@ -9,11 +9,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import case, func, or_, select, text
+from sqlalchemy import and_, case, func, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
-from app.models.handbook import Unit
+from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.search.keywords import extract_unit_codes
 
@@ -94,10 +94,21 @@ def search_units(
         count_stmt = count_stmt.where(match)
 
     filters = []
-    if campus:
-        filters.append(Unit.offerings.any(campus=campus))
-    if teaching_period:
-        filters.append(Unit.offerings.any(teaching_period=teaching_period))
+    # Campus and teaching period have to be true of the *same* offering. Asked
+    # separately they are two EXISTS clauses, and a unit taught at Malaysia in
+    # first semester and at Clayton over the full year answered "Malaysia, full
+    # year" - a combination it is not taught in anywhere. On the small campuses
+    # that was most of the page: "Suzhou (SEU), second semester" listed 27 units
+    # of which 2 are actually offered there then, and "Clayton, October intake
+    # teaching period, Malaysia campus" listed 13 of which none are.
+    offering = [
+        column == value
+        for column, value in ((UnitOffering.campus, campus),
+                              (UnitOffering.teaching_period, teaching_period))
+        if value
+    ]
+    if offering:
+        filters.append(Unit.offerings.any(and_(*offering)))
     if level:
         filters.append(Unit.level == level)
     if prefix:

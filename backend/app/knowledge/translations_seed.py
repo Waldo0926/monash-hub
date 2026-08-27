@@ -144,6 +144,17 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
 
     "Usually, you can expect to engage with:":
         "通常你可以预期参与以下内容：",
+
+    # On nine units, and the sentence the machine kept leaving in English while
+    # translating the two after it. *Hurdle* and *competency-based* are both
+    # terms a student's result turns on, so this one is written out rather than
+    # retried.
+    "Assessments in this unit are competency-based. Competency is assessed "
+    "against a criterion-referenced rubric. Failure to pass any hurdle "
+    "assessment tasks may result in failure of the unit.":
+        "本课程的考核采用能力本位（competency-based）方式，"
+        "依据既定评分标准（criterion-referenced rubric）评定是否达到要求。"
+        "任何一项及格门槛（hurdle）考核未通过，都可能导致本课程不及格。",
 }
 
 
@@ -682,6 +693,12 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "如果你在注册且学期已经开始之后决定休息一段时间——请在 census date（学籍统计日）当天 23:59（墨尔本时间）之前提出申请。",
     },
     "oshc": {
+        # *Quote* is 报价 here and 引用 on the academic integrity page, so it
+        # cannot go in the glossary - this sentence is written out instead.
+        "Get an online quote with Allianz Care Australia OSHC (by purchasing OSHC with Allianz Care through this link, Allianz Care will provide Monash with your policy information for administrative and billing purposes). Or speak to an OSHC representative. If you're with another provider, please contact them directly to do this.":
+            "在线获取 Allianz Care Australia 的 OSHC（留学生医疗保险）报价（通过此链接向 Allianz Care "
+            "投保 OSHC，Allianz Care 会将你的保单信息提供给 Monash，用于行政管理与账单处理）。"
+            "你也可以直接联系 OSHC 客服代表。如果你投保的是其他保险公司，请直接联系该公司办理。",
         "These three exceptions apply as long as you’re not a Study Abroad student with OSHC included in your package.":
             "这三项例外适用于所有人，但套餐中已包含 OSHC（海外学生医疗保险）的 Study Abroad 交流学生除外。",
     },

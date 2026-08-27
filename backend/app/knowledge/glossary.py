@@ -418,6 +418,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "履修登録する",
         "ko": "수강 신청하다",
     },
+    # Longer first, or the hyphen lets *enrolment* match inside *Re-enrolment*
+    # and WES's own menu came out as 选课注册/Re-选课注册.
+    "re-enrolment": {
+        "zh": "重新注册",
+        "ja": "再履修登録",
+        "ko": "재등록",
+    },
     "re-enrol": {
         "zh": "重新注册",
         "ja": "再履修登録",
@@ -502,6 +509,54 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "全日制学习负荷",
         "ja": "フルタイムの履修量",
         "ko": "전일제 수강 부담",
+    },
+
+    # The OSHC page is about the insurance a student visa is conditional on,
+    # and unaided it was the worst page on the site. The insurer's name was
+    # transliterated three different ways and none of them is a company a
+    # student can find: "Allianz Care Australia Policy Wording Documents"
+    # came back as 澳大利亚爱护组织 (an Australian caring organisation) and
+    # "Once you've purchased your Allianz Care Australia OSHC policy" as
+    # 澳洲爱心 (Australian loving heart). The name is kept, like Monash's own.
+    "Allianz Care Australia": {
+        "zh": "Allianz Care Australia", "ja": "Allianz Care Australia",
+        "ko": "Allianz Care Australia",
+    },
+    "Allianz Care": {
+        "zh": "Allianz Care", "ja": "Allianz Care", "ko": "Allianz Care",
+    },
+    # An insurance *policy* is a 保单, not a 政策 - the model chose the
+    # government kind on every occurrence, on the page that tells a student
+    # what their cover pays for. Longest form first, as always.
+    "policy wording": {
+        "zh": "保单条款", "ja": "保険約款", "ko": "보험 약관",
+    },
+    "OSHC policy": {
+        "zh": "OSHC（留学生医疗保险）保单",
+        "ja": "OSHC（留学生健康保険）の保険",
+        "ko": "OSHC(유학생 의료보험) 보험",
+    },
+    "extras policy": {
+        "zh": "附加保障保单", "ja": "追加保障の保険", "ko": "부가 보장 보험",
+    },
+    "health cover": {
+        "zh": "医疗保险保障", "ja": "医療保険", "ko": "의료보험 보장",
+    },
+    "your cover": {
+        # "get the most from your cover" came back as 你的封面 - a book cover.
+        "zh": "你的保险保障", "ja": "あなたの保障", "ko": "보장 내용",
+    },
+    # The extras a policy does not pay for, and the model's readings of them:
+    # *chiropractic* became 脊髓灰质炎 (poliomyelitis), *osteopathy* 骨病 (bone
+    # disease) and *optical* 光学 (the physics).
+    "chiropractic": {
+        "zh": "脊椎按摩治疗", "ja": "カイロプラクティック", "ko": "척추 교정 치료",
+    },
+    "osteopathy": {
+        "zh": "整骨治疗", "ja": "オステオパシー", "ko": "정골 치료",
+    },
+    "optical": {
+        "zh": "验光配镜", "ja": "眼鏡・検眼", "ko": "안경·검안",
     },
     "international student": {
         "zh": "国际学生",
@@ -1440,7 +1495,10 @@ ENUMS: dict[str, dict[str, str]] = {
     "Folio": {"zh": "作品集", "ja": "作品集", "ko": "작품집"},
     "Artefact": {"zh": "作品成果", "ja": "制作物", "ko": "제작물"},
     "Attendance": {"zh": "出勤", "ja": "出席", "ko": "출석"},
-    "Written": {"zh": "笔试", "ja": "筆記", "ko": "필기"},
+    # *Written* and *Examination* are separate types on the same closed list -
+    # 4,718 assessments against 1,311 - so 笔试 (a written *exam*) said something
+    # the Handbook did not, on a site that also offers a has-an-exam filter.
+    "Written": {"zh": "书面考核", "ja": "筆記", "ko": "필기"},
     "Work integrated": {"zh": "工作实践", "ja": "実務連携", "ko": "현장 연계"},
     "Other": {"zh": "其他", "ja": "その他", "ko": "기타"},
 
@@ -1660,6 +1718,11 @@ KEEP_IN_ENGLISH = frozenset({
     # The services that carry it - Monash Abroad, Monash Connect - keep the
     # English too, with a bracket saying what they are.
     "Monash",
+    # The OSHC insurer, for the same reason: a student has to be able to match
+    # the name here against the policy documents and the card in their wallet,
+    # and every reading the model invented for it - 爱护组织, 爱心, 爱丽安兹 -
+    # is a company that does not exist.
+    "Allianz Care Australia", "Allianz Care",
 })
 
 
@@ -1718,15 +1781,42 @@ _LOOKUP = {term.lower(): term for term in TERMS}
 # passes an unknown capitalised token through untouched.
 _ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
+# "Untouched" turned out to be a property of the particular token, not of
+# invented tokens in general. Zqa survives most sentences and is transliterated
+# in some - "What is Zqa?" came back as 什么是兹卡? - and reading the sentence
+# does not tell you which. Measured over the 59 sentences that were actually
+# failing on the live guides, with the token varied and nothing else:
+#
+#     #a#  32/59      <a>  28/59      Zqa  0/59 (this is the population it lost)
+#     Qxa  30/59      Xya  20/59      a PUA character, or 〇a〇: 0/59
+#
+# No token carries them all, and the sentences each one loses are largely
+# different sentences, so the caller works down this list until one comes back
+# whole: 50 of the 59 are recovered that way. Zq stays at the front because
+# every translation already stored was made with it and it is right about the
+# other 99% of strings; the rest are in order of what they add after it.
+MASKS: tuple[tuple[str, str], ...] = (
+    ("Zq", ""),
+    ("#", "#"),
+    ("Qx", ""),
+    ("<", ">"),
+    ("Xy", ""),
+)
 
-def placeholder(index: int) -> str:
+_ANY_PLACEHOLDER = re.compile(
+    "|".join(re.escape(pre) + "[a-z]+" + re.escape(suf) for pre, suf in MASKS)
+)
+
+
+def placeholder(index: int, mask: tuple[str, str] = MASKS[0]) -> str:
     """Zqa, Zqb, … Zqaa. Distinct, letters only, and not a real English word."""
+    prefix, suffix = mask
     token = ""
     index += 1
     while index:
         index, remainder = divmod(index - 1, 26)
         token = _ALPHABET[remainder] + token
-    return "Zq" + token
+    return prefix + token + suffix
 
 
 def whole_value(text: str, locale: str) -> str | None:
@@ -1760,6 +1850,11 @@ _MONTHS = {
 }
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?"
 _DASH = r"\s*[-–—]\s*"
+# The census dates page writes the weekday in front of the date, and a weekday
+# left outside the mask is a weekday handed to the model: "Sat 28 Feb 2026" kept
+# its Sat and so the whole row stayed English. It is arithmetic like the rest -
+# the day is already in the date, so nothing needs looking up.
+_WEEKDAY = r"(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\.?"
 
 # The month has to be capitalised, so that "3 may be enough" stays a sentence
 # and does not become the third of May.
@@ -1776,9 +1871,17 @@ _DAY_SPAN = (                                    # 3–7 Jun 2026
     rf"(?P<rday>\d{{1,2}}){_DASH}(?P<rlast>\d{{1,2}})\s+"
     rf"(?P<rmonth>{_MONTH})(?:\s+(?P<ryear>\d{{4}}))?"
 )
-_DATE = rf"(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH})(?:\s+(?P<year>\d{{4}}))?"
+_DATE = (                                        # Sat 28 Feb 2026
+    rf"(?:(?P<wday>{_WEEKDAY})\s+)?"
+    rf"(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH})(?:\s+(?P<year>\d{{4}}))?"
+)
 # "11.55pm", "12.30am", "5am". Monash writes the minutes after a full stop.
 _CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
+# An email address. "servicedesk@Monash.edu" was published as
+# 服务台@Monash.edu on the academic integrity page - the address a student is
+# told to write to when they cannot finish the compulsory module, translated
+# into an address that does not exist. There is no grammar in an address.
+_EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
 # (S2-01, MO-TP1-01).
 _UNIT_CODE = r"[A-Z]{2,4}\d{4}"
@@ -1786,7 +1889,7 @@ _PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
 
 VERBATIM = re.compile(
     r"(?<![A-Za-z0-9])(?:"
-    + "|".join((_SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + "|".join((_EMAIL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
     + r")(?![A-Za-z0-9])"
 )
 _SPAN_ONLY = re.compile(rf"^{_SPAN}$")
@@ -1815,6 +1918,24 @@ def _written_date(day: int, month: int, year: str | None, locale: str) -> str:
 
 def _written_day(day: int, locale: str) -> str:
     return f"{day}일" if locale == "ko" else f"{day}日"
+
+
+# Written after the date rather than before it, which is the order all three
+# languages use.
+_WEEKDAYS = {
+    "mon": {"zh": "周一", "ja": "月", "ko": "월"},
+    "tue": {"zh": "周二", "ja": "火", "ko": "화"},
+    "wed": {"zh": "周三", "ja": "水", "ko": "수"},
+    "thu": {"zh": "周四", "ja": "木", "ko": "목"},
+    "fri": {"zh": "周五", "ja": "金", "ko": "금"},
+    "sat": {"zh": "周六", "ja": "土", "ko": "토"},
+    "sun": {"zh": "周日", "ja": "日", "ko": "일"},
+}
+
+
+def _written_weekday(written: str, locale: str) -> str:
+    day = _WEEKDAYS[written.lower()[:3]][locale]
+    return f"({day})" if locale == "ko" else f"（{day}）"
 
 
 def _month_number(written: str) -> int:
@@ -1848,9 +1969,12 @@ def rendered_verbatim(value: str, locale: str) -> str:
         return f"{first}{_TO[locale]}{_written_day(int(days['rlast']), locale)}"
     date = _DATE_ONLY.match(value)
     if date:
-        return _written_date(
+        written = _written_date(
             int(date["day"]), _month_number(date["month"]), date["year"], locale
         )
+        if date["wday"]:
+            written += _written_weekday(date["wday"], locale)
+        return written
     clock = _CLOCK_ONLY.match(value)
     if clock:
         # 24-hour, which all three languages write without an am or a pm to get
@@ -1860,16 +1984,20 @@ def rendered_verbatim(value: str, locale: str) -> str:
     return value  # a code, and the code is what a student matches against
 
 
-def protect(text: str, locale: str) -> tuple[str, list[str]]:
+def protect(
+    text: str, locale: str, mask: tuple[str, str] = MASKS[0]
+) -> tuple[str, list[str]]:
     """Replace every known term, date, time and code with a placeholder.
 
-    Returns the masked text and the replacements, in placeholder order.
+    Returns the masked text and the replacements, in placeholder order. The
+    ``mask`` is the retry handle: the same sentence masked with a different
+    token is a different problem to the model, and often an easier one.
     """
     replacements: list[str] = []
 
     def keep(match: re.Match[str]) -> str:
         replacements.append(rendered_verbatim(match.group(0), locale))
-        return placeholder(len(replacements) - 1)
+        return placeholder(len(replacements) - 1, mask)
 
     text = VERBATIM.sub(keep, text)
 
@@ -1879,7 +2007,7 @@ def protect(text: str, locale: str) -> tuple[str, list[str]]:
         if not translated:
             return match.group(0)
         replacements.append(translated)
-        return placeholder(len(replacements) - 1)
+        return placeholder(len(replacements) - 1, mask)
 
     return _PATTERN.sub(swap, text), replacements
 
@@ -1906,17 +2034,23 @@ def terms_in(text: str, locale: str) -> list[tuple[str, str]]:
     return found
 
 
-def restore(text: str, replacements: list[str]) -> str:
+def restore(
+    text: str, replacements: list[str], mask: tuple[str, str] = MASKS[0]
+) -> str:
     """Put the agreed wording back where the placeholders are.
 
     Longest placeholder first: without it ``Zqa`` matches inside ``Zqaa``.
     """
-    for index in sorted(range(len(replacements)), key=lambda i: -len(placeholder(i))):
-        text = text.replace(placeholder(index), replacements[index])
+    for index in sorted(
+        range(len(replacements)), key=lambda i: -len(placeholder(i, mask))
+    ):
+        text = text.replace(placeholder(index, mask), replacements[index])
     return text
 
 
-def placeholders_survived(text: str, count: int) -> bool:
+def placeholders_survived(
+    text: str, count: int, mask: tuple[str, str] = MASKS[0]
+) -> bool:
     """Whether every placeholder made it through a translation intact.
 
     The model usually copies these tokens and occasionally transliterates one:
@@ -1924,7 +2058,7 @@ def placeholders_survived(text: str, count: int) -> bool:
     find a token that is no longer there, so the reader would be shown a
     nonsense word where a term should be. The caller keeps the English instead.
     """
-    return all(placeholder(index) in text for index in range(count))
+    return all(placeholder(index, mask) in text for index in range(count))
 
 
 def is_only_placeholders(text: str) -> bool:
@@ -1934,4 +2068,5 @@ def is_only_placeholders(text: str) -> bool:
     name - must not be sent to the model: asked to translate the bare token
     ``Zqa`` it returns 兹卡.
     """
-    return not re.search(r"[A-Za-z]", re.sub(r"Zq[a-z]+", "", text))
+    return not re.search(r"[A-Za-z]", _ANY_PLACEHOLDER.sub("", text))
+

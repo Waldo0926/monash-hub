@@ -10,8 +10,9 @@ from __future__ import annotations
 import threading
 
 import pytest
+from app.knowledge.glossary import MASKS, placeholder
 
-from crawler.translate.engine import _CODE, Translator
+from crawler.translate.engine import _CODE, _SENTENCES, Translator
 
 CODES = ["P", "N", "HD", "D", "C", "NE", "NAS", "NGO", "NH", "NS", "NSR",
          "PGO", "SFR", "WDN", "WH", "WI", "WN", "DEF"]
@@ -220,18 +221,124 @@ def test_an_ordinary_term_does_not():
     assert engine.text("Results are released on Friday.") == "成绩在周五公布。"
 
 
-def test_a_rewritten_date_keeps_the_sentence_in_english():
+def test_a_rewritten_date_is_never_asked_for_unmasked():
     """The repair path re-translates with nothing masked.
 
     For a term that is the right answer - the model's own wording for
     "results" beats a page left in English. For a date it is how "1 Aug 2024"
-    came back as 2024年8月1日纽约 in the first place, so a lost date or code
-    ends the attempt instead of starting a second one.
+    came back as 2024年8月1日纽约 in the first place. Every mask may be tried,
+    because a token this model rewrites another one survives, but the date is
+    behind one of them every time.
     """
     calls = []
     engine = translator(lambda text: calls.append(text) or "考核于兹卡截止")
     assert engine.text("The assessment is due on 1 Aug 2024.") is None
-    assert len(calls) == 1  # asked once, and not asked again unmasked
+    assert not any("1 Aug 2024" in call for call in calls)
+    assert len(calls) == len(MASKS)  # each mask once, and then it stops
+
+
+def test_a_token_the_model_rewrites_is_swapped_for_one_it_copies():
+    """The whole point of the cascade: a sentence lost to Zq is not lost.
+
+    This stub does what the live model does - transliterates the Zq token and
+    copies every other one - so the sentence only comes back whole if a second
+    mask is tried.
+    """
+    def stub(text):
+        if "Zq" in text:
+            return "什么是兹卡?"
+        return text.replace("What is", "什么是").replace("?", "?")
+
+    engine = translator(stub)
+    assert engine.text("What is academic integrity?") == "什么是学术诚信?"
+
+
+def test_the_masks_are_tried_in_order_and_the_first_win_is_kept():
+    calls = []
+    engine = translator(lambda text: calls.append(text) or (
+        "Qxa是什么" if "Qx" in text else "兹卡是什么"  # only Qx is copied back
+    ))
+    engine.text("What is academic integrity?")
+    tried = [mask for call in calls for mask in MASKS if placeholder(0, mask) in call]
+    assert tried == list(MASKS[:3])  # in order, and stopped at the one that held
+
+
+def test_a_bracketed_label_is_translated_a_part_at_a_time():
+    """A teaching period and its code are two problems, not one sentence.
+
+    The stub rewrites any mask it is given, which is what the live model does
+    to these labels - "Summer semester A (SSA-02)" was published in English
+    because the lone "A" was enough to make it look like a sentence.
+    """
+    engine = translator(lambda text: "夏天")
+    assert engine.text("Summer semester A (SSA-02)") == "夏季学期 A (SSA-02)"
+
+
+def test_a_bracketed_labels_qualifier_is_still_translated():
+    """The code keeps its ASCII brackets; the Chinese qualifier does not."""
+    def stub(text):
+        if "Except" in text:
+            return "法学院课程除外"
+        return "三月一日"
+
+    engine = translator(stub)
+    result = engine.text("Trimester 1 (T1-58) (Except Faculty of Law units)")
+    assert result == "第 1 学段 (T1-58)（法学院课程除外）"
+
+
+def test_the_model_is_given_a_straight_apostrophe():
+    """Monash writes ’ and the model was trained on '.
+
+    Eight of the sentences left in English on the live guides came back whole
+    once the apostrophe was straightened, and nothing else changed.
+    """
+    calls = []
+    engine = translator(lambda text: calls.append(text) or "如果你不确定，请联系学院。")
+    engine.text("Check with your faculty if you’re unsure.")
+    assert calls and all("’" not in call for call in calls)
+    assert "you're" in calls[0]
+
+
+def test_a_sentence_with_brackets_is_not_split_at_them():
+    """Only labels are taken apart at their brackets.
+
+    "... after the census date (but before the Withdrawn Fail date) your record
+    will show ..." is a sentence. Split at the bracket, its head stands alone
+    and comes back in English on an otherwise Chinese page.
+    """
+    engine = translator(lambda text: "兹卡")
+    source = (
+        "If you withdraw from a unit after the census date "
+        "(but before the Withdrawn Fail date) your record will show it."
+    )
+    assert engine.text(source) is None  # English, rather than half a sentence
+
+
+def test_a_term_and_its_acronym_are_not_glossed_twice():
+    """Both halves of "grade point average (GPA)" are reserved terms.
+
+    Each one's agreed wording carries the other, so restoring both wrote the
+    gloss out twice on the live GPA page.
+    """
+    engine = translator(lambda text: text)
+    assert engine.text("grade point average (GPA)") == "平均绩点（GPA）"
+
+
+def test_sentences_glued_together_are_still_separate_sentences():
+    """The crawler hands the transcripts page over with the spaces missing."""
+    parts = _SENTENCES.split("about you:If it is Incomplete.Masters awarded")
+    assert [part for part in parts if part] == [
+        "about you:", "If it is Incomplete.", "Masters awarded",
+    ]
+
+
+def test_a_full_stop_inside_a_time_is_not_a_boundary():
+    assert _SENTENCES.split("due at 11.55pm Friday") == ["due at 11.55pm Friday"]
+
+
+def test_a_dash_between_clauses_splits_and_a_dash_in_a_date_does_not():
+    assert len(_SENTENCES.split("continuing your course – we’re here to help")) == 3
+    assert _SENTENCES.split("1 Jul – 30 Sep 2026") == ["1 Jul – 30 Sep 2026"]
 
 
 def test_a_lost_term_still_gets_its_second_attempt():

@@ -11,6 +11,7 @@ from app.handbook.parser import parse_unit_page, unit_url
 from app.handbook.repository import upsert_unit
 from app.knowledge.cleaner import clean_page
 from app.knowledge.repository import get_or_create_source, record_fetch, upsert_seed_page
+from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry
 
 
@@ -89,6 +90,45 @@ def test_unit_filter_by_exam(client, loaded):
 def test_unit_filter_by_campus(client, loaded):
     body = client.get("/api/v1/units", params={"campus": "Malaysia"}).json()
     assert "FIT2102" in {r["unit_code"] for r in body["results"]}
+
+
+def test_campus_and_teaching_period_must_be_the_same_offering(client, db):
+    """A unit taught at two campuses is not taught in every combination of them.
+
+    BPS3062 runs at Malaysia over the full year *extended* and at Parkville over
+    the full year, and answered a search for "Malaysia, full year" - a
+    combination it is not offered in anywhere. Asked as two separate EXISTS
+    clauses, any pair of offerings could satisfy the pair of filters.
+    """
+    unit = Unit(
+        unit_code="BPS3062",
+        title="Professional experience",
+        academic_year=2026,
+        source_url="https://handbook.monash.edu/2026/units/BPS3062",
+        content_hash="bps3062-test",
+        is_active=True,
+        offerings=[
+            UnitOffering(campus="Malaysia", teaching_period="Full year extended"),
+            UnitOffering(campus="Parkville", teaching_period="Full year"),
+        ],
+    )
+    db.add(unit)
+    db.commit()
+
+    both = client.get(
+        "/api/v1/units",
+        params={"campus": "Malaysia", "teaching_period": "Full year"},
+    ).json()
+    assert both["total"] == 0
+
+    # Each filter on its own still finds it, and so does the pair it does run in.
+    for params in (
+        {"campus": "Malaysia"},
+        {"teaching_period": "Full year"},
+        {"campus": "Malaysia", "teaching_period": "Full year extended"},
+    ):
+        body = client.get("/api/v1/units", params=params).json()
+        assert "BPS3062" in {r["unit_code"] for r in body["results"]}, params
 
 
 def test_official_search_finds_the_seed_page(client, loaded):
