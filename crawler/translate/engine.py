@@ -117,6 +117,23 @@ _LANGUAGE_NAMES = frozenset({
 _LANGUAGE_WORDS = re.compile(r"English|Chinese|Mandarin|Japanese|Korean|language", re.I)
 
 
+def _mask_debris(restored: str, source: str, mask: tuple[str, str]) -> bool:
+    """Whether the restored text still carries pieces of the mask.
+
+    Surviving is not the same as being copied once. The model sometimes repeats
+    an invented token - the more so when it is punctuation, and "#a#" is - so
+    every placeholder is present, restore puts the terms back, and the spare
+    delimiters stay behind where the reader can see them.
+
+    The English is the yardstick: a page may legitimately contain a "#", but it
+    cannot contain more of them after translation than it did before.
+    """
+    for edge in {piece for piece in mask if piece}:
+        if restored.count(edge) > source.count(edge):
+            return True
+    return False
+
+
 def _is_label(source: str) -> bool:
     """Whether this is a bracketed label rather than a sentence with brackets."""
     match = _BRACKETED.search(source)
@@ -288,9 +305,17 @@ class Translator:
         for mask in MASKS:
             masked, terms = protect(source, self.locale, mask)
             translated = self._ask(masked)
-            if placeholders_survived(translated, len(terms), mask):
-                return translated, terms, mask
-            log.debug("mask %s was rewritten: %s", mask[0], source[:60])
+            if not placeholders_survived(translated, len(terms), mask):
+                log.debug("mask %s was rewritten: %s", mask[0], source[:60])
+                continue
+            if _mask_debris(restore(translated, terms, mask), source, mask):
+                # Every token is present and there is still mask left over. The
+                # model repeated the token instead of copying it once - "#a#"
+                # came back as "#B#A#(SSA-02) #B#A#(SSA-02)" - and restoring
+                # leaves the spare punctuation on the page: 在总的课程g#中达到50%.
+                log.debug("mask %s was repeated: %s", mask[0], source[:60])
+                continue
+            return translated, terms, mask
         return None
 
     def _agreed_wording(self, source: str) -> str | None:

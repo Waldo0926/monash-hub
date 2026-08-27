@@ -341,6 +341,36 @@ def test_a_dash_between_clauses_splits_and_a_dash_in_a_date_does_not():
     assert _SENTENCES.split("1 Jul – 30 Sep 2026") == ["1 Jul – 30 Sep 2026"]
 
 
+def test_a_mask_that_comes_back_repeated_is_rejected():
+    """Every token present is not the same as every token copied once.
+
+    "#a#" is punctuation, and the model repeats it: one live unit page read
+    在总的课程g#中达到50%, and a dates page came back as "#B#A#(SSA-02)
+    #B#A#(SSA-02)". The survival check passed - the tokens were all there - and
+    restoring left the spare delimiters on the page.
+    """
+    calls = []
+
+    def stub(text):
+        calls.append(text)
+        if "#" in text:
+            return "总的课程 #a# 中 #a# 达到 #a#"      # the token, three times over
+        return "总的课程学分中达到 50%"
+
+    engine = translator(stub)
+    result = engine.text("overall unit mark of 50%")
+    assert result is not None
+    assert "#" not in result
+    assert any("#" in call for call in calls)      # the hash mask was tried
+
+
+def test_a_hash_in_the_english_survives():
+    """The English is the yardstick, not the absence of the character."""
+    engine = translator(lambda text: text.replace("issue", "问题"))
+    # "unit" is a reserved term, so it comes back as 课程; the "#4" is the point.
+    assert engine.text("issue #4 of the unit guide") == "问题 #4 of the 课程 guide"
+
+
 def test_a_lost_term_still_gets_its_second_attempt():
     """The guard is about dates and codes, not about every lost placeholder."""
     calls = []
