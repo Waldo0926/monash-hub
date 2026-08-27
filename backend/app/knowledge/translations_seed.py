@@ -690,6 +690,145 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "University community":
             "学术诚信为什么对你、对 Monash、对整个大学群体都重要",
     },
+    "about-academic-progress": {
+        "All communications will be sent to your Monash email address, "
+        "so if you don’t have access to your Monash account, you need "
+        "to let your managing faculty know.":
+            "所有通知都会发到你的 Monash 邮箱。如果你无法登录 Monash 账号，需要告知负责你的学院。",
+        "At each risk level, we’ll provide you with a different level "
+        "of support to help you improve your academic performance.":
+            "不同的风险等级，我们提供的支持力度也不同，以帮助你改善学业表现。",
+        "At least half of the total number required for the course":
+            "至少达到该学位课程所需总量的一半",
+        "At least three-quarters of the total number of required the "
+        "course":
+            "至少达到该学位课程所需总量的四分之三",
+        "At least two-thirds of the total number required for the "
+        "course":
+            "至少达到该学位课程所需总量的三分之二",
+        "For this reason, we check in twice a year to make sure you’re "
+        "on track to complete your course in the required time. If we "
+        "have concerns about your progress, we’ll let you know what "
+        "support is available and, if needed, meet with you to discuss "
+        "your progress and options.":
+            "正因如此，我们每年检查两次，确认你能在规定年限内完成学位课程。如果我们对你的进度有担心，会告诉你可以获得哪些支持；必要时还会约你面谈，一起讨论你的进度和可选的路径。",
+        "If any of the following circumstances apply, your progress "
+        "will be assessed as unsatisfactory:":
+            "出现下列任一情形，你的学业进度会被判定为不达标：",
+        "If you meet one of the criteria above, or your progress is at "
+        "risk of being unsatisfactory, you’ll be assigned one of three "
+        "academic progress risk levels:":
+            "如果你符合上述任一标准，或你的学业进度有不达标的风险，你会被划入三个学业进度风险等级中的一个：",
+        "If your academic progress is satisfactory, you won’t have an "
+        "academic progress risk level.":
+            "如果你的学业进度达标，就不会被划入任何学业进度风险等级。",
+        "If you’re enrolled in a coursework award course at any "
+        "location, your progress will be reviewed twice a year.":
+            "只要你注册在册于任一地点的授课型学位课程，你的学业进度每年都会被审查两次。",
+        "If you’re on intermission, or aren’t currently enrolled, your "
+        "academic progress risk level won’t change until the next "
+        "academic progress period you’re enrolled in.":
+            "如果你正在休学（intermission）、或当前没有注册在册，你的学业进度风险等级会维持不变，直到下一个你有注册的学业进度审查期为止。",
+        "If you’ve been assigned an academic progress risk level, "
+        "you’ll be notified by email at your Monash account.":
+            "如果你被划入了某个学业进度风险等级，我们会发邮件到你的 Monash 账号通知你。",
+        "If you’ve previously been assigned an academic progress risk "
+        "level, but achieve satisfactory progress in your next "
+        "reviewed academic progress period, the academic progress risk "
+        "level will be removed.":
+            "如果你此前曾被划入某个学业进度风险等级，但在下一个受审查的学业进度审查期内进度达标，该风险等级就会被撤销。",
+        "The dean may also review your academic progress at any time.":
+            "院长也可以在任何时候审查你的学业进度。",
+        "Time by which they must be successfully completed":
+            "必须在此时间点之前修完",
+        "To view the results release dates, see semester summary dates.":
+            "成绩公布日期请查看「学期重要日期一览」。",
+        "We review your progress and unit results released within the "
+        "academic progress periods, excluding pathway diplomas and "
+        "Withdrawn (WDN and WI) and interim (DEF, NS and WH) grades. "
+        "However, your faculty may reassess your academic progress "
+        "when your interim results are finalised.":
+            "我们审查的是各学业进度审查期内你的进度和已公布的课程成绩，其中不含预科文凭课程，也不含 Withdrawn（WDN 和 "
+            "WI，退课）以及临时性成绩（DEF、NS、WH）。不过，等你的临时成绩最终确定后，学院可能会重新评估你的学业进度。",
+        "We want to make sure you succeed in your studies at Monash "
+        "and fulfil all your academic requirements. However, we know "
+        "that from time to time things come up that can affect your "
+        "academic progress.":
+            "我们希望你在 Monash 学有所成、满足所有学业要求。但我们也知道，生活中总会遇到一些事，影响到学业进度。",
+        "When you’re halfway through the maximum course duration":
+            "当你读到最长修业年限的一半时",
+        "When you’re three-quarters of the way through the maximum "
+        "course duration":
+            "当你读到最长修业年限的四分之三时",
+        "When you’re two-thirds of the way through the maximum course "
+        "duration":
+            "当你读到最长修业年限的三分之二时",
+        "You fail the same unit two times or more.":
+            "同一门课程不及格两次或更多次。",
+        "You fail to successfully complete the required number of "
+        "credit points within the required time (see table below). "
+        "This means you can't complete your course within the maximum "
+        "course duration.":
+            "你未能在规定时间内修满所需的学分（见下表）。这意味着你无法在最长修业年限内完成学位课程。",
+        "You have a fail grade for 50 per cent or more of the "
+        "completed credit points (except if you fail only a single 6-, "
+        "12- or 18-credit point unit in your first review period at "
+        "Monash).":
+            "你已修学分中有 50% 或以上为不及格（例外情况：在 Monash 的首个审查期内，只有一门 6 学分、12 学分或 18 "
+            "学分的课程不及格）。",
+        "You're at risk of unsatisfactory academic progress if, within "
+        "the academic progress period:":
+            "在一个学业进度审查期内出现下列情况，你就存在学业进度不达标的风险：",
+        "Your academic progress is satisfactory if, within the "
+        "academic progress period:":
+            "在一个学业进度审查期内满足下列条件，你的学业进度即为达标：",
+        "Your maximum course duration is recorded in the Handbook for "
+        "the year you began your course.":
+            "你的最长修业年限，记载在你入学那一年的 Handbook 里。",
+        "You’ve exceeded the maximum course duration without "
+        "completing your course.":
+            "已超过最长修业年限，仍未完成学位课程。",
+        "academic progress risk level one: advice":
+            "学业进度风险一级：指导建议",
+        "academic progress risk level three: intervention.":
+            "学业进度风险三级：干预。",
+        "academic progress risk level two: monitoring":
+            "学业进度风险二级：监控",
+        "none of the unsatisfactory academic progress criteria apply "
+        "to your performance.":
+            "你的表现不符合任何一条学业进度不达标的判定标准。",
+        "period 1: from the day after semester two results are "
+        "released until the end of the day on which semester one "
+        "results are released":
+            "审查期 1：自第二学期成绩公布次日起，至第一学期成绩公布当日结束为止",
+        "period 2: from the day after semester one results are "
+        "released until the end of the day on which semester two "
+        "results are released.":
+            "审查期 2：自第一学期成绩公布次日起，至第二学期成绩公布当日结束为止。",
+        "you didn’t meet any of the unsatisfactory academic progress "
+        "criteria.":
+            "你没有触及任何一条学业进度不达标的判定标准。",
+        "you failed one or more units, but":
+            "你有一门或多门课程不及格，但",
+        "you pass all your units, and":
+            "你所有课程均及格；并且",
+        "About academic progress":
+            "关于学业进度审查",
+        "Academic progress risk levels":
+            "学业进度风险等级",
+        "At risk of unsatisfactory progress":
+            "存在学业进度不达标的风险",
+        "Satisfactory academic progress":
+            "学业进度达标",
+        "The two review periods are:":
+            "两个审查期分别是：",
+        "Unsatisfactory academic progress criteria":
+            "学业进度不达标的判定标准",
+        "What is academic progress?":
+            "什么是学业进度审查？",
+        "Whose progress is reviewed":
+            "哪些人的学业进度会被审查",
+    },
     "academic-transcripts": {
         "If you’re a past student, you can buy digital letters for up to 12 months after you’ve been course completed.":
             "如果你已经毕业，在学位课程完成后的 12 个月内都可以购买电子版证明信。",
@@ -915,6 +1054,315 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "并非每个开课学期都有固定的延期考核和补考日期，具体日期也可能因课程而异。如果不确定自己的延期考核或补考在什么时候，请向所在学院确认。",
     },
     "intermission": {
+        "After you submit your form":
+            "提交表格之后",
+        "All documents need to:":
+            "所有材料都必须：",
+        "Census dates and teaching periods":
+            "census dates（学籍统计日）与开课学期",
+        "During your study leave":
+            "休学期间",
+        "Enrolment Procedure – section 6 (pdf)":
+            "Enrolment Procedure（选课注册规程）第 6 节（pdf）",
+        "Examples include:":
+            "例如：",
+        "Extending your leave":
+            "延长休学",
+        "Intermission (study leave)":
+            "休学（intermission，即 study leave）",
+        "Intermission Request form":
+            "休学申请表",
+        "International student":
+            "国际学生",
+        "Not on a student visa?":
+            "不是持学生签证？",
+        "Returning from study leave":
+            "休学结束复学",
+        "Step 1: Check your eligibility":
+            "第 1 步：确认你是否符合条件",
+        "Step 2: When to apply":
+            "第 2 步：什么时候申请",
+        "Step 3: Submit an application":
+            "第 3 步：提交申请",
+        "Step 4: Next steps":
+            "第 4 步：后续步骤",
+        "Still deciding?":
+            "还在犹豫？",
+        "Student visa conditions":
+            "学生签证条件",
+        "Supporting documents":
+            "证明材料",
+        "Supporting documents View":
+            "证明材料 查看",
+        "Thinking about taking a break?":
+            "在考虑暂停学业？",
+        "be recently dated":
+            "日期是近期的",
+        "how long they lasted":
+            "持续了多久",
+        "notification from defence services.":
+            "国防部门出具的通知。",
+        "police report":
+            "报案记录",
+        "their level of impact.":
+            "影响的严重程度。",
+        "when they occurred":
+            "发生的时间",
+        "your compassionate or compelling circumstances":
+            "你所处的 compassionate or compelling circumstances（体恤或不可抗情形）",
+        "Arts honours students may only take study leave in "
+        "exceptional circumstances, for a maximum of one semester. You "
+        "need to seek approval from your honours coordinator before "
+        "applying.":
+            "文学院荣誉学位学生只有在特殊情况下才可以申请 study "
+            "leave（休学），且最长一个学期。申请前需要先取得荣誉学位课程协调人的批准。",
+        "Before you decide to take intermission, it's a good idea to "
+        "weigh your options and the support available.":
+            "在决定休学（intermission）之前，先把可选的路径和能拿到的支持权衡一遍为好。",
+        "Compassionate or compelling circumstances are personal "
+        "circumstances that:":
+            "compassionate or compelling "
+            "circumstances（体恤或不可抗情形）指的是具备以下特征的个人处境：",
+        "Depending on your circumstances, you may need to provide more "
+        "than one of the documents listed above.":
+            "视你的具体处境而定，上面列出的材料可能需要提交不止一种。",
+        "Do not, under any circumstances, submit fraudulent "
+        "documentation":
+            "任何情况下都不要提交伪造材料",
+        "Documents issued in a language other than English must be "
+        "translated into English by the National Accreditation "
+        "Authority for Translators and Interpreters (NAATI) or an "
+        "overseas notary department with a common seal.":
+            "非英文签发的材料，必须由 National Accreditation Authority for Translators "
+            "and Interpreters（NAATI，澳大利亚翻译资格认可局）或持有公章的海外公证机构译成英文。",
+        "Domestic coursework students are eligible to apply for study "
+        "leave using the intermission form below, with some exceptions.":
+            "本地授课型学生可以用下面的 intermission（休学）表格申请 study leave（休学），但有少数例外。",
+        "Firstly, what kind of student are you?":
+            "首先，你属于哪一类学生？",
+        "For more details, see supporting documents for compassionate "
+        "or compelling circumstances.":
+            "更多细节，请查看compassionate or compelling "
+            "circumstances（体恤或不可抗情形）所需的证明材料。",
+        "If you can provide proof that the reason you applied for "
+        "study leave after the census date was due to exceptional "
+        "circumstances, you can apply for a fee reversal.":
+            "如果你能提供证据，证明你在 census date（学籍统计日）之后才申请 study "
+            "leave（休学）是出于特殊情况，就可以申请学费冲销。",
+        "If you have been seeing a counsellor in an ongoing way about "
+        "issues affecting your study, you can talk to your counsellor "
+        "about completing a Health Professional Report (HPR) to "
+        "support an application under compassionate and compelling "
+        "circumstances.":
+            "如果你一直在就影响学业的问题接受心理咨询，可以和咨询师商量，请他填写一份 Health Professional "
+            "Report（HPR，健康专业人员报告），作为按compassionate or compelling "
+            "circumstances（体恤或不可抗情形）提出申请的支持材料。",
+        "If you need to take a longer period of study leave than you "
+        "initially requested, submit a new intermission request. "
+        "Intermission extensions beyond 12 months of total leave are "
+        "only approved in exceptional circumstances, and at the "
+        "discretion of the faculty. You may need to provide supporting "
+        "documentation.":
+            "如果你需要的 study leave（休学）比当初申请的更长，请重新提交一份 "
+            "intermission（休学）申请。累计休学超过 12 "
+            "个月的延长，只有在特殊情况下才会获批，且由学院自行裁量，你可能需要提交证明材料。",
+        "If you want to return early, message Monash Connect.":
+            "如果你想提前复学，请给 Monash Connect（学生服务中心）留言。",
+        "If you're a domestic or international coursework student "
+        "studying at Monash University, you're in the right place. If "
+        "that's not you, you'll find the information you need below:":
+            "如果你是在 Monash 大学就读的本地或国际授课型学生，这个页面就是给你看的。如果不是，请看下面对应的入口：",
+        "If you're not on a student visa, you can go ahead and apply "
+        "for intermission – you won't need to show compassionate or "
+        "compelling circumstances.":
+            "如果你不是持学生签证，可以直接申请休学（intermission）——不需要证明存在compassionate or "
+            "compelling circumstances（体恤或不可抗情形）。",
+        "If you're on a student visa, approval for study leave is "
+        "given only in compassionate or compelling circumstances "
+        "(unless intermission was recommended by an Academic Progress "
+        "Committee panel).":
+            "如果你持学生签证，只有在存在compassionate or compelling "
+            "circumstances（体恤或不可抗情形）时，study "
+            "leave（休学）才会获批（除非休学是学业进度审查委员会小组建议的）。",
+        "If you're only taking leave for one semester or teaching "
+        "period, don’t forget to re-enrol for the following semester "
+        "or teaching period – see re-enrolment dates and details.":
+            "如果你只休一个学期或一个开课学期的假，别忘了为下一个学期或开课学期重新注册选课——请查看重新注册的日期与说明。",
+        "If you’re granted study leave for compassionate or compelling "
+        "circumstances, there are a few things you’ll need to do:":
+            "如果你因compassionate or compelling circumstances（体恤或不可抗情形）获批 "
+            "study leave（休学），有几件事需要办：",
+        "If you’re sure you want to apply for intermission, timing "
+        "matters – applying at the right time means you’ll avoid "
+        "financial and academic penalties:":
+            "如果你确定要申请休学（intermission），时间点很关键——挑对时间才不会产生费用上和学业上的处罚：",
+        "In the form, you’ll be asked to explain why you’re taking a "
+        "study break. Understanding what has influenced your decision "
+        "helps us identify support services for you, and improve the "
+        "experience for other students. You can also elect to be "
+        "contacted by Monash Connect about our services and next steps.":
+            "表格里会请你说明休学的原因。了解是什么影响了你的决定，有助于我们为你找到合适的支持服务，也有助于改善其他学生的就读体验。你也可以选择让 "
+            "Monash Connect（学生服务中心）就相关服务和后续步骤与你联系。",
+        "Keep your contact details up-to-date and check your Monash "
+        "email regularly so you don't miss University updates.":
+            "保持联系方式为最新，并经常查看你的 Monash 邮箱，以免错过学校的通知。",
+        "Monash College students\n \nIntermission request steps and "
+        "conditions":
+            "Monash College 学生\n \n休学申请的步骤与条件",
+        "Monash Online students\n \nApply in the Student Hub":
+            "Monash Online 学生\n \n在 Student Hub 提交申请",
+        "Monash University, Malaysia students\n \nIntermission "
+        "eligibility and application process":
+            "Monash 大学马来西亚校区学生\n \n休学的资格条件与申请流程",
+        "Once you’ve submitted an intermission request, we’ll usually "
+        "get back to you within two University working days to discuss "
+        "your request and take you through the process (although this "
+        "may take longer during busy periods).":
+            "提交休学（intermission）申请后，我们通常会在两个学校工作日内与你联系，讨论你的申请并带你走完流程（繁忙时段可能会久一些）。",
+        "Penalties incurred after the census date":
+            "在 census date（学籍统计日）之后产生的处罚",
+        "Ready to move forward? Follow the steps to apply your "
+        "intermission.":
+            "准备好了？按下面的步骤提交你的休学（intermission）申请。",
+        "Research students (Australian campuses)\n \nApply in the "
+        "graduate research portal":
+            "研究型学生（澳大利亚校区）\n \n在研究生研究门户中提交申请",
+        "Science honours students must complete an honours "
+        "supplementary form (pdf, 0.6 mb) and attach the signed form "
+        "to their intermission application.":
+            "理学院荣誉学位学生必须填写一份 honours supplementary form（荣誉学位补充表，pdf，0.6 "
+            "mb），并把签好字的表格附在休学申请上。",
+        "Tell us a bit about your situation and we can point you to "
+        "the right support.":
+            "说说你的情况，我们可以帮你找到合适的支持。",
+        "There are many reasons you might need to pause your studies, "
+        "from managing personal or health challenges to needing time "
+        "to reset or focus on other responsibilities. Whatever brought "
+        "you here, this page will help you find the right path forward.":
+            "需要暂停学业的原因有很多——可能是要应对个人或健康上的难处，也可能是需要时间调整状态、或先顾及别的责任。无论是什么把你带到这一页，这里都会帮你找到合适的下一步。",
+        "To apply for intermission, submit the request form.":
+            "要申请休学（intermission），请提交申请表。",
+        "To find out more about your responsibilities (and what you "
+        "should do if you don’t have the required supporting "
+        "documents), see our documentation integrity page.":
+            "想进一步了解你的责任（以及在拿不到所需证明材料时该怎么办），请查看 documentation "
+            "integrity（材料真实性）页面。",
+        "To support your intermission request, you can provide a:":
+            "为支持你的休学（intermission）申请，你可以提交：",
+        "While you're on study leave, you:":
+            "在 study leave（休学）期间，你：",
+        "You can apply for a break of up to 12 months during your "
+        "course, which you can take over two separate or consecutive "
+        "teaching periods.":
+            "在整个学位课程期间，你最多可以申请 12 个月的休学，可以分两段、也可以在连续的两个开课学期内使用。",
+        "You must give us information that is true, accurate and "
+        "complete – without intending to mislead or gain advantage. If "
+        "you make a false statement or provide a falsified document:":
+            "你提供的信息必须真实、准确、完整，不得有误导或谋取便利的意图。如果你作出虚假陈述，或提交伪造材料：",
+        "You need to complete your course within a certain time frame "
+        "(which includes study leave), so make sure you have enough "
+        "time left before you apply for intermission. See study load "
+        "for more information.":
+            "你必须在规定的年限内完成学位课程（休学时间也计算在内），所以申请休学（intermission）前请确认自己还剩足够的时间。详见「学习负荷」页面。",
+        "You'll need to provide supporting documents as evidence. Keep "
+        "in mind, the Government may cancel your student visa if you "
+        "provide fraudulent evidence/documents to Monash University "
+        "when applying for study leave (check our documentation "
+        "integrity page for examples and penalty information).":
+            "你需要提交证明材料作为证据。请注意：如果你在申请 study leave（休学）时向 Monash "
+            "大学提交伪造的证据或材料，政府可能会取消你的学生签证（示例和处罚信息见 documentation "
+            "integrity（材料真实性）页面）。",
+        "You'll receive a reminder to re-enrol ahead of the "
+        "re-enrolment period for coursework students. To avoid a late "
+        "fee and keep your place in your course, make sure you "
+        "re-enrol during this period.":
+            "在授课型学生的重新注册期开始前，你会收到重新注册的提醒。请务必在这段期间内完成重新注册，以免产生滞纳金、并保住你在学位课程中的学籍。",
+        "Your eligibility depends on whether you’re a domestic "
+        "student, or an international student on a student visa.":
+            "你是否符合条件，取决于你是本地学生，还是持学生签证的国际学生。",
+        "You’ll need to provide supporting documents that clearly show:":
+            "你需要提交的证明材料必须清楚显示：",
+        "You’re responsible for making sure the documents you supply "
+        "to us are genuine, accurate and complete. Penalties for "
+        "submitting a forged, altered or falsified document can "
+        "include exclusion from the University, a fine of up to AUD "
+        "$1,000 and a permanent record in Monash systems.":
+            "你有责任确保提交给我们的材料真实、准确、完整。提交伪造、篡改或造假材料的处罚包括：被学校退学处理（exclusion）、最高 "
+            "1000 澳元罚款，以及在 Monash 系统中留下永久记录。",
+        "a serious illness or medical condition affecting your ability "
+        "to study":
+            "影响你学习能力的重病或健康问题",
+        "apply for a new Confirmation of Enrolment (CoE) before you "
+        "return from study leave (your current CoE will be cancelled "
+        "when you go on study leave). You’ll receive your new CoE with "
+        "a revised completion date when you return from leave":
+            "在复学之前申请新的入学确认书（CoE）——你现有的 CoE 会在你开始 study "
+            "leave（休学）时被注销。复学时你会拿到载有新完成日期的新 CoE",
+        "apply for a new student visa with your new CoE":
+            "凭新的 CoE 申请新的学生签证",
+        "are involuntary and outside your control (such as medical, "
+        "family, wellbeing, or enrolment circumstances), and":
+            "并非你自愿、且不在你控制范围之内（例如医疗、家庭、身心状况或选课注册方面的情形），并且",
+        "be from an independent source or authority":
+            "来自独立的第三方机构或主管部门",
+        "bereavement of a close family member where you need to "
+        "provide assistance or support":
+            "近亲过世，且你需要提供协助或照料",
+        "check your visa status in VEVO before you resume your studies "
+        "– if your student visa has been cancelled, you’ll need to get "
+        "a new one to enter Australia.":
+            "复学前先在 VEVO 中查看签证状态——如果你的学生签证已被取消，需要重新办一份才能入境澳大利亚。",
+        "confirm that your circumstances are ongoing and relevant to "
+        "the timeframe.":
+            "确认你的处境仍在持续，且与所涉时间段相关。",
+        "course progression restrictions or unit unavailability.":
+            "课程修读次序限制，或某些课程未开课。",
+        "death notice or certificate and evidence of relationship":
+            "讣告或死亡证明，以及亲属关系证明",
+        "detailed statement from a counsellor (like the University's "
+        "Counselling and Psychological Services team) who has been "
+        "involved in your assessment and/or treatment":
+            "由参与你评估和／或治疗的心理咨询师（例如学校的 Counselling and Psychological "
+            "Services（心理咨询与心理健康服务）团队）出具的详细说明",
+        "if you already know you won't be studying in the following "
+        "teaching period – apply during the timely re-enrolment "
+        "period, before enrolling in units for the next academic year":
+            "如果你已经确定下一个开课学期不会读书——请在正常的重新注册期内申请，赶在为下一学年选课之前",
+        "letter from a social worker, lawyer, or psychologist":
+            "由社会工作者、律师或心理学家出具的信函",
+        "medical certificate or letter from a medical professional "
+        "which specifically suggests taking a study break and how long "
+        "the break should be (even if your doctor has filled in your "
+        "intermission request form)":
+            "由医疗专业人员出具的 medical "
+            "certificate（医疗证明）或信函，其中明确建议你休学、并写明应休多长时间（即使你的医生已经帮你填了休学申请表，这份材料仍然需要）",
+        "must check your Monash email account for important "
+        "information.":
+            "必须查看 Monash 邮箱，以免错过重要信息。",
+        "must keep your contact details up to date to receive "
+        "communication from the University":
+            "必须保持联系方式为最新，以便接收学校的通知",
+        "present you with limited or no choice but to take a break "
+        "from your studies.":
+            "使你除了暂停学业之外几乎没有别的选择。",
+        "remain a current student of Monash University with access to "
+        "University services, including the library, WES, Student "
+        "Portal and the Monash intranet":
+            "仍是 Monash 大学的在读学生，可以继续使用学校的各项服务，包括图书馆、WES（学生系统）、学生门户以及 Monash "
+            "内网",
+        "resume your studies once your intermission period has ended, "
+        "otherwise the Government may cancel your student visa.":
+            "必须在休学期结束后复学，否则政府可能会取消你的学生签证。",
+        "social or political upheaval in your country that is "
+        "affecting your family":
+            "你所在国家发生的社会或政治动荡正在影响你的家人",
+        "statutory declarations from you or relevant people":
+            "由你本人或相关人士出具的 statutory declaration（法定声明）",
+        "we'll refer the matter to Student Conduct and Complaints for "
+        "an academic misconduct investigation.":
+            "我们会将此事移交 Student Conduct and Complaints（学生行为与投诉办公室）按学术不端立案调查。",
+        "your application will be rejected, and":
+            "你的申请会被驳回；并且",
         "Here's what you need to know while you’re on intermission, and what to do before you return.":
             "以下是休学（intermission）期间你需要了解的事项，以及复学前需要办理的手续。",
         "If you apply for study leave after the census date, you’ll be charged for all enrolled units and receive a Withdrawn or Withdrawn Fail grade. For penalty dates, see census dates and teaching periods.":
