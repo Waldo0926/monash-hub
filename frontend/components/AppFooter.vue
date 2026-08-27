@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { MONASH_SYSTEMS } from '~/data/systems'
+
+const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
+const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 </script>
 
 <template>
@@ -21,7 +24,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
         <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink>
         <NuxtLink to="/guides">{{ $t('nav.guides') }}</NuxtLink>
         <NuxtLink to="/community">{{ $t('nav.community') }}</NuxtLink>
-        <NuxtLink to="/exchange">{{ $t('nav.exchange') }}</NuxtLink>
+        <NuxtLink to="/mamo">{{ $t('nav.mamo') }}</NuxtLink>
       </nav>
 
       <nav class="col" :aria-label="$t('footer.official')">
@@ -38,25 +41,30 @@ import { MONASH_SYSTEMS } from '~/data/systems'
       </nav>
 
       <!-- The systems a student logs into. Kept apart from the reference sites
-           above because these are things you do, not things you read - and
-           split by campus, because half of them are Malaysia's own. -->
+           above because these are things you do, not things you read, and in two
+           columns rather than one list: which campus a system belongs to is the
+           thing a reader is checking, and side by side that is one glance rather
+           than a label to read on every row. -->
       <nav class="col" :aria-label="$t('footer.systems')">
         <h2 class="tiny muted heading">{{ $t('footer.systems') }}</h2>
         <a
-          v-for="system in MONASH_SYSTEMS"
+          v-for="system in EVERY_CAMPUS_SYSTEMS"
           :key="system.url"
           :href="system.url"
           rel="noopener external"
           target="_blank"
-          class="system"
-        >
-          <span>{{ system.name }} ↗</span>
-          <CampusNotice
-            v-if="system.appliesTo === 'malaysia'"
-            :applies-to="system.appliesTo"
-            compact
-          />
-        </a>
+        >{{ system.name }} ↗</a>
+      </nav>
+
+      <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+        <h2 class="tiny muted heading">{{ $t('footer.systemsMalaysia') }}</h2>
+        <a
+          v-for="system in MALAYSIA_SYSTEMS"
+          :key="system.url"
+          :href="system.url"
+          rel="noopener external"
+          target="_blank"
+        >{{ system.name }} ↗</a>
       </nav>
     </div>
   </footer>
@@ -84,7 +92,8 @@ import { MONASH_SYSTEMS } from '~/data/systems'
      and needs the least; the source and system columns carry long names and
      a campus label, so they get the room the browse column gives up. */
   grid-template-columns:
-    minmax(0, 2fr) minmax(80px, 0.62fr) minmax(150px, 1.19fr) minmax(160px, 1.19fr);
+    minmax(0, 1.9fr) minmax(80px, 0.6fr) minmax(150px, 1.1fr)
+    minmax(105px, 0.75fr) minmax(120px, 0.85fr);
   gap: var(--s6);
   align-items: start;
 }
@@ -105,15 +114,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 .disclaimer { margin: 0; color: var(--muted); }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
-/* The campus label sits against the right edge of the column rather than
-   trailing the name, so the four Malaysia ones line up as a block instead of
-   stepping in and out with the length of each system's name. */
-.system {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s2);
-}
+
 .heading {
   margin: 0 0 var(--s1);
   text-transform: uppercase;
