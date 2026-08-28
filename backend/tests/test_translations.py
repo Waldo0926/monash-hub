@@ -367,3 +367,64 @@ def test_no_unit_title_seed_is_still_english():
         code for code, (english, chinese) in UNIT_TITLES.items() if english == chinese
     }
     assert unchanged == set()
+
+
+def test_human_boilerplate_outranks_a_machine_page_string(db):
+    """ENG1090 kept saying 最大分数为课程45 after that sentence was hand-written.
+
+    The shared boilerplate was applied first and the unit's own machine row
+    overwrote it. Specific-beats-general is right, but only within one
+    provenance: a sentence somebody checked must not be replaced by one nobody
+    did, whether it was written for this page or for the thousand that share it.
+    """
+    from app.knowledge.translations import HANDBOOK_GLOBAL, load
+    from app.models.translation import (
+        GLOBAL,
+        HUMAN,
+        MACHINE,
+        PUBLISHED,
+        UNIT,
+        ContentTranslation,
+    )
+
+    english = "The consequence of not achieving a competency hurdle is a fail grade."
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=GLOBAL, target_key=HANDBOOK_GLOBAL, field="strings",
+            data={"strings": {english: "未达到能力门槛的后果是本课程不及格。"}},
+            status=PUBLISHED, provenance=HUMAN,
+        )
+    )
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="ENG1090", field="strings",
+            data={"strings": {english: "未实现能力门槛的后果是不及格成绩。"}},
+            status=PUBLISHED, provenance=MACHINE,
+        )
+    )
+    db.commit()
+
+    tr = load(db, "zh", UNIT, "ENG1090")
+    assert tr.string(english) == "未达到能力门槛的后果是本课程不及格。"
+
+
+def test_a_human_page_string_still_beats_human_boilerplate(db):
+    """Specific over general, once both were written by a person."""
+    from app.knowledge.translations import HANDBOOK_GLOBAL, load
+    from app.models.translation import GLOBAL, HUMAN, PUBLISHED, UNIT, ContentTranslation
+
+    english = "Assessment details may change."
+    for target_type, target_key, chinese in (
+        (GLOBAL, HANDBOOK_GLOBAL, "通用说法"),
+        (UNIT, "FIT1045", "这门课自己的说法"),
+    ):
+        db.add(
+            ContentTranslation(
+                locale="zh", target_type=target_type, target_key=target_key, field="strings",
+                data={"strings": {english: chinese}},
+                status=PUBLISHED, provenance=HUMAN,
+            )
+        )
+    db.commit()
+
+    assert load(db, "zh", UNIT, "FIT1045").string(english) == "这门课自己的说法"
