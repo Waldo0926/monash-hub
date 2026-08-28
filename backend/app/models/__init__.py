@@ -13,6 +13,12 @@ from app.models.community import (  # noqa: F401
     PostTag,
 )
 from app.models.crawl import CrawlHistory, CrawlJob, SourceChangeEvent  # noqa: F401
+from app.models.curriculum import (  # noqa: F401
+    AreaOfStudy,
+    Course,
+    CurriculumContainer,
+    CurriculumItem,
+)
 from app.models.handbook import (  # noqa: F401
     Unit,
     UnitActivity,

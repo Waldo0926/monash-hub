@@ -1,10 +1,9 @@
-"""Enumerate every unit the Handbook publishes for a year.
+"""Enumerate what the Handbook publishes for a year.
 
 The Handbook's own search page calls a JSON endpoint to list results; this uses
 the same one rather than guessing unit codes or walking links. It pages at 100 -
-larger sizes are refused - and keeps only results whose URI is under
-``/<year>/units/``, because the same index also carries courses and areas of
-study.
+larger sizes are refused - and filters by the prefix of the
+URI, because one index carries units, courses and areas of study together.
 
 Discovery is one request per hundred units, so a full year costs about sixty
 requests. That is the cheap half of a full crawl; fetching the pages is the
@@ -31,10 +30,31 @@ class DiscoveryError(RuntimeError):
 
 def discover_unit_codes(year: int, throttle: Throttle | None = None) -> list[str]:
     """Return every unit code published for ``year``, in Handbook order."""
+    return _discover(year, "units", throttle)
+
+
+def discover_course_codes(year: int, throttle: Throttle | None = None) -> list[str]:
+    """Return every course code published for ``year`` - C2001 and its 502 peers."""
+    return _discover(year, "courses", throttle)
+
+
+def discover_aos_codes(year: int, throttle: Throttle | None = None) -> list[str]:
+    """Return every area-of-study code - the majors, minors and specialisations."""
+    return _discover(year, "aos", throttle)
+
+
+def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[str]:
+    """One walk of the index, keeping the entries under ``/<year>/<kind>/``.
+
+    The index is one list of everything the Handbook publishes, so the three
+    entry points above differ only in which prefix they keep. Walking it three
+    times costs three times sixty requests, which is still the cheap half of a
+    crawl.
+    """
     throttle = throttle or Throttle()
     codes: list[str] = []
     seen: set[str] = set()
-    prefix = f"/{year}/units/"
+    prefix = f"/{year}/{kind}/"
     offset = 0
     total: int | None = None
 
@@ -73,11 +93,11 @@ def discover_unit_codes(year: int, throttle: Throttle | None = None) -> list[str
                     codes.append(code)
 
             offset += len(results)
-            log.debug("discovered %d units after %d entries", len(codes), offset)
+            log.debug("discovered %d %s after %d entries", len(codes), kind, offset)
 
-    log.info("discovered %d units for %s", len(codes), year)
+    log.info("discovered %d %s for %s", len(codes), kind, year)
     if not codes:
-        raise DiscoveryError(f"no units found for {year} - the index shape may have changed")
+        raise DiscoveryError(f"no {kind} found for {year} - the index shape may have changed")
     return codes
 
 
