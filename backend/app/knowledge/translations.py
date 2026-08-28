@@ -25,12 +25,19 @@ HANDBOOK_GLOBAL = "handbook"
 class Translation:
     """Everything stored for one target in one language, ready to apply."""
 
-    __slots__ = ("fields", "locale", "machine", "reviewed", "source_hash", "stale", "strings")
+    __slots__ = (
+        "fields", "human_strings", "locale", "machine", "reviewed",
+        "source_hash", "stale", "strings",
+    )
 
     def __init__(self, locale: str) -> None:
         self.locale = locale
         self.fields: dict[str, str] = {}
         self.strings: dict[str, str] = {}
+        # Which of those a person wrote. Needed because a machine translation
+        # of a whole field would otherwise hide a hand-written paragraph
+        # inside it - see ``field``.
+        self.human_strings: set[str] = set()
         self.source_hash: str | None = None
         # True when the source has changed since the translation was written.
         self.stale = False
@@ -53,15 +60,22 @@ class Translation:
         """
         if source is None:
             return None
+
+        paragraphs = source.split("\n\n")
+        # A hand-written paragraph beats a machine translation of the whole
+        # field that contains it. Without this, the machine's rendering of
+        # ENG1090's entire assessment summary matched first and hid the
+        # sentence about hurdles that had been written out by hand - the
+        # paragraph map was never even consulted.
+        if any(part.strip() in self.human_strings for part in paragraphs):
+            return "\n\n".join(self.strings.get(part.strip(), part) for part in paragraphs)
+
         whole = self.fields.get(name) or self.strings.get(source.strip())
         if whole:
             return whole
-        if not self.strings or "\n\n" not in source:
+        if not self.strings or len(paragraphs) == 1:
             return source
-
-        paragraphs = source.split("\n\n")
-        translated = [self.strings.get(part.strip(), part) for part in paragraphs]
-        return "\n\n".join(translated)
+        return "\n\n".join(self.strings.get(part.strip(), part) for part in paragraphs)
 
     def string(self, source: str | None) -> str | None:
         if source is None:
@@ -193,6 +207,8 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
             translation.strings[source.strip()] = translated
+            if row.provenance == HUMAN:
+                translation.human_strings.add(source.strip())
 
 
 # --- applying to blocks ---------------------------------------------------

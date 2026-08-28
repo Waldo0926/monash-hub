@@ -428,3 +428,66 @@ def test_a_human_page_string_still_beats_human_boilerplate(db):
     db.commit()
 
     assert load(db, "zh", UNIT, "FIT1045").string(english) == "这门课自己的说法"
+
+
+def test_a_hand_written_paragraph_beats_a_machine_whole_field(db):
+    """The reason ENG1090's hurdle sentence stayed wrong for a day.
+
+    The machine translates a unit's assessment summary as one string *and*
+    keeps the paragraphs it was split from. ``field`` matched the whole blob
+    first and returned it, so the paragraph a person had written out was never
+    looked up. Every one of those hand-written sentences was dead on arrival.
+    """
+    from app.knowledge.translations import HANDBOOK_GLOBAL, load
+    from app.models.translation import (
+        GLOBAL,
+        HUMAN,
+        MACHINE,
+        PUBLISHED,
+        UNIT,
+        ContentTranslation,
+    )
+
+    first = "Continuous assessment: 50%"
+    second = "The consequence of not achieving a hurdle is a fail grade."
+    whole = f"{first}\n\n{second}"
+
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="ENG1090", field="content",
+            data={"strings": {
+                whole: "机器整段：连续考核 50%。未实现门槛的后果是不及格。",
+                first: "机器：连续考核 50%",
+                second: "机器：未实现门槛的后果是不及格。",
+            }},
+            status=PUBLISHED, provenance=MACHINE,
+        )
+    )
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=GLOBAL, target_key=HANDBOOK_GLOBAL, field="strings",
+            data={"strings": {second: "未达到及格门槛的后果是本课程不及格。"}},
+            status=PUBLISHED, provenance=HUMAN,
+        )
+    )
+    db.commit()
+
+    rendered = load(db, "zh", UNIT, "ENG1090").field("assessment_summary", whole)
+    assert rendered == "机器：连续考核 50%\n\n未达到及格门槛的后果是本课程不及格。"
+
+
+def test_a_whole_field_machine_translation_still_wins_when_nobody_wrote_one(db):
+    """It is the better rendering when there is no hand-written alternative."""
+    from app.knowledge.translations import load
+    from app.models.translation import MACHINE, PUBLISHED, UNIT, ContentTranslation
+
+    whole = "One paragraph.\n\nAnd another."
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="FIT1045", field="content",
+            data={"strings": {whole: "机器整段译文。"}},
+            status=PUBLISHED, provenance=MACHINE,
+        )
+    )
+    db.commit()
+    assert load(db, "zh", UNIT, "FIT1045").field("overview", whole) == "机器整段译文。"

@@ -55,7 +55,7 @@ const en: Messages = {
   'nav.guides': 'Guides',
   'nav.community': 'Community',
   'nav.exchange': 'Exchange',
-  'nav.mamo': 'Mamo Guide',
+  'nav.mamo': 'MUM Guide',
   // --- unit tree ----------------------------------------------------------
   'nav.tree': 'Unit tree',
   // --- degrees -------------------------------------------------------------
@@ -176,7 +176,7 @@ const en: Messages = {
   'campus.all.body': 'This page states that it applies to students at every Monash campus and location.',
   'campus.filter': 'Campus',
   'campus.any': 'All campuses',
-  'mamo.title': 'Mamo Guide',
+  'mamo.title': 'MUM Guide',
   'mamo.tagline': 'A WeChat account written by Monash Malaysia students',
   'mamo.aboutHeading': 'About the account',
   'mamo.articlesHeading': 'Posts',
