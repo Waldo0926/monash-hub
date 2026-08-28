@@ -447,19 +447,39 @@ useHead({ title: $t('plan.title') })
 .intro h1 { margin: 0 0 var(--s2); }
 .lede { color: var(--muted); margin: 0 0 var(--s5); max-width: 64ch; }
 
+/* Grid, not flex-wrap.
+ *
+ * As a flex row every field took a whole line to itself, so the four controls
+ * stacked into four rows on a 1440px screen. The cause was the course <select>:
+ * 200 options with long titles give it a max-content width in the thousands of
+ * pixels, and `max-width` on the .input constrained the select without ever
+ * constraining the .field wrapping it. Named tracks plus `min-width: 0` are
+ * what stop a wide option list from deciding the layout. */
 .toolbar {
-  display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end;
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) 110px auto;
+  gap: var(--s3); align-items: end;
   padding: var(--s3); background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); margin-bottom: var(--s3);
 }
-.field { display: grid; gap: var(--s1); font-size: 0.8rem; color: var(--muted); }
+.field { display: grid; gap: var(--s1); font-size: 0.8rem; color: var(--muted); min-width: 0; }
 .field--narrow { max-width: 110px; }
 .input {
   padding: var(--s2) var(--s3); border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--text);
-  max-width: 260px;
+  width: 100%; min-width: 0;
 }
-.actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-left: auto; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-self: end; }
+
+/* The five buttons need ~375px; below this the row cannot hold them as well. */
+@media (max-width: 1100px) {
+  .toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
+  .actions { grid-column: 1 / -1; justify-self: start; }
+}
+@media (max-width: 620px) {
+  .toolbar { grid-template-columns: 1fr; }
+  .field--narrow { max-width: none; }
+}
 .file { position: relative; overflow: hidden; cursor: pointer; }
 .file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
