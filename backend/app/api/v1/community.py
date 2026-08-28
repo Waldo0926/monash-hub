@@ -47,10 +47,16 @@ class PostRequest(BaseModel):
     category: str
     unit_code: str | None = Field(default=None, max_length=16)
     tags: list[str] = Field(default_factory=list, max_length=6)
+    # Chosen when writing, per post. Not an account setting: the same person
+    # asks some questions under their name and some not.
+    anonymous: bool = False
 
 
 class AnswerRequest(BaseModel):
     body: str = Field(min_length=2, max_length=20000)
+    anonymous: bool = False
+    # The reply this replies to. None is a reply to the post itself.
+    parent_id: int | None = None
 
 
 class ReportRequest(BaseModel):
@@ -58,6 +64,33 @@ class ReportRequest(BaseModel):
     target_id: int
     reason: str
     detail: str | None = Field(default=None, max_length=2000)
+
+
+def _voted(db: Session, user: User | None, target_type: str, ids: list[int]) -> set[int]:
+    """Which of ``ids`` this reader has already voted on.
+
+    Without it the heart cannot show its own state, and a reader who has
+    already liked something sees the same button as one who has not.
+    """
+    if user is None or not ids:
+        return set()
+    return set(
+        db.scalars(
+            select(CommunityVote.target_id).where(
+                CommunityVote.user_id == user.id,
+                CommunityVote.target_type == target_type,
+                CommunityVote.target_id.in_(ids),
+            )
+        )
+    )
+
+
+def _thread_ids(answers) -> list[int]:
+    found: list[int] = []
+    for answer in answers:
+        found.append(answer.id)
+        found += _thread_ids(answer.children)
+    return found
 
 
 @router.get("/categories")
@@ -74,16 +107,19 @@ def list_posts(
     limit: int = Query(20, le=100),
     offset: int = 0,
     db: Session = Depends(get_db),
+    user: User | None = Depends(current_user_optional),
 ) -> dict:
+    viewer = user.id if user else None
     if q or unit_code:
         posts, total = service.search_community(
             db, q, limit=limit, offset=offset, unit_code=unit_code
         )
+        voted = _voted(db, user, "post", [p.id for p in posts])
         return {
             "total": total,
             "limit": limit,
             "offset": offset,
-            "results": [post_brief(p) for p in posts],
+            "results": [post_brief(p, viewer, voted) for p in posts],
         }
 
     stmt = select(CommunityPost).where(CommunityPost.is_hidden.is_(False))
@@ -104,11 +140,12 @@ def list_posts(
         .limit(limit)
         .offset(offset)
     ).all()
+    voted = _voted(db, user, "post", [p.id for p in posts])
     return {
         "total": int(db.scalar(count_stmt) or 0),
         "limit": limit,
         "offset": offset,
-        "results": [post_brief(p) for p in posts],
+        "results": [post_brief(p, viewer, voted) for p in posts],
     }
 
 
@@ -141,6 +178,7 @@ def create_post(
         body=payload.body.strip(),
         category=payload.category,
         unit_code=payload.unit_code.upper() if payload.unit_code else None,
+        is_anonymous=payload.anonymous,
     )
     db.add(post)
     db.flush()
@@ -148,16 +186,22 @@ def create_post(
         db.add(PostTag(post_id=post.id, tag_id=tag.id))
     db.commit()
     db.refresh(post)
-    return post_detail(post)
+    return post_detail(post, viewer_id=user.id)
 
 
 @router.get("/posts/{post_id}")
-def get_post(post_id: int, db: Session = Depends(get_db)) -> dict:
+def get_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(current_user_optional),
+) -> dict:
     post = db.scalar(
         select(CommunityPost)
         .where(CommunityPost.id == post_id, CommunityPost.is_hidden.is_(False))
         .options(
-            selectinload(CommunityPost.answers),
+            selectinload(CommunityPost.answers)
+            .selectinload(CommunityAnswer.children)
+            .selectinload(CommunityAnswer.children),
             selectinload(CommunityPost.post_tags).selectinload(PostTag.tag),
         )
     )
@@ -172,17 +216,35 @@ def get_post(post_id: int, db: Session = Depends(get_db)) -> dict:
         .values(view_count=CommunityPost.view_count + 1)
     )
     db.commit()
-    return post_detail(post)
+    return post_detail(
+        post,
+        viewer_id=user.id if user else None,
+        voted_posts=_voted(db, user, "post", [post.id]),
+        voted_answers=_voted(db, user, "answer", _thread_ids(post.answers)),
+    )
 
 
 @router.get("/posts/{post_id}/answers")
-def list_answers(post_id: int, db: Session = Depends(get_db)) -> dict:
+def list_answers(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(current_user_optional),
+) -> dict:
     answers = db.scalars(
         select(CommunityAnswer)
-        .where(CommunityAnswer.post_id == post_id, CommunityAnswer.is_hidden.is_(False))
+        .where(
+            CommunityAnswer.post_id == post_id,
+            CommunityAnswer.parent_id.is_(None),
+            CommunityAnswer.is_hidden.is_(False),
+        )
         .order_by(CommunityAnswer.is_accepted.desc(), CommunityAnswer.vote_count.desc())
     ).all()
-    return {"total": len(answers), "results": [answer_brief(a) for a in answers]}
+    voted = _voted(db, user, "answer", _thread_ids(answers))
+    viewer = user.id if user else None
+    return {
+        "total": len(answers),
+        "results": [answer_brief(a, viewer, voted) for a in answers],
+    }
 
 
 @router.post("/posts/{post_id}/answers", status_code=status.HTTP_201_CREATED)
@@ -195,7 +257,22 @@ def create_answer(
     post = db.get(CommunityPost, post_id)
     if post is None or post.is_hidden:
         raise HTTPException(404, "Post not found")
-    answer = CommunityAnswer(post_id=post.id, author_id=user.id, body=payload.body.strip())
+
+    parent = None
+    if payload.parent_id is not None:
+        parent = db.get(CommunityAnswer, payload.parent_id)
+        # A reply has to belong to the thread it claims to be in, or it would
+        # appear under a post its author never opened.
+        if parent is None or parent.post_id != post.id or parent.is_hidden:
+            raise HTTPException(404, "The reply you are replying to is not in this thread")
+
+    answer = CommunityAnswer(
+        post_id=post.id,
+        parent_id=parent.id if parent else None,
+        author_id=user.id,
+        body=payload.body.strip(),
+        is_anonymous=payload.anonymous,
+    )
     db.add(answer)
     db.flush()
     db.execute(
@@ -206,7 +283,7 @@ def create_answer(
     notifications.notify_answer(db, post=post, answer=answer, actor=user)
     db.commit()
     db.refresh(answer)
-    return answer_brief(answer)
+    return answer_brief(answer, viewer_id=user.id)
 
 
 @router.post("/answers/{answer_id}/accept")
