@@ -277,3 +277,44 @@ def test_the_frontend_dictionary_agrees_with_the_glossary():
         if key in ENUMS and ENUMS[key].get("zh") and ENUMS[key]["zh"] != written
     }
     assert disagree == {}
+
+
+def test_a_term_pinned_in_the_singular_is_pinned_in_the_plural():
+    """BPS3072 told students to write a 封面信 - a letter for a book cover.
+
+    "cover letter" was in the glossary and "cover letters" was not, so the
+    mask skipped the only form the sentence actually used. Possessives failed
+    the same way.
+    """
+    from app.knowledge.glossary import MASKS, protect
+
+    for phrase, expected in (
+        ("writing resumes and cover letters", "求职信"),
+        ("meet all hurdle requirements", "及格门槛要求"),
+        ("check the census dates", "census dates（学籍统计日）"),
+        ("laboratories and field trips", "实地考察"),
+        ("this unit's credit points", "学分"),
+        ("the unit’s learning outcomes", "学习成果"),
+    ):
+        _, replacements = protect(phrase, "zh", MASKS[0])
+        assert any(expected in r for r in replacements), (phrase, replacements)
+
+
+def test_the_plural_rules_do_not_invent_matches():
+    """"unites" is not the plural of "unit", and a loose ``e?s`` said it was.
+
+    The ambiguous plurals are the other half: "reactive intermediates" is not
+    中级 and "computer architectures" is not 建筑学, so those terms stay
+    singular-only and the model reads the plural from context.
+    """
+    from app.knowledge.glossary import MASKS, protect
+
+    for phrase, forbidden in (
+        ("the unit unites two disciplines", "unites"),
+        ("reactive intermediates and stereochemistry", "intermediates"),
+        ("computer architectures and paradigms", "architectures"),
+        ("the pathologies driving it forward", "pathologies"),
+        ("modern trade theory and its extensions", "extensions"),
+    ):
+        masked, _ = protect(phrase, "zh", MASKS[0])
+        assert forbidden in masked, (phrase, masked)
