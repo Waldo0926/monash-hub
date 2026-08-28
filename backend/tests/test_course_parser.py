@@ -146,3 +146,28 @@ def test_storing_an_area_of_study_keeps_its_tree(db, aos):
     assert outcome == "new"
     roots = db.query(CurriculumContainer).filter_by(area_of_study_id=stored.id).all()
     assert {r.title for r in roots} == {"Core units", "Level 3 elective units"}
+
+
+def test_a_double_degree_carries_two_aqf_levels(db):
+    """B6043 concatenates two, at 79 characters, and the column was 64.
+
+    The crawl died on it mid-run rather than skipping the row, because a
+    DataError is not a ParseError and nothing above caught it. The column is
+    wider now; this pins the width so a narrowing does not pass review.
+    """
+    from app.models.curriculum import Course
+
+    long_level = (
+        "Level 9 - Master's Degree (Coursework) / Level 9 - Master's Degree (Coursework)"
+    )
+    assert len(long_level) > 64
+    db.add(
+        Course(
+            course_code="B6043", academic_year=2026, title="Double degree",
+            aqf_level=long_level, campuses=["Clayton"],
+            source_url="https://handbook.monash.edu/2026/courses/B6043",
+            content_hash="hash-b6043",
+        )
+    )
+    db.commit()
+    assert db.query(Course).filter_by(course_code="B6043").one().aqf_level == long_level

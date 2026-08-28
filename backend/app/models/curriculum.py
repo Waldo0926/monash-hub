@@ -52,7 +52,9 @@ class Course(Base):
     abbreviated_name: Mapped[str | None] = mapped_column(String(64))
     credit_points: Mapped[int | None] = mapped_column(Integer)
     cricos_code: Mapped[str | None] = mapped_column(String(32))
-    aqf_level: Mapped[str | None] = mapped_column(String(64))
+    # Two levels concatenated on a double degree: "Level 9 - Master's Degree
+    # (Coursework) / Level 9 - Master's Degree (Coursework)" is 79 characters.
+    aqf_level: Mapped[str | None] = mapped_column(String(200))
     course_type: Mapped[str | None] = mapped_column(String(64), index=True)
     faculty: Mapped[str | None] = mapped_column(String(200), index=True)
     school: Mapped[str | None] = mapped_column(String(200))
