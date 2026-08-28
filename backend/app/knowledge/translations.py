@@ -139,20 +139,29 @@ def load_many(
         )
     ).all()
 
-    # Machine before human, everywhere: whatever is applied last wins, and a
-    # sentence somebody checked must not be replaced by one nobody did.
-    def order(row: ContentTranslation) -> int:
-        return 0 if row.provenance == MACHINE else 1
+    # Whatever is applied last wins, so the order is: machine first, then human,
+    # and within each of those the shared boilerplate before a page's own rows.
+    #
+    # Both halves matter, and only one of them used to. Applying every global
+    # row before every own row let a *machine* unit string overwrite a *human*
+    # boilerplate sentence - which is how ENG1090 kept telling readers 最大分数
+    # 为课程45 after that exact paragraph had been written out by hand. A
+    # sentence somebody checked must not be replaced by one nobody did, whether
+    # it was written for this page or for the thousand pages that share it.
+    def order(row: ContentTranslation) -> tuple[int, int]:
+        return (
+            0 if row.provenance == MACHINE else 1,
+            0 if row.target_type == GLOBAL else 1,
+        )
 
-    own = sorted((r for r in rows if r.target_type != GLOBAL), key=order)
-    shared = sorted((r for r in rows if r.target_type == GLOBAL), key=order)
+    shared = [r for r in rows if r.target_type == GLOBAL]
 
     for key, translation in result.items():
-        # Global first, so a page's own strings overwrite the shared boilerplate
-        # rather than the other way round.
-        for row in shared:
-            _apply(translation, row)
-        for row in (r for r in own if r.target_key == key):
+        mine = [r for r in rows if r.target_type != GLOBAL and r.target_key == key]
+        for row in sorted(shared + mine, key=order):
+            if row.target_type == GLOBAL:
+                _apply(translation, row)
+                continue
             _apply(translation, row)
             translation.source_hash = translation.source_hash or row.source_hash
             current = (source_hashes or {}).get(key)
