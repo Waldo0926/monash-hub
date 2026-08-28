@@ -340,3 +340,30 @@ def test_machine_strings_fill_the_gaps_a_person_left(db):
     tr = translations.load(db, "zh", OFFICIAL_PAGE, "wam")
     assert tr.string("How it is used") == "人工校对过的译文"
     assert tr.string("What is WAM?") == "什么是 WAM？"
+
+
+def test_hand_written_unit_titles_reach_the_reader():
+    """A title seed is looked up by its English source, not by a field name.
+
+    ``Translation.field('title', source)`` falls through to ``strings``, so the
+    seed has to be keyed on the exact Handbook title. A typo there fails
+    silently - the machine title just stays - which is why this asserts the
+    lookup rather than the table.
+    """
+    from app.knowledge.translations import Translation
+    from app.knowledge.translations_seed import UNIT_TITLES
+
+    for code, (english, chinese) in UNIT_TITLES.items():
+        tr = Translation("zh")
+        tr.strings = {english: chinese}
+        assert tr.field("title", english) == chinese, code
+
+
+def test_no_unit_title_seed_is_still_english():
+    """The point of the list is the Chinese; an unedited row would be invisible."""
+    from app.knowledge.translations_seed import UNIT_TITLES
+
+    unchanged = {
+        code for code, (english, chinese) in UNIT_TITLES.items() if english == chinese
+    }
+    assert unchanged == set()
