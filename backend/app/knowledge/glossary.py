@@ -1734,6 +1734,58 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "ダブルディグリー",
         "ko": "복수학위",
     },
+    # --- the words on an assessment table -----------------------------------
+    #
+    # "Assignment 1 and Assignment 2" read 转让1和转让2 - a transfer of legal
+    # rights. "class worksheet" read 班级工作表, a spreadsheet belonging to a
+    # class. Both head the assessment section of thousands of units.
+    "assignments": {
+        "zh": "作业",
+        "ja": "課題",
+        "ko": "과제",
+    },
+    "assignment": {
+        "zh": "作业",
+        "ja": "課題",
+        "ko": "과제",
+    },
+    "class worksheet": {
+        "zh": "课堂练习",
+        "ja": "授業ワークシート",
+        "ko": "수업 워크시트",
+    },
+    "applied classwork": {
+        "zh": "应用课堂练习",
+        "ja": "応用授業課題",
+        "ko": "응용 수업 과제",
+    },
+    "classwork": {
+        "zh": "课堂练习",
+        "ja": "授業内課題",
+        "ko": "수업 과제",
+    },
+    "applied quizzes": {
+        "zh": "应用小测",
+        "ja": "応用クイズ",
+        "ko": "응용 퀴즈",
+    },
+    # 连续考核 reads as "assessments held back to back"; this is the mark you
+    # accumulate through the semester.
+    "continuous assessment": {
+        "zh": "平时考核",
+        "ja": "平常点評価",
+        "ko": "상시 평가",
+    },
+    "available marks": {
+        "zh": "可得分数",
+        "ja": "配点",
+        "ko": "배점",
+    },
+    "maximum mark": {
+        "zh": "最高分数",
+        "ja": "上限点",
+        "ko": "최고 점수",
+    },
     "core studies": {
         "zh": "核心课程",
         "ja": "コア科目",

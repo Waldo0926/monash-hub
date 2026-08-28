@@ -75,14 +75,74 @@ const elsewhere = computed(() =>
 )
 
 const PAD = 48
-const viewBox = computed(() =>
-  `${-PAD} ${-PAD} ${Math.max(layout.value.width + PAD * 2, 400)} ${Math.max(layout.value.height + PAD * 2, 300)}`
-)
+
+/**
+ * The graph is drawn at its own size and navigated, not squeezed to fit.
+ *
+ * It used to fit: one viewBox around the whole graph, width and height 100%.
+ * That is fine for eleven nodes and useless for two hundred - ENG1005
+ * downstream fits by scaling everything to about a twentieth, and the zoom
+ * button multiplied a baseline that was already unreadable, so the graph could
+ * not be read at any setting.
+ *
+ * Now the SVG has its natural pixel size, the frame clips it, and pan and zoom
+ * move the reader around it. The opening view is scaled to fit so the shape is
+ * visible at a glance, but zooming in goes to full size and past it.
+ */
+const natural = computed(() => ({
+  w: Math.max(layout.value.width + PAD * 2, 400),
+  h: Math.max(layout.value.height + PAD * 2, 300)
+}))
+
+const MIN_ZOOM = 0.08
+const MAX_ZOOM = 2.5
 
 const selected = ref<string | null>(null)
 const zoom = ref(1)
 const pan = reactive({ x: 0, y: 0 })
 const dragging = ref(false)
+const frame = ref<HTMLElement | null>(null)
+
+/**
+ * The scale at which the whole graph is visible, never enlarging past 1.
+ *
+ * A frame with no size yet is the case that has to be handled, not divided by:
+ * measured during hydration the box is 0 wide, and a fit computed from that is
+ * 0.002 - a graph scaled into invisibility with no way back. The observer
+ * below re-fits as soon as the frame has a real size.
+ */
+function fitScale(): number {
+  const box = frame.value?.getBoundingClientRect()
+  if (!box?.width || !box?.height || !natural.value.w || !natural.value.h) return zoom.value
+  return Math.min(1, box.width / natural.value.w, box.height / natural.value.h)
+}
+
+function fit() {
+  const box = frame.value?.getBoundingClientRect()
+  if (!box?.width || !box?.height) return
+  const scale = fitScale()
+  zoom.value = scale
+  pan.x = (box.width - natural.value.w * scale) / 2
+  pan.y = (box.height - natural.value.h * scale) / 2
+}
+
+/** Zoom about the middle of the frame, so the view does not jump. */
+function zoomBy(factor: number) {
+  const box = frame.value?.getBoundingClientRect()
+  const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom.value * factor))
+  if (box) {
+    const cx = box.width / 2
+    const cy = box.height / 2
+    pan.x = cx - ((cx - pan.x) / zoom.value) * next
+    pan.y = cy - ((cy - pan.y) / zoom.value) * next
+  }
+  zoom.value = next
+}
+
+function onWheel(event: WheelEvent) {
+  event.preventDefault()
+  zoomBy(event.deltaY < 0 ? 1.12 : 1 / 1.12)
+}
 let origin = { x: 0, y: 0, panX: 0, panY: 0 }
 let pressed: string | null = null
 
@@ -112,12 +172,20 @@ function endDrag(event: PointerEvent) {
   if (moved <= CLICK_SLOP) selected.value = pressed
   pressed = null
 }
-function reset() {
-  zoom.value = 1
-  pan.x = 0
-  pan.y = 0
-}
-watch([code, direction, depth], reset)
+// A new graph is a new shape, so it opens fitted rather than at whatever pan
+// and zoom the last one was left at.
+watch(layout, () => nextTick(fit))
+
+let watcher: ResizeObserver | undefined
+onMounted(() => {
+  nextTick(fit)
+  if (typeof ResizeObserver === 'undefined' || !frame.value) return
+  // Fires once when the frame first has a size, and again whenever the window
+  // changes - the second is what keeps a fitted graph fitted.
+  watcher = new ResizeObserver(() => fit())
+  watcher.observe(frame.value)
+})
+onBeforeUnmount(() => watcher?.disconnect())
 
 const detail = computed(() => layout.value.nodes.find((n) => n.unit_code === selected.value) || null)
 
@@ -205,22 +273,27 @@ function hue(prefix: string): number {
         <Skeleton v-else-if="pending" :lines="6" />
         <template v-else>
           <div class="canvas-tools">
-            <button class="tool" type="button" @click="zoom = Math.min(2, zoom + 0.15)">+</button>
-            <button class="tool" type="button" @click="zoom = Math.max(0.4, zoom - 0.15)">−</button>
-            <button class="tool" type="button" @click="reset">⤢</button>
+            <button class="tool" type="button" :aria-label="$t('tree.zoomIn')" @click="zoomBy(1.25)">+</button>
+            <button class="tool" type="button" :aria-label="$t('tree.zoomOut')" @click="zoomBy(1 / 1.25)">−</button>
+            <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
+            <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
           </div>
           <p v-if="data?.truncated" class="truncated">{{ $t('tree.truncated') }}</p>
 
           <div
+            ref="frame"
             class="canvas"
             :class="{ 'canvas--dragging': dragging }"
             @pointerdown="startDrag"
             @pointermove="onDrag"
             @pointerup="endDrag"
             @pointercancel="endDrag"
+            @wheel="onWheel"
           >
             <svg
-              :viewBox="viewBox"
+              :width="natural.w"
+              :height="natural.h"
+              :viewBox="`${-PAD} ${-PAD} ${natural.w} ${natural.h}`"
               class="graph"
               :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }"
               role="img"
@@ -359,12 +432,16 @@ function hue(prefix: string): number {
   background-size: 22px 22px;
 }
 .canvas--dragging { cursor: grabbing; }
-.graph { width: 100%; height: 100%; transform-origin: center center; }
+.graph { display: block; transform-origin: 0 0; will-change: transform; }
 
 .canvas-tools { position: absolute; left: var(--s3); bottom: var(--s3); z-index: 2; display: grid; gap: var(--s1); }
 .tool {
   width: 32px; height: 32px; border: 1px solid var(--border-strong); background: var(--surface);
   border-radius: var(--radius-sm); cursor: pointer; font-size: 1rem; line-height: 1; color: var(--text);
+}
+.tool--read {
+  display: grid; place-items: center; width: auto; padding: 0 var(--s2);
+  font-size: 0.7rem; color: var(--muted); cursor: default;
 }
 .truncated {
   position: absolute; right: var(--s3); top: var(--s3); z-index: 2; margin: 0;

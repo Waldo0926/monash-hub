@@ -91,7 +91,14 @@ class Unit(Base):
     assessments: Mapped[list["UnitAssessment"]] = relationship(
         back_populates="unit", cascade="all, delete-orphan", order_by="UnitAssessment.number")
     requisite_groups: Mapped[list["UnitRequisiteGroup"]] = relationship(
-        back_populates="unit", cascade="all, delete-orphan", order_by="UnitRequisiteGroup.id")
+        back_populates="unit",
+        cascade="all, delete-orphan",
+        order_by="UnitRequisiteGroup.order_index",
+        primaryjoin=(
+            "and_(Unit.id == UnitRequisiteGroup.unit_id, "
+            "UnitRequisiteGroup.parent_id.is_(None))"
+        ),
+    )
     learning_outcomes: Mapped[list["UnitLearningOutcome"]] = relationship(
         back_populates="unit",
         cascade="all, delete-orphan",
@@ -157,28 +164,45 @@ class UnitAssessment(Base):
 
 
 class UnitRequisiteGroup(Base):
-    """A prerequisite/corequisite/prohibition block.
+    """A prerequisite/corequisite/prohibition block, and its nesting.
 
-    Handbook nests containers joined by AND/OR; the MVP flattens one level and
-    keeps the connector, which is enough to render the rule truthfully without
-    inventing a simplification the Handbook never made.
+    The Handbook nests containers joined by AND/OR, and the nesting is the
+    rule. FIT2099 asks for one of six programming units *or* an engineering
+    pair, and flattened into siblings that reads as "all of the above": the
+    planner told a student who had passed FIT1045 that they still needed two
+    ENG units they will never take.
+
+    So ``parent_id`` keeps the tree. A group with no parent is a top-level
+    alternative; ``connector`` says how a group combines with its siblings.
     """
 
     __tablename__ = "unit_requisite_groups"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     unit_id: Mapped[int] = mapped_column(ForeignKey("units.id", ondelete="CASCADE"), index=True)
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey("unit_requisite_groups.id", ondelete="CASCADE"), index=True
+    )
     requisite_type: Mapped[str] = mapped_column(String(40), index=True)
     connector: Mapped[str | None] = mapped_column(String(8))
     title: Mapped[str | None] = mapped_column(String(120))
     description: Mapped[str | None] = mapped_column(Text)
     raw_text: Mapped[str | None] = mapped_column(Text)
+    order_index: Mapped[int] = mapped_column(Integer, default=0)
 
     unit: Mapped[Unit] = relationship(back_populates="requisite_groups")
     items: Mapped[list["UnitRequisiteItem"]] = relationship(
         back_populates="group",
         cascade="all, delete-orphan",
         order_by="UnitRequisiteItem.order_index",
+    )
+    children: Mapped[list["UnitRequisiteGroup"]] = relationship(
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        order_by="UnitRequisiteGroup.order_index",
+    )
+    parent: Mapped["UnitRequisiteGroup | None"] = relationship(
+        back_populates="children", remote_side=[id]
     )
 
 

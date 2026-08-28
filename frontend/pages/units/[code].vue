@@ -160,18 +160,12 @@ useHead(() => ({
             <template v-if="unit.requisites.length">
               <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
                 <h3 class="req-type">{{ $term('requisiteType', String(type)) }}</h3>
-                <div v-for="(group, gi) in groups" :key="gi" class="req-group">
-                  <p v-if="group.description" class="small pre">{{ group.description }}</p>
-                  <ul v-if="group.items.length">
-                    <li v-for="item in group.items" :key="item.code">
-                      <NuxtLink :to="`/units/${item.code}`" class="mono">{{ item.code }}</NuxtLink>
-                      <span class="muted"> — {{ item.name }}</span>
-                    </li>
-                  </ul>
-                  <p v-if="group.connector && group.items.length > 1" class="tiny muted">
-                    {{ $t('unit.joinedBy', { connector: $term('connector', group.connector) || group.connector }) }}
-                  </p>
-                </div>
+                <RequisiteRule
+                  v-for="(group, gi) in groups"
+                  :key="gi"
+                  :rule="group"
+                  class="req-group"
+                />
               </div>
             </template>
             <p v-else class="muted small">{{ $t('unit.noRequisites') }}</p>

@@ -62,6 +62,93 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
     "Moodle closer to the start of the teaching period.":
         "考核细节可能会有变动。请在教学期开始前，以 Moodle 上的考核信息为准。",
 
+    # --- hurdles and grading schemes ---------------------------------------
+    #
+    # These sentences decide whether a student passes, and they are repeated
+    # across hundreds of units, so the machine's readings of them were being
+    # repeated hundreds of times too. "Failure of any hurdle assessment task"
+    # came back with 失败 - defeat - where the word means "did not pass"; the
+    # threshold paragraph produced 课程人, which is not a word; and "NGO", a
+    # grade code, was read as 非政府组织, a non-governmental organisation.
+
+    "Assessment in this unit includes hurdle assessment tasks. Failure of any "
+    "hurdle assessment task may result in failure of the unit.":
+        "本课程的考核中包含及格门槛考核项。任一及格门槛考核项未通过，可能导致本课程不及格。",
+
+    "Assessment in this unit includes hurdle assessment tasks. Failure of any "
+    "hurdle assessment task may result in failure of the unit":
+        "本课程的考核中包含及格门槛考核项。任一及格门槛考核项未通过，可能导致本课程不及格。",
+
+    "This unit contains hurdle requirements that you must achieve to be able to pass "
+    "the unit. You are required to achieve at least 45% in the total continuous "
+    "assessment component and at least 45% in the final assessment component. The "
+    "consequence of not achieving a hurdle requirement is a fail grade (NH) and a "
+    "maximum mark of 45 for the unit.":
+        "本课程设有及格门槛要求，必须全部达到才能通过本课程。你需要在平时考核部分总分中至少达到 "
+        "45%，并在期末考核部分中至少达到 45%。未达到及格门槛要求的后果是：本课程记为不及格"
+        "（NH），且最终成绩最高只计 45 分。",
+
+    "This unit contains threshold hurdle requirement that you must achieve to be able "
+    "to pass the unit. You are required to achieve at least 45% in the total "
+    "continuous assessment component and at least 45% in the final assessment "
+    "component. The consequence of not achieving a hurdle requirement is a fail grade "
+    "(NH) and a maximum mark of 45 for the unit.":
+        "本课程设有及格门槛分数要求，必须达到才能通过本课程。你需要在平时考核部分总分中至少达到 "
+        "45%，并在期末考核部分中至少达到 45%。未达到及格门槛要求的后果是：本课程记为不及格"
+        "（NH），且最终成绩最高只计 45 分。",
+
+    "This unit contains one or more hurdle requirements that you must successfully "
+    "complete to be able to pass the unit. The consequence of not successfully "
+    "completing a hurdle requirement is failure of the unit, regardless of the total "
+    "marks you achieve.":
+        "本课程设有一项或多项及格门槛要求，必须全部完成才能通过本课程。未能完成任一及格门槛要求"
+        "的后果是本课程不及格，无论总分多少。",
+
+    "Assessment in this unit includes a competency hurdle assessment task. The "
+    "consequence of not achieving a competency hurdle is a fail grade (NH) and a "
+    "maximum mark of 45 for the unit.":
+        "本课程的考核中包含一项能力达标门槛考核项。未达到该能力门槛的后果是：本课程记为不及格"
+        "（NH），且最终成绩最高只计 45 分。",
+
+    "Final grades: PGO (pass grade only) or NGO (fail)":
+        "最终成绩：PGO（仅评定为通过）或 NGO（不通过）",
+
+    "This unit is graded pass grade only (PGO).":
+        "本课程只评定通过与否（PGO），不给出等级分。",
+
+    "This unit is a pass grade only (PGO) unit. Assessment will comprise of 100% in "
+    "semester assessments. All learning outcomes will be assessed.":
+        "本课程只评定通过与否（PGO）。考核全部为学期内考核，占 100%，并覆盖所有学习成果。",
+
+    "This unit has competency-based assessments, with the final grade awarded as "
+    "either Pass (PGO) or Fail (NGO).":
+        "本课程采用能力达标式考核，最终成绩只有通过（PGO）或不通过（NGO）两种。",
+
+    "The unit will be marked on an ungraded competency basis "
+    "(satisfactory/unsatisfactory)":
+        "本课程按能力达标评定，不给等级分（合格／不合格）。",
+
+    "100% in-semester assessment":
+        "学期内考核占 100%",
+
+    "Continuous assessment: 100%":
+        "平时考核：100%",
+
+    "Continuous assessment: 60%":
+        "平时考核：60%",
+
+    "Continuous assessment: 50%":
+        "平时考核：50%",
+
+    "Continuous assessment: 40%":
+        "平时考核：40%",
+
+    "Continuous assessment: 50%\nFinal assessment: 50%":
+        "平时考核：50%\n期末考核：50%",
+
+    "Thesis assessed by two external examiners.":
+        "学位论文由两位校外考官评阅。",
+
     "Active learning - This unit engages you in actively applying your knowledge, "
     "skills and attributes in interactive, collaborative and reflective activities.":
         "主动学习 —— 本课程通过互动、协作与反思性的活动，让你主动运用自己的知识、技能与素养。",

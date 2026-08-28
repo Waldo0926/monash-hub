@@ -11,7 +11,7 @@ from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook import tree
 from app.knowledge import translations
-from app.models.handbook import Unit, UnitOffering
+from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
 from app.models.translation import UNIT
 from app.search import service
 
@@ -110,7 +110,16 @@ def _load(db: Session, code: str, year: int) -> Unit:
         .options(
             selectinload(Unit.offerings),
             selectinload(Unit.assessments),
-            selectinload(Unit.requisite_groups),
+            # The whole rule tree in one read - the unit page renders the
+            # nesting, and lazily loading it would be a query per branch.
+            selectinload(Unit.requisite_groups).selectinload(UnitRequisiteGroup.items),
+            selectinload(Unit.requisite_groups)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.items),
+            selectinload(Unit.requisite_groups)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.items),
             selectinload(Unit.learning_outcomes),
             selectinload(Unit.activities),
         )
