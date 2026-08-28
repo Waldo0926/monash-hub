@@ -60,6 +60,10 @@ class CommunityPost(Base):
     category: Mapped[str] = mapped_column(String(48), index=True)
     unit_code: Mapped[str | None] = mapped_column(String(16), index=True)
 
+    # Written by the author, never changed afterwards. The author_id stays -
+    # a post nobody owns cannot be moderated, edited or answered by its own
+    # writer - and the serialiser is what withholds the name.
+    is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False)
     is_solved: Mapped[bool] = mapped_column(Boolean, default=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -82,6 +86,10 @@ class CommunityPost(Base):
 
     author: Mapped["object"] = relationship("User", lazy="joined")
     answers: Mapped[list["CommunityAnswer"]] = relationship(
+        primaryjoin=(
+            "and_(CommunityPost.id == CommunityAnswer.post_id, "
+            "CommunityAnswer.parent_id.is_(None))"
+        ),
         back_populates="post", cascade="all, delete-orphan", order_by="CommunityAnswer.id")
     post_tags: Mapped[list[PostTag]] = relationship(cascade="all, delete-orphan", lazy="selectin")
 
@@ -92,8 +100,14 @@ class CommunityAnswer(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     post_id: Mapped[int] = mapped_column(
         ForeignKey("community_posts.id", ondelete="CASCADE"), index=True)
+    # A reply to another reply. One table and one self-reference, because a
+    # thread is a thread whether it is two deep or five: a separate "comment"
+    # table would need a third for comments on comments.
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey("community_answers.id", ondelete="CASCADE"), index=True)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     body: Mapped[str] = mapped_column(Text)
+    is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False)
     is_accepted: Mapped[bool] = mapped_column(Boolean, default=False)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     vote_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -101,6 +115,14 @@ class CommunityAnswer(Base):
 
     post: Mapped[CommunityPost] = relationship(back_populates="answers")
     author: Mapped["object"] = relationship("User", lazy="joined")
+    children: Mapped[list["CommunityAnswer"]] = relationship(
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        order_by="CommunityAnswer.created_at",
+    )
+    parent: Mapped["CommunityAnswer | None"] = relationship(
+        back_populates="children", remote_side=[id]
+    )
 
 
 class CommunityVote(Base):

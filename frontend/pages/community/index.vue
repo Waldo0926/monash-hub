@@ -14,7 +14,8 @@ const draft = reactive({
   body: '',
   category: 'units',
   unit_code: (route.query.unit as string) || '',
-  tags: ''
+  tags: '',
+  anonymous: false
 })
 const submitting = ref(false)
 const submitError = ref('')
@@ -42,7 +43,8 @@ async function submit() {
         body: draft.body,
         category: draft.category,
         unit_code: draft.unit_code || null,
-        tags: draft.tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 6)
+        tags: draft.tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 6),
+        anonymous: draft.anonymous
       }
     })
     navigateTo(`/community/post/${post.id}`)
@@ -107,6 +109,11 @@ useSeoMeta({
             <input v-model="draft.tags" class="field" placeholder="workload, exchange">
           </label>
         </div>
+        <label class="anon-check">
+          <input v-model="draft.anonymous" type="checkbox" />
+          <span>{{ $t('community.postAnonymously') }}</span>
+        </label>
+        <p v-if="draft.anonymous" class="tiny muted">{{ $t('community.anonymousNote') }}</p>
         <p v-if="submitError" class="small err">{{ submitError }}</p>
         <button class="btn" :disabled="submitting" @click="submit">
           {{ submitting ? $t('community.posting') : $t('community.post') }}
@@ -158,6 +165,11 @@ useSeoMeta({
 </template>
 
 <style scoped>
+.anon-check {
+  display: flex; gap: var(--s2); align-items: center;
+  font-size: 0.85rem; color: var(--muted); margin: var(--s3) 0 var(--s1);
+}
+
 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
 .head h1 { margin-bottom: var(--s2); }
 .compose { padding: var(--s5); margin-bottom: var(--s5); display: grid; gap: var(--s3); }

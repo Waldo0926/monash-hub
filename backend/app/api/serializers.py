@@ -183,16 +183,39 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
     }
 
 
-def post_brief(post: CommunityPost) -> dict[str, Any]:
+# What a reader is told about who wrote something. Anonymity is decided when
+# the post is written and never re-decided here: the author_id is still on the
+# row, because a post nobody owns cannot be edited, moderated or answered by
+# its own writer, and this is the one place that has to refuse to say the name.
+def _writer(row, viewer_id: int | None) -> dict[str, Any]:
+    if row.is_anonymous:
+        return {
+            "author": None,
+            "anonymous": True,
+            # So the writer can recognise their own anonymous post in a list.
+            # It says nothing to anyone else.
+            "is_mine": viewer_id is not None and row.author_id == viewer_id,
+        }
+    return {
+        "author": row.author.nickname if row.author else None,
+        "anonymous": False,
+        "is_mine": viewer_id is not None and row.author_id == viewer_id,
+    }
+
+
+def post_brief(
+    post: CommunityPost, viewer_id: int | None = None, voted: set[int] | None = None
+) -> dict[str, Any]:
     return {
         "id": post.id,
         "title": post.title,
         "category": post.category,
         "unit_code": post.unit_code,
-        "author": post.author.nickname if post.author else None,
+        **_writer(post, viewer_id),
         "tags": [pt.tag.slug for pt in post.post_tags if pt.tag],
         "answer_count": post.answer_count,
         "vote_count": post.vote_count,
+        "viewer_voted": post.id in (voted or set()),
         "is_solved": post.is_solved,
         "is_pinned": post.is_pinned,
         "created_at": _iso(post.created_at),
@@ -200,22 +223,46 @@ def post_brief(post: CommunityPost) -> dict[str, Any]:
     }
 
 
-def post_detail(post: CommunityPost) -> dict[str, Any]:
+def post_detail(
+    post: CommunityPost,
+    viewer_id: int | None = None,
+    voted_posts: set[int] | None = None,
+    voted_answers: set[int] | None = None,
+) -> dict[str, Any]:
     return {
-        **post_brief(post),
+        **post_brief(post, viewer_id, voted_posts),
         "body": post.body,
-        "answers": [answer_brief(a) for a in post.answers if not a.is_hidden],
+        "answers": [
+            answer_brief(a, viewer_id, voted_answers)
+            for a in post.answers
+            if not a.is_hidden
+        ],
     }
 
 
-def answer_brief(answer: CommunityAnswer) -> dict[str, Any]:
+def answer_brief(
+    answer: CommunityAnswer, viewer_id: int | None = None, voted: set[int] | None = None
+) -> dict[str, Any]:
+    """One reply, and the replies to it.
+
+    Nested, because a thread is a thread: on Ed you answer a question and then
+    argue about the answer, and a flat list cannot say which remark is about
+    which.
+    """
     return {
         "id": answer.id,
+        "parent_id": answer.parent_id,
         "body": answer.body,
-        "author": answer.author.nickname if answer.author else None,
+        **_writer(answer, viewer_id),
         "is_accepted": answer.is_accepted,
         "vote_count": answer.vote_count,
+        "viewer_voted": answer.id in (voted or set()),
         "created_at": _iso(answer.created_at),
+        "replies": [
+            answer_brief(child, viewer_id, voted)
+            for child in answer.children
+            if not child.is_hidden
+        ],
     }
 
 

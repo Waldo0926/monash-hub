@@ -35,7 +35,21 @@ export function useApiFetch<T>(path: string | (() => string), options: Record<st
   // so two languages never share one cache entry. Changes after setup are what
   // the caller's `watch` is for.
   const key = options.key ?? `api:${resolve()}`
-  return useFetch<T>(() => apiUrl(resolve()), { ...options, key })
+  return useFetch<T>(() => apiUrl(resolve()), {
+    ...options,
+    key,
+    // The token lives in localStorage, which the server cannot read, so this
+    // is empty during SSR and filled on the client. That is on purpose: the
+    // server renders the page as a signed-out reader sees it, and a caller
+    // that needs the signed-in view refreshes after mount. Sending it during
+    // SSR is not possible; pretending otherwise is a hydration mismatch.
+    headers: {
+      ...(options.headers || {}),
+      ...(import.meta.client && localStorage.getItem('mh_token')
+        ? { Authorization: `Bearer ${localStorage.getItem('mh_token')}` }
+        : {})
+    }
+  })
 }
 
 /**
