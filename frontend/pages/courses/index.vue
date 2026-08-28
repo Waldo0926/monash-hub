@@ -24,7 +24,10 @@ const query = computed(() => {
   return params.toString()
 })
 
-const { data, pending } = await useApiFetch<any>(() => `/v1/courses?${query.value}`)
+const { data, pending } = await useApiFetch<any>(
+  () => `/v1/courses?${query.value}`,
+  { watch: [q, campus] }
+)
 
 watch([q, campus], () => {
   router.replace({

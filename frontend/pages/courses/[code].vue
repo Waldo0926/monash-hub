@@ -21,7 +21,8 @@ const code = computed(() => String(route.params.code).toUpperCase())
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
 
 const { data: course, error } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`
+  () => `/v1/courses/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`,
+  { watch: [campus] }
 )
 
 watch(campus, () => {
