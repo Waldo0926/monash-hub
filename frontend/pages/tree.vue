@@ -32,8 +32,12 @@ const query = computed(() => {
   return params.toString()
 })
 
+// The cache key is fixed when the composable is set up, so a URL that reads
+// reactive state is not enough on its own - without this every control on the
+// rail changes the address bar and nothing else. See useApiFetch.
 const { data, pending, error } = await useLocalisedApiFetch<any>(
-  () => `/v1/units/${code.value}/tree?${query.value}`
+  () => `/v1/units/${code.value}/tree?${query.value}`,
+  { watch: [code, direction, campus, depth] }
 )
 
 watch([code, direction, campus, depth], () => {

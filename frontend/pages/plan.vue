@@ -160,14 +160,20 @@ function issueText(issue: any): string {
 
 // --- progress --------------------------------------------------------------
 
-const { data: course } = await useLocalisedApiFetch<any>(() =>
-  plan.value.courseCode
-    ? `/v1/courses/${plan.value.courseCode}?campus=${plan.value.campus}`
-    : ''
+const chosenCourse = computed(() => plan.value.courseCode)
+const chosenCampus = computed(() => plan.value.campus)
+
+const { data: course } = await useLocalisedApiFetch<any>(
+  () =>
+    chosenCourse.value
+      ? `/v1/courses/${chosenCourse.value}?campus=${chosenCampus.value}`
+      : '',
+  { watch: [chosenCourse, chosenCampus] }
 )
 
-const { data: courseList } = await useApiFetch<any>(() =>
-  `/v1/courses?limit=200${plan.value.campus ? `&campus=${plan.value.campus}` : ''}`
+const { data: courseList } = await useApiFetch<any>(
+  () => `/v1/courses?limit=200${chosenCampus.value ? `&campus=${chosenCampus.value}` : ''}`,
+  { watch: [chosenCampus] }
 )
 
 const planned = computed(() => new Set(plan.value.entries.map((e) => e.unit_code)))
