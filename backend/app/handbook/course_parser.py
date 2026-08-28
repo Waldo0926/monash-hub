@@ -139,7 +139,12 @@ def parse_course_page(html: str, source_url: str) -> dict[str, Any]:
     """Parse one Handbook course page into a normalised record."""
     content = extract_next_data(html).get("props", {}).get("pageProps", {}).get("pageContent") or {}
 
+    # M6011 publishes its code as "M6011 M6019" - one page, two course codes.
+    # The identity we can look it up by is the one in the URL we asked for, so
+    # a payload code with a space in it loses to the URL.
     code = (content.get("course_code") or content.get("code") or "").strip().upper()
+    if " " in code:
+        code = source_url.rstrip("/").rsplit("/", 1)[-1].strip().upper() or code.split()[0]
     if not code:
         raise ParseError(f"no course_code in payload for {source_url}")
     academic_year = _as_int(content.get("implementation_year"))

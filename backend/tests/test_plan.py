@@ -1,0 +1,181 @@
+"""Checking a course plan.
+
+The interesting cases are all about time: a prerequisite in the same semester
+is not satisfied, a corequisite in the same semester is, and a full-year unit
+is finished by neither semester of its own year.
+"""
+from __future__ import annotations
+
+import pytest
+from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup, UnitRequisiteItem
+
+S1 = "First semester"
+S2 = "Second semester"
+
+
+def _unit(db, code, *, campuses=(("Malaysia", S1), ("Malaysia", S2)), points=6):
+    unit = Unit(
+        unit_code=code, academic_year=2026, title=code, credit_points=str(points),
+        source_url=f"https://handbook.monash.edu/2026/units/{code}",
+        content_hash=f"hash-{code}",
+    )
+    db.add(unit)
+    db.flush()
+    for campus, period in campuses:
+        db.add(UnitOffering(unit_id=unit.id, campus=campus, teaching_period=period, offered=True))
+    return unit
+
+
+def _requires(db, unit, *codes, kind="prerequisite", connector="AND"):
+    group = UnitRequisiteGroup(unit_id=unit.id, requisite_type=kind, connector=connector)
+    db.add(group)
+    db.flush()
+    for index, code in enumerate(codes):
+        db.add(UnitRequisiteItem(group_id=group.id, item_code=code, item_name=code,
+                                 item_type="Unit", order_index=index))
+
+
+def _post(client, entries, campus="Malaysia"):
+    return client.post(
+        "/api/v1/plan/check",
+        json={"year": 2026, "campus": campus, "entries": entries},
+    ).json()
+
+
+def kinds(body, code=None):
+    return {i["kind"] for i in body["issues"] if code is None or i["unit_code"] == code}
+
+
+@pytest.fixture
+def chain(db):
+    """AAA1001 -> BBB2001, with CCC3001 needing one of AAA1001 or DDD1001."""
+    _unit(db, "AAA1001")
+    b = _unit(db, "BBB2001")
+    c = _unit(db, "CCC3001")
+    _unit(db, "DDD1001")
+    _unit(db, "EEE1001", campuses=(("Clayton", S1),))
+    _unit(db, "FFF1001", campuses=(("Malaysia", S1),))
+    _requires(db, b, "AAA1001")
+    _requires(db, c, "AAA1001", "DDD1001", connector="OR")
+    db.commit()
+    return db
+
+
+def test_a_plan_in_order_has_nothing_to_report(client, chain):
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S2},
+    ])
+    assert body["issues"] == []
+    assert body["credit_points"] == 12
+
+
+def test_a_prerequisite_in_the_same_semester_is_not_satisfied(client, chain):
+    """You cannot have passed a unit you are sitting in right now."""
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S1},
+    ])
+    assert kinds(body, "BBB2001") == {"missing_prerequisite"}
+
+
+def test_a_prerequisite_placed_later_is_reported(client, chain):
+    body = _post(client, [
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(body, "BBB2001") == {"missing_prerequisite"}
+
+
+def test_an_or_group_needs_only_one_of_its_members(client, chain):
+    body = _post(client, [
+        {"unit_code": "DDD1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "CCC3001", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(body, "CCC3001") == set()
+
+
+def test_an_unsatisfied_or_group_offers_the_whole_choice(client, chain):
+    """Reporting one member would send the student to fix the wrong thing."""
+    body = _post(client, [{"unit_code": "CCC3001", "year": 2026, "teaching_period": S1}])
+    issue = next(i for i in body["issues"] if i["kind"] == "missing_prerequisite")
+    assert set(issue["detail"]["any_of"]) == {"AAA1001", "DDD1001"}
+    assert issue["detail"]["all_of"] == []
+
+
+def test_a_corequisite_may_sit_in_the_same_semester(client, db):
+    _unit(db, "AAA1001")
+    b = _unit(db, "BBB2001")
+    _requires(db, b, "AAA1001", kind="corequisite")
+    db.commit()
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S1},
+    ])
+    assert body["issues"] == []
+
+
+def test_a_unit_the_campus_does_not_teach_is_an_error(client, chain):
+    """The failure this planner exists for, and the one that hides until enrolment."""
+    body = _post(client, [{"unit_code": "EEE1001", "year": 2026, "teaching_period": S1}])
+    issue = next(i for i in body["issues"] if i["kind"] == "not_offered_at_campus")
+    assert issue["detail"]["elsewhere"] == ["Clayton"]
+
+
+def test_a_unit_taught_here_but_not_that_semester_is_an_error(client, chain):
+    body = _post(client, [{"unit_code": "FFF1001", "year": 2026, "teaching_period": S2}])
+    issue = next(i for i in body["issues"] if i["kind"] == "not_offered_in_period")
+    assert issue["detail"]["offered_in"] == [S1]
+
+
+def test_a_prohibited_pair_is_reported(client, db):
+    a = _unit(db, "AAA1001")
+    _unit(db, "ZZZ1001")
+    _requires(db, a, "ZZZ1001", kind="prohibitions")
+    db.commit()
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "ZZZ1001", "year": 2026, "teaching_period": S2},
+    ])
+    issue = next(i for i in body["issues"] if i["kind"] == "prohibited_with")
+    assert issue["detail"]["units"] == ["ZZZ1001"]
+
+
+def test_a_full_year_unit_does_not_finish_before_its_own_second_semester(client, db):
+    """It occupies both, so a dependant in semester 2 has not met it yet."""
+    _unit(db, "AAA1001", campuses=(("Malaysia", "Full year"),))
+    b = _unit(db, "BBB2001")
+    _requires(db, b, "AAA1001")
+    db.commit()
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": "Full year"},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(body, "BBB2001") == {"missing_prerequisite"}
+
+    later = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": "Full year"},
+        {"unit_code": "BBB2001", "year": 2027, "teaching_period": S1},
+    ])
+    assert kinds(later, "BBB2001") == {"not_in_year"} or kinds(later, "BBB2001") == set()
+
+
+def test_a_unit_not_published_this_year_is_reported(client, chain):
+    body = _post(client, [{"unit_code": "QQQ9999", "year": 2026, "teaching_period": S1}])
+    assert kinds(body) == {"not_in_year"}
+
+
+def test_the_same_unit_twice_is_a_warning_not_an_error(client, chain):
+    """Repeating a failed unit is a real thing students do."""
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S2},
+    ])
+    duplicate = next(i for i in body["issues"] if i["kind"] == "duplicate")
+    assert duplicate["severity"] == "warning"
+
+
+def test_an_empty_plan_is_valid(client, chain):
+    body = _post(client, [])
+    assert body["issues"] == []
+    assert body["credit_points"] == 0
