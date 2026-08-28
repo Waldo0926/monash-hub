@@ -1672,6 +1672,68 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "レベル 9",
         "ko": "레벨 9",
     },
+    # An "entry point" is where a language sequence starts you. The machine
+    # read it as 入境点 - a border crossing - on thirty-five headings.
+    "entry point": {
+        "zh": "入学起点",
+        "ja": "開始レベル",
+        "ko": "시작 단계",
+    },
+    # Not 课程工作. A coursework degree is one taught in units rather than by
+    # research, and that distinction is the whole point of the word.
+    "coursework studies": {
+        "zh": "授课型课程",
+        "ja": "コースワーク科目",
+        "ko": "수업 중심 과목",
+    },
+    "coursework pathway": {
+        "zh": "授课型路径",
+        "ja": "コースワーク課程",
+        "ko": "수업 중심 과정",
+    },
+    "coursework": {
+        "zh": "授课型课程",
+        "ja": "コースワーク",
+        "ko": "수업 중심 과정",
+    },
+    # "elective" is 选修课 and "units" is 课程, so the pair came out 选修课课程.
+    "elective units": {
+        "zh": "选修课程",
+        "ja": "選択科目",
+        "ko": "선택 과목",
+    },
+    "elective unit": {
+        "zh": "选修课程",
+        "ja": "選択科目",
+        "ko": "선택 과목",
+    },
+    # Two levels in one heading: pinned whole, because with only "Level 2"
+    # pinned the "and 3" loses its 级 and reads as a count of three.
+    "Level 2 and 3 elective units": {
+        "zh": "第 2、3 级选修课程",
+        "ja": "レベル 2・3 選択科目",
+        "ko": "레벨 2·3 선택 과목",
+    },
+    "Level 2 and 3 units": {
+        "zh": "第 2、3 级课程",
+        "ja": "レベル 2・3 科目",
+        "ko": "레벨 2·3 과목",
+    },
+    "Level 1 and 2 units": {
+        "zh": "第 1、2 级课程",
+        "ja": "レベル 1・2 科目",
+        "ko": "레벨 1·2 과목",
+    },
+    "progression to honours": {
+        "zh": "升入荣誉学位",
+        "ja": "オナーズへの進学",
+        "ko": "우등 학위 진학",
+    },
+    "double degree": {
+        "zh": "双学位",
+        "ja": "ダブルディグリー",
+        "ko": "복수학위",
+    },
     "core studies": {
         "zh": "核心课程",
         "ja": "コア科目",
