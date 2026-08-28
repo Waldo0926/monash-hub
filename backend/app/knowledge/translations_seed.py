@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.models.translation import FAQ_ENTRY, GLOBAL, OFFICIAL_PAGE
+from app.models.translation import FAQ_ENTRY, GLOBAL, OFFICIAL_PAGE, UNIT
 
 ZH = "zh"
 
@@ -155,6 +155,41 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
         "本课程的考核采用能力本位（competency-based）方式，"
         "依据既定评分标准（criterion-referenced rubric）评定是否达到要求。"
         "任何一项及格门槛（hurdle）考核未通过，都可能导致本课程不及格。",
+}
+
+
+# --- unit titles ------------------------------------------------------------
+#
+# The machine handles most of the 5227 titles, and the ones it does not it
+# fails at loudly, because a title is a noun phrase with no sentence around it
+# to reorder from. Masking makes that worse rather than better: "Fundamentals
+# of algorithms" reaches the model as two protected tokens joined by "of", and
+# 基础 of 算法 is what comes back.
+#
+# These are the ones a reader meets first - the unit tree puts eleven titles on
+# one screen - so they are written out. Everything not listed here is still
+# machine-translated; this is a correction list, not a claim to have translated
+# the Handbook.
+
+UNIT_TITLES: dict[str, tuple[str, str]] = {
+    # code: (English source, Chinese)
+    "FIT1008": ("Fundamentals of algorithms", "算法基础"),
+    "FIT1054": ("Fundamentals of algorithms (Advanced)", "算法基础（进阶）"),
+    "FIT2085": ("Fundamentals of algorithms for engineers", "工程师算法基础"),
+    "FIT1045": ("Introduction to programming", "编程导论"),
+    "FIT1053": ("Introduction to programming (Advanced)", "编程导论（进阶）"),
+    # 数值 not 数字: numerical analysis, not digital analysis.
+    "ENG1014": ("Engineering numerical analysis", "工程数值分析"),
+    # 离散 not 偏微: discrete mathematics, not partial differential.
+    "MAT1830": ("Discrete mathematics for computer science", "计算机科学离散数学"),
+    "ATS4367": (
+        "Placement research project for honours in international studies",
+        "国际研究荣誉学位实习研究项目",
+    ),
+    "BMA1012": (
+        "Foundations of anatomy and physiology for health practice 2",
+        "健康实践解剖学与生理学基础 2",
+    ),
 }
 
 
@@ -8502,6 +8537,14 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
             note="人工翻译：机器因保留术语无法处理的句子",
         )
         for slug, strings in GUIDE_BODIES.items()
+    ]
+    seeds += [
+        TranslationSeed(
+            ZH, UNIT, code, "content",
+            strings={english: chinese},
+            note="课程名称人工翻译：机器在无句子上下文的名词短语上失手",
+        )
+        for code, (english, chinese) in UNIT_TITLES.items()
     ]
     for slug, (question, answer) in FAQ_ZH.items():
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "question", text=question))
