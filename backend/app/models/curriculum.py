@@ -51,7 +51,9 @@ class Course(Base):
     title: Mapped[str] = mapped_column(String(300))
     abbreviated_name: Mapped[str | None] = mapped_column(String(64))
     credit_points: Mapped[int | None] = mapped_column(Integer)
-    cricos_code: Mapped[str | None] = mapped_column(String(32))
+    # Not one code: F2003 publishes "075112E (Bachelor of Fine Art), 085529G
+    # (Bachelor of Art History and Curating)" - 78 characters, both awards.
+    cricos_code: Mapped[str | None] = mapped_column(String(200))
     # Two levels concatenated on a double degree: "Level 9 - Master's Degree
     # (Coursework) / Level 9 - Master's Degree (Coursework)" is 79 characters.
     aqf_level: Mapped[str | None] = mapped_column(String(200))
