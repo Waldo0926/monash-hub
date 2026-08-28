@@ -209,3 +209,104 @@ def answer_brief(answer: CommunityAnswer) -> dict[str, Any]:
         "vote_count": answer.vote_count,
         "created_at": _iso(answer.created_at),
     }
+
+
+# The graph draws one chip per teaching period, so the long Handbook names have
+# to survive as something that fits in a 150px card. Anything unrecognised keeps
+# its full name rather than being squeezed into a wrong abbreviation.
+_PERIOD_SHORT = (
+    ("first semester", "S1"),
+    ("second semester", "S2"),
+    ("summer semester a", "SA"),
+    ("summer semester b", "SB"),
+    ("winter semester", "W"),
+    ("full year", "FY"),
+    # Malaysia's own intake. It has no Clayton equivalent, and spelled out it is
+    # longer than the card it sits on.
+    ("october intake", "OCT"),
+    ("monash indonesia", "IDN"),
+    ("trimester ", "TM"),
+    ("teaching period ", "TP"),
+    ("research quarter ", "RQ"),
+    ("term ", "T"),
+)
+
+# Chips read as a timeline, so they are ordered like one rather than by the row
+# order the Handbook happened to publish.
+_PERIOD_ORDER = {short: rank for rank, short in enumerate(
+    ("S1", "S2", "SA", "SB", "W", "OCT", "FY")
+)}
+
+
+def period_rank(short: str | None) -> tuple[int, str]:
+    return (_PERIOD_ORDER.get(short or "", len(_PERIOD_ORDER)), short or "")
+
+
+def short_period(name: str | None) -> str | None:
+    """"First semester (extended)" -> "S1". Numbered periods keep their number."""
+    if not name:
+        return None
+    lowered = name.strip().lower()
+    for prefix, short in _PERIOD_SHORT:
+        if lowered.startswith(prefix):
+            tail = lowered[len(prefix):].strip()
+            return f"{short}{tail}" if prefix.endswith(" ") and tail[:1].isdigit() else short
+    return name
+
+
+def tree_node(
+    unit: Unit | None,
+    code: str,
+    depth: int,
+    campus: str | None,
+    tr: Translation = NO_TRANSLATION,
+) -> dict[str, Any]:
+    """One card in the unit tree.
+
+    ``unit`` is None for a code the Handbook names as a requisite but does not
+    publish for this year. Those are drawn greyed rather than dropped: a
+    prerequisite that no longer exists is something a student planning a degree
+    needs to see, and silently deleting the node makes the rule look satisfiable.
+    """
+    if unit is None:
+        return {
+            "unit_code": code,
+            "title": None,
+            "depth": depth,
+            "in_year": False,
+            "offered_at_campus": False,
+            "periods": [],
+            "offerings": [],
+            "prefix": code[:3],
+        }
+
+    offerings = [o for o in unit.offerings if o.offered]
+    here = [o for o in offerings if not campus or o.campus == campus]
+    periods: list[str] = []
+    for offering in here or offerings:
+        label = short_period(offering.teaching_period)
+        if label and label not in periods:
+            periods.append(label)
+    periods.sort(key=period_rank)
+    return {
+        "unit_code": unit.unit_code,
+        "title": tr.field("title", unit.title),
+        "credit_points": unit.credit_points,
+        "level": tr.string(unit.level),
+        "prefix": unit.subject_prefix or unit.unit_code[:3],
+        "depth": depth,
+        "in_year": True,
+        "offered_at_campus": bool(here) if campus else True,
+        "periods": periods,
+        "offerings": [
+            {
+                "campus": tr.string(o.campus),
+                "campus_raw": o.campus,
+                "teaching_period": tr.string(o.teaching_period),
+                "short": short_period(o.teaching_period),
+            }
+            for o in offerings
+        ],
+        "source_url": unit.source_url,
+        "translation": tr.meta(),
+    }

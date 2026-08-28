@@ -6,9 +6,10 @@ from sqlalchemy import distinct, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import requested_locale
-from app.api.serializers import unit_brief, unit_detail
+from app.api.serializers import tree_node, unit_brief, unit_detail
 from app.core.config import get_settings
 from app.core.db import get_db
+from app.handbook import tree
 from app.knowledge import translations
 from app.models.handbook import Unit, UnitOffering
 from app.models.translation import UNIT
@@ -165,4 +166,53 @@ def get_offerings(code: str, year: int | None = None, db: Session = Depends(get_
         "academic_year": unit.academic_year,
         "offerings": unit_brief(unit)["offerings"],
         "source_url": unit.source_url,
+    }
+
+
+@router.get("/{code}/tree")
+def get_tree(
+    code: str,
+    direction: str = Query("upstream", pattern="^(upstream|downstream|both)$"),
+    depth: int = Query(3, ge=1, le=tree.MAX_DEPTH),
+    campus: str | None = None,
+    year: int | None = None,
+    locale: str | None = Depends(requested_locale),
+    db: Session = Depends(get_db),
+) -> dict:
+    """The prerequisite graph around one unit.
+
+    ``campus`` does not filter the graph - a prerequisite you cannot take here
+    is the single most important thing to show a Malaysia student, and hiding
+    it would draw a path that looks walkable. It marks each node instead.
+    """
+    academic_year = _year(year)
+    seed = _load(db, code, academic_year)
+    found = tree.walk(db, seed.unit_code, academic_year, direction, depth)
+
+    codes = found.codes()
+    units = tree.load_units(db, codes, academic_year)
+    hashes = {c: u.content_hash for c, u in units.items()}
+    tr = translations.load_many(db, locale, UNIT, codes, source_hashes=hashes)
+
+    return {
+        "seed": seed.unit_code,
+        "academic_year": academic_year,
+        "direction": direction,
+        "depth": depth,
+        "campus": campus,
+        "truncated": found.truncated,
+        "nodes": [
+            tree_node(units.get(c), c, found.depth_of[c], campus, tr[c])
+            for c in codes
+        ],
+        "edges": [
+            {
+                "source": e.source,
+                "target": e.target,
+                "type": e.requisite_type,
+                "connector": e.connector,
+                "group": e.group_id,
+            }
+            for e in found.edges.values()
+        ],
     }
