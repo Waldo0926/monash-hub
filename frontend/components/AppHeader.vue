@@ -12,6 +12,7 @@ onBeforeUnmount(stop)
 
 const links = computed(() => [
   { to: '/units', label: $t('nav.units') },
+  { to: '/courses', label: $t('nav.courses') },
   { to: '/tree', label: $t('nav.tree') },
   { to: '/guides', label: $t('nav.guides') },
   { to: '/community', label: $t('nav.community') },

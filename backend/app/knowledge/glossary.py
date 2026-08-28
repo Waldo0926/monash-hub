@@ -1505,6 +1505,153 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "入門",
         "ko": "입문",
     },
+    # --- the names a degree gives its own parts ----------------------------
+    #
+    # The Part letter is pinned too, so that "Part A. Foundation studies" is
+    # determined end to end rather than left half-translated with a stray
+    # fullwidth stop where the model guessed at the label.
+    "Part A": {
+        "zh": "A 部分",
+        "ja": "パートA",
+        "ko": "파트 A",
+    },
+    "Part B": {
+        "zh": "B 部分",
+        "ja": "パートB",
+        "ko": "파트 B",
+    },
+    "Part C": {
+        "zh": "C 部分",
+        "ja": "パートC",
+        "ko": "파트 C",
+    },
+    "Part D": {
+        "zh": "D 部分",
+        "ja": "パートD",
+        "ko": "파트 D",
+    },
+    "Part E": {
+        "zh": "E 部分",
+        "ja": "パートE",
+        "ko": "파트 E",
+    },
+    "Part F": {
+        "zh": "F 部分",
+        "ja": "パートF",
+        "ko": "파트 F",
+    },
+    "Part G": {
+        "zh": "G 部分",
+        "ja": "パートG",
+        "ko": "파트 G",
+    },
+    "Part H": {
+        "zh": "H 部分",
+        "ja": "パートH",
+        "ko": "파트 H",
+    },
+
+    #
+    # "Part A. Foundation studies" and its siblings head almost every course
+    # page, and the machine reads them as ordinary English: foundation became
+    # 基金会 (a charitable trust), discipline became 纪律 (obedience), and
+    # specialist became 专家 (an expert). They are pinned longest-first so the
+    # two-word forms win over the single words inside them.
+    "foundation studies": {
+        "zh": "基础课程",
+        "ja": "基礎科目",
+        "ko": "기초 과목",
+    },
+    "discipline elective studies": {
+        "zh": "学科选修课程",
+        "ja": "分野選択科目",
+        "ko": "학문 선택 과목",
+    },
+    "discipline electives": {
+        "zh": "学科选修课",
+        "ja": "分野選択科目",
+        "ko": "학문 선택 과목",
+    },
+    "discipline studies": {
+        "zh": "学科课程",
+        "ja": "分野科目",
+        "ko": "학문 과목",
+    },
+    "specialist studies": {
+        "zh": "专业方向课程",
+        "ja": "専門科目",
+        "ko": "전공 과목",
+    },
+    "capstone studies": {
+        "zh": "综合实践课程",
+        "ja": "キャップストーン科目",
+        "ko": "캡스톤 과목",
+    },
+    "free elective studies": {
+        "zh": "自由选修课程",
+        "ja": "自由選択科目",
+        "ko": "자유 선택 과목",
+    },
+    "free electives": {
+        "zh": "自由选修课",
+        "ja": "自由選択科目",
+        "ko": "자유 선택 과목",
+    },
+    "elective studies": {
+        "zh": "选修课程",
+        "ja": "選択科目",
+        "ko": "선택 과목",
+    },
+    "applied studies": {
+        "zh": "应用课程",
+        "ja": "応用科目",
+        "ko": "응용 과목",
+    },
+    "professional practice studies": {
+        "zh": "专业实践课程",
+        "ja": "専門実践科目",
+        "ko": "전문 실무 과목",
+    },
+    "major studies": {
+        "zh": "主修课程",
+        "ja": "主専攻科目",
+        "ko": "주전공 과목",
+    },
+    "minor studies": {
+        "zh": "辅修课程",
+        "ja": "副専攻科目",
+        "ko": "부전공 과목",
+    },
+    "specified studies": {
+        "zh": "指定课程",
+        "ja": "指定科目",
+        "ko": "지정 과목",
+    },
+    "studio practices": {
+        "zh": "工作室实践",
+        "ja": "スタジオ実践",
+        "ko": "스튜디오 실습",
+    },
+    "disciplinary practices": {
+        "zh": "学科实践",
+        "ja": "分野実践",
+        "ko": "학문 실습",
+    },
+    "critical contexts": {
+        "zh": "批判性语境",
+        "ja": "批評的文脈",
+        "ko": "비평적 맥락",
+    },
+    "core units": {
+        "zh": "必修课程",
+        "ja": "必修科目",
+        "ko": "필수 과목",
+    },
+    "advanced standing": {
+        "zh": "学分减免",
+        "ja": "既修得単位認定",
+        "ko": "학점 인정",
+    },
     "capstone": {
         "zh": "综合实践课程",
         "ja": "キャップストーン",
@@ -1646,6 +1793,45 @@ TERMS: dict[str, dict[str, str]] = {
 # Institute" is what is written on the building, and a student looking for it
 # needs the name that is on the building.
 ENUMS: dict[str, dict[str, str]] = {
+    # --- what kind of degree it is -------------------------------------------
+    #
+    # Whole values off a closed list, not terms: "UG specialist" as prose came
+    # back 本科专家 - an expert - when it means a degree in one named field.
+    "UG specialist": {
+        "zh": "本科（单一专业）", "ja": "学部（専門）", "ko": "학부(전공 특화)",
+    },
+    "UG comprehensive": {
+        "zh": "本科（综合）", "ja": "学部（総合）", "ko": "학부(종합)",
+    },
+    "UG double": {
+        "zh": "本科双学位", "ja": "学部ダブルディグリー", "ko": "학부 복수학위",
+    },
+    "Vertical double": {
+        "zh": "本硕连读双学位",
+        "ja": "学部・大学院連携ダブルディグリー",
+        "ko": "학·석사 연계 복수학위",
+    },
+    "PG coursework": {
+        "zh": "研究生（授课型）", "ja": "大学院（コースワーク）", "ko": "대학원(수업 중심)",
+    },
+    "PG coursework double": {
+        "zh": "研究生（授课型）双学位", "ja": "大学院（コースワーク）ダブルディグリー",
+        "ko": "대학원(수업 중심) 복수학위",
+    },
+    "PG specialist": {
+        "zh": "研究生（单一专业）", "ja": "大学院（専門）", "ko": "대학원(전공 특화)",
+    },
+    "Research": {"zh": "研究型", "ja": "研究型", "ko": "연구 중심"},
+    "Honours - 1 yr": {"zh": "荣誉学位（1 年）", "ja": "オナーズ（1 年）", "ko": "우등 학위(1년)"},
+    "Honours": {"zh": "荣誉学位", "ja": "オナーズ", "ko": "우등 학위"},
+
+    # --- what kind of area of study it is -------------------------------------
+    "UG specialisation": {"zh": "本科专业方向", "ja": "学部専門分野", "ko": "학부 세부전공"},
+    "PG specialisation": {"zh": "研究生专业方向", "ja": "大学院専門分野", "ko": "대학원 세부전공"},
+    "Major": {"zh": "主修", "ja": "主専攻", "ko": "주전공"},
+    "Minor": {"zh": "辅修", "ja": "副専攻", "ko": "부전공"},
+    "Extended major": {"zh": "扩展主修", "ja": "拡張主専攻", "ko": "확장 주전공"},
+
     # --- level ---------------------------------------------------------------
     "Level 0": {"zh": "第 0 级", "ja": "レベル 0", "ko": "레벨 0"},
     "Level 1": {"zh": "第 1 级", "ja": "レベル 1", "ko": "레벨 1"},

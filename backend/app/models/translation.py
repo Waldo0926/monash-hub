@@ -50,8 +50,14 @@ UNIT = "unit"
 # here anyway: one place to look for "what has Chinese and what does not" beats
 # two, and the FAQ shows up beside the pages it summarises.
 FAQ_ENTRY = "faq_entry"
+# A degree and its majors. Their prose is short - a title, an overview, and the
+# name of each requirement group - but it is the first thing a reader sees on a
+# course page, and a Chinese page whose every heading says "Part A. Foundation
+# studies" is not a Chinese page.
+COURSE = "course"
+AREA_OF_STUDY = "area_of_study"
 GLOBAL = "global"
-TARGET_TYPES = (OFFICIAL_PAGE, UNIT, FAQ_ENTRY, GLOBAL)
+TARGET_TYPES = (OFFICIAL_PAGE, UNIT, FAQ_ENTRY, COURSE, AREA_OF_STUDY, GLOBAL)
 
 DRAFT = "draft"
 PUBLISHED = "published"

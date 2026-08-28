@@ -13,9 +13,10 @@ specialisations it offers, so crawling in that order means that by the time an
 area of study is stored, the course pointing at it already exists and the join
 is live from the first row rather than from the end of the run.
 
-A parse failure keeps the last good row and is recorded as ``failed``, the same
-as for units: a gap in today's crawl is a much smaller problem than overwriting
-a correct degree structure with a blank one.
+A page that cannot be parsed *or* cannot be stored keeps its last good row and
+is recorded as ``failed``. Both halves matter: catching only ParseError let one
+oversized column stop a 914-page crawl at page 87, which is a far worse outcome
+than a gap in one row.
 """
 from __future__ import annotations
 
@@ -36,6 +37,7 @@ from app.handbook.course_repository import upsert_area_of_study, upsert_course
 from app.handbook.parser import ParseError
 from app.models.curriculum import AreaOfStudy, Course
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from crawler.handbook.discover import discover_aos_codes, discover_course_codes
 from crawler.handbook.fetch import HandbookFetcher
@@ -125,8 +127,23 @@ def crawl(kind: str, codes: list[str], year: int, *, min_interval: float) -> dic
                 log.error("%s: parse failed, keeping last valid record (%s)", code, exc)
                 continue
 
-            stored, outcome = spec["upsert"](db, parsed)
-            db.commit()
+            try:
+                stored, outcome = spec["upsert"](db, parsed)
+                db.commit()
+            except SQLAlchemyError as exc:
+                # A page that will not fit the schema is one row's problem, not
+                # the run's. F2003 publishes two CRICOS codes with their names
+                # in a column sized for one, and the whole crawl stopped at
+                # page 87 because a DataError is not a ParseError and only
+                # ParseError was being caught. Roll back, record it, keep going.
+                db.rollback()
+                summary["failed"] += 1
+                record(db, job, target_type=spec["target_type"], target_key=code, url=url,
+                       outcome="failed", http_status=result.status, transport=result.transport,
+                       duration_ms=elapsed, message=f"database error: {exc}"[:2000])
+                log.error("%s: could not be stored, skipping (%s)", code, type(exc).__name__)
+                continue
+
             summary[outcome] += 1
             record(db, job, target_type=spec["target_type"], target_key=code, url=url,
                    outcome=outcome, http_status=200, content_hash=parsed["content_hash"],
