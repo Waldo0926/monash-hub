@@ -46,6 +46,25 @@ def test_no_entry_translates_to_itself_by_accident():
     assert same == set(KEEP_IN_ENGLISH)
 
 
+def test_a_grade_name_is_a_whole_value_and_not_a_word_in_a_sentence():
+    """*Distinction* and *Credit* are ordinary English before they are grades.
+
+    As terms they reached inside sentences: a unit on the laws of armed conflict
+    came back with 战斗人员与平民之间的 Distinction（优等）, and the grade itself
+    was 信贷 - a bank's credit.
+    """
+    assert whole_value("Credit", "zh") == "Credit（良好）"
+    assert whole_value("Distinction", "zh") == "Distinction（优等）"
+
+    for sentence in (
+        "the distinction between combatants and civilians",
+        "draw a distinction between theory and practice",
+        "credit risk modelling and credit scoring",
+    ):
+        masked, kept = protect(sentence, "zh")
+        assert restore(masked, kept) == sentence
+
+
 def test_an_email_address_never_reaches_the_translator():
     """servicedesk@Monash.edu was published as 服务台@Monash.edu."""
     masked, kept = protect("email servicedesk@Monash.edu with CUP merge", "zh")

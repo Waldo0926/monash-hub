@@ -304,16 +304,6 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "Pass with Credit（良）",
         "ko": "Pass with Credit(양호)",
     },
-    "High distinction": {
-        "zh": "High distinction（最高优等）",
-        "ja": "High distinction（最優秀）",
-        "ko": "High distinction(최우수)",
-    },
-    "Distinction": {
-        "zh": "Distinction（优等）",
-        "ja": "Distinction（優）",
-        "ko": "Distinction(우수)",
-    },
     "credit card": {"zh": "信用卡", "ja": "クレジットカード", "ko": "신용카드"},
     "debit card": {"zh": "借记卡", "ja": "デビットカード", "ko": "체크카드"},
     "credit transfer": {
@@ -1665,6 +1655,28 @@ ENUMS: dict[str, dict[str, str]] = {
     "Level 5": {"zh": "第 5 级（研究生）", "ja": "レベル 5（大学院）", "ko": "레벨 5(대학원)"},
     "Level 6": {"zh": "第 6 级（研究生）", "ja": "レベル 6（大学院）", "ko": "레벨 6(대학원)"},
     "Level 9": {"zh": "第 9 级（研究）", "ja": "レベル 9（研究）", "ko": "레벨 9(연구)"},
+
+    # --- grade ---------------------------------------------------------------
+    #
+    # Whole values, never terms. "Distinction" and "Credit" are ordinary English
+    # words before they are grades, and as terms they reached inside sentences:
+    # 战斗人员与平民之间的 Distinction（优等） on a unit about the laws of armed
+    # conflict, and 信贷 - a bank's credit - for the grade itself. Matched as a
+    # complete cell they are only ever the grade.
+    "High distinction": {
+        "zh": "High distinction（最高优等）",
+        "ja": "High distinction（最優秀）",
+        "ko": "High distinction(최우수)",
+    },
+    "Distinction": {
+        "zh": "Distinction（优等）", "ja": "Distinction（優）", "ko": "Distinction(우수)",
+    },
+    "Credit": {"zh": "Credit（良好）", "ja": "Credit（良）", "ko": "Credit(양호)"},
+    "Pass": {"zh": "Pass（及格）", "ja": "Pass（合格）", "ko": "Pass(합격)"},
+    "Fail": {"zh": "Fail（不及格）", "ja": "Fail（不合格）", "ko": "Fail(불합격)"},
+    "Near pass": {
+        "zh": "Near pass（接近及格）", "ja": "Near pass（準合格）", "ko": "Near pass(준합격)",
+    },
 
     # --- assessment type -----------------------------------------------------
     "Examination": {"zh": "考试", "ja": "試験", "ko": "시험"},
