@@ -1975,12 +1975,51 @@ def is_critical(written: str) -> bool:
     return canonical in CRITICAL
 
 
-_SORTED = sorted(TERMS, key=lambda t: (-len(t), t))
+# Terms whose plural is a different word in Monash prose. Pinning these would
+# read "reactive intermediates" as 中级, "computer architectures" as 建筑学,
+# "the pathologies driving the EU" as 病理学, and the econometrics sense of
+# "extensions" as 延期. The singular stays pinned; the plural is left to the
+# model, which reads it from context.
+AMBIGUOUS_PLURALS = frozenset(
+    {"intermediate", "exchange", "introduction", "extension", "pathology", "architecture"}
+)
+
+
+def _inflected(term: str) -> tuple[str, ...]:
+    """The plural and possessive of a term, by English spelling rules.
+
+    A term pinned in the singular went unrecognised in the plural: "cover
+    letter" was masked and "cover letters" was not, so BPS3072 advised
+    students to write a 封面信. Chinese does not mark number, so every form
+    carries the same translation and the suffix is simply dropped.
+
+    The rules are spelled out rather than approximated with a loose ``e?s``
+    suffix in the pattern, which would read "unites" as the plural of "unit".
+    """
+    if not term[-1:].isalpha() or term.lower() in AMBIGUOUS_PLURALS:
+        return ()
+    if re.search(r"[^aeiou]y$", term, re.IGNORECASE):
+        plural = term[:-1] + "ies"
+    elif re.search(r"(s|x|z|ch|sh)$", term, re.IGNORECASE):
+        plural = term + "es"
+    else:
+        plural = term + "s"
+    return (plural, term + "'s", term + "\u2019s")
+
+
+# A form that is itself a listed term keeps its own entry: "credit points" is
+# 学分 whether or not "credit point" is.
+_FORMS: dict[str, str] = {term.lower(): term for term in TERMS}
+for _term in TERMS:
+    for _form in _inflected(_term):
+        _FORMS.setdefault(_form.lower(), _term)
+
+_SORTED = sorted(_FORMS, key=lambda t: (-len(t), t))
 _PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in _SORTED) + r")(?![A-Za-z0-9])",
     re.IGNORECASE,
 )
-_LOOKUP = {term.lower(): term for term in TERMS}
+_LOOKUP = _FORMS
 
 # Letter placeholders: the model rewrites digits (XX1XX came back as X22XX) but
 # passes an unknown capitalised token through untouched.
