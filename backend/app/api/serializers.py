@@ -343,8 +343,10 @@ def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str,
         "cricos_code": course.cricos_code,
         "school": tr.string(course.school),
         "overview": tr.field("overview", course.overview),
-        "structure_text": tr.field("structure_text", course.structure_text),
-        "requirements_text": tr.field("requirements_text", course.requirements_text),
+        # structure_text and requirements_text stay in the database and out of
+        # this payload. They are five thousand characters that nothing renders,
+        # and shipping them untranslated on a Chinese page would be worse than
+        # not shipping them at all.
         "source_url": course.source_url,
         "last_checked": _iso(course.last_crawled),
         "translation": tr.meta(),

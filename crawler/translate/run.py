@@ -106,14 +106,20 @@ def course_strings(course: Course, containers: list[CurriculumContainer]) -> lis
     heading is the exact failure this whole translation layer was built to
     avoid. They are short and highly repeated across degrees, so the engine's
     cache makes 503 courses cost far less than 503 pages of prose.
+
+    What it deliberately leaves alone is the long structural prose, for the
+    reason given inline below.
     """
     strings: list[str | None] = [
         course.title, course.aqf_level, course.course_type, course.faculty, course.school
     ]
     strings += course.campuses or []
     strings += _paragraphs(course.overview)
-    strings += _paragraphs(course.structure_text)
-    strings += _paragraphs(course.requirements_text)
+    # Not structure_text or requirements_text. They are the longest prose on a
+    # course page - five thousand characters against the overview's fifteen
+    # hundred - and nothing renders them yet. Translating what is not shown is
+    # four fifths of this job for none of its value; when a page displays them,
+    # this is one line.
     for container in containers:
         strings.append(container.title)
         strings += _paragraphs(container.description)
