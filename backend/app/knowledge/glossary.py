@@ -1557,6 +1557,177 @@ TERMS: dict[str, dict[str, str]] = {
     # 基金会 (a charitable trust), discipline became 纪律 (obedience), and
     # specialist became 专家 (an expert). They are pinned longest-first so the
     # two-word forms win over the single words inside them.
+    # "studies" in a degree structure means courses, not research. "Core
+    # studies" headed 194 requirement groups as 核心研究 - core *research*.
+    "Level 0 units": {
+        "zh": "第 0 级课程",
+        "ja": "レベル 0 科目",
+        "ko": "레벨 0 과목",
+    },
+    "Level 0 unit": {
+        "zh": "第 0 级课程",
+        "ja": "レベル 0 科目",
+        "ko": "레벨 0 과목",
+    },
+    "Level 1 units": {
+        "zh": "第 1 级课程",
+        "ja": "レベル 1 科目",
+        "ko": "레벨 1 과목",
+    },
+    "Level 1 unit": {
+        "zh": "第 1 级课程",
+        "ja": "レベル 1 科目",
+        "ko": "레벨 1 과목",
+    },
+    "Level 2 units": {
+        "zh": "第 2 级课程",
+        "ja": "レベル 2 科目",
+        "ko": "레벨 2 과목",
+    },
+    "Level 2 unit": {
+        "zh": "第 2 级课程",
+        "ja": "レベル 2 科目",
+        "ko": "레벨 2 과목",
+    },
+    "Level 3 units": {
+        "zh": "第 3 级课程",
+        "ja": "レベル 3 科目",
+        "ko": "레벨 3 과목",
+    },
+    "Level 3 unit": {
+        "zh": "第 3 级课程",
+        "ja": "レベル 3 科目",
+        "ko": "레벨 3 과목",
+    },
+    "Level 4 units": {
+        "zh": "第 4 级课程",
+        "ja": "レベル 4 科目",
+        "ko": "레벨 4 과목",
+    },
+    "Level 4 unit": {
+        "zh": "第 4 级课程",
+        "ja": "レベル 4 科目",
+        "ko": "레벨 4 과목",
+    },
+    "Level 5 units": {
+        "zh": "第 5 级课程",
+        "ja": "レベル 5 科目",
+        "ko": "레벨 5 과목",
+    },
+    "Level 5 unit": {
+        "zh": "第 5 级课程",
+        "ja": "レベル 5 科目",
+        "ko": "레벨 5 과목",
+    },
+    # "Level 1" is a whole field value in ENUMS, which does not reach inside a
+    # phrase - and "Level 1 gateway units" is a phrase. Pinned here too, so the
+    # heading is determined end to end rather than half of it guessed.
+    "Level 0": {
+        "zh": "第 0 级",
+        "ja": "レベル 0",
+        "ko": "레벨 0",
+    },
+    "Level 1": {
+        "zh": "第 1 级",
+        "ja": "レベル 1",
+        "ko": "레벨 1",
+    },
+    "Level 2": {
+        "zh": "第 2 级",
+        "ja": "レベル 2",
+        "ko": "레벨 2",
+    },
+    "Level 3": {
+        "zh": "第 3 级",
+        "ja": "レベル 3",
+        "ko": "레벨 3",
+    },
+    "Level 4": {
+        "zh": "第 4 级",
+        "ja": "レベル 4",
+        "ko": "레벨 4",
+    },
+    "Level 5": {
+        "zh": "第 5 级",
+        "ja": "レベル 5",
+        "ko": "레벨 5",
+    },
+    "Level 6": {
+        "zh": "第 6 级",
+        "ja": "レベル 6",
+        "ko": "레벨 6",
+    },
+    "Level 7": {
+        "zh": "第 7 级",
+        "ja": "レベル 7",
+        "ko": "레벨 7",
+    },
+    "Level 8": {
+        "zh": "第 8 级",
+        "ja": "レベル 8",
+        "ko": "레벨 8",
+    },
+    "Level 9": {
+        "zh": "第 9 级",
+        "ja": "レベル 9",
+        "ko": "레벨 9",
+    },
+    "core studies": {
+        "zh": "核心课程",
+        "ja": "コア科目",
+        "ko": "핵심 과목",
+    },
+    "specified elective studies": {
+        "zh": "指定选修课程",
+        "ja": "指定選択科目",
+        "ko": "지정 선택 과목",
+    },
+    # Monash's own names for where a unit sits in a sequence.
+    "gateway units": {
+        "zh": "入门课程",
+        "ja": "導入科目",
+        "ko": "입문 과목",
+    },
+    "gateway unit": {
+        "zh": "入门课程",
+        "ja": "導入科目",
+        "ko": "입문 과목",
+    },
+    "cornerstone units": {
+        "zh": "核心进阶课程",
+        "ja": "基幹科目",
+        "ko": "기간 과목",
+    },
+    "cornerstone unit": {
+        "zh": "核心进阶课程",
+        "ja": "基幹科目",
+        "ko": "기간 과목",
+    },
+    "capstone units": {
+        "zh": "综合实践课程",
+        "ja": "キャップストーン科目",
+        "ko": "캡스톤 과목",
+    },
+    "capstone unit": {
+        "zh": "综合实践课程",
+        "ja": "キャップストーン科目",
+        "ko": "캡스톤 과목",
+    },
+    "research pathway": {
+        "zh": "研究路径",
+        "ja": "研究コース",
+        "ko": "연구 경로",
+    },
+    "international study tours": {
+        "zh": "海外研学",
+        "ja": "海外研修",
+        "ko": "해외 연수",
+    },
+    "language units": {
+        "zh": "语言课程",
+        "ja": "語学科目",
+        "ko": "언어 과목",
+    },
     "foundation studies": {
         "zh": "基础课程",
         "ja": "基礎科目",
@@ -1793,6 +1964,19 @@ TERMS: dict[str, dict[str, str]] = {
 # Institute" is what is written on the building, and a student looking for it
 # needs the name that is on the building.
 ENUMS: dict[str, dict[str, str]] = {
+    # --- a numbered choice in a degree structure ------------------------------
+    #
+    # A whole title, not prose: as prose "Option 1" came back 备选案文1, the
+    # register of a UN working document, on a hundred requirement groups.
+    "Option 1": {"zh": "选项 1", "ja": "選択肢 1", "ko": "선택 1"},
+    "Option 2": {"zh": "选项 2", "ja": "選択肢 2", "ko": "선택 2"},
+    "Option 3": {"zh": "选项 3", "ja": "選択肢 3", "ko": "선택 3"},
+    "Option 4": {"zh": "选项 4", "ja": "選択肢 4", "ko": "선택 4"},
+    "Option 5": {"zh": "选项 5", "ja": "選択肢 5", "ko": "선택 5"},
+    "Option 6": {"zh": "选项 6", "ja": "選択肢 6", "ko": "선택 6"},
+    "Option 7": {"zh": "选项 7", "ja": "選択肢 7", "ko": "선택 7"},
+    "Option 8": {"zh": "选项 8", "ja": "選択肢 8", "ko": "선택 8"},
+
     # --- what kind of degree it is -------------------------------------------
     #
     # Whole values off a closed list, not terms: "UG specialist" as prose came
