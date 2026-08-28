@@ -16,6 +16,7 @@ from typing import Any
 
 from app.knowledge.translations import Translation, translate_blocks, translated_headings
 from app.models.community import CommunityAnswer, CommunityPost
+from app.models.curriculum import AreaOfStudy, Course
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
 
@@ -308,5 +309,59 @@ def tree_node(
             for o in offerings
         ],
         "source_url": unit.source_url,
+        "translation": tr.meta(),
+    }
+
+
+def course_brief(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    """The row in the course picker.
+
+    It takes a translation for the same reason ``unit_brief`` does: a list of
+    English degree names under a Chinese heading is the version of "partially
+    translated" that just looks broken.
+    """
+    return {
+        "course_code": course.course_code,
+        "title": tr.field("title", course.title),
+        # An abbreviation is a mark, not a sentence: BCompSci stays BCompSci.
+        "abbreviated_name": course.abbreviated_name,
+        "credit_points": course.credit_points,
+        "course_type": tr.string(course.course_type),
+        "faculty": tr.string(course.faculty),
+        "campuses": [tr.string(c) for c in course.campuses or []],
+        "campuses_raw": list(course.campuses or []),
+        "duration_years": course.duration_years,
+        "academic_year": course.academic_year,
+    }
+
+
+def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    """The header of a degree page. The structure is assembled by the router."""
+    return {
+        **course_brief(course, tr),
+        "aqf_level": tr.string(course.aqf_level),
+        "cricos_code": course.cricos_code,
+        "school": tr.string(course.school),
+        "overview": tr.field("overview", course.overview),
+        "structure_text": tr.field("structure_text", course.structure_text),
+        "requirements_text": tr.field("requirements_text", course.requirements_text),
+        "source_url": course.source_url,
+        "last_checked": _iso(course.last_crawled),
+        "translation": tr.meta(),
+    }
+
+
+def area_of_study_detail(aos: AreaOfStudy, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    return {
+        "aos_code": aos.aos_code,
+        "title": tr.field("title", aos.title),
+        "aos_type": tr.string(aos.aos_type),
+        "study_level": tr.string(aos.study_level),
+        "credit_points": aos.credit_points,
+        "faculty": tr.string(aos.faculty),
+        "overview": tr.field("overview", aos.overview),
+        "academic_year": aos.academic_year,
+        "source_url": aos.source_url,
+        "last_checked": _iso(aos.last_crawled),
         "translation": tr.meta(),
     }

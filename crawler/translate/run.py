@@ -26,9 +26,12 @@ import time
 
 from app.core.db import SessionLocal
 from app.knowledge.glossary import LOCALES
+from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.models.translation import (
+    AREA_OF_STUDY,
+    COURSE,
     FAQ_ENTRY,
     MACHINE,
     OFFICIAL_PAGE,
@@ -93,6 +96,39 @@ def _paragraphs(text: str | None) -> list[str]:
     whole = text.strip()
     parts = [p.strip() for p in whole.split("\n\n") if p.strip()]
     return [whole, *parts] if len(parts) > 1 else [whole]
+
+
+def course_strings(course: Course, containers: list[CurriculumContainer]) -> list[str]:
+    """A degree's own prose, plus the name of every requirement group under it.
+
+    The group titles are the reason this exists. A course page is mostly an
+    outline, and an outline of "Part A. Foundation studies" under a Chinese
+    heading is the exact failure this whole translation layer was built to
+    avoid. They are short and highly repeated across degrees, so the engine's
+    cache makes 503 courses cost far less than 503 pages of prose.
+    """
+    strings: list[str | None] = [
+        course.title, course.aqf_level, course.course_type, course.faculty, course.school
+    ]
+    strings += course.campuses or []
+    strings += _paragraphs(course.overview)
+    strings += _paragraphs(course.structure_text)
+    strings += _paragraphs(course.requirements_text)
+    for container in containers:
+        strings.append(container.title)
+        strings += _paragraphs(container.description)
+        strings += _paragraphs(container.footnote)
+    return [s.strip() for s in strings if s and s.strip()]
+
+
+def aos_strings(aos: AreaOfStudy, containers: list[CurriculumContainer]) -> list[str]:
+    strings: list[str | None] = [aos.title, aos.aos_type, aos.study_level, aos.faculty, aos.school]
+    strings += _paragraphs(aos.overview)
+    for container in containers:
+        strings.append(container.title)
+        strings += _paragraphs(container.description)
+        strings += _paragraphs(container.footnote)
+    return [s.strip() for s in strings if s and s.strip()]
 
 
 def page_strings(page: OfficialPage) -> list[str]:
@@ -237,6 +273,43 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
     return summary
 
 
+def translate_curriculum(translator: Translator, *, refresh: bool) -> dict:
+    """Courses and areas of study, in that order."""
+    locale = translator.locale
+    summary = {"translated": 0, "skipped": 0, "strings": 0}
+    with SessionLocal() as db:
+        for model, code_attr, target_type, collect in (
+            (Course, "course_code", COURSE, course_strings),
+            (AreaOfStudy, "aos_code", AREA_OF_STUDY, aos_strings),
+        ):
+            owner = (
+                CurriculumContainer.course_id
+                if model is Course
+                else CurriculumContainer.area_of_study_id
+            )
+            for row in db.scalars(select(model).where(model.is_active)):
+                key = getattr(row, code_attr)
+                marker = row.content_hash or ""
+                if not refresh and marker and _up_to_date(db, locale, target_type, key, marker):
+                    summary["skipped"] += 1
+                    continue
+                containers = list(
+                    db.scalars(
+                        select(CurriculumContainer)
+                        .where(owner == row.id)
+                        .order_by(CurriculumContainer.id)
+                    )
+                )
+                strings = translator.many(collect(row, containers))
+                store(db, locale=locale, target_type=target_type, target_key=key,
+                      strings=strings, source_hash=marker)
+                db.commit()
+                summary["translated"] += 1
+                summary["strings"] += len(strings)
+                log.info("%s: %d strings", key, len(strings))
+    return summary
+
+
 def translate_faq(translator: Translator, *, refresh: bool) -> dict:
     locale = translator.locale
     summary = {"translated": 0, "skipped": 0, "strings": 0}
@@ -266,7 +339,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Machine-translate stored content")
     parser.add_argument("--locale", required=True, choices=list(LOCALES))
     parser.add_argument(
-        "--targets", default="all", choices=["all", "units", "official", "faq"]
+        "--targets", default="all", choices=["all", "units", "official", "faq", "curriculum"]
     )
     parser.add_argument(
         "--fields",
@@ -295,6 +368,8 @@ def main() -> None:
     quieten()
     log.info("translating into %s", args.locale)
 
+    if args.targets in ("all", "curriculum"):
+        log.info("courses: %s", translate_curriculum(translator, refresh=args.refresh))
     if args.targets in ("all", "official"):
         log.info("official pages: %s", translate_official(translator, refresh=args.refresh))
     if args.targets in ("all", "faq"):

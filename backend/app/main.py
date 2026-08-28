@@ -15,6 +15,7 @@ from app.api.v1 import (
     ask,
     auth,
     community,
+    courses,
     exchange,
     guides,
     health,
@@ -51,7 +52,7 @@ app.add_middleware(
 # script probe it, and neither should have to know about /v1.
 app.include_router(health.router, prefix="/api")
 
-for module in (units, search, ask, guides, community, auth, exchange, notifications):
+for module in (units, courses, search, ask, guides, community, auth, exchange, notifications):
     app.include_router(module.router, prefix=settings.api_prefix)
 
 
