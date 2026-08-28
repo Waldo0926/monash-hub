@@ -143,18 +143,31 @@ def _replace_children(db: Session, unit: Unit, record: dict[str, Any]) -> None:
         db.add(UnitLearningOutcome(unit_id=unit.id, **outcome))
     for activity in record.get("activities") or []:
         db.add(UnitActivity(unit_id=unit.id, **activity))
-    for group in record.get("requisite_groups") or []:
-        items = group.get("items") or []
+    _write_requisites(db, unit, record.get("requisite_groups") or [], parent_id=None)
+    db.flush()
+
+
+def _write_requisites(
+    db: Session, unit: Unit, groups: list[dict[str, Any]], *, parent_id: int | None
+) -> None:
+    """Depth first, so a nested group is written after the group it sits in.
+
+    Every row carries its unit as well as its parent: the unit's own list
+    selects the roots, and one indexed read still gets the whole tree.
+    """
+    for order, group in enumerate(groups):
         row = UnitRequisiteGroup(
             unit_id=unit.id,
+            parent_id=parent_id,
             requisite_type=group["requisite_type"],
             connector=group.get("connector"),
             title=group.get("title"),
             description=group.get("description"),
             raw_text=group.get("raw_text"),
+            order_index=group.get("order_index") or order,
         )
         db.add(row)
         db.flush()
-        for item in items:
+        for item in group.get("items") or []:
             db.add(UnitRequisiteItem(group_id=row.id, **item))
-    db.flush()
+        _write_requisites(db, unit, group.get("groups") or [], parent_id=row.id)

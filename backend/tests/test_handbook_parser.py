@@ -83,10 +83,44 @@ def test_prohibitions_are_a_separate_group(handbook_html):
     assert "prerequisite" in kinds
 
 
-def test_multiple_prerequisite_groups_are_not_merged(handbook_html):
+def test_two_and_ed_choices_stay_two_choices(handbook_html):
+    """FIT1008 needs (FIT1045 or FIT1053) *and* (FIT1058 or MAT1830).
+
+    That is one AND over two OR groups. Read as a flat pair of groups it says
+    the same thing only by accident - the same flattening turned FIT2099's
+    top-level OR into an AND and told students to take units they never need.
+    """
     unit = _parse(handbook_html, "FIT1008")
     prereq = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prerequisite"]
-    assert len(prereq) == 2, "two separate AND-ed prerequisite groups must stay separate"
+    assert len(prereq) == 1
+    assert prereq[0]["connector"] == "AND"
+
+    choices = prereq[0]["groups"]
+    assert [c["connector"] for c in choices] == ["OR", "OR"]
+    assert [{i["item_code"] for i in c["items"]} for c in choices] == [
+        {"FIT1045", "FIT1053"},
+        {"FIT1058", "MAT1830"},
+    ]
+
+
+def test_a_top_level_or_survives_the_parser(handbook_html):
+    """FIT2099: six programming units, OR an engineering pair.
+
+    The pair is itself two OR choices joined by AND, so the rule is three
+    levels deep. Flattened, a student holding FIT1045 was told they still
+    needed two ENG units.
+    """
+    unit = _parse(handbook_html, "FIT2099")
+    prereq = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prerequisite"]
+    assert len(prereq) == 1
+    assert prereq[0]["connector"] == "OR"
+
+    branches = prereq[0]["groups"]
+    assert len(branches) == 2
+    programming, engineering = branches
+    assert "FIT1045" in {i["item_code"] for i in programming["items"]}
+    assert engineering["connector"] == "AND"
+    assert [c["connector"] for c in engineering["groups"]] == ["OR", "OR"]
 
 
 def test_learning_outcomes_and_activities(handbook_html):

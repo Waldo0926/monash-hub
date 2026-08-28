@@ -156,10 +156,25 @@ def derive_has_exam(assessments: list[dict[str, Any]], summary: str | None) -> b
     return False
 
 
-def _walk_requisite_containers(containers: list[dict] | None, out: list[dict]) -> None:
-    for container in containers or []:
+# The Handbook has not nested requisites deeper than three, and an unbounded
+# recursion over upstream data is a hang rather than a bug report.
+MAX_REQUISITE_DEPTH = 6
+
+
+def _walk_requisite_containers(containers: list[dict] | None, depth: int = 0) -> list[dict]:
+    """One requisite container and everything under it, as a tree.
+
+    This used to flatten: every container, at every level, appended to one
+    list. That loses the only thing the nesting says. FIT2099 asks for one of
+    six programming units *or* an engineering pair, and as a flat list of
+    groups it reads as "all of the above".
+    """
+    if depth >= MAX_REQUISITE_DEPTH:
+        return []
+    out: list[dict] = []
+    for order, container in enumerate(containers or []):
         items = []
-        for order, rel in enumerate(container.get("relationships") or []):
+        for index, rel in enumerate(container.get("relationships") or []):
             items.append(
                 {
                     "item_code": rel.get("academic_item_code") or None,
@@ -167,19 +182,31 @@ def _walk_requisite_containers(containers: list[dict] | None, out: list[dict]) -
                     "item_type": _plain(rel.get("academic_item_type"), "label", "value"),
                     "item_url": rel.get("academic_item_url") or None,
                     "credit_points": rel.get("academic_item_credit_points") or None,
-                    "order_index": _as_int(rel.get("order")) or order,
+                    "order_index": _as_int(rel.get("order")) or index,
                 }
             )
-        if items or container.get("description"):
-            out.append(
-                {
-                    "connector": _plain(container.get("parent_connector"), "value", "label"),
-                    "title": container.get("title") or None,
-                    "description": html_to_text(container.get("description")),
-                    "items": items,
-                }
-            )
-        _walk_requisite_containers(container.get("containers"), out)
+        children = _walk_requisite_containers(container.get("containers"), depth + 1)
+        if not (items or children or container.get("description")):
+            continue
+        out.append(
+            {
+                "connector": _plain(container.get("parent_connector"), "value", "label"),
+                "title": container.get("title") or None,
+                "description": html_to_text(container.get("description")),
+                "order_index": _as_int(container.get("order")) or order,
+                "items": items,
+                "groups": children,
+            }
+        )
+    return out
+
+
+def _stamp(nodes: list[dict], req_type: str, description: str | None) -> None:
+    """Carry the block's type and wording down to every group inside it."""
+    for node in nodes:
+        node["requisite_type"] = req_type
+        node["raw_text"] = description
+        _stamp(node.get("groups") or [], req_type, description)
 
 
 def _parse_requisites(raw: list[dict] | None) -> list[dict[str, Any]]:
@@ -188,15 +215,14 @@ def _parse_requisites(raw: list[dict] | None) -> list[dict[str, Any]]:
         if str(block.get("active", "true")).lower() == "false":
             continue
         req_type = _plain(block.get("requisite_type"), "value", "label") or "unknown"
-        found: list[dict] = []
-        _walk_requisite_containers(block.get("container"), found)
+        found = _walk_requisite_containers(block.get("container"))
         description = html_to_text(block.get("description"))
         if not found and description:
-            found = [{"connector": None, "title": None, "description": description, "items": []}]
-        for group in found:
-            group["requisite_type"] = req_type.lower()
-            group["raw_text"] = description
-            groups.append(group)
+            found = [{"connector": None, "title": None, "description": description,
+                      "order_index": 0, "items": [], "groups": []}]
+
+        _stamp(found, req_type.lower(), description)
+        groups += found
     return groups
 
 

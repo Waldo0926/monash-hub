@@ -179,3 +179,78 @@ def test_an_empty_plan_is_valid(client, chain):
     body = _post(client, [])
     assert body["issues"] == []
     assert body["credit_points"] == 0
+
+
+def _group(db, unit, *, kind="prerequisite", connector="AND", parent=None, order=0):
+    row = UnitRequisiteGroup(
+        unit_id=unit.id, parent_id=parent.id if parent else None,
+        requisite_type=kind, connector=connector, order_index=order,
+    )
+    db.add(row)
+    db.flush()
+    return row
+
+
+def _in(db, group, *codes):
+    for index, code in enumerate(codes):
+        db.add(UnitRequisiteItem(group_id=group.id, item_code=code, item_name=code,
+                                 item_type="Unit", order_index=index))
+
+
+@pytest.fixture
+def fit2099(db):
+    """FIT2099's real rule, which is where the flattening was caught.
+
+        one of six programming units
+        OR
+        (ENG1003 or ENG1013) AND (ENG1060 or ENG1014)
+
+    Flattened into siblings this reads as "all of the above", and a student
+    holding FIT1045 was told to go and take two ENG units.
+    """
+    for code in ("FIT1045", "FIT1048", "FIT1051", "ENG1003", "ENG1013", "ENG1060", "ENG1014"):
+        _unit(db, code)
+    target = _unit(db, "FIT2099")
+
+    root = _group(db, target, connector="OR")
+    _in(db, _group(db, target, connector="OR", parent=root, order=0),
+        "FIT1045", "FIT1048", "FIT1051")
+    engineering = _group(db, target, connector="AND", parent=root, order=1)
+    _in(db, _group(db, target, connector="OR", parent=engineering, order=0), "ENG1003", "ENG1013")
+    _in(db, _group(db, target, connector="OR", parent=engineering, order=1), "ENG1060", "ENG1014")
+    db.commit()
+    return db
+
+
+def test_one_branch_of_a_top_level_or_is_enough(client, fit2099):
+    """The bug this fixture is named after: FIT1045 alone satisfies FIT2099."""
+    body = _post(client, [
+        {"unit_code": "FIT1045", "year": 2026, "teaching_period": S1},
+        {"unit_code": "FIT2099", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(body, "FIT2099") == set(), body["issues"]
+
+
+def test_the_other_branch_needs_both_of_its_halves(client, fit2099):
+    body = _post(client, [
+        {"unit_code": "ENG1003", "year": 2026, "teaching_period": S1},
+        {"unit_code": "FIT2099", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(body, "FIT2099") == {"missing_prerequisite"}
+
+    both = _post(client, [
+        {"unit_code": "ENG1003", "year": 2026, "teaching_period": S1},
+        {"unit_code": "ENG1014", "year": 2026, "teaching_period": S1},
+        {"unit_code": "FIT2099", "year": 2026, "teaching_period": S2},
+    ])
+    assert kinds(both, "FIT2099") == set(), both["issues"]
+
+
+def test_an_empty_plan_still_names_every_way_in(client, fit2099):
+    """With nothing taken, the reader needs the choice, not one arbitrary code."""
+    body = _post(client, [{"unit_code": "FIT2099", "year": 2026, "teaching_period": S1}])
+    issue = next(i for i in body["issues"] if i["kind"] == "missing_prerequisite")
+    assert set(issue["detail"]["any_of"]) >= {"FIT1045", "FIT1048", "FIT1051"}
+    # and the shape survives, so the UI can show which branch is closest
+    assert issue["detail"]["rule"]["connector"] == "OR"
+    assert len(issue["detail"]["rule"]["groups"]) == 2

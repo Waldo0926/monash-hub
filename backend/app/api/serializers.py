@@ -29,6 +29,37 @@ def _iso(value) -> str | None:
     return value.isoformat() if value else None
 
 
+def requisite_group(group, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
+    """One requisite rule, with the groups nested inside it.
+
+    The nesting carries the meaning: FIT2099 asks for one of six programming
+    units *or* an engineering pair, and rendered as a flat list of groups that
+    reads as "all of the above".
+    """
+    return {
+        "requisite_type": group.requisite_type,
+        "connector": group.connector,
+        "title": group.title,
+        "description": tr.string(group.description),
+        "items": [
+            {
+                "code": i.item_code,
+                # The Handbook's own wording, translated - not the unit's
+                # current title. A requisite record is a snapshot: FIT2102
+                # names FIT1008 as "Introduction to computer science", which
+                # is what it was called in 2019, and replacing that with
+                # today's title would put words in the Handbook's mouth.
+                "name": tr.string(i.item_name),
+                "type": i.item_type,
+                "url": i.item_url,
+                "credit_points": i.credit_points,
+            }
+            for i in group.items
+        ],
+        "groups": [requisite_group(child, tr) for child in group.children],
+    }
+
+
 def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     """The card shown in search results, on the home page and in a unit header.
 
@@ -86,31 +117,7 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
             }
             for a in unit.assessments
         ],
-        "requisites": [
-            {
-                "requisite_type": g.requisite_type,
-                "connector": g.connector,
-                "title": g.title,
-                "description": tr.string(g.description),
-                "items": [
-                    {
-                        "code": i.item_code,
-                        # The Handbook's own wording, translated - not the
-                        # unit's current title. A requisite record is a snapshot:
-                        # FIT2102 names FIT1008 as "Introduction to computer
-                        # science", which is what it was called in 2019, and
-                        # replacing that with today's title would put words in
-                        # the Handbook's mouth.
-                        "name": tr.string(i.item_name),
-                        "type": i.item_type,
-                        "url": i.item_url,
-                        "credit_points": i.credit_points,
-                    }
-                    for i in g.items
-                ],
-            }
-            for g in unit.requisite_groups
-        ],
+        "requisites": [requisite_group(g, tr) for g in unit.requisite_groups],
         "learning_outcomes": [
             {"code": o.code, "number": o.number, "description": tr.string(o.description)}
             for o in unit.learning_outcomes

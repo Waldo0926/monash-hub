@@ -137,22 +137,53 @@ def _load(db: Session, codes: list[str], academic_year: int) -> dict[str, Unit]:
         .where(Unit.unit_code.in_(codes), Unit.academic_year == academic_year)
         .options(
             selectinload(Unit.offerings),
+            # Three levels is as deep as the Handbook goes; the loader is
+            # explicit rather than lazy so a plan check stays one round trip.
             selectinload(Unit.requisite_groups).selectinload(UnitRequisiteGroup.items),
+            selectinload(Unit.requisite_groups)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.items),
+            selectinload(Unit.requisite_groups)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.children)
+            .selectinload(UnitRequisiteGroup.items),
         )
     )
     return {unit.unit_code: unit for unit in units}
 
 
-def _satisfies(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> list[str]:
-    """The codes of ``group`` that are not met by ``at``. Empty means satisfied.
+@dataclass
+class Unmet:
+    """Why a rule is not satisfied, in the shape the rule itself has."""
 
-    An OR group is satisfied by any one member, so an unsatisfied OR group
-    reports all of them - the student picks. An AND group reports only the ones
-    actually missing.
+    connector: str
+    codes: list[str] = field(default_factory=list)
+    groups: list[Unmet] = field(default_factory=list)
+
+    def flatten(self) -> list[str]:
+        """Every code named anywhere in this rule, for a one-line message."""
+        found = list(self.codes)
+        for child in self.groups:
+            found += child.flatten()
+        return list(dict.fromkeys(found))
+
+
+def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unmet | None:
+    """None when the rule is satisfied; otherwise what is still missing.
+
+    The nesting is the rule. FIT2099 asks for one of six programming units
+    *or* an engineering pair, and read as a flat list of groups that becomes
+    "all of the above" - which is what told a student holding FIT1045 that
+    they still needed two ENG units.
+
+    A group's ``connector`` says how its contents combine, where the contents
+    are its items and the groups inside it. AND needs all of them, OR needs one.
     """
     corequisite = (group.requisite_type or "").startswith("coreq")
-    met: list[str] = []
-    missing: list[str] = []
+    connector = (group.connector or "AND").upper()
+
+    met_codes: list[str] = []
+    missing_codes: list[str] = []
     for item in group.items:
         code = (item.item_code or "").upper()
         if not code:
@@ -161,13 +192,36 @@ def _satisfies(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> li
         ok = placed is not None and (
             placed.finishes_by(at) if corequisite else placed.finishes_before(at)
         )
-        (met if ok else missing).append(code)
+        (met_codes if ok else missing_codes).append(code)
 
-    if not missing:
-        return []
-    if (group.connector or "AND").upper() == "OR":
-        return [] if met else missing
-    return missing
+    satisfied_children = 0
+    unmet_children: list[Unmet] = []
+    for child in group.children:
+        result = _evaluate(child, done, at)
+        if result is None:
+            satisfied_children += 1
+        else:
+            unmet_children.append(result)
+
+    if connector == "OR":
+        # One operand is enough, and an empty group asks for nothing.
+        if met_codes or satisfied_children:
+            return None
+        if not missing_codes and not unmet_children:
+            return None
+        return Unmet("OR", missing_codes, unmet_children)
+
+    if not missing_codes and not unmet_children:
+        return None
+    return Unmet("AND", missing_codes, unmet_children)
+
+
+def _as_rule(unmet: Unmet) -> dict:
+    return {
+        "connector": unmet.connector,
+        "codes": unmet.codes,
+        "groups": [_as_rule(child) for child in unmet.groups],
+    }
 
 
 def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
@@ -235,13 +289,18 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
                 continue
             if not (kind.startswith("prereq") or kind.startswith("coreq")):
                 continue
-            missing = _satisfies(group, seen, entry.slot)
-            if missing:
+            unmet = _evaluate(group, seen, entry.slot)
+            if unmet:
                 issues.append(Issue(
                     entry.unit_code, entry.slot.year, entry.slot.period, "error",
                     "missing_corequisite" if kind.startswith("coreq") else "missing_prerequisite",
-                    {"any_of": missing if (group.connector or "AND").upper() == "OR" else [],
-                     "all_of": [] if (group.connector or "AND").upper() == "OR" else missing},
+                    {
+                        "any_of": unmet.flatten() if unmet.connector == "OR" else [],
+                        "all_of": [] if unmet.connector == "OR" else unmet.codes,
+                        # The whole shape, for a reader who needs to see which
+                        # branch of an OR they are closest to finishing.
+                        "rule": _as_rule(unmet),
+                    },
                 ))
 
     return {
