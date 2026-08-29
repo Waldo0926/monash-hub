@@ -240,6 +240,11 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
             seen[entry.unit_code] = entry.slot
 
     credit_points = 0
+    # What each unit is worth on its own, not only the total. The planner needs
+    # it to score a free elective part, which is credited with whatever units
+    # the degree does not name - and a unit the degree does not name is a unit
+    # the course endpoint knows nothing about.
+    each: dict[str, int] = {}
     for entry in entries:
         unit = units.get(entry.unit_code)
         if unit is None:
@@ -250,7 +255,9 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
         # The Handbook publishes credit points as a string, and a handful of
         # units publish something that is not a number at all.
         with suppress(TypeError, ValueError):
-            credit_points += int(unit.credit_points or 0)
+            worth = int(unit.credit_points or 0)
+            credit_points += worth
+            each[entry.unit_code] = worth
 
         if entry.unit_code in duplicates and seen[entry.unit_code] != entry.slot:
             issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
@@ -307,6 +314,7 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
         "academic_year": academic_year,
         "campus": campus,
         "credit_points": credit_points,
+        "unit_credit_points": each,
         "units": len(entries),
         "issues": [
             {

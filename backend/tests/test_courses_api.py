@@ -6,6 +6,7 @@ assertions are about the shape a reader meets rather than about invented data.
 from __future__ import annotations
 
 import pytest
+from app.api.v1.courses import _is_free_elective
 from app.handbook.course_parser import (
     aos_url,
     course_url,
@@ -163,3 +164,48 @@ def test_the_facts_map_covers_the_specialisation_units(client, degrees):
     by_code = {a["code"]: a for a in body["areas_of_study"]}
     for code in by_code["DATASCI11"]["unit_codes"]:
         assert code in body["units"], code
+
+
+# --- free elective parts ------------------------------------------------------
+#
+# A part that lists what counts and a part that counts anything are scored
+# differently by the planner, and only the API knows which is which - the
+# titles it decides from are English, and the planner may be reading Chinese.
+
+
+@pytest.mark.parametrize(
+    ("title", "description", "expected"),
+    [
+        # The Handbook's plainest form, and the one that was reported: Part E
+        # of C2001, showing 0/48 for a student who had planned twelve units.
+        ("Part E. Free elective studies", "48 credit points of free electives", True),
+        ("Part D. Free electives", "", True),
+        # No "free" in the title, but the description has the Handbook's phrase
+        # for a part with no list. 31 parts across the catalogue look like this.
+        ("Part D. Elective studies", "select any units from across the University", True),
+        # Named lists. These are satisfied only by what they name.
+        ("Part B. Specified elective studies", "from the following elective units", False),
+        ("Discipline elective studies", "the units listed below", False),
+        # Mentions the University in passing and is not an elective part at all.
+        # Without the title clause, all three of these matched.
+        ("Part A. Foundation studies", "units from across the University", False),
+        ("Rules", "you may take units from across the University", False),
+        ("Course requirements", "across the University", False),
+        (None, "across the University", False),
+    ],
+)
+def test_a_part_that_counts_anything_is_told_apart_from_one_that_lists(
+    title, description, expected
+):
+    assert _is_free_elective(title, description) is expected
+
+
+def test_the_flag_reaches_the_planner(client, degrees):
+    """It is read off every container, so a missing key would silently score
+    every free elective part as zero again."""
+    body = client.get("/api/v1/courses/C2001").json()
+    assert all("free_elective" in part for part in body["containers"])
+    part_e = next(c for c in body["containers"] if "Free elective" in (c["title"] or ""))
+    assert part_e["free_elective"] is True
+    part_a = next(c for c in body["containers"] if "Foundation" in (c["title"] or ""))
+    assert part_a["free_elective"] is False

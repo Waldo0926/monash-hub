@@ -254,3 +254,31 @@ def test_an_empty_plan_still_names_every_way_in(client, fit2099):
     # and the shape survives, so the UI can show which branch is closest
     assert issue["detail"]["rule"]["connector"] == "OR"
     assert len(issue["detail"]["rule"]["groups"]) == 2
+
+
+# --- what each unit is worth -------------------------------------------------
+
+
+def test_the_check_says_what_each_unit_is_worth(client, chain):
+    """Not only the total. The planner scores a free elective part with the
+    units the degree does not name, and those are exactly the units the course
+    endpoint carries no facts for - so without this they counted as zero and
+    "Part E. Free elective studies" read 0/48 for a full plan."""
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": S2},
+    ])
+    assert body["unit_credit_points"] == {"AAA1001": 6, "BBB2001": 6}
+    assert sum(body["unit_credit_points"].values()) == body["credit_points"]
+
+
+def test_a_unit_that_is_not_in_the_year_is_worth_nothing_rather_than_guessed(
+    client, chain
+):
+    """It is already reported as an error; inventing a number for it would put
+    credit points on the bar for a unit that does not exist."""
+    body = _post(client, [
+        {"unit_code": "ZZZ9999", "year": 2026, "teaching_period": S1},
+    ])
+    assert body["unit_credit_points"] == {}
+    assert body["credit_points"] == 0

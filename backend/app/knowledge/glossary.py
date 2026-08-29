@@ -1770,6 +1770,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "ダブルディグリー",
         "ko": "복수학위",
     },
+    # The other half of a double degree. Read as 伴侣学位 - a spouse - in the
+    # sentence that tells a student which of their units count as electives.
+    "partner degree": {
+        "zh": "另一个学位",
+        "ja": "もう一方の学位",
+        "ko": "다른 한쪽 학위",
+    },
     # --- the words on an assessment table -----------------------------------
     #
     # "Assignment 1 and Assignment 2" read 转让1和转让2 - a transfer of legal
@@ -1942,6 +1949,30 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "辅修课程",
         "ja": "副専攻科目",
         "ko": "부전공 과목",
+    },
+    # Spelled out as phrases because they are the academic sense wherever they
+    # appear, including on the guides, where bare "major" is not (see
+    # STRUCTURE_TERMS). Longest-first matching means these win over the bare
+    # words when both are in play.
+    "major or minor": {
+        "zh": "主修或辅修专业",
+        "ja": "主専攻または副専攻",
+        "ko": "주전공 또는 부전공",
+    },
+    "majors or minors": {
+        "zh": "主修或辅修专业",
+        "ja": "主専攻または副専攻",
+        "ko": "주전공 또는 부전공",
+    },
+    "minor or major": {
+        "zh": "辅修或主修专业",
+        "ja": "副専攻または主専攻",
+        "ko": "부전공 또는 주전공",
+    },
+    "extended major": {
+        "zh": "扩展主修专业",
+        "ja": "拡張主専攻",
+        "ko": "확장 주전공",
     },
     "specified studies": {
         "zh": "指定课程",
@@ -2527,19 +2558,75 @@ def _inflected(term: str) -> tuple[str, ...]:
     return (plural, term + "'s", term + "\u2019s")
 
 
-# A form that is itself a listed term keeps its own entry: "credit points" is
-# 学分 whether or not "credit point" is.
-_FORMS: dict[str, str] = {term.lower(): term for term in TERMS}
-for _term in TERMS:
-    for _form in _inflected(_term):
-        _FORMS.setdefault(_form.lower(), _term)
+# Terms that are safe to pin only in the prose describing how a degree is put
+# together - a course's parts, an area of study's rules. Everywhere else the
+# same word is usually a different word.
+#
+# "major" is the case that forced this. Measured over the live corpus:
+#
+#   * in course and container descriptions, all 105 "major and", 52 "major in",
+#     43 "major or", 40 "major at" ... are the academic sense. Every occurrence
+#     is followed by a preposition or a verb; there is not one adjective use.
+#   * in unit overviews it is the adjective almost every time - major research,
+#     major themes, major issues, major outcomes, major challenges.
+#
+# So pinning it outright would fix the course pages and break several hundred
+# unit overviews, and leaving it unpinned reads "complete a major or minor from
+# other courses" as 完成一个少校或未成年人 - an army rank and a child. The sense
+# is decided by which kind of page the sentence is on, so that is what selects
+# it. Phrases that are unambiguous everywhere ("major or minor", "extended
+# major") live in TERMS instead and apply on every page.
+STRUCTURE_TERMS: dict[str, dict[str, str]] = {
+    "major": {
+        "zh": "主修专业",
+        "ja": "主専攻",
+        "ko": "주전공",
+    },
+    "minor": {
+        "zh": "辅修专业",
+        "ja": "副専攻",
+        "ko": "부전공",
+    },
+}
 
-_SORTED = sorted(_FORMS, key=lambda t: (-len(t), t))
-_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in _SORTED) + r")(?![A-Za-z0-9])",
-    re.IGNORECASE,
-)
+#: Scope names accepted by ``protect`` and ``terms_in``.
+GENERAL = "general"
+STRUCTURE = "structure"
+
+_ALL_TERMS: dict[str, dict[str, dict[str, str]]] = {
+    GENERAL: TERMS,
+    STRUCTURE: {**TERMS, **STRUCTURE_TERMS},
+}
+
+
+def _compile(terms: dict[str, dict[str, str]]) -> tuple[dict[str, str], re.Pattern[str]]:
+    """The lookup and the matcher for one set of terms.
+
+    A form that is itself a listed term keeps its own entry: "credit points" is
+    学分 whether or not "credit point" is.
+    """
+    forms: dict[str, str] = {term.lower(): term for term in terms}
+    for term in terms:
+        for form in _inflected(term):
+            forms.setdefault(form.lower(), term)
+    ordered = sorted(forms, key=lambda t: (-len(t), t))
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in ordered) + r")(?![A-Za-z0-9])",
+        re.IGNORECASE,
+    )
+    return forms, pattern
+
+
+_COMPILED = {scope: _compile(terms) for scope, terms in _ALL_TERMS.items()}
+
+_FORMS, _PATTERN = _COMPILED[GENERAL]
 _LOOKUP = _FORMS
+
+
+def _matcher(scope: str) -> tuple[dict[str, str], re.Pattern[str], dict[str, dict[str, str]]]:
+    """The forms, pattern and terms for a scope. An unknown scope is general."""
+    forms, pattern = _COMPILED.get(scope, _COMPILED[GENERAL])
+    return forms, pattern, _ALL_TERMS.get(scope, TERMS)
 
 # Letter placeholders: the model rewrites digits (XX1XX came back as X22XX) but
 # passes an unknown capitalised token through untouched.
@@ -2749,14 +2836,18 @@ def rendered_verbatim(value: str, locale: str) -> str:
 
 
 def protect(
-    text: str, locale: str, mask: tuple[str, str] = MASKS[0]
+    text: str, locale: str, mask: tuple[str, str] = MASKS[0], *, scope: str = GENERAL
 ) -> tuple[str, list[str]]:
     """Replace every known term, date, time and code with a placeholder.
 
     Returns the masked text and the replacements, in placeholder order. The
     ``mask`` is the retry handle: the same sentence masked with a different
     token is a different problem to the model, and often an easier one.
+
+    ``scope`` picks which terms are in play - see ``STRUCTURE_TERMS`` for the
+    handful whose sense depends on the kind of page they are on.
     """
+    forms, pattern, terms = _matcher(scope)
     replacements: list[str] = []
 
     def keep(match: re.Match[str]) -> str:
@@ -2766,35 +2857,35 @@ def protect(
     text = VERBATIM.sub(keep, text)
 
     def swap(match: re.Match[str]) -> str:
-        canonical = _LOOKUP[match.group(1).lower()]
-        translated = TERMS[canonical].get(locale)
+        translated = terms[forms[match.group(1).lower()]].get(locale)
         if not translated:
             return match.group(0)
         replacements.append(translated)
         return placeholder(len(replacements) - 1, mask)
 
-    return _PATTERN.sub(swap, text), replacements
+    return pattern.sub(swap, text), replacements
 
 
-def terms_in(text: str, locale: str) -> list[tuple[str, str]]:
+def terms_in(text: str, locale: str, *, scope: str = GENERAL) -> list[tuple[str, str]]:
     """The reserved terms this string uses: (English as written, agreed wording).
 
     ``protect`` returns only the agreed side, which is all a placeholder needs.
     Repairing a translation needs the English too: to find what the model made
     of a term, you have to be able to ask it to translate that term.
     """
+    forms, pattern, terms = _matcher(scope)
     found: list[tuple[str, str]] = []
     seen: set[str] = set()
 
     def note(match: re.Match[str]) -> str:
         written = match.group(1)
-        agreed = TERMS[_LOOKUP[written.lower()]].get(locale)
+        agreed = terms[forms[written.lower()]].get(locale)
         if agreed and written.lower() not in seen:
             seen.add(written.lower())
             found.append((written, agreed))
         return match.group(0)
 
-    _PATTERN.sub(note, text)
+    pattern.sub(note, text)
     return found
 
 

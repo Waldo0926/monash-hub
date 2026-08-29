@@ -25,6 +25,7 @@ import threading
 from collections.abc import Iterable
 
 from app.knowledge.glossary import (
+    GENERAL,
     MASKS,
     has_verbatim,
     is_critical,
@@ -176,18 +177,33 @@ _CURLY = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 class Translator:
     """One loaded model per language, translating with the glossary in front."""
 
-    def __init__(self, locale: str) -> None:
+    #: Which glossary scope the strings being translated belong to. A class
+    #: attribute so an instance built without ``__init__`` - the tests do that
+    #: to avoid loading a model - still has one.
+    scope: str = GENERAL
+
+    def __init__(self, locale: str, scope: str = GENERAL) -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
         self.locale = locale
-        self._cache: dict[str, str] = {}
+        # One cache per scope. The same English sentence is allowed to have two
+        # renderings - "complete the major" means one thing in a degree's
+        # structure and another in a unit's overview - so they must not share
+        # an entry.
+        self._caches: dict[str, dict[str, str]] = {}
         self._renderings: dict[str, str] = {}
         self._lock = threading.Lock()
+        self.use_scope(scope)
         self._translate = _load_model(locale)
+
+    def use_scope(self, scope: str) -> None:
+        """Translate the strings that follow as ``scope`` (see the glossary)."""
+        self.scope = scope
+        self._cache: dict[str, str] = self._caches.setdefault(scope, {})
 
     @property
     def cached(self) -> int:
-        return len(self._cache)
+        return sum(len(cache) for cache in self._caches.values())
 
     def text(self, source: str | None) -> str | None:
         """Translate one string. Returns ``None`` for nothing worth translating."""
@@ -212,7 +228,7 @@ class Translator:
             self._cache[source] = agreed
             return agreed
 
-        masked, terms = protect(source, self.locale)
+        masked, terms = protect(source, self.locale, scope=self.scope)
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
             # a campus name, an assessment type. Nothing for the model to do,
@@ -303,7 +319,7 @@ class Translator:
         Returns the translation, the replacements and the mask that survived.
         """
         for mask in MASKS:
-            masked, terms = protect(source, self.locale, mask)
+            masked, terms = protect(source, self.locale, mask, scope=self.scope)
             translated = self._ask(masked)
             if not placeholders_survived(translated, len(terms), mask):
                 log.debug("mask %s was rewritten: %s", mask[0], source[:60])
@@ -340,7 +356,7 @@ class Translator:
         # one word this glossary exists to keep out - reached a live page.
         unclaimed = plain
         for written, agreed in sorted(
-            terms_in(source, self.locale), key=lambda pair: -len(pair[1])
+            terms_in(source, self.locale, scope=self.scope), key=lambda pair: -len(pair[1])
         ):
             if agreed in unclaimed:
                 # Every occurrence, not the first: "course" is written three
