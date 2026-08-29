@@ -40,10 +40,15 @@ _ALTERNATION = "|".join(
 )
 _SHAPE = re.compile(rf"^(?P<qualifier>{_ALTERNATION})\s+(?P<topic>.+)$", re.IGNORECASE)
 
-# A topic carrying its own punctuation is a title with a structure of its own -
-# "Introduction to X: theory and practice" - and appending the qualifier to the
-# end of all of it would attach it to the subtitle instead of the subject.
-_HAS_STRUCTURE = re.compile(r"[:;,]|\band\b")
+# A colon introduces a subtitle - "Introduction to X: theory and practice" -
+# where the subject is only the part before it; appending the qualifier to the
+# end of the whole thing would attach it to the subtitle instead.
+#
+# A conjunction or a comma is *not* that. "Introduction to the history and
+# theory of art" has one subject that happens to be a list, and 艺术的历史和理论导论
+# is right. Excluding those too was over-cautious and left ten titles reading
+# 导论对艺术的历史和理论 and 基础 of 解剖学和生理学.
+_HAS_STRUCTURE = re.compile(r"[:;]")
 
 
 def compose(title: str, locale: str, translate) -> str | None:
