@@ -20,6 +20,8 @@ KNOWN = {
     "Information Technology": "信息技术",
     "Global Studies": "全球研究",
     "Actuarial Studies": "精算研究",
+    "Global Business": "全球商业",
+    "Regulation and Compliance": "监管与合规",
 }
 
 
@@ -107,3 +109,21 @@ def test_every_award_and_qualifier_is_written_in_every_locale(locale):
 
 def test_an_unsupported_locale_gets_nothing():
     assert compose("Bachelor of Science", "fr", tr) is None
+
+
+def test_a_double_degree_whose_second_subject_contains_and():
+    """Split at one "and", not at every one. B6044 is two degrees, the second
+    being "Regulation and Compliance". Cutting at every "and" made three
+    fragments that paired up with nothing, so the whole string fell through to
+    the single-degree path and its subject - award word included - went to the
+    translator: 全球商业和监管与合规大师硕士, a guru in front of a master."""
+    assert compose(
+        "Master of Global Business and Master of Regulation and Compliance", "zh", tr
+    ) == "全球商业硕士与监管与合规硕士"
+
+
+def test_the_split_is_not_taken_when_the_right_half_is_not_a_degree():
+    """Still one degree, even though the subject has an "and" in it."""
+    assert compose("Bachelor of Arts and Social Sciences", "zh", lambda s: "文学与社会科学") == (
+        "文学与社会科学学士"
+    )

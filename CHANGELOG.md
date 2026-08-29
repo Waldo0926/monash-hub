@@ -6,6 +6,14 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Unit titles whose subject is a list ("Introduction to the history and theory
+  of art") are reordered too. Only a subtitle after a colon is left alone now;
+  skipping every title with an "and" in it had left ten reading 导论对艺术的历史和理论.
+- A double degree whose second subject contains "and" is split correctly.
+  *Master of Global Business and Master of Regulation and Compliance* had been
+  cut at every "and", so nothing paired up and the whole name went to the
+  translator as one subject - producing 大师 in front of 硕士.
+
 - Degree and unit names are now composed rather than translated whole. English
   names a qualification front-to-back and Chinese back-to-front, and a general
   translator handled the words without the order: *Bachelor of Science* had lost

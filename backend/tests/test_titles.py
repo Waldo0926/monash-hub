@@ -40,15 +40,29 @@ def test_the_qualifier_goes_last(english, chinese):
     assert compose(english, "zh", tr) == chinese
 
 
-def test_a_title_with_a_structure_of_its_own_is_left_alone():
-    """Appending the qualifier to the end of a subtitle would attach it to the
-    wrong half: "X：理论与实践导论" introduces the practice, not the subject."""
+def test_a_subtitle_after_a_colon_is_left_alone():
+    """There the subject is only the part before the colon, and putting the
+    qualifier at the very end would attach it to the subtitle: "X：理论与实践导论"
+    introduces the practice, not the subject."""
     for name in (
         "Introduction to anatomy: theory and practice",
-        "Introduction to law and society",
-        "Foundations of computing, networks and data",
+        "Foundations of computing; an overview",
     ):
         assert compose(name, "zh", tr) is None, name
+
+
+def test_a_subject_that_is_a_list_is_still_one_subject():
+    """A conjunction is not a subtitle. Excluding these left ten titles on the
+    live site reading 导论对艺术的历史和理论 and 基础 of 解剖学和生理学."""
+    cases = {
+        "Introduction to the history and theory of art": ("艺术的历史和理论", "艺术的历史和理论导论"),
+        "Introduction to computer systems, networks and security": (
+            "计算机系统、网络和安全", "计算机系统、网络和安全导论",
+        ),
+        "Fundamentals of cancer and its management": ("癌症及其管理", "癌症及其管理基础"),
+    }
+    for english, (topic, expected) in cases.items():
+        assert compose(english, "zh", lambda _s, t=topic: t) == expected
 
 
 def test_a_topic_the_pipeline_cannot_translate_is_left_alone():
