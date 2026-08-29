@@ -35,7 +35,10 @@ const { data: answer } = await useAsyncData<any>(
       body: { query: q }
     }).catch(() => null)
   },
-  { watch: [() => route.query.q] }
+  // A locale switch must re-run the answer request too. The grouped search
+  // results already do this through useLocalisedApiFetch; without this watch,
+  // the answer card kept the previous language until the query changed.
+  { watch: [() => route.query.q, locale] }
 )
 
 watch(() => route.query.q, q => { query.value = (q as string) || '' }, { immediate: true })
