@@ -6,6 +6,11 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- A double degree whose second subject contains "and" is split correctly.
+  *Master of Global Business and Master of Regulation and Compliance* had been
+  cut at every "and", so nothing paired up and the whole name went to the
+  translator as one subject - producing 大师 in front of 硕士.
+
 - Degree and unit names are now composed rather than translated whole. English
   names a qualification front-to-back and Chinese back-to-front, and a general
   translator handled the words without the order: *Bachelor of Science* had lost

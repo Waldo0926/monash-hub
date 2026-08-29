@@ -214,12 +214,23 @@ def compose(title: str, locale: str, translate) -> str | None:
 
 
 def _as_double(title: str) -> list[str] | None:
-    """The halves of a double degree, or ``None`` if it is a single one."""
-    parts = re.split(r"\s+and\s+", title)
-    if len(parts) < 2:
-        return None
-    if all(_SHAPE.match(part.strip()) for part in parts):
-        return [part.strip() for part in parts]
+    """The two halves of a double degree, or ``None`` if it is a single one.
+
+    Split at one "and", not at every one. A subject can contain the word:
+    *Master of Global Business and Master of Regulation and Compliance* is two
+    degrees, the second of which is "Regulation and Compliance". Cutting at
+    every "and" produced three fragments, none of which paired up, so the whole
+    string fell through to the single-degree path and its subject - award word
+    and all - went to the translator, which is how 大师 ended up in front of
+    硕士.
+
+    The first cut where both sides are themselves degree names wins. The right
+    half is composed recursively, so a genuine triple degree still comes apart.
+    """
+    for cut in re.finditer(r"\s+and\s+", title):
+        left, right = title[: cut.start()].strip(), title[cut.end() :].strip()
+        if left and right and _SHAPE.match(left) and _SHAPE.match(right):
+            return [left, right]
     return None
 
 
