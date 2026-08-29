@@ -11,6 +11,10 @@
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
 const query = ref('')
+const sectionItems = useSectionNavigation()
+const secondaryItems = computed(() => sectionItems.value.filter(item =>
+  !['/units', '/guides', '/community'].includes(item.to)
+))
 
 const { data: units } = await useLocalisedApiFetch<any>('/v1/units?limit=8&sort=code')
 const { data: guides } = await useLocalisedApiFetch<any>('/v1/guides?limit=8')
@@ -64,6 +68,22 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         <h2>{{ $t('home.entryCommunity') }}</h2>
         <p class="small muted">{{ $t('home.entryCommunityHint') }}</p>
       </NuxtLink>
+    </section>
+
+    <section class="quick-section" aria-labelledby="quick-section-title">
+      <h2 id="quick-section-title">{{ $t('home.moreTools') }}</h2>
+      <div class="quick-grid">
+        <NuxtLink
+          v-for="item in secondaryItems"
+          :key="item.to"
+          :to="item.to"
+          class="quick-link"
+        >
+          <span class="quick-icon" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+          <span class="quick-arrow" aria-hidden="true">›</span>
+        </NuxtLink>
+      </div>
     </section>
 
     <section class="block">
@@ -125,6 +145,45 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
 .notifications { margin-bottom: var(--s6); }
 
+.quick-section { margin-bottom: var(--s6); }
+.quick-section h2 { margin-bottom: var(--s3); font-size: 1.25rem; }
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s3);
+}
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-weight: 650;
+}
+.quick-link:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+}
+.quick-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--blue-50);
+  color: var(--blue-700);
+  font-weight: 800;
+}
+.quick-arrow { margin-left: auto; color: var(--muted); font-size: 1.35rem; }
+
 .entries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); margin-bottom: var(--s7); }
 .entry { padding: var(--s5); color: inherit; }
 .entry:hover { text-decoration: none; border-color: var(--border-strong); box-shadow: var(--shadow); }
@@ -153,5 +212,12 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
 @media (max-width: 900px) {
   .entries { grid-template-columns: 1fr; }
+  .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-link { padding: var(--s3); }
+}
+
+@media (max-width: 360px) {
+  .quick-link { gap: var(--s2); font-size: 0.9rem; }
+  .quick-arrow { display: none; }
 }
 </style>
