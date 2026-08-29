@@ -105,6 +105,11 @@ DISCIPLINES: dict[str, dict[str, str]] = {
     "Journalism": {"zh": "新闻学", "ja": "ジャーナリズム", "ko": "저널리즘"},
     "Management": {"zh": "管理学", "ja": "経営管理", "ko": "경영관리"},
     "Marketing": {"zh": "市场营销", "ja": "マーケティング", "ko": "마케팅"},
+    "Architectural Studies": {"zh": "建筑学", "ja": "建築学", "ko": "건축학"},
+    "Architectural Design": {"zh": "建筑设计", "ja": "建築デザイン", "ko": "건축디자인"},
+    "Regulation and Compliance": {
+        "zh": "监管与合规", "ja": "規制とコンプライアンス", "ko": "규제와 컴플라이언스",
+    },
 }
 
 # Qualifiers that trail a degree name in brackets.
@@ -135,6 +140,16 @@ _TOO_COMPLEX = re.compile(r"\bwith\b|[-–—]|/")
 
 # What joins the two halves of a double degree.
 JOINERS = {"zh": "与", "ja": "および", "ko": " 및 "}
+
+
+# A translator sometimes ends a fragment as though it were a sentence. Composing
+# then puts the award after the full stop: "Architectural Studies" came back as
+# 建筑研究。 and the degree read 建筑研究。学士.
+_TRAILING_STOP = re.compile(r"[。．.，,、；;：:\s]+$")
+
+
+def _tidy(rendered: str) -> str:
+    return _TRAILING_STOP.sub("", rendered.strip())
 
 
 def _lookup(table: dict[str, dict[str, str]], written: str, locale: str) -> str | None:
@@ -205,7 +220,9 @@ def compose(title: str, locale: str, translate) -> str | None:
         # ordinary path instead.
         if not rendered or rendered.strip() == rest:
             return None
-        discipline = rendered.strip()
+        discipline = _tidy(rendered)
+        if not discipline:
+            return None
 
     composed = f"{discipline}{award}"
     for qualifier in qualifiers:
