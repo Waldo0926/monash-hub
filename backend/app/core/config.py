@@ -62,6 +62,17 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
 
+    # --- Sign in with Google ------------------------------------------------
+    # Both blank means the button is not offered and the endpoints answer 503,
+    # so a deployment without credentials is a deployment without the feature
+    # rather than a deployment with a broken button.
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    # Only needed when the callback is not at site_url + api_prefix; it has to
+    # match what is registered in the Google console character for character.
+    google_redirect_uri: str = ""
+    google_timeout_seconds: int = 10
+
     # --- Avatars ------------------------------------------------------------
     # Written by the API, served by nginx straight off disk - a request for a
     # profile picture should not wake Python up. The directory is a mounted

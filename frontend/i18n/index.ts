@@ -35,6 +35,20 @@ export const DEFAULT_LOCALE: LocaleCode = 'en'
 type Messages = Record<string, string>
 
 const en: Messages = {
+  // --- signing in with Google ---------------------------------------------
+  'auth.google.button': 'Continue with Google',
+  'auth.google.redirecting': 'Taking you to Google…',
+  'auth.google.or': 'or',
+  'auth.google.finishing': 'Signing you in…',
+  'auth.google.failedTitle': 'That did not finish',
+  'auth.google.failedBody': 'The sign-in did not complete. Try again, or use your email and password.',
+  'auth.google.unavailable': 'Google sign-in is not available right now.',
+  'auth.google.error.cancelled': 'Google sign-in was cancelled.',
+  'auth.google.error.unverified': 'Google has not verified that address, so it cannot be used to sign in here.',
+  'auth.google.error.suspended': 'That account is suspended.',
+  'auth.google.error.unavailable': 'Google sign-in is not available right now.',
+  'auth.google.error.failed': 'The Google sign-in did not complete. Try again.',
+
   // --- your own profile ---------------------------------------------------
   'profile.metaTitle': 'Your profile — Monash Hub',
   'profile.title': 'Your profile',
@@ -627,6 +641,20 @@ const en: Messages = {
 }
 
 const zh: Messages = {
+  // --- signing in with Google ---------------------------------------------
+  'auth.google.button': '使用 Google 账号继续',
+  'auth.google.redirecting': '正在跳转到 Google…',
+  'auth.google.or': '或',
+  'auth.google.finishing': '正在登录…',
+  'auth.google.failedTitle': '这次没能完成',
+  'auth.google.failedBody': '登录没有走完。可以再试一次，或者用邮箱和密码登录。',
+  'auth.google.unavailable': 'Google 登录暂时不可用。',
+  'auth.google.error.cancelled': '你取消了 Google 登录。',
+  'auth.google.error.unverified': 'Google 没有验证过这个邮箱，所以不能用它登录这里。',
+  'auth.google.error.suspended': '这个账号已被停用。',
+  'auth.google.error.unavailable': 'Google 登录暂时不可用。',
+  'auth.google.error.failed': 'Google 登录没有完成，请再试一次。',
+
   // --- your own profile ---------------------------------------------------
   'profile.metaTitle': '个人资料 — Monash Hub',
   'profile.title': '个人资料',
@@ -1180,6 +1208,20 @@ const zh: Messages = {
 }
 
 const ja: Messages = {
+  // --- signing in with Google ---------------------------------------------
+  'auth.google.button': 'Google アカウントで続行',
+  'auth.google.redirecting': 'Google に移動しています…',
+  'auth.google.or': 'または',
+  'auth.google.finishing': 'ログインしています…',
+  'auth.google.failedTitle': '完了できませんでした',
+  'auth.google.failedBody': 'ログインが完了しませんでした。もう一度試すか、メールアドレスとパスワードをお使いください。',
+  'auth.google.unavailable': 'Google ログインは現在利用できません。',
+  'auth.google.error.cancelled': 'Google ログインをキャンセルしました。',
+  'auth.google.error.unverified': 'Google がそのアドレスを確認していないため、ここでのログインには使えません。',
+  'auth.google.error.suspended': 'このアカウントは停止されています。',
+  'auth.google.error.unavailable': 'Google ログインは現在利用できません。',
+  'auth.google.error.failed': 'Google ログインが完了しませんでした。もう一度お試しください。',
+
   // --- your own profile ---------------------------------------------------
   'profile.metaTitle': 'プロフィール — Monash Hub',
   'profile.title': 'プロフィール',
@@ -1749,6 +1791,20 @@ const ja: Messages = {
 }
 
 const ko: Messages = {
+  // --- signing in with Google ---------------------------------------------
+  'auth.google.button': 'Google 계정으로 계속하기',
+  'auth.google.redirecting': 'Google로 이동 중…',
+  'auth.google.or': '또는',
+  'auth.google.finishing': '로그인 중…',
+  'auth.google.failedTitle': '완료하지 못했습니다',
+  'auth.google.failedBody': '로그인이 끝나지 않았습니다. 다시 시도하거나 이메일과 비밀번호로 로그인하세요.',
+  'auth.google.unavailable': 'Google 로그인을 지금은 사용할 수 없습니다.',
+  'auth.google.error.cancelled': 'Google 로그인을 취소했습니다.',
+  'auth.google.error.unverified': 'Google이 해당 주소를 확인하지 않아 여기서 로그인에 쓸 수 없습니다.',
+  'auth.google.error.suspended': '이 계정은 정지되었습니다.',
+  'auth.google.error.unavailable': 'Google 로그인을 지금은 사용할 수 없습니다.',
+  'auth.google.error.failed': 'Google 로그인이 완료되지 않았습니다. 다시 시도하세요.',
+
   // --- your own profile ---------------------------------------------------
   'profile.metaTitle': '내 프로필 — Monash Hub',
   'profile.title': '내 프로필',
