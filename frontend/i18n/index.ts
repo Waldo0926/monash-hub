@@ -87,7 +87,7 @@ const en: Messages = {
   'nav.mamo': 'MUM Guide',
   // --- unit tree ----------------------------------------------------------
   'nav.tree': 'Unit tree',
-  'nav.marks': 'WAM / GPA',
+  'nav.marks': 'WAM/GPA calculator',
 
   // --- WAM and GPA calculator ---------------------------------------------
   'marks.metaTitle': 'WAM and GPA calculator — Monash Hub',
@@ -678,7 +678,7 @@ const zh: Messages = {
   'nav.mamo': '马莫百科',
   // --- 先修图 -------------------------------------------------------------
   'nav.tree': '先修图',
-  'nav.marks': 'WAM / GPA',
+  'nav.marks': 'WAM/GPA 计算',
 
   // --- WAM and GPA calculator ---------------------------------------------
   'marks.metaTitle': 'WAM / GPA 计算器 — Monash Hub',
@@ -1231,7 +1231,7 @@ const ja: Messages = {
   'nav.mamo': '馬莫百科',
   // --- 履修条件マップ -----------------------------------------------------
   'nav.tree': '履修条件マップ',
-  'nav.marks': 'WAM / GPA',
+  'nav.marks': 'WAM/GPA 計算',
 
   // --- WAM and GPA calculator ---------------------------------------------
   'marks.metaTitle': 'WAM / GPA 計算ツール — Monash Hub',
@@ -1800,7 +1800,7 @@ const ko: Messages = {
   'nav.mamo': '마모 백과',
   // --- 선수과목 지도 ------------------------------------------------------
   'nav.tree': '선수과목 지도',
-  'nav.marks': 'WAM / GPA',
+  'nav.marks': 'WAM/GPA 계산',
 
   // --- WAM and GPA calculator ---------------------------------------------
   'marks.metaTitle': 'WAM / GPA 계산기 — Monash Hub',

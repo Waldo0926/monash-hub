@@ -35,9 +35,9 @@ function search(value: string) {
 
 <template>
   <header class="header">
-    <div class="container inner">
+    <div class="inner">
       <NuxtLink to="/" class="brand">
-        <span class="brand-mark">MH</span>
+        <AppLogo :size="34" tone="onDark" />
         <span class="brand-text">Monash Hub</span>
       </NuxtLink>
 
@@ -82,35 +82,43 @@ function search(value: string) {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--navy);
+  background: var(--brand);
   color: var(--text-inverse);
 }
+/* Full width rather than the page container: the brand belongs against the left
+   edge and the account against the right, and a centred 1220px box leaves both
+   of them floating in the middle of a wide screen. */
 .inner {
   display: flex;
   align-items: center;
   gap: var(--s4);
   min-height: var(--header-h);
+  padding: 0 var(--s5);
 }
-.brand { display: flex; align-items: center; gap: var(--s2); color: var(--text-inverse); font-weight: 700; }
+.brand {
+  display: flex; align-items: center; gap: var(--s3);
+  color: var(--text-inverse); font-weight: 700; flex: none;
+  letter-spacing: -0.01em;
+}
 .brand:hover { text-decoration: none; }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 32px; height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--blue);
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
+
+/* Natural width, sitting with the brand. The elastic space belongs to the
+   search box, which is the thing that benefits from being wider. */
+.nav { display: flex; flex: none; gap: var(--s4); }
+.nav-link {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
 }
-/* The navigation takes the space between the brand and the search rather than
-   sitting in a clump against the brand with a hole after it. `space-evenly`
-   rather than `space-between` so the first link does not end up flush against
-   the wordmark. */
-.nav { display: flex; flex: 1; justify-content: space-evenly; gap: var(--s3); }
-.nav-link { color: rgba(255, 255, 255, 0.88); font-size: 0.95rem; white-space: nowrap; }
-.nav-link:hover, .router-link-active { color: #fff; }
-.header-search { flex: 1; max-width: 420px; }
-.account { display: flex; align-items: center; gap: var(--s2); }
+.nav-link:hover { color: #fff; text-decoration: none; }
+.nav .router-link-active { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.75); }
+
+/* Takes every pixel left between the navigation and the account block, which
+   pushes the account hard against the right edge. */
+.header-search { flex: 1; min-width: 200px; max-width: 620px; margin-left: auto; }
+.account { display: flex; align-items: center; gap: var(--s2); flex: none; }
 
 .bell {
   position: relative;

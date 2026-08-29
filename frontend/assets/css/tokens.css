@@ -5,17 +5,35 @@
  * and never hard-code a hex value, so the palette can move without a hunt
  * through the templates.
  *
- * The palette is deliberately Monash Hub's own. It does not reuse the
- * university's brand: this is an independent student platform and it should
- * never look like an official Monash site.
+ * The palette follows the university's blue and white, at the owner's decision
+ * on 29 Aug 2026. It used to be deliberately unrelated, on the reasoning that an
+ * independent platform should not look like an official one.
+ *
+ * That reasoning has not gone away - it has moved. What now carries the
+ * distinction is the mark and the wording: components/AppLogo.vue is a branching
+ * path rather than a crest or a monogram, and the footer says in the first line
+ * that this is not Monash. A student glancing at a tab still has to be able to
+ * tell the difference; the colour is no longer what tells them, so those two
+ * things are not decoration and should not be quietly dropped.
  */
 :root {
-  /* Brand */
+  /* Brand.
+     --brand is the university's own blue, sampled from monash.edu.my rather
+     than guessed. --navy stays for the places that were already using it. */
+  --brand: #006dae;
+  --brand-700: #00588b;
   --navy: #17365d;
   --navy-700: #102845;
   --blue: #2563eb;
   --blue-700: #1d4ed8;
   --blue-50: #eff6ff;
+
+  /* The footer is the university's near-black rather than the page's own dark
+     blue: it closes the page the way the official site does, and a black band
+     under a blue header is what makes the whole thing read as blue-and-white. */
+  --footer-bg: #111111;
+  --footer-text: #d2d2d2;
+  --footer-heading: #ffffff;
 
   /* Surfaces */
   --bg: #f8fafc;
