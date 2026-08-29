@@ -10,7 +10,7 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
     <div class="container inner">
       <div class="about">
         <p class="brand">
-          <span class="brand-mark" aria-hidden="true">MH</span>
+          <AppLogo :size="32" tone="onDark" :tile="false" />
           <span>
             <strong>Monash Hub</strong>
             <span class="tiny muted block">{{ $t('footer.about') }}</span>
@@ -80,11 +80,14 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
  * footer visibly empty. Putting the navigation beside it means the measure stays
  * comfortable and the space is actually used.
  */
+/* Near-black, the way the official site closes a page. A dark band under a blue
+   header is what makes the whole thing read as blue and white rather than as a
+   blue strip on a grey page. */
 .footer {
   margin-top: var(--s8);
   padding: var(--s6) 0 var(--s7);
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--footer-bg);
+  color: var(--footer-text);
 }
 .inner {
   display: grid;
@@ -99,17 +102,6 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 }
 
 .brand { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--navy);
-  color: var(--text-inverse);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
 .block { display: block; }
 .disclaimer { margin: 0; color: var(--muted); }
 
@@ -134,4 +126,14 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 @media (max-width: 980px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
 }
+/* The footer is the one dark region on a light page, so every rule that names a
+   colour has to be restated here - inherited .muted and link colours are chosen
+   against white and disappear on near-black. */
+.footer :deep(h2),
+.footer :deep(.foot-heading) { color: var(--footer-heading); }
+.footer :deep(a) { color: #dbeafe; }
+.footer :deep(a:hover) { color: #fff; }
+.footer :deep(.muted),
+.disclaimer { color: var(--footer-text); }
+.footer :deep(.brand-name) { color: var(--footer-heading); }
 </style>

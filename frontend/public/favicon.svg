@@ -1,4 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Monash Hub">
-  <rect width="64" height="64" rx="14" fill="#17365D"/>
-  <path d="M14 46V18h7l11 16 11-16h7v28h-7V30l-8 12h-6l-8-12v16z" fill="#fff"/>
+  <!-- A branching path: one node opening into two, which is what the unit tree
+       and the planner are for. Deliberately not a crest, a monogram or an M -
+       the palette follows the university's blue, so the mark is what has to
+       tell a tab apart from an official Monash page. -->
+  <rect width="64" height="64" rx="15" fill="#006dae"/>
+  <g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 44 L32 32"/>
+    <path d="M32 32 L44 20"/>
+    <path d="M32 32 L44 44"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="20" cy="44" r="6.5"/>
+    <circle cx="44" cy="20" r="5"/>
+    <circle cx="44" cy="44" r="5"/>
+  </g>
 </svg>
