@@ -127,3 +127,39 @@ def test_the_filters_come_from_the_data(client, degrees):
     body = client.get("/api/v1/courses/filters").json()
     assert "Malaysia" in body["campuses"]
     assert "UG specialist" in body["course_types"]
+
+
+# --- a part that asks for a specialisation --------------------------------
+#
+# "Part C. Specialist studies" reported 0/36 for a student who had planned the
+# whole specialisation. The part does not list units at all - it lists the four
+# specialisations on offer - and a plan holds unit codes, so nothing downstream
+# could ever match FIT2102 against ALGSFTWR01.
+
+def test_a_specialisation_carries_the_units_inside_it(client, degrees):
+    body = client.get("/api/v1/courses/C2001").json()
+    by_code = {a["code"]: a for a in body["areas_of_study"]}
+    assert "DATASCI11" in by_code, "the specialisation Part C names must be listed"
+
+    codes = by_code["DATASCI11"]["unit_codes"]
+    assert codes, "without this the part it satisfies can never be credited"
+    assert all(code.isalnum() for code in codes)
+
+
+def test_part_c_names_specialisations_not_units(client, degrees):
+    """The shape that caused the bug, pinned so a refactor cannot quietly undo
+    the fix by changing what Part C contains."""
+    body = client.get("/api/v1/courses/C2001").json()
+    part_c = next(c for c in body["containers"] if "Specialist" in (c["title"] or ""))
+    kinds = {item["type"] for item in part_c["items"]}
+    assert kinds == {"specialisation"}
+    assert "unit" not in kinds
+
+
+def test_the_facts_map_covers_the_specialisation_units(client, degrees):
+    """A planned unit with no entry here contributes zero credit points, which
+    is the same wrong answer by a different route."""
+    body = client.get("/api/v1/courses/C2001").json()
+    by_code = {a["code"]: a for a in body["areas_of_study"]}
+    for code in by_code["DATASCI11"]["unit_codes"]:
+        assert code in body["units"], code

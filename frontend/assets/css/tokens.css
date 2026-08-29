@@ -88,5 +88,9 @@
 :root:lang(ja),
 :root:lang(ko) {
   --measure: 44em;
-  --measure-lede: 58em;
+  /* 66em because the longest intro on the site - the one on /tree - is 65
+     Chinese characters, and a one-line caption under a heading should not wrap
+     with a third of the card still empty. Body prose keeps the narrower
+     --measure: this is a caption measure, not a reading measure. */
+  --measure-lede: 66em;
 }

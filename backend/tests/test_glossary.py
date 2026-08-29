@@ -65,6 +65,42 @@ def test_a_grade_name_is_a_whole_value_and_not_a_word_in_a_sentence():
         assert restore(masked, kept) == sentence
 
 
+def test_the_plural_of_a_computing_term_is_still_that_term():
+    """Chinese does not inflect for number, so masking the plural is right."""
+    masked, kept = protect("computer architectures and paradigms", "zh")
+    assert "计算机体系结构" in restore(masked, kept)
+
+
+def test_architecture_is_a_building_or_a_machine_depending_on_the_unit():
+    """Both readings are right somewhere in this Handbook.
+
+    ARC1002 really is about buildings; FIT3159 is not, and was published as
+    电脑建筑学 - a degree in computer buildings. Bare "architecture" is left
+    alone because pinning it would break every ARC unit; the computing senses
+    are pinned as whole phrases, which longest-match-first resolves.
+    """
+    for source, expected in (
+        ("Computer architecture", "计算机体系结构"),
+        ("Software architecture", "软件架构"),
+        ("Network architecture", "网络架构"),
+    ):
+        masked, kept = protect(source, "zh")
+        assert restore(masked, kept) == expected, source
+
+    # And the building sense survives untouched.
+    for source in ("Architecture design studio 4", "Renaissance art and architecture"):
+        masked, kept = protect(source, "zh")
+        assert "建筑" in restore(masked, kept), source
+
+
+def test_the_longer_architecture_phrase_wins():
+    """Otherwise "computer" and "architecture" are protected separately and the
+    computing sense never fires."""
+    _masked, terms = protect("Computer architecture and networks", "zh")
+    assert "计算机体系结构" in terms
+    assert "建筑学" not in terms
+
+
 def test_an_email_address_never_reaches_the_translator():
     """servicedesk@Monash.edu was published as 服务台@Monash.edu."""
     masked, kept = protect("email servicedesk@Monash.edu with CUP merge", "zh")
@@ -304,15 +340,19 @@ def test_the_plural_rules_do_not_invent_matches():
     """"unites" is not the plural of "unit", and a loose ``e?s`` said it was.
 
     The ambiguous plurals are the other half: "reactive intermediates" is not
-    中级 and "computer architectures" is not 建筑学, so those terms stay
-    singular-only and the model reads the plural from context.
+    中级, so those terms stay singular-only and the model reads the plural from
+    context.
+
+    "computer architectures" used to be in this list for the same reason - the
+    only term was a bare "architecture" rendering 建筑学, so masking the plural
+    made it a building. Now that the computing sense is its own term the plural
+    is correct to mask, and it is asserted below instead.
     """
     from app.knowledge.glossary import MASKS, protect
 
     for phrase, forbidden in (
         ("the unit unites two disciplines", "unites"),
         ("reactive intermediates and stereochemistry", "intermediates"),
-        ("computer architectures and paradigms", "architectures"),
         ("the pathologies driving it forward", "pathologies"),
         ("modern trade theory and its extensions", "extensions"),
     ):

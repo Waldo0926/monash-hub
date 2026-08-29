@@ -178,24 +178,69 @@ const { data: courseList } = await useApiFetch<any>(
 
 const planned = computed(() => new Set(plan.value.entries.map((e) => e.unit_code)))
 
-/** Credit points planned against each top-level requirement group. */
+const AOS_TYPES = ['specialisation', 'major', 'minor']
+
+/**
+ * Credit points planned against each top-level requirement group.
+ *
+ * Two kinds of requirement, and conflating them is what made "Part C.
+ * Specialist studies" read 0/36 for a student who had planned the whole thing.
+ *
+ * Most parts list **units**, and those are simply matched against the plan.
+ * Part C lists **specialisations** - four of them, each 36 points, of which the
+ * student does one. So its units cannot be summed: adding all four would report
+ * 144/36. The part is credited with its best-matching specialisation instead,
+ * and the matched one is named, because "36/36 via Algorithms and software"
+ * tells the student something "36/36" does not.
+ */
 const progress = computed(() => {
   if (!course.value?.containers) return []
   const facts = course.value.units || {}
-  const walk = (node: any): string[] => [
+  const aosUnits = new Map<string, string[]>(
+    (course.value.areas_of_study || []).map((a: any) => [a.code, a.unit_codes || []])
+  )
+  const aosTitle = new Map<string, string>(
+    (course.value.areas_of_study || []).map((a: any) => [a.code, a.title])
+  )
+
+  const unitsIn = (node: any): string[] => [
     ...(node.items || []).filter((i: any) => i.type === 'unit').map((i: any) => i.code),
-    ...(node.containers || []).flatMap(walk)
+    ...(node.containers || []).flatMap(unitsIn)
   ]
-  return course.value.containers.map((node: any) => {
-    const codes = walk(node)
+  const choicesIn = (node: any): string[] => [
+    ...(node.items || [])
+      .filter((i: any) => AOS_TYPES.includes(i.type))
+      .map((i: any) => i.code),
+    ...(node.containers || []).flatMap(choicesIn)
+  ]
+  const score = (codes: string[]) => {
     const done = codes.filter((c) => planned.value.has(c))
-    const points = done.reduce((sum, c) => sum + Number(facts[c]?.credit_points || 0), 0)
     return {
-      title: node.title,
-      required: node.credit_points,
-      planned: points,
-      count: done.length
+      count: done.length,
+      points: done.reduce((sum, c) => sum + Number(facts[c]?.credit_points || 0), 0)
     }
+  }
+
+  return course.value.containers.map((node: any) => {
+    const direct = score(unitsIn(node))
+    let points = direct.points
+    let count = direct.count
+    let via: string | null = null
+
+    const choices = choicesIn(node)
+    if (choices.length) {
+      let best = { points: 0, count: 0, code: '' }
+      for (const code of choices) {
+        const scored = score(aosUnits.get(code) || [])
+        if (scored.points > best.points) best = { ...scored, code }
+      }
+      points += best.points
+      count += best.count
+      // Only worth naming once the student has actually started one.
+      if (best.code && best.points > 0) via = aosTitle.get(best.code) || best.code
+    }
+
+    return { title: node.title, required: node.credit_points, planned: points, count, via }
   })
 })
 
@@ -430,6 +475,10 @@ useHead({ title: $t('plan.title') })
                   :style="{ width: `${row.required ? Math.min(100, (row.planned / row.required) * 100) : 0}%` }"
                 />
               </div>
+              <!-- Which specialisation the points came from. A part that asks
+                   for one of four is answered by naming the one, not by a
+                   number that could have come from any of them. -->
+              <p v-if="row.via" class="tiny muted via">{{ $t('plan.via', { name: row.via }) }}</p>
             </li>
           </ul>
         </section>
@@ -561,6 +610,7 @@ useHead({ title: $t('plan.title') })
 
 .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
 .bar-line { display: flex; gap: var(--s2); align-items: baseline; margin-bottom: var(--s1); }
+.via { margin: var(--s1) 0 0; }
 .bar-name { font-size: 0.8rem; flex: 1; }
 .bar-num { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 .bar { height: 6px; background: var(--surface-2); border-radius: var(--radius-pill); overflow: hidden; }
