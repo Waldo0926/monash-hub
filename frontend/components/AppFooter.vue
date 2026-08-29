@@ -17,6 +17,11 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
           </span>
         </p>
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
+        <!-- Kept visually apart from the disclaimer above it. One says what
+             this site is not; the other invites you somewhere. Run together in
+             the same grey they read as one long block of small print and the
+             invitation is the half nobody finishes. -->
+        <p class="small wechat">{{ $t('footer.wechat') }}</p>
       </div>
 
       <nav class="col" :aria-label="$t('footer.explore')">
@@ -104,6 +109,12 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 .brand { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
 .block { display: block; }
 .disclaimer { margin: 0; color: var(--muted); }
+.wechat {
+  margin: var(--s3) 0 0;
+  padding-left: var(--s3);
+  border-left: 2px solid var(--footer-accent);
+  color: var(--footer-heading);
+}
 
 .col { display: grid; align-content: start; gap: var(--s2); }
 
