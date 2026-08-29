@@ -533,6 +533,7 @@ const en: Messages = {
   'community.cancel': 'Cancel',
   'community.signInFirst': 'Sign in to do that.',
   'community.actionFailed': 'That did not go through. Try again.',
+  'answer.openUnit': 'Open {code} →',
   'community.report': 'Report',
   'community.reported': 'Reported. A moderator will look at it.',
   'community.experienceNote':
@@ -1100,6 +1101,7 @@ const zh: Messages = {
   'community.cancel': '取消',
   'community.signInFirst': '请先登录。',
   'community.actionFailed': '没有成功，请再试一次。',
+  'answer.openUnit': '打开 {code} →',
   'community.report': '举报',
   'community.reported': '已举报，管理员会查看。',
   'community.experienceNote':
@@ -1671,6 +1673,7 @@ const ja: Messages = {
   'community.cancel': 'キャンセル',
   'community.signInFirst': 'ログインしてください。',
   'community.actionFailed': '実行できませんでした。もう一度お試しください。',
+  'answer.openUnit': '{code} を開く →',
   'community.report': '報告',
   'community.reported': '報告しました。モデレーターが確認します。',
   'community.experienceNote':
@@ -2243,6 +2246,7 @@ const ko: Messages = {
   'community.cancel': '취소',
   'community.signInFirst': '먼저 로그인하세요.',
   'community.actionFailed': '처리되지 않았습니다. 다시 시도하세요.',
+  'answer.openUnit': '{code} 열기 →',
   'community.report': '신고',
   'community.reported': '신고했습니다. 관리자가 확인합니다.',
   'community.experienceNote':

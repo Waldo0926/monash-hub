@@ -428,3 +428,42 @@ def test_the_model_does_not_get_to_sign_its_work(signed, expected):
 def test_a_sentence_that_is_really_about_a_language_keeps_its_brackets():
     engine = translator(lambda text: "本Zqa以英文授课（英语）")
     assert engine.text("This unit is taught in English") == "本课程以英文授课（英语）"
+
+
+@pytest.mark.parametrize(
+    ("result", "source", "invented"),
+    [
+        # M6024, live: the model gave up on an all-caps heading and produced
+        # 兹卡 - its transliteration of the Zqa mask token - plus two words that
+        # are not words.
+        ("专业方向 AVALALLILL（兹卡 AVALLLLL）", "SPECIALISATIONS AVAILABLE", True),
+        ("什么是兹卡?", "What is Zqa?", True),
+        ("公共卫生硕士", "Master of Public Health", False),
+        # A source that genuinely repeats a letter must survive.
+        ("AAAA 测试", "AAAA test", False),
+        ("布鲁塞尔", "Brussels", False),
+    ],
+)
+def test_invented_output_is_recognised(result, source, invented):
+    from crawler.translate.engine import _invented
+
+    assert _invented(result, source) is invented
+
+
+def test_a_degree_is_named_the_way_chinese_names_one():
+    """"Master of Arts" is 文学硕士, not 艺术大师 - a grand master of art.
+
+    The award goes last in Chinese, and a translator that cannot reorder
+    produced 大师 on 61 of the 503 degrees while getting the other 131 right.
+    They are pinned whole because the reordering *is* the translation.
+    """
+    from app.knowledge.glossary import MASKS, protect
+
+    for english, expected in (
+        ("Master of Arts", "文学硕士"),
+        ("Master of Philosophy", "哲学硕士"),
+        ("Master of Public Health", "公共卫生硕士"),
+        ("Master of Fine Art", "美术硕士"),
+    ):
+        _, replacements = protect(english, "zh", MASKS[0])
+        assert replacements == [expected], (english, replacements)

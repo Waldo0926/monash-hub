@@ -491,3 +491,32 @@ def test_a_whole_field_machine_translation_still_wins_when_nobody_wrote_one(db):
     )
     db.commit()
     assert load(db, "zh", UNIT, "FIT1045").field("overview", whole) == "机器整段译文。"
+
+
+def test_a_narrower_pass_does_not_delete_what_a_wider_one_wrote(db):
+    """`--fields short` after `--fields all` blanked every overview.
+
+    The row was replaced rather than merged, so a pass that only covers titles
+    and enumerable values took the long prose with it, and thousands of unit
+    pages silently went back to English behind a banner promising Chinese.
+    """
+    from app.models.translation import MACHINE, UNIT, ContentTranslation
+
+    from crawler.translate.run import store
+
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"Overview text": "简介译文", "FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=all")
+    db.commit()
+
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=short")
+    db.commit()
+
+    row = db.query(ContentTranslation).filter_by(
+        target_type=UNIT, target_key="FIT1047", provenance=MACHINE
+    ).one()
+    assert row.data["strings"]["Overview text"] == "简介译文"
+    # and the row still knows it has been through the wider pass
+    assert row.note == "fields=all"

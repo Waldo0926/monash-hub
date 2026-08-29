@@ -318,13 +318,37 @@ def answer(db: Session, query: str, *, year: int) -> dict[str, Any]:
 
     if unit is not None:
         # We know the unit but not what was being asked about it.
+        #
+        # This used to answer with the whole overview. On a phone that is the
+        # entire first screen, so a reader searching a unit code met a wall of
+        # prose and never scrolled to the unit itself. A code is a request for
+        # the unit, not for an essay about it: the facts fit in four rows, and
+        # the link is the thing they came for.
+        offered = [o for o in unit.offerings if o.offered]
+        periods = sorted({o.teaching_period for o in offered if o.teaching_period})
+        campuses = sorted({o.campus for o in offered if o.campus})
+        facts = [
+            {"field": "Credit points", "value": unit.credit_points},
+            {"field": "Level", "value": unit.level},
+            {"field": "Campus", "value": "、".join(campuses) if campuses else None},
+            {"field": "Teaching period", "value": "、".join(periods) if periods else None},
+        ]
         base.update(
             {
                 "answer_type": "handbook_overview",
                 "title": f"{unit.unit_code} · {unit.title}",
                 "blocks": [
-                    {"type": "text", "title": "Overview",
-                     "text": unit.overview or "No overview published."}
+                    {
+                        "type": "table",
+                        "columns": ["Field", "Value"],
+                        "keys": ["field", "value"],
+                        "rows": [f for f in facts if f["value"]],
+                    },
+                    {
+                        "type": "link",
+                        "to": f"/units/{unit.unit_code}",
+                        "label": f"Open {unit.unit_code}",
+                    },
                 ],
                 "caveat": None,
             }

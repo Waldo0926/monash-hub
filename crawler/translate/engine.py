@@ -173,6 +173,23 @@ _CJK = r"㐀-䶿一-鿿぀-ヿ가-힯"
 # the apostrophe in "you're", not the token standing beside it.
 _CURLY = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 
+# What the model produces when it has given up on a string and started
+# inventing. 兹卡 is its transliteration of the Zqa mask token and no Monash
+# page is about Zika; a run of one repeated letter is not a word in any of the
+# four languages. M6024's "SPECIALISATIONS AVAILABLE" came back as
+# 专业方向 AVALALLILL（兹卡 AVALLLLL）.
+_INVENTED = re.compile(r"兹卡|\b\w*([A-Za-z])\1{3,}\w*\b")
+
+
+def _invented(result: str, source: str) -> bool:
+    """Whether the model made something up rather than translating.
+
+    Checked against the source, because a string that genuinely repeats a
+    letter should survive - and because the honest outcome for a string the
+    model cannot manage is the English, not an approximation of it.
+    """
+    return bool(_INVENTED.search(result)) and not _INVENTED.search(source)
+
 
 class Translator:
     """One loaded model per language, translating with the glossary in front."""
@@ -288,6 +305,12 @@ class Translator:
                 result = _tidy(restore(translated, terms, mask), self.locale)
 
         result = _unsigned(result.strip(), source)
+        if _invented(result, source):
+            # Better the English than a sentence nobody wrote. An untranslated
+            # string stays in English; it is never approximated.
+            log.debug("invented output discarded: %s", source[:60])
+            self._cache[source] = ""
+            return None
         # A "translation" identical to the source is not one. Storing it would
         # mean the reader sees English behind a banner promising Chinese.
         if result == source:
