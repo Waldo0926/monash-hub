@@ -298,20 +298,20 @@ useSeoMeta({
           </thead>
           <tbody>
             <tr v-for="entry in entries" :key="entry.id">
-              <td class="cell-unit">
+              <td class="cell-unit" :data-label="$t('marks.colUnit')">
                 <input v-model="entry.unitCode" class="field-input mono" :placeholder="$t('marks.unitPlaceholder')"
                        @change="onCodeEntered(entry)" @blur="onCodeEntered(entry)">
                 <span v-if="entry.title" class="tiny muted title">{{ entry.title }}</span>
               </td>
-              <td><input v-model.number="entry.creditPoints" class="field-input narrow" type="number" min="0" step="1"></td>
-              <td><input v-model.number="entry.level" class="field-input narrow" type="number" min="0" max="9"></td>
-              <td class="tiny muted">×{{ weightOf(entry) ?? '—' }}</td>
-              <td><input v-model.number="entry.mark" class="field-input narrow" type="number" min="0" max="100" step="0.01"></td>
-              <td>
+              <td :data-label="$t('marks.colCredit')"><input v-model.number="entry.creditPoints" class="field-input narrow" type="number" min="0" step="1"></td>
+              <td :data-label="$t('marks.colLevel')"><input v-model.number="entry.level" class="field-input narrow" type="number" min="0" max="9"></td>
+              <td class="tiny muted cell-weight" :data-label="$t('marks.colWeight')">×{{ weightOf(entry) ?? '—' }}</td>
+              <td :data-label="$t('marks.colMark')"><input v-model.number="entry.mark" class="field-input narrow" type="number" min="0" max="100" step="0.01"></td>
+              <td :data-label="$t('marks.colGrade')">
                 <input v-model="entry.grade" class="field-input narrow mono"
                        :placeholder="gradeOf(entry) || '—'">
               </td>
-              <td>
+              <td class="cell-remove">
                 <button class="remove" type="button" :aria-label="$t('marks.colRemove')"
                         @click="removeRow(entry.id)">×</button>
               </td>
@@ -438,7 +438,16 @@ useSeoMeta({
 </template>
 
 <style scoped>
-.page { display: grid; gap: var(--s4); padding-bottom: var(--s7); }
+/* minmax(0, 1fr), not the default: a grid column is otherwise at least as wide
+   as its widest child's minimum content, and the results grid below asks for
+   two 200px columns. That pushed the whole page to 497px inside a 375px phone,
+   so every card overflowed and the page scrolled sideways. */
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s4);
+  padding-bottom: var(--s7);
+}
 .intro { padding-top: var(--s5); }
 .lede { max-width: var(--measure-lede); color: var(--muted); }
 .section { padding: var(--s5); }
@@ -455,6 +464,48 @@ useSeoMeta({
   color: var(--text); width: 100%; min-width: 0;
 }
 .narrow { max-width: 92px; }
+
+/* On a phone the seven columns collapse to about thirty pixels each and the
+   numbers inside them cannot be read, which is what a student reported. Below
+   this width each row becomes its own labelled block: the header row goes away,
+   so every cell has to carry its own name. Scrolling a table sideways to type a
+   mark is not a fix. */
+@media (max-width: 640px) {
+  .entries, .entries tbody, .entries tr, .entries td { display: block; width: 100%; }
+  .entries thead { display: none; }
+  .entries tr {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--s3);
+    margin-bottom: var(--s3);
+  }
+  .entries td {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s3);
+    padding: var(--s1) 0;
+    border: 0;
+  }
+  .entries td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  /* The inputs were capped for a table cell; here the row is the width. */
+  .entries .narrow { max-width: none; }
+  .cell-unit { min-width: 0; }
+  .cell-unit .title { grid-column: 2; margin: 0; }
+  .cell-weight { color: var(--muted); }
+  /* The remove button belongs in the corner of the block, not on a row of its
+     own labelled with nothing. */
+  .cell-remove { position: absolute; top: 2px; right: 2px; padding: var(--s1); }
+  .cell-remove::before { content: none; }
+  /* Room for that button, so it does not sit on the corner of the first
+     field's box. */
+  .cell-unit { padding-right: 1.9rem; }
+}
 /* The file input is the button; the real control is unusable and every browser
    styles it differently. */
 .file { position: relative; overflow: hidden; cursor: pointer; }
@@ -476,7 +527,13 @@ useSeoMeta({
 .remove:hover { color: var(--danger); }
 .note { color: var(--warning); margin: var(--s3) 0; }
 
-.results { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s4); }
+/* min(200px, 100%) so the track can shrink below 200px on a narrow screen
+   instead of forcing the page wider than the phone. */
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: var(--s4);
+}
 .result { padding: var(--s5); }
 .result p { margin: 0; }
 .figure { font-size: 2.4rem; font-weight: 600; line-height: 1.1; margin: var(--s2) 0 !important; }
@@ -486,7 +543,7 @@ useSeoMeta({
    planner's toolbar was doing. */
 .projection {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 140px));
+  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 140px));
   gap: var(--s4); margin: var(--s4) 0;
 }
 .projection .field-input { max-width: 100%; }

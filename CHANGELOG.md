@@ -4,6 +4,32 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed
+
+- Degree and unit names are now composed rather than translated whole. English
+  names a qualification front-to-back and Chinese back-to-front, and a general
+  translator handled the words without the order: *Bachelor of Science* had lost
+  its subject entirely (学士), *Master of Teaching* read 师傅 (a craftsman),
+  *Master of Accounting* 大师会计 (a guru), and *Doctor of Podiatric Medicine*
+  had become a paediatrician. 452 of the 502 degrees are now built from an
+  award, a subject and any qualifiers; the rest are left to the ordinary path.
+  The same reordering fixes unit titles - 65 of 123 "Introduction to X" units
+  read 导论到X, and one read 导论改为学术研究, "the introduction was changed to
+  academic research".
+- A search that matches units no longer opens with "No official answer indexed
+  for this yet". Searching *2102* showed that notice above five Handbook
+  results, because the answer router looks up FAQs and official pages and never
+  sees what the result list found.
+- A prerequisite made of nested groups is written out instead of coming up
+  blank. FIT2004 needs one of FIT1008/FIT1054/FIT2085 *and* one of
+  MAT1830/FIT1058; its outer group names no units of its own, so the planner had
+  been showing "需要先修完 。" with nothing after it.
+- The WAM/GPA calculator is usable on a phone. Its seven columns had been
+  squeezed to about thirty pixels each, so the values could not be read; each
+  row is now its own labelled block. The page also stopped scrolling sideways -
+  a grid column had been sized to its widest child's minimum, pushing a 375px
+  phone to 497px.
+
 ### Added
 
 - Mobile navigation now includes a More menu with every destination from the

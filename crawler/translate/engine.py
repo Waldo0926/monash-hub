@@ -24,6 +24,7 @@ import re
 import threading
 from collections.abc import Iterable
 
+from app.knowledge import degrees, titles
 from app.knowledge.glossary import (
     GENERAL,
     MASKS,
@@ -244,6 +245,23 @@ class Translator:
         if agreed:
             self._cache[source] = agreed
             return agreed
+
+        # A degree's name is built, not translated - English names it
+        # front-to-back and Chinese back-to-front, and a model asked for the
+        # whole string drops the discipline or renders "Master" as 大师. The
+        # discipline itself goes through this same method, so it still gets the
+        # glossary. See app/knowledge/degrees.py.
+        composed = degrees.compose(source, self.locale, self.text)
+        if composed:
+            self._cache[source] = composed
+            return composed
+
+        # The same reordering problem in unit titles: "Introduction to X" is
+        # X导论, not 导论到X. See app/knowledge/titles.py.
+        composed = titles.compose(source, self.locale, self.text)
+        if composed:
+            self._cache[source] = composed
+            return composed
 
         masked, terms = protect(source, self.locale, scope=self.scope)
         if is_only_placeholders(masked):
