@@ -59,6 +59,12 @@ echo "==> Seeding curated content"
 # translation indefinitely.
 "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
 
+echo "==> Refreshing the Chinese search index"
+# Seeding can add or correct Chinese unit and guide titles. Display reads the
+# translation table directly, while full-text search reads the flattened,
+# indexed copy, so the two must move together on every deploy.
+"${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh
+
 echo "==> Starting services"
 # Deliberately not --remove-orphans. A crawl started with `compose run` is a
 # container Compose does not consider part of the active profile, so a deploy

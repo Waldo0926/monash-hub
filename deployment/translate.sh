@@ -29,3 +29,10 @@ shift 2 2>/dev/null || true
 
 "${COMPOSE[@]}" run --rm crawler \
   python -m crawler.translate.run --locale "$locale" --fields "$fields" "$@"
+
+if [[ "$locale" == "zh" ]]; then
+  # A translation is visible immediately on its page, but search reads the
+  # indexed copy on units and guides. Refresh it here so a successful Chinese
+  # translation pass can never leave search one version behind.
+  "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh
+fi
