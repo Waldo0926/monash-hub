@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.api.deps import requested_locale
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.search import router as query_router
@@ -21,6 +22,10 @@ class AskRequest(BaseModel):
 
 
 @router.post("/ask")
-def ask(payload: AskRequest, db: Session = Depends(get_db)) -> dict:
+def ask(
+    payload: AskRequest,
+    locale: str | None = Depends(requested_locale),
+    db: Session = Depends(get_db),
+) -> dict:
     year = payload.year or get_settings().current_academic_year
-    return query_router.answer(db, payload.query, year=year)
+    return query_router.answer(db, payload.query, year=year, locale=locale)

@@ -267,7 +267,23 @@ HANDBOOK_ANSWERS = {
 }
 
 
-def answer(db: Session, query: str, *, year: int) -> dict[str, Any]:
+def _unit_title(db: Session, unit, locale: str | None) -> str:
+    """The unit's name in the reader's language, if we have one.
+
+    The rest of this module answers in English, which is its own problem. This
+    one line is the whole visible answer when somebody types a unit code, so it
+    is worth reading in the language the page is in.
+    """
+    if not locale or locale == "en":
+        return unit.title
+    from app.knowledge import translations
+    from app.models.translation import UNIT
+
+    tr = translations.load(db, locale, UNIT, unit.unit_code, source_hash=unit.content_hash)
+    return tr.field("title", unit.title) or unit.title
+
+
+def answer(db: Session, query: str, *, year: int, locale: str | None = None) -> dict[str, Any]:
     """Route one question. Always returns a payload - never raises on a miss."""
     query = (query or "").strip()
     codes = extract_unit_codes(query)
@@ -324,31 +340,20 @@ def answer(db: Session, query: str, *, year: int) -> dict[str, Any]:
         # prose and never scrolled to the unit itself. A code is a request for
         # the unit, not for an essay about it: the facts fit in four rows, and
         # the link is the thing they came for.
-        offered = [o for o in unit.offerings if o.offered]
-        periods = sorted({o.teaching_period for o in offered if o.teaching_period})
-        campuses = sorted({o.campus for o in offered if o.campus})
-        facts = [
-            {"field": "Credit points", "value": unit.credit_points},
-            {"field": "Level", "value": unit.level},
-            {"field": "Campus", "value": "、".join(campuses) if campuses else None},
-            {"field": "Teaching period", "value": "、".join(periods) if periods else None},
-        ]
         base.update(
             {
                 "answer_type": "handbook_overview",
-                "title": f"{unit.unit_code} · {unit.title}",
+                "title": f"{unit.unit_code} · {_unit_title(db, unit, locale)}",
+                # Just the way in. A table of facts was the first thing tried
+                # and it filled a phone screen too, which put the link back
+                # below the fold - and this whole path exists because the
+                # reader typed a code, which is a request for the unit.
                 "blocks": [
-                    {
-                        "type": "table",
-                        "columns": ["Field", "Value"],
-                        "keys": ["field", "value"],
-                        "rows": [f for f in facts if f["value"]],
-                    },
                     {
                         "type": "link",
                         "to": f"/units/{unit.unit_code}",
-                        "label": f"Open {unit.unit_code}",
-                    },
+                        "label": unit.unit_code,
+                    }
                 ],
                 "caveat": None,
             }

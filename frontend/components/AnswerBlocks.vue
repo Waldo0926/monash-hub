@@ -67,7 +67,7 @@ const { $t } = useNuxtApp()
         v-else-if="block.type === 'link'"
         :to="block.to"
         class="btn btn--small block-link"
-      >{{ $t('answer.openUnit', { code: block.label?.replace(/^Open /, '') }) }}</NuxtLink>
+      >{{ $t('answer.openUnit', { code: block.label }) }}</NuxtLink>
 
       <ul v-else-if="block.type === 'page_list'" class="block pages">
         <li v-for="page in block.items" :key="page.slug">
