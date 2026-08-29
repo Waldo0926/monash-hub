@@ -15,6 +15,7 @@ const links = computed(() => [
   { to: '/courses', label: $t('nav.courses') },
   { to: '/plan', label: $t('nav.plan') },
   { to: '/tree', label: $t('nav.tree') },
+  { to: '/marks', label: $t('nav.marks') },
   { to: '/guides', label: $t('nav.guides') },
   { to: '/community', label: $t('nav.community') },
   { to: '/mamo', label: $t('nav.mamo') }
