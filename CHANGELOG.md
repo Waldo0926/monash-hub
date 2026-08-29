@@ -6,6 +6,16 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Chinese titles are searchable for units, degrees and official guides. The
+  unified search did not include degrees at all, so a parent searching `理学学士`
+  could not reach *Bachelor of Science*; translated unit and guide titles also
+  depended on a separately refreshed index and exact title matches could sit
+  below loosely related prose. Exact Chinese titles now rank first, the degree
+  picker accepts Chinese too, and deploy/translation jobs refresh the longer
+  Chinese content index automatically.
+- Search direct answers now refresh when the language changes. The rest of the
+  search page switched languages immediately, but a unit answer such as FIT2004
+  kept its old translated title until the query itself changed.
 - Unit titles whose subject is a list ("Introduction to the history and theory
   of art") are reordered too. Only a subtitle after a colon is left alone now;
   skipping every title with an "and" in it had left ten reading 导论对艺术的历史和理论.
@@ -86,8 +96,20 @@ is not presented as shipped code.
 这里记录每一个 PR，包括不需要单独撰写长篇发布说明的小修复。未合并就关闭的
 PR 会明确标注，不会被误写成已经上线的功能。
 
+### 2026-08-30
+
+- [#76](https://github.com/Waldo0926/monash-hub/pull/76) Make Chinese titles searchable and refresh answers after language changes / 支持用中文搜索课程、学位和官方指南，切换语言后刷新直达答案，并补齐 #68–#75 的 Changelog 记录。
+
 ### 2026-08-29
 
+- [#75](https://github.com/Waldo0926/monash-hub/pull/75) Describe the half of the site the README never mentioned / 补全 README 中遗漏的核心功能说明。
+- [#74](https://github.com/Waldo0926/monash-hub/pull/74) Do not compose a name around a full stop / 遇到完整句号时不再错误拼接课程名称。
+- [#73](https://github.com/Waldo0926/monash-hub/pull/73) Put the brand blue back in the footer mark / 恢复页脚标志的品牌蓝色。
+- [#72](https://github.com/Waldo0926/monash-hub/pull/72) Point the footer at the WeChat account, and sign it / 在页脚加入微信公众号说明和作者署名。
+- [#71](https://github.com/Waldo0926/monash-hub/pull/71) Finish the degree and title composition / 完善学位名称与课程名称的组合翻译。
+- [#70](https://github.com/Waldo0926/monash-hub/pull/70) Build a degree's name instead of translating it / 按中文语序组合学位名称，不再整句直译。
+- [#69](https://github.com/Waldo0926/monash-hub/pull/69) A unit code is a request for the unit / 输入课程代码时直接展示对应课程答案。
+- [#68](https://github.com/Waldo0926/monash-hub/pull/68) Stop a narrow pass from deleting a wide one / 防止局部翻译修正覆盖更完整的已有结果。
 - [#67](https://github.com/Waldo0926/monash-hub/pull/67) Complete mobile navigation and clarify the home page / 补全手机导航，并明确首页主要与次要功能层级。
 - [#66](https://github.com/Waldo0926/monash-hub/pull/66) Apply curated translations on every deploy / 每次部署时自动应用人工校对翻译。
 - [#65](https://github.com/Waldo0926/monash-hub/pull/65) Fix long degree cards and add a bilingual PR template / 修复长学位卡片被挤成逐字竖排的问题，并新增中英文 PR 模板。

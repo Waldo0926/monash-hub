@@ -151,9 +151,53 @@ def test_guides_paginate(client, loaded):
 def test_unified_search_groups_results_by_source(client, loaded):
     body = client.get("/api/v1/search", params={"q": "special consideration"}).json()
     kinds = {g["kind"]: g for g in body["groups"]}
-    assert set(kinds) == {"handbook", "official", "faq", "community"}
+    assert set(kinds) == {"handbook", "degrees", "official", "faq", "community"}
     assert kinds["official"]["total"] >= 1
     assert kinds["official"]["badge"] != kinds["community"]["badge"]
+
+
+def test_chinese_degree_title_is_searchable(client, loaded, db):
+    """A Chinese interface is not useful to a parent who must search in English."""
+    from app.models.curriculum import Course
+    from app.models.translation import COURSE, MACHINE, PUBLISHED, ContentTranslation
+
+    degree = Course(
+        course_code="S2000",
+        academic_year=2026,
+        title="Bachelor of Science",
+        abbreviated_name="BSc",
+        campuses=["Malaysia"],
+        source_url="https://handbook.monash.edu/2026/courses/S2000",
+        content_hash="hash-s2000",
+    )
+    db.add(degree)
+    db.add(
+        ContentTranslation(
+            locale="zh",
+            target_type=COURSE,
+            target_key="S2000",
+            field="content",
+            data={"strings": {"Bachelor of Science": "理学学士"}},
+            source_hash="hash-s2000",
+            status=PUBLISHED,
+            provenance=MACHINE,
+        )
+    )
+    db.commit()
+
+    body = client.get(
+        "/api/v1/search", params={"q": "理学学士", "locale": "zh"}
+    ).json()
+    degrees = next(group for group in body["groups"] if group["kind"] == "degrees")
+    assert [(row["course_code"], row["title"]) for row in degrees["results"]] == [
+        ("S2000", "理学学士")
+    ]
+
+    listing = client.get(
+        "/api/v1/courses",
+        params={"q": "理学学士", "locale": "zh", "campus": "Malaysia"},
+    ).json()
+    assert [row["course_code"] for row in listing["results"]] == ["S2000"]
 
 
 def test_ask_assessment_question(client, loaded):

@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import requested_locale
@@ -23,6 +23,7 @@ from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
 from app.models.translation import AREA_OF_STUDY, COURSE, UNIT
+from app.search import service
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -79,28 +80,16 @@ def list_courses(
     and there is no partial version of that to show them.
     """
     academic_year = _year(year)
-    stmt = select(Course).where(Course.academic_year == academic_year, Course.is_active)
-
-    if q:
-        term = q.strip()
-        stmt = stmt.where(
-            or_(
-                Course.course_code.ilike(f"{term}%"),
-                Course.title.ilike(f"%{term}%"),
-                Course.abbreviated_name.ilike(f"{term}%"),
-            )
-        )
-    if campus:
-        stmt = stmt.where(Course.campuses.any(campus))
-    if course_type:
-        stmt = stmt.where(Course.course_type == course_type)
-    if faculty:
-        stmt = stmt.where(Course.faculty == faculty)
-
-    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = db.scalars(
-        stmt.order_by(Course.title).limit(limit).offset(offset)
-    ).all()
+    rows, total = service.search_courses(
+        db,
+        q or "",
+        year=academic_year,
+        limit=limit,
+        offset=offset,
+        campus=campus,
+        course_type=course_type,
+        faculty=faculty,
+    )
     tr = translations.load_many(
         db, locale, COURSE, [c.course_code for c in rows],
         source_hashes={c.course_code: c.content_hash for c in rows},

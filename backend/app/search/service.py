@@ -1,4 +1,4 @@
-"""Unified search over Handbook units, official pages, FAQ and community posts.
+"""Unified search over Handbook units and degrees, official pages, FAQ and posts.
 
 PostgreSQL does all of this: ``tsvector`` for full text, ``pg_trgm`` for typo
 tolerance on titles, and an exact-code shortcut in front of both because a
@@ -13,8 +13,21 @@ from sqlalchemy import and_, case, func, literal, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
+from app.models.curriculum import Course
 from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry, OfficialPage
+from app.models.translation import (
+    COURSE,
+    HUMAN,
+    PUBLISHED,
+    ContentTranslation,
+)
+from app.models.translation import (
+    OFFICIAL_PAGE as OFFICIAL_PAGE_TRANSLATION,
+)
+from app.models.translation import (
+    UNIT as UNIT_TRANSLATION,
+)
 from app.search.chinese import expanded_query, has_cjk
 from app.search.keywords import extract_unit_codes
 
@@ -108,22 +121,30 @@ def search_units(
 
     codes = extract_unit_codes(query)
     term = (query or "").strip()
+    translated_title = (
+        _translated_title(Unit, UNIT_TRANSLATION, Unit.unit_code, Unit.title)
+        if has_cjk(term)
+        else None
+    )
 
     if term:
         if codes:
-            match = or_(
+            matches = [
                 Unit.unit_code.in_(codes),
                 Unit.search_vector.op("@@")(_ts_query(term)),
-                *( [_zh_match(Unit.search_zh, term)] if has_cjk(term) else [] ),
-            )
+            ]
         else:
-            match = or_(
+            matches = [
                 Unit.unit_code.ilike(f"{term}%"),
                 *( [Unit.unit_code.ilike(f"%{term}%")] if _is_code_fragment(term) else [] ),
                 Unit.search_vector.op("@@")(_ts_query(term)),
                 func.similarity(Unit.title, term) > 0.25,
-                *( [_zh_match(Unit.search_zh, term)] if has_cjk(term) else [] ),
+            ]
+        if translated_title is not None:
+            matches.extend(
+                [translated_title.ilike(f"%{term}%"), _zh_match(Unit.search_zh, term)]
             )
+        match = or_(*matches)
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
 
@@ -173,8 +194,19 @@ def search_units(
             func.coalesce(func.similarity(Unit.search_zh, term), 0)
             if has_cjk(term) else literal(0)
         )
+        exact_translation = (
+            case((translated_title == term, 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
+        translated_title_contains = (
+            case((translated_title.ilike(f"%{term}%"), 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
         stmt = stmt.order_by(
-            exact.desc(), in_code.desc(), rank.desc(), zh_rank.desc(),
+            exact.desc(), in_code.desc(), exact_translation.desc(),
+            translated_title_contains.desc(), rank.desc(), zh_rank.desc(),
             func.similarity(Unit.title, term).desc(),
         )
     else:
@@ -188,19 +220,135 @@ def search_units(
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
 
 
+def _translated_title(model, target_type: str, target_key, source_title):
+    """One Chinese title for the outer source row, when one is published.
+
+    Translations are stored as an exact English-to-Chinese string map. Looking
+    up the row's own English title inside that JSON map lets a query match only
+    the translated title; matching the whole translation row would also return
+    an item merely because its overview happened to contain the words.
+
+    This direct lookup also makes titles searchable immediately after a curated
+    correction is deployed. The flattened ``search_zh`` column remains the
+    indexed path for longer translated prose.
+    """
+    return (
+        select(
+            func.coalesce(
+                ContentTranslation.text,
+                func.jsonb_extract_path_text(
+                    ContentTranslation.data, "strings", source_title
+                ),
+            )
+        )
+        .where(
+            ContentTranslation.locale == "zh",
+            ContentTranslation.target_type == target_type,
+            ContentTranslation.target_key == target_key,
+            ContentTranslation.status == PUBLISHED,
+            or_(
+                ContentTranslation.field == "title",
+                ContentTranslation.field == "content",
+            ),
+        )
+        .order_by(case((ContentTranslation.provenance == HUMAN, 1), else_=0).desc())
+        .limit(1)
+        .correlate(model)
+        .scalar_subquery()
+    )
+
+
+def search_courses(
+    db: Session,
+    query: str,
+    *,
+    year: int,
+    limit: int = 10,
+    offset: int = 0,
+    campus: str | None = None,
+    course_type: str | None = None,
+    faculty: str | None = None,
+) -> tuple[list[Course], int]:
+    """Search degrees by code, English title, or their published Chinese title."""
+    stmt = select(Course).where(Course.academic_year == year, Course.is_active.is_(True))
+    count_stmt = select(func.count(Course.id)).where(
+        Course.academic_year == year, Course.is_active.is_(True)
+    )
+    term = (query or "").strip()
+    translated_title = (
+        _translated_title(Course, COURSE, Course.course_code, Course.title)
+        if has_cjk(term)
+        else None
+    )
+
+    if term:
+        matches = [
+            Course.course_code.ilike(f"{term}%"),
+            Course.title.ilike(f"%{term}%"),
+            Course.abbreviated_name.ilike(f"{term}%"),
+        ]
+        if translated_title is not None:
+            matches.append(translated_title.ilike(f"%{term}%"))
+        match = or_(*matches)
+        stmt = stmt.where(match)
+        count_stmt = count_stmt.where(match)
+
+    filters = []
+    if campus:
+        filters.append(Course.campuses.any(campus))
+    if course_type:
+        filters.append(Course.course_type == course_type)
+    if faculty:
+        filters.append(Course.faculty == faculty)
+    for condition in filters:
+        stmt = stmt.where(condition)
+        count_stmt = count_stmt.where(condition)
+
+    if term:
+        exact_code = case((func.upper(Course.course_code) == term.upper(), 1), else_=0)
+        exact_translation = (
+            case((func.lower(translated_title) == term.lower(), 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
+        stmt = stmt.order_by(exact_code.desc(), exact_translation.desc(), Course.title)
+    else:
+        stmt = stmt.order_by(Course.title)
+
+    stmt = stmt.limit(limit).offset(offset)
+    return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
+
+
 def search_official(
     db: Session, query: str, *, limit: int = 10, offset: int = 0, category: str | None = None
 ) -> tuple[list[OfficialPage], int]:
     stmt = select(OfficialPage).where(OfficialPage.status == "ok")
     count_stmt = select(func.count(OfficialPage.id)).where(OfficialPage.status == "ok")
     term = (query or "").strip()
+    translated_title = (
+        _translated_title(
+            OfficialPage,
+            OFFICIAL_PAGE_TRANSLATION,
+            OfficialPage.slug,
+            OfficialPage.title,
+        )
+        if has_cjk(term)
+        else None
+    )
     if term:
-        match = or_(
+        matches = [
             OfficialPage.search_vector.op("@@")(_ts_query(term)),
             func.similarity(OfficialPage.title, term) > 0.2,
             _array_contained_in_query("official_pages.tags", term),
-            *( [_zh_match(OfficialPage.search_zh, term)] if has_cjk(term) else [] ),
-        )
+        ]
+        if translated_title is not None:
+            matches.extend(
+                [
+                    translated_title.ilike(f"%{term}%"),
+                    _zh_match(OfficialPage.search_zh, term),
+                ]
+            )
+        match = or_(*matches)
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
     if category:
@@ -211,7 +359,19 @@ def search_official(
             func.coalesce(func.similarity(OfficialPage.search_zh, term), 0)
             if has_cjk(term) else literal(0)
         )
+        exact_translation = (
+            case((translated_title == term, 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
+        translated_title_contains = (
+            case((translated_title.ilike(f"%{term}%"), 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
         stmt = stmt.order_by(
+            exact_translation.desc(),
+            translated_title_contains.desc(),
             func.ts_rank(OfficialPage.search_vector, _ts_query(term)).desc(),
             zh_rank.desc(),
             func.similarity(OfficialPage.title, term).desc(),
