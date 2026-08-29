@@ -25,7 +25,7 @@ import logging
 import time
 
 from app.core.db import SessionLocal
-from app.knowledge.glossary import LOCALES
+from app.knowledge.glossary import GENERAL, LOCALES, STRUCTURE
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
@@ -280,7 +280,14 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
 
 
 def translate_curriculum(translator: Translator, *, refresh: bool) -> dict:
-    """Courses and areas of study, in that order."""
+    """Courses and areas of study, in that order.
+
+    This is the one target translated in the structure scope: a few words mean
+    something specific in the prose describing how a degree is assembled and
+    something else in a unit's overview. "major" is the one that matters -
+    an academic major here, and the ordinary adjective almost everywhere else.
+    """
+    translator.use_scope(STRUCTURE)
     locale = translator.locale
     summary = {"translated": 0, "skipped": 0, "strings": 0}
     with SessionLocal() as db:
@@ -313,6 +320,7 @@ def translate_curriculum(translator: Translator, *, refresh: bool) -> dict:
                 summary["translated"] += 1
                 summary["strings"] += len(strings)
                 log.info("%s: %d strings", key, len(strings))
+    translator.use_scope(GENERAL)
     return summary
 
 

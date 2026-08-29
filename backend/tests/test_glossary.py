@@ -9,8 +9,11 @@ from __future__ import annotations
 import pytest
 from app.knowledge.glossary import (
     ENUMS,
+    GENERAL,
     KEEP_IN_ENGLISH,
     LOCALES,
+    STRUCTURE,
+    STRUCTURE_TERMS,
     TERMS,
     has_verbatim,
     is_only_placeholders,
@@ -358,3 +361,68 @@ def test_the_plural_rules_do_not_invent_matches():
     ):
         masked, _ = protect(phrase, "zh", MASKS[0])
         assert forbidden in masked, (phrase, masked)
+
+
+# --- terms whose sense depends on the kind of page ---------------------------
+#
+# "major" is an academic major in the prose describing a degree and the ordinary
+# adjective nearly everywhere else. Measured over the live corpus: every one of
+# the ~400 uses in course and container descriptions is the noun, and in unit
+# overviews it is "major research", "major themes", "major issues". Pinning it
+# outright breaks the second set; leaving it breaks the first, which is how
+# "complete a major or minor" reached the site as 少校或未成年人 - an army rank
+# and a child.
+
+
+def test_a_major_is_an_academic_major_in_a_degrees_structure():
+    _, agreed = protect("You must complete the Accounting major", "zh", scope=STRUCTURE)
+    assert "主修专业" in agreed
+
+
+def test_a_major_is_left_to_the_model_in_a_units_overview():
+    """The adjective. 主修专业 here would say a unit covers a degree major."""
+    _, agreed = protect("This unit examines the major themes", "zh")
+    assert "主修专业" not in agreed
+
+
+def test_the_scope_a_caller_does_not_ask_for_is_the_general_one():
+    assert protect("the Accounting major", "zh") == protect(
+        "the Accounting major", "zh", scope=GENERAL
+    )
+
+
+def test_an_unknown_scope_falls_back_rather_than_raising():
+    """A typo in a caller must not take the whole crawl down with a KeyError."""
+    assert protect("the major", "zh", scope="nonsense") == protect("the major", "zh")
+
+
+@pytest.mark.parametrize("scope", [GENERAL, STRUCTURE])
+def test_a_major_or_minor_is_pinned_on_every_kind_of_page(scope):
+    """The phrase is unambiguous wherever it appears, so it does not wait for
+    the structure scope. This is the sentence that was reported."""
+    source = (
+        "You must complete 48 credit points of free electives from across the "
+        "university, provided you satisfy the unit rules, including choosing to "
+        "complete a major or minor from other courses."
+    )
+    _, agreed = protect(source, "zh", scope=scope)
+    assert "主修或辅修专业" in agreed
+
+
+def test_the_phrase_wins_over_the_bare_words():
+    """Longest-first matching, or the structure scope would mask "major" and
+    "minor" separately and lose the "or" between them."""
+    _, agreed = protect("a major or minor", "zh", scope=STRUCTURE)
+    assert agreed == ["主修或辅修专业"]
+
+
+def test_a_partner_degree_is_the_other_half_of_a_double_degree():
+    """Not a spouse. It read 伴侣学位 on every double degree page."""
+    _, agreed = protect("units required for the partner degree", "zh")
+    assert "另一个学位" in agreed
+
+
+@pytest.mark.parametrize("locale", ["zh", "ja", "ko"])
+def test_every_scoped_term_is_translated_into_every_locale(locale):
+    for term, renderings in STRUCTURE_TERMS.items():
+        assert renderings.get(locale), f"{term} has no {locale}"

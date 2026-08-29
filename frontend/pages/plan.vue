@@ -163,13 +163,42 @@ function issueText(issue: any): string {
 const chosenCourse = computed(() => plan.value.courseCode)
 const chosenCampus = computed(() => plan.value.campus)
 
-const { data: course } = await useLocalisedApiFetch<any>(
-  () =>
-    chosenCourse.value
-      ? `/v1/courses/${chosenCourse.value}?campus=${chosenCampus.value}`
-      : '',
-  { watch: [chosenCourse, chosenCampus] }
-)
+/**
+ * The chosen degree, fetched in the browser rather than on the server.
+ *
+ * Which degree to fetch comes out of localStorage, so the server cannot know
+ * it: rendering this page on the server asked the API for the empty path and
+ * got the API's own index document back, and that answer - not the degree -
+ * was what the page then held. The symptom was the whole "against your degree"
+ * card silently missing on a reload of /plan, while reaching the same page by
+ * clicking a link showed it, because then setup ran with localStorage already
+ * read. Client-only data belongs in a client-only fetch.
+ */
+const { locale } = useLocale()
+const course = ref<any>(null)
+
+async function loadCourse() {
+  if (!chosenCourse.value) {
+    course.value = null
+    return
+  }
+  const query = new URLSearchParams({
+    campus: chosenCampus.value || '',
+    locale: locale.value
+  })
+  try {
+    course.value = await apiFetch<any>(
+      `/v1/courses/${encodeURIComponent(chosenCourse.value)}?${query}`
+    )
+  } catch {
+    // A degree that has since been withdrawn, or the API being down. The
+    // planner still checks units; it just cannot draw the bars.
+    course.value = null
+  }
+}
+
+onMounted(loadCourse)
+watch([chosenCourse, chosenCampus, locale], loadCourse)
 
 const { data: courseList } = await useApiFetch<any>(
   () => `/v1/courses?limit=200${chosenCampus.value ? `&campus=${chosenCampus.value}` : ''}`,
@@ -213,19 +242,25 @@ const progress = computed(() => {
       .map((i: any) => i.code),
     ...(node.containers || []).flatMap(choicesIn)
   ]
+  // What a unit is worth. The course endpoint describes the units the degree
+  // names; the checker describes the units actually in the plan. A free
+  // elective is credited with units in the second set and not the first, so
+  // both are needed - reading only the first scored two planned units as 6
+  // credit points instead of 12.
+  const worth = (code: string) =>
+    Number(facts[code]?.credit_points ?? report.value?.unit_credit_points?.[code] ?? 0)
+
   const score = (codes: string[]) => {
     const done = codes.filter((c) => planned.value.has(c))
-    return {
-      count: done.length,
-      points: done.reduce((sum, c) => sum + Number(facts[c]?.credit_points || 0), 0)
-    }
+    return { count: done.length, points: done.reduce((sum, c) => sum + worth(c), 0) }
   }
 
-  return course.value.containers.map((node: any) => {
+  const rows = course.value.containers.map((node: any) => {
     const direct = score(unitsIn(node))
     let points = direct.points
     let count = direct.count
     let via: string | null = null
+    const claimed = new Set(unitsIn(node).filter((c) => planned.value.has(c)))
 
     const choices = choicesIn(node)
     if (choices.length) {
@@ -238,10 +273,53 @@ const progress = computed(() => {
       count += best.count
       // Only worth naming once the student has actually started one.
       if (best.code && best.points > 0) via = aosTitle.get(best.code) || best.code
+      for (const code of aosUnits.get(best.code) || []) {
+        if (planned.value.has(code)) claimed.add(code)
+      }
     }
 
-    return { title: node.title, required: node.credit_points, planned: points, count, via }
+    return {
+      title: node.title,
+      required: node.credit_points,
+      planned: points,
+      count,
+      via,
+      free: !!node.free_elective,
+      claimed
+    }
   })
+
+  // A free elective part is not a list to match against - it is "anything else
+  // you take". So it is credited with the units no other part has claimed,
+  // which is what the Handbook means by the words and what a student sees when
+  // they look at their own plan. Without this, a plan holding FIT1056 and
+  // FIT1061 - real units, in no other part - reported Part E as 0/48.
+  //
+  // The parts that name their units are scored first, above, so a unit only
+  // falls through to here once nothing else has taken it.
+  const spoken = new Set<string>()
+  for (const row of rows) {
+    if (!row.free) for (const code of row.claimed) spoken.add(code)
+  }
+  const free = rows.filter((row: any) => row.free)
+  if (free.length) {
+    const leftover = [...planned.value].filter((code) => !spoken.has(code))
+    // No degree in the catalogue has two of these - 55 have one, 448 have
+    // none, measured over all 503. The loop still guards the case: splitting
+    // leftovers between two free parts would be a guess, so the first is
+    // credited and any other keeps whatever it lists. Under-reporting beats
+    // counting a unit twice.
+    const first = free[0]
+    const points = leftover.reduce((sum, c) => sum + worth(c), 0)
+    // Capped: a student with 60 points spare has not completed 60/48 of a part.
+    first.planned = first.required ? Math.min(points, first.required) : points
+    first.count = leftover.length
+    // The number no longer came from the best-matching minor, so the line
+    // naming that minor would be describing a different figure.
+    first.via = null
+  }
+
+  return rows.map(({ claimed: _claimed, ...row }: any) => row)
 })
 
 // --- export and import -----------------------------------------------------
@@ -479,6 +557,11 @@ useHead({ title: $t('plan.title') })
                    for one of four is answered by naming the one, not by a
                    number that could have come from any of them. -->
               <p v-if="row.via" class="tiny muted via">{{ $t('plan.via', { name: row.via }) }}</p>
+              <!-- And for a free elective part, why units it never lists are
+                   counted towards it. -->
+              <p v-else-if="row.free && row.count" class="tiny muted via">
+                {{ $t('plan.freeElective', { n: row.count }) }}
+              </p>
             </li>
           </ul>
         </section>

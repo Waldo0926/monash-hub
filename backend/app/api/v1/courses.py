@@ -1,6 +1,8 @@
 """Handbook course and area-of-study endpoints."""
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
@@ -27,6 +29,35 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 def _year(year: int | None) -> int:
     return year or get_settings().current_academic_year
+
+
+# A part of a degree that any unit can count towards, as opposed to one that
+# lists what counts. The planner has to tell them apart: a *specified* or
+# *discipline* elective part is satisfied only by the units it names, but a free
+# elective part is satisfied by whatever is left over, which is exactly what the
+# words "free elective" mean and why "Part E. Free elective studies" read 0/48
+# for a student who had planned twelve units it did not happen to list.
+#
+# Two signals, both taken from the English source so the answer does not depend
+# on which language the page is being read in:
+#
+#   * the title says "free elective" - 24 parts across the catalogue, and
+#   * the description says "across the University", which is the Handbook's own
+#     phrase for a part with no list - another 31, mostly titled plainly
+#     "Part D. Elective studies".
+#
+# The title must mention electives either way. Without that clause the
+# description test also matches "Rules", "Course requirements" and even "Part A.
+# Foundation studies", all of which mention the University in passing.
+_ELECTIVE = re.compile(r"\belectives?\b", re.IGNORECASE)
+_FREE_ELECTIVE = re.compile(r"\bfree\s+electives?\b", re.IGNORECASE)
+_NO_LIST = re.compile(r"across the University", re.IGNORECASE)
+
+
+def _is_free_elective(title: str | None, description: str | None) -> bool:
+    if not title or not _ELECTIVE.search(title):
+        return False
+    return bool(_FREE_ELECTIVE.search(title) or _NO_LIST.search(description or ""))
 
 
 @router.get("")
@@ -146,6 +177,9 @@ def _tree(
             "credit_points": row.credit_points,
             "credit_points_max": row.credit_points_max,
             "connector": row.connector,
+            # From the English, before translation: what a part *is* does not
+            # change with the reader's language.
+            "free_elective": _is_free_elective(row.title, row.description),
             "items": [
                 {
                     "code": item.item_code,
