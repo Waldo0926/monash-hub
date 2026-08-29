@@ -52,6 +52,12 @@ class OfficialPage(Base):
             postgresql_using="gin",
             postgresql_ops={"title": "gin_trgm_ops"},
         ),
+        Index(
+            "ix_official_pages_search_zh_trgm",
+            "search_zh",
+            postgresql_using="gin",
+            postgresql_ops={"search_zh": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -97,6 +103,14 @@ class OfficialPage(Base):
     first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_changed: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    # Every Chinese string this row has, flattened out of content_translations
+    # where an index can reach it. PostgreSQL cannot tokenise Chinese without a
+    # server-side extension we cannot install, so this is matched with pg_trgm
+    # rather than tsvector - which for a language with no word boundaries is the
+    # right query anyway. Filled by `python -m app.search.reindex_zh`, never by
+    # a generated column: the text it comes from lives in another table.
+    search_zh: Mapped[str | None] = mapped_column(Text)
 
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,

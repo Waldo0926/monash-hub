@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.community import CommunityPost, PostTag
 from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry, OfficialPage
+from app.search.chinese import expanded_query, has_cjk
 from app.search.keywords import extract_unit_codes
 
 
@@ -36,8 +37,29 @@ def _is_code_fragment(term: str) -> bool:
 
 
 def _ts_query(term: str):
-    """``websearch_to_tsquery`` handles quotes and OR without us sanitising input."""
-    return func.websearch_to_tsquery("english", term)
+    """``websearch_to_tsquery`` handles quotes and OR without us sanitising input.
+
+    The term is expanded through the glossary first, so a Chinese query carries
+    the English terms it means. 学籍统计日 contributes nothing to an English
+    tsvector on its own; alongside "census date" it finds the page even where
+    nobody has translated that page's body yet.
+    """
+    return func.websearch_to_tsquery("english", expanded_query(term))
+
+
+# Chinese has no word boundaries, so a student typing 学籍统计 is typing a
+# contiguous run and means it. Substring is the honest query, and pg_trgm makes
+# it an indexed one. The similarity fallback catches a query that is close but
+# not contained - a synonym the glossary happens to know differently.
+ZH_SIMILARITY = 0.3
+
+
+def _zh_match(column, term: str):
+    """Match a Chinese query against a column holding translated text."""
+    return or_(
+        column.ilike(f"%{term}%"),
+        func.similarity(column, term) > ZH_SIMILARITY,
+    )
 
 
 def _array_contained_in_query(column: str, term: str):
@@ -92,6 +114,7 @@ def search_units(
             match = or_(
                 Unit.unit_code.in_(codes),
                 Unit.search_vector.op("@@")(_ts_query(term)),
+                *( [_zh_match(Unit.search_zh, term)] if has_cjk(term) else [] ),
             )
         else:
             match = or_(
@@ -99,6 +122,7 @@ def search_units(
                 *( [Unit.unit_code.ilike(f"%{term}%")] if _is_code_fragment(term) else [] ),
                 Unit.search_vector.op("@@")(_ts_query(term)),
                 func.similarity(Unit.title, term) > 0.25,
+                *( [_zh_match(Unit.search_zh, term)] if has_cjk(term) else [] ),
             )
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
@@ -143,8 +167,14 @@ def search_units(
         in_code = case((Unit.unit_code.ilike(f"%{term}%"), 1), else_=0) \
             if _is_code_fragment(term) else literal(0)
         rank = func.ts_rank(Unit.search_vector, _ts_query(term))
+        # A Chinese query gets little or nothing from ts_rank even after the
+        # glossary expansion, so the Chinese text is what orders those results.
+        zh_rank = (
+            func.coalesce(func.similarity(Unit.search_zh, term), 0)
+            if has_cjk(term) else literal(0)
+        )
         stmt = stmt.order_by(
-            exact.desc(), in_code.desc(), rank.desc(),
+            exact.desc(), in_code.desc(), rank.desc(), zh_rank.desc(),
             func.similarity(Unit.title, term).desc(),
         )
     else:
@@ -169,6 +199,7 @@ def search_official(
             OfficialPage.search_vector.op("@@")(_ts_query(term)),
             func.similarity(OfficialPage.title, term) > 0.2,
             _array_contained_in_query("official_pages.tags", term),
+            *( [_zh_match(OfficialPage.search_zh, term)] if has_cjk(term) else [] ),
         )
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
@@ -176,8 +207,13 @@ def search_official(
         stmt = stmt.where(OfficialPage.category == category)
         count_stmt = count_stmt.where(OfficialPage.category == category)
     if term:
+        zh_rank = (
+            func.coalesce(func.similarity(OfficialPage.search_zh, term), 0)
+            if has_cjk(term) else literal(0)
+        )
         stmt = stmt.order_by(
             func.ts_rank(OfficialPage.search_vector, _ts_query(term)).desc(),
+            zh_rank.desc(),
             func.similarity(OfficialPage.title, term).desc(),
         )
     else:
@@ -219,6 +255,12 @@ def search_community(
         match = or_(
             CommunityPost.search_vector.op("@@")(_ts_query(term)),
             CommunityPost.unit_code.in_(codes) if codes else CommunityPost.id.is_(None),
+            # Nothing to translate here - a post written in Chinese already is
+            # Chinese, and the English tsvector simply cannot see it.
+            *( [
+                or_(CommunityPost.title.ilike(f"%{term}%"),
+                    CommunityPost.body.ilike(f"%{term}%"))
+            ] if has_cjk(term) else [] ),
         )
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
