@@ -158,7 +158,7 @@ function hasHeader(block: Block): boolean {
    into a scrollbar. */
 .block-heading,
 .block-p,
-.block-list { max-width: 68ch; }
+.block-list { max-width: var(--measure); }
 
 .block-heading {
   margin: var(--s6) 0 var(--s3);

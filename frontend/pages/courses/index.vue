@@ -119,7 +119,7 @@ useHead({ title: $t('courses.title') })
 <style scoped>
 .page { max-width: var(--container); margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .intro h1 { margin: 0 0 var(--s2); }
-.lede { color: var(--muted); margin: 0 0 var(--s5); max-width: 62ch; }
+.lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
 
 .controls { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; margin-bottom: var(--s3); }
 .finder { display: flex; gap: var(--s2); flex: 1 1 320px; }

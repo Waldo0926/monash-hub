@@ -116,6 +116,32 @@ function clearAll() {
   lookupNote.value = ''
 }
 
+// --- reading a screenshot -------------------------------------------------
+//
+// The least accurate of the three ways in, and the one students reach for
+// first. It runs entirely in the browser, so the screenshot of somebody's
+// transcript is not uploaded anywhere, and whatever it reads lands in the
+// editable table rather than straight into a total.
+const ocr = useOcr()
+const fileInput = ref<HTMLInputElement | null>(null)
+
+async function onScreenshot(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const text = await ocr.recognise(file)
+  // Clear the input so choosing the same file twice still fires a change.
+  input.value = ''
+  if (!text.trim()) {
+    if (!ocr.error.value) lookupNote.value = $t('marks.ocrNothing')
+    return
+  }
+  pasted.value = text
+  showPaste.value = true
+  applyPaste()
+  lookupNote.value = $t('marks.ocrCheck')
+}
+
 function applyPaste() {
   const rows = parsePastedResults(pasted.value)
   if (!rows.length) {
@@ -229,11 +255,24 @@ useSeoMeta({
           <button class="btn btn--ghost btn--small" type="button" @click="showPaste = !showPaste">
             {{ $t('marks.paste') }}
           </button>
+          <label class="btn btn--ghost btn--small file">
+            {{ $t('marks.screenshot') }}
+            <input ref="fileInput" type="file" accept="image/*" @change="onScreenshot">
+          </label>
           <button class="btn btn--ghost btn--small" type="button" @click="clearAll">
             {{ $t('marks.clear') }}
           </button>
         </div>
       </div>
+
+      <p v-if="ocr.stage.value === 'loading' || ocr.stage.value === 'recognising'"
+         class="tiny note ocr-progress">
+        {{ ocr.stage.value === 'loading' ? $t('marks.ocrLoading') : $t('marks.ocrReading') }}
+        <span v-if="ocr.progress.value !== null">
+          {{ Math.round(ocr.progress.value * 100) }}%
+        </span>
+      </p>
+      <p v-if="ocr.error.value" class="tiny bad-text">{{ $t('marks.ocrFailed') }}</p>
 
       <div v-if="showPaste" class="paste">
         <p class="tiny muted">{{ $t('marks.pasteHelp') }}</p>
@@ -401,7 +440,7 @@ useSeoMeta({
 <style scoped>
 .page { display: grid; gap: var(--s4); padding-bottom: var(--s7); }
 .intro { padding-top: var(--s5); }
-.lede { max-width: 68ch; color: var(--muted); }
+.lede { max-width: var(--measure-lede); color: var(--muted); }
 .section { padding: var(--s5); }
 
 .head-row { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; justify-content: space-between; }
@@ -416,6 +455,13 @@ useSeoMeta({
   color: var(--text); width: 100%; min-width: 0;
 }
 .narrow { max-width: 92px; }
+/* The file input is the button; the real control is unusable and every browser
+   styles it differently. */
+.file { position: relative; overflow: hidden; cursor: pointer; }
+.file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.ocr-progress { margin: var(--s3) 0 0; }
+.bad-text { color: var(--danger); }
+
 .paste { display: grid; gap: var(--s2); margin: var(--s4) 0; }
 .paste-box { font-family: var(--font-mono); font-size: 0.85rem; }
 
