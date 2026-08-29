@@ -325,7 +325,9 @@ const en: Messages = {
   'footer.systemsMalaysia': 'Malaysia systems',
   'footer.monashMalaysia': 'Monash Malaysia students',
   'footer.monashStudents': 'Monash current students',
-  'footer.about': 'An independent student platform',
+  'footer.about': 'An independent student platform · built by @Waldo',
+  'footer.wechat':
+    'More on the 马莫百科 WeChat account, updated as things change — questions are welcome by direct message there.',
   'home.communityEmpty': 'No discussions yet',
   'home.communityEmptyHint': 'Official pages answer what the rules are. This is where students answer what it was actually like — someone has to ask first.',
 
@@ -914,7 +916,9 @@ const zh: Messages = {
   'footer.systemsMalaysia': '马来西亚校区系统',
   'footer.monashMalaysia': 'Monash 马来西亚校区学生网站',
   'footer.monashStudents': 'Monash 在读学生页',
-  'footer.about': '独立学生平台',
+  'footer.about': '独立学生平台 · 由 @Waldo 开发',
+  'footer.wechat':
+    '更多资讯请关注「马莫百科」微信公众号，后续将持续更新；有问题欢迎在公众号后台私信。',
   'home.communityEmpty': '还没有讨论',
   'home.communityEmptyHint': '官方页面告诉你规定是什么，这里是学生说真实体验是什么样——总要有人先开口。',
 
@@ -1478,7 +1482,9 @@ const ja: Messages = {
   'footer.systemsMalaysia': 'マレーシア校のシステム',
   'footer.monashMalaysia': 'Monash マレーシア校 学生サイト',
   'footer.monashStudents': 'Monash 在学生ページ',
-  'footer.about': '独立した学生プラットフォーム',
+  'footer.about': '独立した学生プラットフォーム · 開発 @Waldo',
+  'footer.wechat':
+    '「马莫百科」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
   'home.communityEmpty': 'まだ投稿がありません',
   'home.communityEmptyHint': '公式ページは規程が何かを答えます。ここは学生が実際どうだったかを答える場所です。誰かが最初に聞く必要があります。',
 
@@ -2055,7 +2061,9 @@ const ko: Messages = {
   'footer.systemsMalaysia': '말레이시아 캠퍼스 시스템',
   'footer.monashMalaysia': 'Monash 말레이시아 학생 사이트',
   'footer.monashStudents': 'Monash 재학생 페이지',
-  'footer.about': '독립 학생 플랫폼',
+  'footer.about': '독립 학생 플랫폼 · 제작 @Waldo',
+  'footer.wechat':
+    '「马莫百科」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
   'home.communityEmpty': '아직 글이 없습니다',
   'home.communityEmptyHint': '공식 페이지는 규정이 무엇인지 답합니다. 여기는 학생이 실제로 어땠는지 답하는 곳입니다. 누군가는 먼저 물어야 합니다.',
 

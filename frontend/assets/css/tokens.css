@@ -34,6 +34,10 @@
   --footer-bg: #111111;
   --footer-text: #d2d2d2;
   --footer-heading: #ffffff;
+  /* The brand blue lightened for the near-black footer. --brand itself is
+     #006dae, which manages only 3.42:1 down there - below the 4.5:1 a reader
+     needs. This is 5.63:1 and still recognisably the same blue. */
+  --footer-accent: #4b90d6;
 
   /* Surfaces */
   --bg: #f8fafc;
