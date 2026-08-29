@@ -134,7 +134,7 @@ useHead({ title: $t('courses.title') })
 .group h2 { font-size: 1rem; color: var(--muted); font-weight: 600; margin: 0 0 var(--s3); }
 .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
 .card {
-  display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: var(--s3);
+  display: grid; grid-template-columns: 72px minmax(12rem, 1fr) minmax(0, 2fr); gap: var(--s3);
   align-items: baseline; padding: var(--s3) var(--s4); background: var(--surface);
   border: 1px solid var(--border); border-radius: var(--radius); color: inherit;
   text-decoration: none;
@@ -142,7 +142,10 @@ useHead({ title: $t('courses.title') })
 .card:hover { border-color: var(--blue); box-shadow: var(--shadow-sm); }
 .code { font: 600 0.85rem var(--font-mono); color: var(--navy); }
 .name { font-weight: 500; }
-.facts { display: flex; gap: var(--s2); align-items: center; font-size: 0.8rem; color: var(--muted); }
+.facts {
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2);
+  align-items: center; min-width: 0; font-size: 0.8rem; color: var(--muted);
+}
 .chip {
   background: var(--surface-2); border-radius: var(--radius-pill);
   padding: 2px var(--s2); white-space: nowrap;
