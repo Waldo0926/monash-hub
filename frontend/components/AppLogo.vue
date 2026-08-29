@@ -13,13 +13,25 @@
  * a tab has to be able to tell this apart from an official Monash page, and the
  * footer disclaimer cannot do that job on its own.
  *
- * `tone` picks how it sits on its background: `onDark` for the header, `onLight`
- * anywhere the page is white.
+ * `tone` picks how it sits on its background:
+ *
+ * - `onDark` for the blue header, where the tile is a lift of white and the
+ *   blue underneath it is the header's own.
+ * - `onLight` anywhere the page is white.
+ * - `onDeep` on the near-black footer. It draws the same solid brand tile as
+ *   `onLight`, and it exists under its own name because "onLight" on a black
+ *   background reads as a mistake to the next person editing this.
+ *
+ * The footer wants the tile, not the bare glyph: white strokes on near-black
+ * are legible but carry no brand colour at all, and the footer is half the
+ * site's dark surface. The solid brand blue puts it back - 5.70:1 for the white
+ * mark on the tile, and 3.42:1 for the tile against the footer, both clear of
+ * the 3:1 a graphic needs.
  */
 withDefaults(
   defineProps<{
     size?: number
-    tone?: 'onDark' | 'onLight'
+    tone?: 'onDark' | 'onLight' | 'onDeep'
     /** Draw the rounded tile behind the mark. Off gives just the glyph. */
     tile?: boolean
   }>(),
@@ -54,7 +66,10 @@ withDefaults(
 .logo--onDark .mark { stroke: #fff; }
 .logo--onDark .nodes { fill: #fff; }
 
-.logo--onLight .tile { fill: var(--brand); }
-.logo--onLight .mark { stroke: #fff; }
-.logo--onLight .nodes { fill: #fff; }
+.logo--onLight .tile,
+.logo--onDeep .tile { fill: var(--brand); }
+.logo--onLight .mark,
+.logo--onDeep .mark { stroke: #fff; }
+.logo--onLight .nodes,
+.logo--onDeep .nodes { fill: #fff; }
 </style>
