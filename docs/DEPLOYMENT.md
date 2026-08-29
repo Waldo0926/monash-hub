@@ -69,8 +69,9 @@ Monash Hub adds one server block and binds its own containers to loopback only.
    ./deployment/deploy.sh
    ```
 
-   That backs up, pulls, builds, migrates, restarts, and waits for
-   `/api/health`. It is safe to re-run.
+   That backs up, pulls, builds, migrates, applies the curated FAQ and
+   human-reviewed translations, restarts, and waits for `/api/health`. It is
+   safe to re-run.
 
 4. **TLS first, then nginx**
 
@@ -212,6 +213,10 @@ Use a password manager. Do not put it in `.env`.
 ```bash
 cd /opt/monash-hub/repo && ./deployment/deploy.sh
 ```
+
+The deploy applies the curated seed on every run. This is intentional: those
+rows are idempotent, and a hand-corrected translation committed to the
+repository must not wait for somebody to remember a separate seed command.
 
 The server only ever checks out `main`. Do not edit files there — a change made
 on the server is lost on the next deploy, and worse, it is invisible to everyone
