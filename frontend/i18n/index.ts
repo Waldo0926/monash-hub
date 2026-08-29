@@ -305,6 +305,9 @@ const en: Messages = {
   'nav.mainLabel': 'Main',
   'nav.language': 'Language',
   'nav.notifications': 'Notifications',
+  'nav.more': 'More',
+  'nav.allSections': 'All sections',
+  'nav.closeMenu': 'Close menu',
 
   'search.placeholder': 'Search units, policies or community…',
   'search.placeholderShort': 'Search…',
@@ -342,6 +345,7 @@ const en: Messages = {
   'home.lead':
     'Unit data from the 2026 Handbook, the official Monash pages students actually need, and a public place to ask everything the official pages do not cover.',
   'home.trending': 'Trending',
+  'home.moreTools': 'More tools',
   'home.entryUnits': 'Units',
   'home.entryUnitsHint': 'Assessment, requisites, offerings, workload',
   'home.entryGuides': 'Official guides',
@@ -887,6 +891,9 @@ const zh: Messages = {
   'nav.mainLabel': '主导航',
   'nav.language': '语言',
   'nav.notifications': '通知',
+  'nav.more': '更多',
+  'nav.allSections': '全部功能',
+  'nav.closeMenu': '关闭菜单',
 
   'search.placeholder': '搜索课程、政策或社区…',
   'search.placeholderShort': '搜索…',
@@ -922,6 +929,7 @@ const zh: Messages = {
   'home.lead':
     '2026 Handbook 的课程数据、学生真正会用到的 Monash 官方页面，以及一个可以公开提问的地方——官方页面没写的，来这里问。',
   'home.trending': '热门搜索',
+  'home.moreTools': '更多功能',
   'home.entryUnits': '查课程',
   'home.entryUnitsHint': '考核、先修、开课、工作量',
   'home.entryGuides': '查政策',
@@ -1444,6 +1452,9 @@ const ja: Messages = {
   'nav.mainLabel': 'メインナビゲーション',
   'nav.language': '言語',
   'nav.notifications': '通知',
+  'nav.more': 'その他',
+  'nav.allSections': 'すべての機能',
+  'nav.closeMenu': 'メニューを閉じる',
 
   'search.placeholder': 'ユニット・規程・コミュニティを検索…',
   'search.placeholderShort': '検索…',
@@ -1479,6 +1490,7 @@ const ja: Messages = {
   'home.lead':
     '2026 年 Handbook のユニット情報、学生が実際に必要とする Monash 公式ページ、そして公式ページに載っていないことを聞ける公開の場所。',
   'home.trending': '人気の検索',
+  'home.moreTools': 'その他の機能',
   'home.entryUnits': 'ユニット',
   'home.entryUnitsHint': '評価・履修条件・開講・学習時間',
   'home.entryGuides': '公式ガイド',
@@ -2014,6 +2026,9 @@ const ko: Messages = {
   'nav.mainLabel': '주요 메뉴',
   'nav.language': '언어',
   'nav.notifications': '알림',
+  'nav.more': '더보기',
+  'nav.allSections': '모든 기능',
+  'nav.closeMenu': '메뉴 닫기',
 
   'search.placeholder': '과목, 규정, 커뮤니티 검색…',
   'search.placeholderShort': '검색…',
@@ -2049,6 +2064,7 @@ const ko: Messages = {
   'home.lead':
     '2026 Handbook의 과목 정보, 학생에게 실제로 필요한 Monash 공식 페이지, 그리고 공식 페이지에 없는 것을 물어볼 수 있는 공개된 공간.',
   'home.trending': '인기 검색어',
+  'home.moreTools': '더 많은 기능',
   'home.entryUnits': '과목',
   'home.entryUnitsHint': '평가, 선수과목, 개설, 학습량',
   'home.entryGuides': '공식 가이드',

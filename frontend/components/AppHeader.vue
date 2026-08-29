@@ -14,16 +14,7 @@ onMounted(async () => {
 })
 onBeforeUnmount(stop)
 
-const links = computed(() => [
-  { to: '/units', label: $t('nav.units') },
-  { to: '/courses', label: $t('nav.courses') },
-  { to: '/plan', label: $t('nav.plan') },
-  { to: '/tree', label: $t('nav.tree') },
-  { to: '/marks', label: $t('nav.marks') },
-  { to: '/guides', label: $t('nav.guides') },
-  { to: '/community', label: $t('nav.community') },
-  { to: '/mamo', label: $t('nav.mamo') }
-])
+const links = useSectionNavigation()
 
 const query = ref('')
 watch(() => route.query.q, q => { query.value = (q as string) || '' }, { immediate: true })
