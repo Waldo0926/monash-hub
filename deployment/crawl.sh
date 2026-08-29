@@ -8,6 +8,8 @@
 #   deployment/crawl.sh official            # only seed pages that are due
 #   deployment/crawl.sh official --all      # every seed page, ignoring intervals
 #   deployment/crawl.sh seed                # curated FAQ rows
+#   deployment/crawl.sh reindex-zh          # make the stored Chinese searchable
+#   deployment/crawl.sh reindex-zh --stats  # coverage only, writes nothing
 #
 # Crawls are one-shot containers, not services. Nothing here runs on a timer
 # yet: the first production crawls are meant to be watched.
@@ -36,8 +38,14 @@ case "$target" in
   seed)
     "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
     ;;
+  reindex-zh)
+    # Copies the stored Chinese onto the rows search queries. Idempotent, and it
+    # only writes rows whose text changed - run it after a crawl and after a
+    # translation batch. See docs/DEPLOYMENT.md.
+    "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh "$@"
+    ;;
   *)
-    echo "usage: $0 {handbook|official|seed} [args]" >&2
+    echo "usage: $0 {handbook|official|seed|reindex-zh} [args]" >&2
     exit 2
     ;;
 esac

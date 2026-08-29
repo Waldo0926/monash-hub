@@ -132,6 +132,44 @@ Monash Hub adds one server block and binds its own containers to loopback only.
      still current, and the site marks them all stale. The seeder warns by name
      about any page in that state.
 
+## Chinese search
+
+Searching in Chinese needs one step that a crawl does not do for you:
+
+```bash
+cd /opt/monash-hub/repo
+./deployment/crawl.sh reindex-zh --stats   # coverage, writes nothing
+./deployment/crawl.sh reindex-zh
+```
+
+**Run it after a crawl and after any translation batch.** Translations live in
+`content_translations`; search runs against `units` and `official_pages`. The
+reindex copies the Chinese onto those rows, where `pg_trgm` can index it. It is
+idempotent and only writes rows whose text actually changed, so a run after a
+quiet crawl costs nothing.
+
+Forgetting it is not an outage. Chinese search keeps working through the
+glossary expansion below — it just stops finding pages by their translated body
+until the reindex catches up.
+
+### How a Chinese query is answered
+
+PostgreSQL cannot tokenise Chinese: `to_tsvector('english', '选课与注册')` yields
+one meaningless token, and the extensions that fix that (`zhparser`, `pg_jieba`)
+are server-side installs we do not have. So two mechanisms run side by side.
+
+1. **Glossary expansion.** The query is matched against the Chinese side of
+   `app/knowledge/glossary.py`, and the English terms it translates are OR-ed
+   into the text query. 休学 also searches for "intermission", which finds the
+   page whether or not anybody has translated it. This works with no reindex at
+   all, and it grows on its own as terms are added for the translator.
+2. **Trigram match on `search_zh`.** For pages that *are* translated, the query
+   is matched as a substring against the stored Chinese. For a language with no
+   word boundaries substring is the natural query, not a fallback.
+
+English search is untouched: an English query expands to nothing and keeps its
+original AND semantics.
+
 ## Email delivery
 
 Registration and password reset send a six-digit code. With

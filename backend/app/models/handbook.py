@@ -36,6 +36,12 @@ class Unit(Base):
             postgresql_using="gin",
             postgresql_ops={"title": "gin_trgm_ops"},
         ),
+        Index(
+            "ix_units_search_zh_trgm",
+            "search_zh",
+            postgresql_using="gin",
+            postgresql_ops={"search_zh": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -76,6 +82,14 @@ class Unit(Base):
 
     # Maintained by PostgreSQL itself. A generated column cannot drift out of
     # sync with the row the way a trigger or an application-side update can.
+    # Every Chinese string this row has, flattened out of content_translations
+    # where an index can reach it. PostgreSQL cannot tokenise Chinese without a
+    # server-side extension we cannot install, so this is matched with pg_trgm
+    # rather than tsvector - which for a language with no word boundaries is the
+    # right query anyway. Filled by `python -m app.search.reindex_zh`, never by
+    # a generated column: the text it comes from lives in another table.
+    search_zh: Mapped[str | None] = mapped_column(Text)
+
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
