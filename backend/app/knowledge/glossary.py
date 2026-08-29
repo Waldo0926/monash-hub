@@ -1105,6 +1105,42 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "データ構造",
         "ko": "자료 구조",
     },
+    # "Architecture" is a building to a translator and a machine to us, and both
+    # readings are right somewhere in this Handbook: ARC1002 really is about
+    # buildings, FIT3159 is not. Bare "architecture" is therefore left alone -
+    # it would break the ARC units - and the computing senses are pinned as
+    # whole phrases instead, which longest-match-first resolves correctly.
+    # FIT3159 was published as 电脑建筑学, a degree in computer buildings.
+    "computer architecture": {
+        "zh": "计算机体系结构",
+        "ja": "コンピュータアーキテクチャ",
+        "ko": "컴퓨터 구조",
+    },
+    "software architecture": {
+        "zh": "软件架构",
+        "ja": "ソフトウェアアーキテクチャ",
+        "ko": "소프트웨어 아키텍처",
+    },
+    "system architecture": {
+        "zh": "系统架构",
+        "ja": "システムアーキテクチャ",
+        "ko": "시스템 아키텍처",
+    },
+    "systems architecture": {
+        "zh": "系统架构",
+        "ja": "システムアーキテクチャ",
+        "ko": "시스템 아키텍처",
+    },
+    "network architecture": {
+        "zh": "网络架构",
+        "ja": "ネットワークアーキテクチャ",
+        "ko": "네트워크 아키텍처",
+    },
+    "enterprise architecture": {
+        "zh": "企业架构",
+        "ja": "エンタープライズアーキテクチャ",
+        "ko": "엔터프라이즈 아키텍처",
+    },
     "algorithms": {
         "zh": "算法",
         "ja": "アルゴリズム",

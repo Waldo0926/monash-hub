@@ -259,12 +259,30 @@ def get_course(
         db, locale, AREA_OF_STUDY, [row.aos_code for row in offered],
         source_hashes={row.aos_code: row.content_hash for row in offered},
     )
+    # Each specialisation's own unit list, so a plan can be measured against a
+    # part that asks for one.
+    #
+    # Without this "Part C. Specialist studies" reads 0/36 for a student who has
+    # planned the whole specialisation, because Part C does not list units at
+    # all - it lists the four specialisations on offer, and a plan holds unit
+    # codes. Nothing downstream could match FIT2102 against ALGSFTWR01.
+    aos_units: dict[str, list[str]] = {}
+    for row in offered:
+        aos_units[row.aos_code] = _codes_in(_tree(db, aos_id=row.id), "unit")
+
+    # The facts map has to cover them too, or the credit points of a planned
+    # specialisation unit are unknown and it counts as zero.
+    extra = sorted({code for codes in aos_units.values() for code in codes} - set(units))
+    if extra:
+        units.update(_unit_facts(db, extra, academic_year, campus, locale))
+
     payload["areas_of_study"] = [
         {
             "code": row.aos_code,
             "title": aos_tr[row.aos_code].field("title", row.title),
             "aos_type": aos_tr[row.aos_code].string(row.aos_type),
             "credit_points": row.credit_points,
+            "unit_codes": aos_units.get(row.aos_code, []),
         }
         for row in offered
     ]
