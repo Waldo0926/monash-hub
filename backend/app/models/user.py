@@ -14,6 +14,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -35,6 +36,12 @@ class User(Base):
     # issued under, so a password reset signs every existing session out without
     # needing a session table to revoke against.
     token_version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    # The file name only, never a URL. Where avatars are served from is a
+    # deployment decision that has already changed once; a stored URL would
+    # have to be rewritten in every row when it changes again.
+    avatar_file: Mapped[str | None] = mapped_column(String(120))
+    bio: Mapped[str | None] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

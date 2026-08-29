@@ -58,6 +58,11 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      AVATAR_DIR: /data/avatars
+    volumes:
+      # Profile pictures. The API writes here; the host's nginx serves the same
+      # directory directly, so an avatar request never reaches this container.
+      - ${AVATAR_DIR:-/opt/monash-hub/avatars}:/data/avatars
     ports:
       - "127.0.0.1:${API_PORT:-8100}:8000"
     networks: [internal]

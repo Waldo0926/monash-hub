@@ -26,7 +26,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import current_user
-from app.core import verification
+from app.core import avatars, verification
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.email import EmailDeliveryError
@@ -82,6 +82,9 @@ def _me(user: User) -> dict:
         "nickname": user.nickname,
         "email": user.email,
         "is_admin": user.is_admin,
+        # Carried here so the header can show the picture without a second
+        # request on every page load.
+        "avatar_url": avatars.url_for(user.avatar_file),
     }
 
 

@@ -11,3 +11,8 @@ pyjwt==2.13.0
 beautifulsoup4==4.15.0
 lxml==6.1.2
 httpx==0.28.1
+# Avatars are decoded and re-encoded server-side, so the bytes we store are
+# always bytes we produced - which is what makes an uploaded file safe to serve.
+pillow==12.1.0
+# multipart/form-data, which is how the avatar upload arrives.
+python-multipart==0.0.20

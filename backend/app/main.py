@@ -22,6 +22,7 @@ from app.api.v1 import (
     marks,
     notifications,
     plan,
+    profile,
     search,
     units,
 )
@@ -56,7 +57,7 @@ app.include_router(health.router, prefix="/api")
 
 for module in (
     units, courses, plan, search, ask, guides, community, auth, exchange, notifications,
-    marks,
+    marks, profile,
 ):
     app.include_router(module.router, prefix=settings.api_prefix)
 
