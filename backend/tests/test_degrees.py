@@ -127,3 +127,20 @@ def test_the_split_is_not_taken_when_the_right_half_is_not_a_degree():
     assert compose("Bachelor of Arts and Social Sciences", "zh", lambda s: "文学与社会科学") == (
         "文学与社会科学学士"
     )
+
+
+def test_a_full_stop_from_the_translator_does_not_land_inside_the_name():
+    """"Architectural Studies" came back as 建筑研究。 - ended like a sentence -
+    and the award was then appended after the stop: 建筑研究。学士. Four degrees
+    on the live site read that way."""
+    assert compose("Bachelor of Underwater Basketry", "zh", lambda s: "水下编织。") == "水下编织学士"
+    assert compose("Bachelor of Underwater Basketry", "zh", lambda s: "水下编织，") == "水下编织学士"
+
+
+def test_a_translation_that_is_only_punctuation_is_refused():
+    assert compose("Bachelor of Underwater Basketry", "zh", lambda s: "。") is None
+
+
+def test_the_subjects_that_were_wrong_on_the_live_site():
+    assert compose("Bachelor of Architectural Studies", "zh", tr) == "建筑学学士"
+    assert compose("Master of Regulation and Compliance", "zh", tr) == "监管与合规硕士"

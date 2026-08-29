@@ -84,3 +84,9 @@ def test_every_qualifier_is_written_in_every_locale(locale):
 
 def test_an_unsupported_locale_gets_nothing():
     assert compose("Introduction to anatomy", "fr", tr) is None
+
+
+def test_a_full_stop_from_the_translator_does_not_land_inside_the_title():
+    """Same fault as the degree names: the qualifier would go after the stop."""
+    assert compose("Introduction to basket weaving", "zh", lambda s: "编织。") == "编织导论"
+    assert compose("Introduction to basket weaving", "zh", lambda s: "。") is None

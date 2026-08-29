@@ -50,6 +50,9 @@ _SHAPE = re.compile(rf"^(?P<qualifier>{_ALTERNATION})\s+(?P<topic>.+)$", re.IGNO
 # 导论对艺术的历史和理论 and 基础 of 解剖学和生理学.
 _HAS_STRUCTURE = re.compile(r"[:;]")
 
+#: See degrees.py - a translated fragment can come back with a full stop on it.
+_TRAILING_STOP = re.compile(r"[。．.，,、；;：:\s]+$")
+
 
 def compose(title: str, locale: str, translate) -> str | None:
     """The title in ``locale``, or ``None`` to leave it to the caller.
@@ -72,8 +75,15 @@ def compose(title: str, locale: str, translate) -> str | None:
     if not rendered or rendered.strip() == topic:
         return None
 
+    # The translator sometimes ends a fragment as though it were a sentence, and
+    # the qualifier would then land after the full stop - 建筑研究。学士 is how
+    # this showed up on the degree names.
+    subject = _TRAILING_STOP.sub("", rendered.strip())
+    if not subject:
+        return None
+
     qualifier = QUALIFIERS[_canonical(shape.group("qualifier"))][locale]
-    return f"{rendered.strip()}{qualifier}"
+    return f"{subject}{qualifier}"
 
 
 def _canonical(written: str) -> str:
