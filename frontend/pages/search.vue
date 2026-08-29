@@ -46,6 +46,25 @@ function search(value: string) {
 
 const hasResults = computed(() => (data.value?.groups || []).some((g: any) => g.results?.length))
 
+/**
+ * Whether to draw the answer card above the results.
+ *
+ * The router answers every query, and when it has nothing it answers "Nothing
+ * in the Handbook or the indexed official pages answers this". That is fine on
+ * its own and wrong sitting above five Handbook units, which is what a reader
+ * searching "2102" instead of "FIT2102" got: a failure notice on a page full of
+ * results. The router looks up FAQs and official pages, not units, so it does
+ * not know what the list below found.
+ *
+ * The card is worth drawing when it says something - a unit, an FAQ, matching
+ * official pages. When its whole content is "there is nothing", the result list
+ * has already answered better, and where there is genuinely nothing the empty
+ * state below says so once, with somewhere to go next.
+ */
+const showAnswer = computed(
+  () => !!answer.value && !!query.value && answer.value.answer_type !== 'community_fallback'
+)
+
 useSeoMeta({
   title: () => (query.value ? `${query.value} — Monash Hub` : $t('search.title')),
   robots: 'noindex'
@@ -59,7 +78,7 @@ useSeoMeta({
     <ErrorState v-if="error" :error="error" :on-retry="refresh" class="mt" />
 
     <template v-else>
-      <div v-if="answer && query" class="mt">
+      <div v-if="showAnswer" class="mt">
         <AnswerBlocks :answer="answer" />
       </div>
 

@@ -127,6 +127,31 @@ const warningCount = computed(
 )
 
 /** The message for one finding, with the codes it names spelled out. */
+/**
+ * A requisite rule, written out.
+ *
+ * The rule nests, and the flat `any_of` / `all_of` summaries the API sends
+ * alongside it only describe the outermost group. FIT2004 asks for one of
+ * FIT1008/FIT1054/FIT2085 *and* one of MAT1830/FIT1058, so its outer group is
+ * an AND holding two ORs and naming no units of its own - both summaries came
+ * back empty and the student was told "需要先修完 。" with nothing after it.
+ *
+ * The nesting is the rule, so it is read rather than flattened: flattening
+ * would list five units and imply all five were needed.
+ */
+function describeRule(rule: any): string {
+  if (!rule) return ''
+  const parts = [
+    ...(rule.codes || []),
+    ...(rule.groups || []).map((child: any) => describeRule(child))
+  ].filter(Boolean)
+  if (!parts.length) return ''
+  if (parts.length === 1) return parts[0]
+  const joined = parts.join(rule.connector === 'OR' ? ' / ' : $t('plan.rule.and'))
+  // Bracketed so "one of these and one of those" cannot be read as one list.
+  return rule.connector === 'OR' ? `（${joined}）` : joined
+}
+
 function issueText(issue: any): string {
   const d = issue.detail || {}
   switch (issue.kind) {
@@ -141,14 +166,16 @@ function issueText(issue: any): string {
       return (d.offered_in || []).length
         ? $t('plan.issue.notThen', { periods: (d.offered_in || []).join('、') })
         : $t('plan.issue.notThenAtAll')
-    case 'missing_prerequisite':
-      return d.any_of?.length
-        ? $t('plan.issue.needAny', { units: d.any_of.join(' / ') })
-        : $t('plan.issue.needAll', { units: (d.all_of || []).join('、') })
-    case 'missing_corequisite':
-      return $t('plan.issue.needWith', {
-        units: [...(d.any_of || []), ...(d.all_of || [])].join('、')
-      })
+    case 'missing_prerequisite': {
+      if (d.any_of?.length) return $t('plan.issue.needAny', { units: d.any_of.join(' / ') })
+      const units = d.all_of?.length ? d.all_of.join('、') : describeRule(d.rule)
+      return units ? $t('plan.issue.needAll', { units }) : $t('plan.issue.needUnknown')
+    }
+    case 'missing_corequisite': {
+      const flat = [...(d.any_of || []), ...(d.all_of || [])]
+      const units = flat.length ? flat.join('、') : describeRule(d.rule)
+      return units ? $t('plan.issue.needWith', { units }) : $t('plan.issue.needUnknown')
+    }
     case 'prohibited_with':
       return $t('plan.issue.prohibited', { units: (d.units || []).join('、') })
     case 'duplicate':
