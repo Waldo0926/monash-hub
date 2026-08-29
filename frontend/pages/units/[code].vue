@@ -7,6 +7,7 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 const code = computed(() => String(route.params.code).toUpperCase())
 
 const { data: unit, error } = await useLocalisedApiFetch<any>(() => `/v1/units/${code.value}`)
@@ -24,7 +25,10 @@ async function ask(text?: string) {
   question.value = q
   asking.value = true
   try {
-    answer.value = await apiFetch<any>('/v1/ask', { method: 'POST', body: { query: q } })
+    answer.value = await apiFetch<any>(`/v1/ask?locale=${locale.value}`, {
+      method: 'POST',
+      body: { query: q }
+    })
   } finally {
     asking.value = false
   }

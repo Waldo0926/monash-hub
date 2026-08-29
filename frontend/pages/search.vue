@@ -10,6 +10,7 @@
 const route = useRoute()
 const { $t } = useNuxtApp()
 const query = ref((route.query.q as string) || '')
+const { locale } = useLocale()
 
 const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
   () => `/v1/search?q=${encodeURIComponent((route.query.q as string) || '')}`,
@@ -27,7 +28,12 @@ const { data: answer } = await useAsyncData<any>(
   () => {
     const q = ((route.query.q as string) || '').trim()
     if (!q) return Promise.resolve(null)
-    return $fetch<any>(apiUrl('/v1/ask'), { method: 'POST', body: { query: q } }).catch(() => null)
+    // The answer carries the unit's name, so it needs the reader's language
+    // like every other call - requested_locale reads a query parameter.
+    return $fetch<any>(apiUrl(`/v1/ask?locale=${locale.value}`), {
+      method: 'POST',
+      body: { query: q }
+    }).catch(() => null)
   },
   { watch: [() => route.query.q] }
 )

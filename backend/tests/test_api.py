@@ -399,3 +399,37 @@ def test_a_sentence_is_not_treated_as_a_code_fragment(client, loaded):
     """Only a short run of letters and digits is a code; a phrase is not."""
     body = client.get("/api/v1/units", params={"q": "programming paradigms"}).json()
     assert "FIT2102" in {r["unit_code"] for r in body["results"]}
+
+
+def test_a_bare_unit_code_answers_with_the_way_in(client, loaded):
+    """Typing a code is asking for the unit, not for an essay about it.
+
+    This used to answer with the whole overview, which on a phone is the entire
+    first screen - so a reader searching FIT2102 met a wall of prose and never
+    scrolled to the unit itself. A table of facts was tried next and filled the
+    screen too.
+    """
+    body = client.post("/api/v1/ask", json={"query": "FIT2102"}).json()
+    assert [b["type"] for b in body["blocks"]] == ["link"]
+    assert body["blocks"][0]["to"] == "/units/FIT2102"
+
+
+def test_the_answer_title_is_in_the_readers_language(client, loaded, db):
+    """It is the whole visible answer when somebody types a unit code."""
+    from app.models.handbook import Unit
+    from app.models.translation import HUMAN, PUBLISHED, UNIT, ContentTranslation
+
+    unit = db.query(Unit).filter_by(unit_code="FIT2102").one()
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="FIT2102", field="content",
+            data={"strings": {unit.title: "编程范式"}},
+            source_hash=unit.content_hash, status=PUBLISHED, provenance=HUMAN,
+        )
+    )
+    db.commit()
+
+    body = client.post(
+        "/api/v1/ask", json={"query": "FIT2102"}, params={"locale": "zh"}
+    ).json()
+    assert body["title"] == "FIT2102 · 编程范式"
