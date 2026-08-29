@@ -16,6 +16,7 @@
 - [ ] Backend tests / 后端测试
 - [ ] Frontend build / 前端构建
 - [ ] Manual check (if applicable) / 手动检查（如适用）
+- [ ] Changelog updated, or not applicable / 已更新变更日志，或本次不适用
 
 ## Notes / 备注
 
