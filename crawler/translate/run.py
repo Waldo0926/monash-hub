@@ -185,14 +185,29 @@ def store(db, *, locale: str, target_type: str, target_key: str,
             provenance=MACHINE,
         )
         db.add(row)
-    row.data = {"strings": strings}
+    # Merged, not replaced. A pass that covers fewer strings than the last one
+    # is not evidence that the others are wrong: running `--fields short` after
+    # `--fields all` used to overwrite every overview, outcome and workload
+    # paragraph with a map that did not contain them, and the pages silently
+    # went back to English.
+    #
+    # A key whose English has since changed is left behind rather than deleted.
+    # It costs a little room and can never be read: the lookup is by the exact
+    # sentence, so a sentence that no longer exists is never asked for.
+    existing = ((row.data or {}).get("strings") or {}) if row.data else {}
+    row.data = {"strings": {**existing, **strings}}
+    # The widest pass this row has seen, so that a later `short` does not make
+    # an `all` row look as though the long prose still needs doing.
+    widest = scope
+    if (row.note or "") == "fields=all" or scope == "fields=all":
+        widest = "fields=all"
     # The source hash is the unit's own, unchanged: `load_many` compares it
     # against the current one to decide whether to warn that the English has
     # moved on. Anything appended here would make every translation look stale.
     row.source_hash = source_hash
     row.status = PUBLISHED
     row.translator = TRANSLATOR_NAME
-    row.note = scope or None
+    row.note = widest or None
 
 
 def _up_to_date(

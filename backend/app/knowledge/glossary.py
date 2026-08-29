@@ -1541,6 +1541,266 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "入門",
         "ko": "입문",
     },
+    # --- degree names -------------------------------------------------------
+    #
+    # Chinese names a degree by putting the award last: "Master of Arts" is
+    # 文学硕士, not 硕士文学. A translator that cannot reorder produces 艺术大师 -
+    # a grand master of art - and it did, on 61 of the 503 degrees. It got the
+    # other 131 Master titles right, which is worse than failing on all of
+    # them: nobody would trust a page that is wrong a third of the time.
+    #
+    # Pinned whole, because the reordering is the translation. A degree the
+    # Handbook adds next year is not covered and will need adding here.
+    'Master of Accounting': {
+        "zh": "会计硕士",
+        "ja": "会計学修士",
+        "ko": "회계학 석사",
+    },
+    'Master of Addictive Behaviours': {
+        "zh": "成瘾行为学硕士",
+        "ja": "嗜癖行動学修士",
+        "ko": "중독행동학 석사",
+    },
+    'Master of Advanced Clinical Nursing': {
+        "zh": "高级临床护理硕士",
+        "ja": "上級臨床看護学修士",
+        "ko": "고급 임상간호학 석사",
+    },
+    'Master of Advanced Engineering': {
+        "zh": "高级工程硕士",
+        "ja": "上級工学修士",
+        "ko": "고급 공학 석사",
+    },
+    'Master of Advanced Finance': {
+        "zh": "高级金融硕士",
+        "ja": "上級ファイナンス修士",
+        "ko": "고급 금융학 석사",
+    },
+    'Master of Advanced Health Care Practice': {
+        "zh": "高级医疗实践硕士",
+        "ja": "上級ヘルスケア実践修士",
+        "ko": "고급 보건의료 실무 석사",
+    },
+    'Master of Advanced Materials and Manufacturing Engineering': {
+        "zh": "先进材料与制造工程硕士",
+        "ja": "先端材料・製造工学修士",
+        "ko": "첨단소재·제조공학 석사",
+    },
+    'Master of Advanced Nursing': {
+        "zh": "高级护理硕士",
+        "ja": "上級看護学修士",
+        "ko": "고급 간호학 석사",
+    },
+    'Master of Advanced Study (Engineering Research)': {
+        "zh": "高级研究硕士（工程研究）",
+        "ja": "上級研究修士（工学研究）",
+        "ko": "고급 연구 석사(공학 연구)",
+    },
+    'Master of Analytics': {
+        "zh": "分析学硕士",
+        "ja": "アナリティクス修士",
+        "ko": "애널리틱스 석사",
+    },
+    'Master of Applied Data Science': {
+        "zh": "应用数据科学硕士",
+        "ja": "応用データサイエンス修士",
+        "ko": "응용 데이터과학 석사",
+    },
+    'Master of Applied Econometrics': {
+        "zh": "应用计量经济学硕士",
+        "ja": "応用計量経済学修士",
+        "ko": "응용 계량경제학 석사",
+    },
+    'Master of Applied Engineering': {
+        "zh": "应用工程硕士",
+        "ja": "応用工学修士",
+        "ko": "응용공학 석사",
+    },
+    'Master of Applied Linguistics': {
+        "zh": "应用语言学硕士",
+        "ja": "応用言語学修士",
+        "ko": "응용언어학 석사",
+    },
+    'Master of Applied Marketing': {
+        "zh": "应用市场营销硕士",
+        "ja": "応用マーケティング修士",
+        "ko": "응용 마케팅 석사",
+    },
+    'Master of Architecture': {
+        "zh": "建筑学硕士",
+        "ja": "建築学修士",
+        "ko": "건축학 석사",
+    },
+    'Master of Artificial Intelligence': {
+        "zh": "人工智能硕士",
+        "ja": "人工知能修士",
+        "ko": "인공지능 석사",
+    },
+    'Master of Arts': {
+        "zh": "文学硕士",
+        "ja": "文学修士",
+        "ko": "문학 석사",
+    },
+    'Master of Bioethics': {
+        "zh": "生命伦理学硕士",
+        "ja": "生命倫理学修士",
+        "ko": "생명윤리학 석사",
+    },
+    'Master of Biostatistics': {
+        "zh": "生物统计学硕士",
+        "ja": "生物統計学修士",
+        "ko": "생물통계학 석사",
+    },
+    'Master of Business': {
+        "zh": "商学硕士",
+        "ja": "ビジネス修士",
+        "ko": "경영학 석사",
+    },
+    'Master of Business Innovation': {
+        "zh": "商业创新硕士",
+        "ja": "ビジネスイノベーション修士",
+        "ko": "비즈니스 혁신 석사",
+    },
+    'Master of Cardiovascular Perfusion': {
+        "zh": "体外循环硕士",
+        "ja": "体外循環技術修士",
+        "ko": "체외순환학 석사",
+    },
+    'Master of Civil Engineering': {
+        "zh": "土木工程硕士",
+        "ja": "土木工学修士",
+        "ko": "토목공학 석사",
+    },
+    'Master of Clinical Psychology': {
+        "zh": "临床心理学硕士",
+        "ja": "臨床心理学修士",
+        "ko": "임상심리학 석사",
+    },
+    'Master of Commerce': {
+        "zh": "商学硕士",
+        "ja": "商学修士",
+        "ko": "상학 석사",
+    },
+    'Master of Computer Science': {
+        "zh": "计算机科学硕士",
+        "ja": "コンピュータサイエンス修士",
+        "ko": "컴퓨터과학 석사",
+    },
+    'Master of Critical Care Paramedicine': {
+        "zh": "重症救护医学硕士",
+        "ja": "救急集中治療修士",
+        "ko": "중환자 응급구조학 석사",
+    },
+    'Master of Data Science': {
+        "zh": "数据科学硕士",
+        "ja": "データサイエンス修士",
+        "ko": "데이터과학 석사",
+    },
+    'Master of Design': {
+        "zh": "设计学硕士",
+        "ja": "デザイン学修士",
+        "ko": "디자인학 석사",
+    },
+    'Master of Design by Research (Monash – Southeast University)': {
+        "zh": "设计学硕士（研究型，莫纳什–东南大学）",
+        "ja": "デザイン学修士（研究型、モナシュ–東南大学）",
+        "ko": "디자인학 석사(연구형, 모나시–동남대학)",
+    },
+    'Master of Educational and Developmental Psychology': {
+        "zh": "教育与发展心理学硕士",
+        "ja": "教育発達心理学修士",
+        "ko": "교육발달심리학 석사",
+    },
+    'Master of Engineering': {
+        "zh": "工程硕士",
+        "ja": "工学修士",
+        "ko": "공학 석사",
+    },
+    'Master of Engineering Science (Research)': {
+        "zh": "工程科学硕士（研究型）",
+        "ja": "工学修士（研究型）",
+        "ko": "공학 석사(연구형)",
+    },
+    'Master of Fine Art': {
+        "zh": "美术硕士",
+        "ja": "美術修士",
+        "ko": "미술 석사",
+    },
+    'Master of Genome Analytics': {
+        "zh": "基因组分析硕士",
+        "ja": "ゲノム解析修士",
+        "ko": "유전체 분석 석사",
+    },
+    'Master of Industrial Chemical Engineering': {
+        "zh": "工业化学工程硕士",
+        "ja": "工業化学工学修士",
+        "ko": "산업화학공학 석사",
+    },
+    'Master of Mathematics': {
+        "zh": "数学硕士",
+        "ja": "数学修士",
+        "ko": "수학 석사",
+    },
+    'Master of Nursing Practice': {
+        "zh": "护理实践硕士",
+        "ja": "看護実践修士",
+        "ko": "간호실무 석사",
+    },
+    'Master of Nutrition and Dietetics': {
+        "zh": "营养与膳食学硕士",
+        "ja": "栄養・食事学修士",
+        "ko": "영양·식이학 석사",
+    },
+    'Master of Occupational Therapy Practice': {
+        "zh": "职业治疗实践硕士",
+        "ja": "作業療法実践修士",
+        "ko": "작업치료 실무 석사",
+    },
+    'Master of Philosophy': {
+        "zh": "哲学硕士",
+        "ja": "哲学修士",
+        "ko": "철학 석사",
+    },
+    'Master of Professional Accounting': {
+        "zh": "专业会计硕士",
+        "ja": "専門会計修士",
+        "ko": "전문 회계 석사",
+    },
+    'Master of Professional Engineering': {
+        "zh": "专业工程硕士",
+        "ja": "専門工学修士",
+        "ko": "전문 공학 석사",
+    },
+    'Master of Professional Psychology': {
+        "zh": "专业心理学硕士",
+        "ja": "専門心理学修士",
+        "ko": "전문 심리학 석사",
+    },
+    'Master of Public Health': {
+        "zh": "公共卫生硕士",
+        "ja": "公衆衛生学修士",
+        "ko": "공중보건학 석사",
+    },
+    'Master of Science': {
+        "zh": "理学硕士",
+        "ja": "理学修士",
+        "ko": "이학 석사",
+    },
+    'Master of Surgery': {
+        "zh": "外科学硕士",
+        "ja": "外科学修士",
+        "ko": "외과학 석사",
+    },
+    'Master of Wound Care': {
+        "zh": "伤口护理硕士",
+        "ja": "創傷ケア修士",
+        "ko": "상처치료 석사",
+    },
+    'Bachelor of Architectural Design and Master of Architecture': {
+        "zh": "建筑设计学士与建筑学硕士",
+        "ja": "建築デザイン学士・建築学修士",
+        "ko": "건축디자인 학사 및 건축학 석사",
+    },
     # --- the names a degree gives its own parts ----------------------------
     #
     # The Part letter is pinned too, so that "Part A. Foundation studies" is

@@ -7,6 +7,7 @@
  * something the Handbook never said.
  */
 defineProps<{ answer: any }>()
+const { $t } = useNuxtApp()
 </script>
 
 <template>
@@ -62,6 +63,12 @@ defineProps<{ answer: any }>()
         </li>
       </ul>
 
+      <NuxtLink
+        v-else-if="block.type === 'link'"
+        :to="block.to"
+        class="btn btn--small block-link"
+      >{{ $t('answer.openUnit', { code: block.label?.replace(/^Open /, '') }) }}</NuxtLink>
+
       <ul v-else-if="block.type === 'page_list'" class="block pages">
         <li v-for="page in block.items" :key="page.slug">
           <NuxtLink :to="`/guides/${page.slug}`">{{ page.title }}</NuxtLink>
@@ -84,6 +91,8 @@ defineProps<{ answer: any }>()
 </template>
 
 <style scoped>
+.block-link { display: inline-flex; margin-top: var(--s2); }
+
 .answer { padding: var(--s5); }
 .head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3); }
 .head h2 { margin-bottom: var(--s4); }
