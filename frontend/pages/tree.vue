@@ -386,7 +386,7 @@ function hue(prefix: string): number {
 <style scoped>
 .page { max-width: var(--container); margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .intro h1 { margin: 0 0 var(--s2); }
-.lede { color: var(--muted); margin: 0 0 var(--s5); max-width: 60ch; }
+.lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
 
 .split { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s4); align-items: start; }
 .split:has(.panel) { grid-template-columns: 260px minmax(0, 1fr) 260px; }

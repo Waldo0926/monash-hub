@@ -55,6 +55,12 @@ const kind = computed(() => {
         {{ $t('translation.viewOriginal') }}
       </a>
     </p>
+    <!-- Saying this out loud costs nothing and is true: the browser can
+         translate this page. Pretending otherwise would be the only thing here
+         that treats the reader as less capable than they are, and naming what
+         our translation does differently is more convincing than not
+         mentioning the alternative at all. -->
+    <p class="tiny also-browser">{{ $t('translation.alsoBrowser') }}</p>
   </div>
 </template>
 
@@ -74,5 +80,6 @@ const kind = computed(() => {
 }
 .notice p { margin: 0; }
 .notice p + p { margin-top: var(--s1); }
+.also-browser { color: var(--muted); }
 .stale-line { color: var(--warning); font-weight: 500; }
 </style>

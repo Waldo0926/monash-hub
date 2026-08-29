@@ -68,6 +68,25 @@
   --font: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
+  /* Reading measure.
+     `ch` is the width of the "0" glyph, so a measure in ch counts Latin
+     characters. A CJK glyph is twice that wide, which makes 68ch about 38
+     Chinese characters: the line breaks with half the card still empty, and a
+     two-line intro strands a word or two on the second line. What governs
+     readability is the character count, not the pixel width, so the CJK
+     locales get their own measure counted in em - where 1em is one glyph.
+     `:lang(zh)` matches the `zh-Hans` that <html> actually carries, because
+     :lang() matches on hyphen-separated prefixes. */
+  --measure: 68ch;
+  --measure-lede: 78ch;
+
   --container: 1220px;
   --header-h: 64px;
+}
+
+:root:lang(zh),
+:root:lang(ja),
+:root:lang(ko) {
+  --measure: 44em;
+  --measure-lede: 58em;
 }

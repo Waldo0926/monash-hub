@@ -73,6 +73,14 @@ const en: Messages = {
   'marks.scaleAustralia': 'Australia (GPA, 4.0)',
   'marks.scaleMalaysia': 'Malaysia (CGPA)',
   'marks.paste': 'Paste from WES',
+  'marks.screenshot': 'Read a screenshot',
+  'marks.ocrLoading': 'Loading the reader (first time only, a few seconds)…',
+  'marks.ocrReading': 'Reading the screenshot…',
+  'marks.ocrNothing': 'No text could be read from that image. Try pasting the text instead.',
+  'marks.ocrFailed': 'The reader could not load. Paste the text from WES instead — it is more accurate anyway.',
+  'marks.ocrCheck': 'Read from the screenshot. Check every row before you trust the total — reading a table off an image gets things wrong.',
+  'translation.alsoBrowser':
+    'Your browser can translate this page too. What it cannot do is get Monash terminology right — a unit is a subject, a course is the whole degree, and translators reverse that pair — or make the Chinese searchable, because it translates the page after it loads and cannot touch the index.',
   'marks.clear': 'Clear',
   'marks.pasteHelp':
     'Select your results in WES and paste them here. Anything with a unit code and a mark on the same line is picked up; check the rows afterwards.',
@@ -625,6 +633,14 @@ const zh: Messages = {
   'marks.scaleAustralia': '澳大利亚（GPA，4.0 制）',
   'marks.scaleMalaysia': '马来西亚（CGPA）',
   'marks.paste': '从 WES 粘贴',
+  'marks.screenshot': '识别截图',
+  'marks.ocrLoading': '正在加载识别引擎（只有第一次需要，几秒钟）…',
+  'marks.ocrReading': '正在识别截图…',
+  'marks.ocrNothing': '这张图里没读出文字。建议改用粘贴文字。',
+  'marks.ocrFailed': '识别引擎没能加载。请改用从 WES 粘贴文字——本来也更准。',
+  'marks.ocrCheck': '已从截图读取。请逐行核对再看总分——从图片里读表格是会出错的。',
+  'translation.alsoBrowser':
+    '你也可以用浏览器自带的翻译。它做不到的是两件事：一是 Monash 的术语——unit 是一门课，course 是整个学位，通用翻译器会把这一对反过来；二是让中文能被搜索到，因为它是在页面加载完之后才翻译的，改不了索引。',
   'marks.clear': '清空',
   'marks.pasteHelp':
     '在 WES 里选中你的成绩，粘贴到这里。同一行里既有课程代码又有分数的都会被识别；粘完请自己核对一遍。',
@@ -1140,6 +1156,14 @@ const ja: Messages = {
   'marks.scaleAustralia': 'オーストラリア（GPA・4.0）',
   'marks.scaleMalaysia': 'マレーシア（CGPA）',
   'marks.paste': 'WES から貼り付け',
+  'marks.screenshot': 'スクリーンショットを読み取る',
+  'marks.ocrLoading': '読み取りエンジンを読み込んでいます（初回のみ、数秒）…',
+  'marks.ocrReading': 'スクリーンショットを読み取っています…',
+  'marks.ocrNothing': 'この画像から文字を読み取れませんでした。テキストの貼り付けをお試しください。',
+  'marks.ocrFailed': '読み取りエンジンを読み込めませんでした。WES からテキストを貼り付けてください（そのほうが正確です）。',
+  'marks.ocrCheck': 'スクリーンショットから読み取りました。合計を信じる前に各行を確認してください。画像から表を読むと誤りが出ます。',
+  'translation.alsoBrowser':
+    'ブラウザの翻訳機能も使えます。それにできないのは二つ - Monash の用語（unit は一つの科目、course は学位全体で、翻訳器はこの対を逆にします）と、中国語での検索です。ブラウザは読み込み後のページを訳すため、索引には手が届きません。',
   'marks.clear': 'クリア',
   'marks.pasteHelp':
     'WES で成績を選択して貼り付けてください。同じ行にユニットコードと点数があるものを拾います。後で必ず確認してください。',
@@ -1671,6 +1695,14 @@ const ko: Messages = {
   'marks.scaleAustralia': '호주 (GPA, 4.0)',
   'marks.scaleMalaysia': '말레이시아 (CGPA)',
   'marks.paste': 'WES에서 붙여넣기',
+  'marks.screenshot': '스크린샷 읽기',
+  'marks.ocrLoading': '인식 엔진을 불러오는 중입니다 (처음 한 번, 몇 초)…',
+  'marks.ocrReading': '스크린샷을 읽는 중…',
+  'marks.ocrNothing': '이 이미지에서 글자를 읽지 못했습니다. 텍스트 붙여넣기를 사용해 보세요.',
+  'marks.ocrFailed': '인식 엔진을 불러오지 못했습니다. WES에서 텍스트를 붙여넣으세요 — 그편이 더 정확합니다.',
+  'marks.ocrCheck': '스크린샷에서 읽었습니다. 합계를 믿기 전에 각 행을 확인하세요 — 이미지에서 표를 읽으면 오류가 납니다.',
+  'translation.alsoBrowser':
+    '브라우저의 번역 기능도 쓸 수 있습니다. 다만 두 가지는 못 합니다 — Monash 용어(unit은 한 과목, course는 학위 전체인데 번역기는 이 쌍을 뒤집습니다), 그리고 검색입니다. 브라우저는 로드된 뒤의 페이지를 번역하므로 색인에는 닿지 못합니다.',
   'marks.clear': '지우기',
   'marks.pasteHelp':
     'WES에서 성적을 선택해 붙여넣으세요. 같은 줄에 과목 코드와 점수가 있으면 인식합니다. 붙여넣은 뒤 꼭 확인하세요.',
