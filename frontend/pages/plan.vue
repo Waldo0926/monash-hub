@@ -227,7 +227,7 @@ async function loadCourse() {
 onMounted(loadCourse)
 watch([chosenCourse, chosenCampus, locale], loadCourse)
 
-const { data: courseList } = await useApiFetch<any>(
+const { data: courseList } = await useLocalisedApiFetch<any>(
   () => `/v1/courses?limit=200${chosenCampus.value ? `&campus=${chosenCampus.value}` : ''}`,
   { watch: [chosenCampus] }
 )

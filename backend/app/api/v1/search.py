@@ -5,11 +5,11 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import requested_locale
-from app.api.serializers import faq_brief, official_brief, post_brief, unit_brief
+from app.api.serializers import course_brief, faq_brief, official_brief, post_brief, unit_brief
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.knowledge import translations
-from app.models.translation import FAQ_ENTRY, OFFICIAL_PAGE, UNIT
+from app.models.translation import COURSE, FAQ_ENTRY, OFFICIAL_PAGE, UNIT
 from app.search import service
 
 router = APIRouter(tags=["search"])
@@ -26,6 +26,7 @@ def unified_search(
     resolved_year = year or get_settings().current_academic_year
 
     units, unit_total = service.search_units(db, q, year=resolved_year, limit=limit)
+    courses, course_total = service.search_courses(db, q, year=resolved_year, limit=limit)
     pages, page_total = service.search_official(db, q, limit=limit)
     posts, post_total = service.search_community(db, q, limit=limit)
     faqs = service.search_faq(db, q, limit=3)
@@ -35,6 +36,10 @@ def unified_search(
     unit_tr = translations.load_many(
         db, locale, UNIT, [u.unit_code for u in units],
         source_hashes={u.unit_code: u.content_hash for u in units},
+    )
+    course_tr = translations.load_many(
+        db, locale, COURSE, [c.course_code for c in courses],
+        source_hashes={c.course_code: c.content_hash for c in courses},
     )
     page_tr = translations.load_many(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],
@@ -52,6 +57,13 @@ def unified_search(
                 "badge": "official-handbook",
                 "total": unit_total,
                 "results": [unit_brief(u, unit_tr[u.unit_code]) for u in units],
+            },
+            {
+                "kind": "degrees",
+                "label": "Handbook degrees",
+                "badge": "official-handbook",
+                "total": course_total,
+                "results": [course_brief(c, course_tr[c.course_code]) for c in courses],
             },
             {
                 "kind": "official",

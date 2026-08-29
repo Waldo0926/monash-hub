@@ -24,7 +24,7 @@ const query = computed(() => {
   return params.toString()
 })
 
-const { data, pending } = await useApiFetch<any>(
+const { data, pending } = await useLocalisedApiFetch<any>(
   () => `/v1/courses?${query.value}`,
   { watch: [q, campus] }
 )
@@ -101,15 +101,7 @@ useHead({ title: $t('courses.title') })
       <h2>{{ type }}</h2>
       <ul class="cards">
         <li v-for="course in courses" :key="course.course_code">
-          <NuxtLink class="card" :to="`/courses/${course.course_code}`">
-            <span class="code">{{ course.course_code }}</span>
-            <span class="name">{{ course.title }}</span>
-            <span class="facts">
-              <span v-if="course.credit_points">{{ course.credit_points }} cp</span>
-              <span v-if="course.duration_years">{{ $t('courses.years', { n: course.duration_years }) }}</span>
-              <span v-for="c in course.campuses" :key="c" class="chip">{{ c }}</span>
-            </span>
-          </NuxtLink>
+          <CourseCard :course="course" />
         </li>
       </ul>
     </section>
@@ -133,25 +125,4 @@ useHead({ title: $t('courses.title') })
 .group { margin-bottom: var(--s6); }
 .group h2 { font-size: 1rem; color: var(--muted); font-weight: 600; margin: 0 0 var(--s3); }
 .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.card {
-  display: grid; grid-template-columns: 72px minmax(12rem, 1fr) minmax(0, 2fr); gap: var(--s3);
-  align-items: baseline; padding: var(--s3) var(--s4); background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--radius); color: inherit;
-  text-decoration: none;
-}
-.card:hover { border-color: var(--blue); box-shadow: var(--shadow-sm); }
-.code { font: 600 0.85rem var(--font-mono); color: var(--navy); }
-.name { font-weight: 500; }
-.facts {
-  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2);
-  align-items: center; min-width: 0; font-size: 0.8rem; color: var(--muted);
-}
-.chip {
-  background: var(--surface-2); border-radius: var(--radius-pill);
-  padding: 2px var(--s2); white-space: nowrap;
-}
-
-@media (max-width: 700px) {
-  .card { grid-template-columns: minmax(0, 1fr); gap: var(--s1); }
-}
 </style>

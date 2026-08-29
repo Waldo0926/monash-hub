@@ -108,6 +108,9 @@ useSeoMeta({
           <div v-if="group.kind === 'handbook' && group.results.length" class="grid">
             <UnitCard v-for="unit in group.results" :key="unit.unit_code" :unit="unit" />
           </div>
+          <div v-else-if="group.kind === 'degrees' && group.results.length" class="degree-list">
+            <CourseCard v-for="course in group.results" :key="course.course_code" :course="course" />
+          </div>
           <div v-else-if="group.kind === 'official' && group.results.length" class="grid">
             <GuideCard v-for="page in group.results" :key="page.slug" :page="page" />
           </div>
@@ -146,6 +149,7 @@ useSeoMeta({
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
 .section-head h2 { display: flex; align-items: center; gap: var(--s3); font-size: 1.1rem; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); }
+.degree-list { display: grid; gap: var(--s2); }
 .faq { padding: var(--s4); }
 .faq-top { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .faq h3 { margin: var(--s2) 0; font-size: 1rem; }

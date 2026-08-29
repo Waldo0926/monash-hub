@@ -6,6 +6,10 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Chinese degree names are searchable across the site and in the degree picker.
+  The unified search did not include degrees at all, so a parent searching
+  `理学学士` could not reach *Bachelor of Science* even though its Chinese title
+  was already displayed on the degree page.
 - Search direct answers now refresh when the language changes. The rest of the
   search page switched languages immediately, but a unit answer such as FIT2004
   kept its old translated title until the query itself changed.
@@ -91,7 +95,7 @@ PR 会明确标注，不会被误写成已经上线的功能。
 
 ### 2026-08-30
 
-- [#76](https://github.com/Waldo0926/monash-hub/pull/76) Refresh search answers after language changes / 切换语言后刷新搜索直达答案，并补齐 #68–#75 的 Changelog 记录。
+- [#76](https://github.com/Waldo0926/monash-hub/pull/76) Make Chinese degree names searchable and refresh answers after language changes / 支持用中文搜索学位、切换语言后刷新直达答案，并补齐 #68–#75 的 Changelog 记录。
 
 ### 2026-08-29
 

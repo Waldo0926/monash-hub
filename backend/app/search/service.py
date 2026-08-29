@@ -1,4 +1,4 @@
-"""Unified search over Handbook units, official pages, FAQ and community posts.
+"""Unified search over Handbook units and degrees, official pages, FAQ and posts.
 
 PostgreSQL does all of this: ``tsvector`` for full text, ``pg_trgm`` for typo
 tolerance on titles, and an exact-code shortcut in front of both because a
@@ -13,8 +13,10 @@ from sqlalchemy import and_, case, func, literal, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
+from app.models.curriculum import Course
 from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry, OfficialPage
+from app.models.translation import COURSE, HUMAN, PUBLISHED, ContentTranslation
 from app.search.chinese import expanded_query, has_cjk
 from app.search.keywords import extract_unit_codes
 
@@ -185,6 +187,98 @@ def search_units(
         selectinload(Unit.assessments),
     ).limit(limit).offset(offset)
 
+    return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
+
+
+def _translated_course_title():
+    """One Chinese title for the outer course row, when one is published.
+
+    Course translations are stored as an exact English-to-Chinese string map,
+    rather than flattened into ``courses``. Looking up the course's own English
+    title inside that JSON map lets a Chinese query match only the translated
+    title; matching the whole translation row would also return a degree merely
+    because its overview happened to contain the words.
+    """
+    return (
+        select(
+            func.coalesce(
+                ContentTranslation.text,
+                func.jsonb_extract_path_text(
+                    ContentTranslation.data, "strings", Course.title
+                ),
+            )
+        )
+        .where(
+            ContentTranslation.locale == "zh",
+            ContentTranslation.target_type == COURSE,
+            ContentTranslation.target_key == Course.course_code,
+            ContentTranslation.status == PUBLISHED,
+            or_(
+                ContentTranslation.field == "title",
+                ContentTranslation.field == "content",
+            ),
+        )
+        .order_by(case((ContentTranslation.provenance == HUMAN, 1), else_=0).desc())
+        .limit(1)
+        .correlate(Course)
+        .scalar_subquery()
+    )
+
+
+def search_courses(
+    db: Session,
+    query: str,
+    *,
+    year: int,
+    limit: int = 10,
+    offset: int = 0,
+    campus: str | None = None,
+    course_type: str | None = None,
+    faculty: str | None = None,
+) -> tuple[list[Course], int]:
+    """Search degrees by code, English title, or their published Chinese title."""
+    stmt = select(Course).where(Course.academic_year == year, Course.is_active.is_(True))
+    count_stmt = select(func.count(Course.id)).where(
+        Course.academic_year == year, Course.is_active.is_(True)
+    )
+    term = (query or "").strip()
+    translated_title = _translated_course_title() if has_cjk(term) else None
+
+    if term:
+        matches = [
+            Course.course_code.ilike(f"{term}%"),
+            Course.title.ilike(f"%{term}%"),
+            Course.abbreviated_name.ilike(f"{term}%"),
+        ]
+        if translated_title is not None:
+            matches.append(translated_title.ilike(f"%{term}%"))
+        match = or_(*matches)
+        stmt = stmt.where(match)
+        count_stmt = count_stmt.where(match)
+
+    filters = []
+    if campus:
+        filters.append(Course.campuses.any(campus))
+    if course_type:
+        filters.append(Course.course_type == course_type)
+    if faculty:
+        filters.append(Course.faculty == faculty)
+    for condition in filters:
+        stmt = stmt.where(condition)
+        count_stmt = count_stmt.where(condition)
+
+    if term:
+        exact_code = case((func.upper(Course.course_code) == term.upper(), 1), else_=0)
+        exact_translation = (
+            case((func.lower(translated_title) == term.lower(), 1), else_=0)
+            if translated_title is not None
+            else literal(0)
+        )
+        stmt = stmt.order_by(exact_code.desc(), exact_translation.desc(), Course.title)
+    else:
+        stmt = stmt.order_by(Course.title)
+
+    stmt = stmt.limit(limit).offset(offset)
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
 
 

@@ -452,8 +452,9 @@ const en: Messages = {
   // --- unified search -----------------------------------------------------
   'search.title': 'Search Monash Hub',
   'search.hint':
-    'Try a unit code like FIT2102, a policy phrase like special consideration, or a question.',
+    'Try a unit code, a degree name in English or Chinese, a policy phrase, or a question.',
   'search.groupHandbook': 'Official Handbook',
+  'search.groupDegrees': 'Handbook degrees',
   'search.groupOfficial': 'Official Monash guides',
   'search.groupFaq': 'Curated answers',
   'search.groupCommunity': 'Community',
@@ -1031,8 +1032,9 @@ const zh: Messages = {
   'unit.moodleNote': '具体教学周期的考核细节以 Moodle 为准。',
 
   'search.title': '搜索 Monash Hub',
-  'search.hint': '试试课程代码（如 FIT2102）、政策关键词（如 special consideration），或者直接提问。',
+  'search.hint': '可输入课程代码、中文或英文学位名称、政策关键词，或者直接提问。',
   'search.groupHandbook': '官方 Handbook',
+  'search.groupDegrees': 'Handbook 学位',
   'search.groupOfficial': 'Monash 官方指南',
   'search.groupFaq': '整理过的问答',
   'search.groupCommunity': '社区',
@@ -1602,8 +1604,9 @@ const ja: Messages = {
 
   'search.title': 'Monash Hub を検索',
   'search.hint':
-    'FIT2102 のようなユニットコード、special consideration のような規程の語句、あるいは質問文でどうぞ。',
+    'ユニットコード、英語または中国語の学位名、規程の語句、あるいは質問文でどうぞ。',
   'search.groupHandbook': '公式 Handbook',
+  'search.groupDegrees': 'Handbook の学位',
   'search.groupOfficial': 'Monash 公式ガイド',
   'search.groupFaq': '整理された回答',
   'search.groupCommunity': 'コミュニティ',
@@ -2181,8 +2184,9 @@ const ko: Messages = {
 
   'search.title': 'Monash Hub 검색',
   'search.hint':
-    'FIT2102 같은 과목 코드, special consideration 같은 규정 키워드, 또는 질문을 입력해 보세요.',
+    '과목 코드, 영어 또는 중국어 학위명, 규정 키워드, 또는 질문을 입력해 보세요.',
   'search.groupHandbook': '공식 Handbook',
+  'search.groupDegrees': 'Handbook 학위',
   'search.groupOfficial': 'Monash 공식 가이드',
   'search.groupFaq': '정리된 답변',
   'search.groupCommunity': '커뮤니티',
