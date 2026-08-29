@@ -120,6 +120,11 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
       <h1>{{ $t('auth.signUpTitle') }}</h1>
       <p class="small muted">{{ $t('auth.lead') }}</p>
 
+      <!-- Signing up with Google skips the code email entirely: Google has
+           already verified the address, which is the only thing that email
+           was proving. -->
+      <GoogleSignIn class="google-row" />
+
       <form class="form" novalidate @submit.prevent="submit">
         <div class="field-row">
           <label for="nickname" class="tiny muted">{{ $t('auth.nickname') }}</label>
@@ -226,6 +231,7 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
 </template>
 
 <style scoped>
+.google-row { margin-top: var(--s4); }
 .narrow { max-width: 480px; }
 .section { padding: var(--s5); }
 .form { display: grid; gap: var(--s4); margin: var(--s5) 0; }

@@ -18,15 +18,18 @@ from __future__ import annotations
 
 import logging
 import re
+import secrets
 import unicodedata
+import urllib.parse
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import current_user
-from app.core import avatars, verification
+from app.core import avatars, google_oauth, verification
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.email import EmailDeliveryError
@@ -231,3 +234,116 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 @router.get("/me")
 def me(user: User = Depends(current_user)) -> dict:
     return _me(user)
+
+
+# --- signing in with Google ------------------------------------------------
+#
+# The browser leaves for Google and comes back to /callback, which means the
+# session token cannot be returned as JSON the way /signin does. It is handed
+# over in the URL *fragment* instead: a fragment is never sent to a server, so
+# it stays out of our access logs, out of nginx's, and out of any proxy in
+# between. The page that receives it strips it from the address bar immediately.
+
+
+def _unique_nickname(db: Session, preferred: str) -> str:
+    """A nickname derived from the Google profile that nobody else holds.
+
+    Falls back to a generated one rather than failing the sign-in: somebody
+    whose Google name happens to collide, or is punctuation, should still get an
+    account and can rename themselves on their profile afterwards.
+    """
+    # Nicknames deliberately allow no spaces - the rule exists so one cannot be
+    # dressed up to look like another - and a Google profile name is almost
+    # always two words. Cleaning it beats discarding it: "Waldo Wen" becomes
+    # "WaldoWen", which is still recognisably the person, where a fallback to
+    # "student" throws their name away over a space.
+    base = re.sub(r"\s+", "", (preferred or "").strip())
+    base = "".join(ch for ch in base if NICKNAME_ALLOWED.match(ch))[:NICKNAME_MAX]
+    if _nickname_problem(base) is not None:
+        base = "student"
+    candidate = base
+    for suffix in range(1, 200):
+        clash = db.scalar(
+            select(User).where(func.lower(User.nickname) == candidate.lower())
+        )
+        if clash is None and _nickname_problem(candidate) is None:
+            return candidate
+        candidate = f"{base[:NICKNAME_MAX - len(str(suffix))]}{suffix}"
+    return f"student{secrets.token_hex(4)}"
+
+
+@router.get("/google/start")
+def google_start(next: str = "/", db: Session = Depends(get_db)) -> dict:
+    """Where to send the browser to begin. The frontend follows this URL."""
+    if not google_oauth.is_configured():
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Google sign-in is not configured"
+        )
+    # Only a path on this site, never an absolute URL somebody supplied - that
+    # is the difference between a redirect and an open redirect.
+    safe_next = next if next.startswith("/") and not next.startswith("//") else "/"
+    return {"url": google_oauth.authorize_url(google_oauth.issue_state(safe_next))}
+
+
+@router.get("/google/callback")
+def google_callback(
+    state: str = "",
+    code: str = "",
+    error: str = "",
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    """Where Google sends the browser back.
+
+    Every failure lands the person on the sign-in page with a reason rather
+    than on a JSON error, because this is a page they arrived at by clicking a
+    button, not an API call they made.
+    """
+    settings = get_settings()
+    site = settings.site_url.rstrip("/")
+
+    def failed(reason: str) -> RedirectResponse:
+        return RedirectResponse(f"{site}/login?google={reason}", status_code=303)
+
+    if error or not code:
+        # The commonest one by far is the person pressing cancel.
+        return failed("cancelled")
+    if not google_oauth.is_configured():
+        return failed("unavailable")
+
+    try:
+        next_path = google_oauth.read_state(state)
+        identity = google_oauth.exchange(code)
+    except google_oauth.GoogleAuthError as exc:
+        log.warning("google sign-in failed: %s", exc)
+        return failed("failed")
+
+    if not identity.email_verified:
+        # Accounts are matched by address, so an unverified one would be a way
+        # into somebody else's account.
+        return failed("unverified")
+
+    user = db.scalar(select(User).where(User.email == identity.email))
+    if user is None:
+        user = User(
+            email=identity.email,
+            nickname=_unique_nickname(db, identity.name or identity.email.split("@")[0]),
+            # Signed in by Google, so there is no password to check. An unusable
+            # hash rather than an empty one: /signin compares against this, and
+            # it must never match anything a person could type.
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+        db.add(user)
+    elif not user.is_active:
+        return failed("suspended")
+
+    user.last_login_at = func.now()
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token(str(user.id), user.token_version)
+    # The fragment, not the query string. See the note above.
+    return RedirectResponse(
+        f"{site}/auth/google#token={token}&next={urllib.parse.quote(next_path, safe='/')}",
+        status_code=303,
+    )

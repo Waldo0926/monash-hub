@@ -5,6 +5,17 @@ const { refresh: refreshNotifications } = useNotifications()
 
 onMounted(restore)
 
+// The Google callback sends people back here with a reason when it could not
+// finish, because they arrived by clicking a button and a JSON error would be
+// no use to them.
+const route = useRoute()
+const googleProblem = computed(() => {
+  const code = route.query.google as string | undefined
+  if (!code) return ''
+  const known = ['cancelled', 'unverified', 'suspended', 'unavailable']
+  return $t(`auth.google.error.${known.includes(code) ? code : 'failed'}`)
+})
+
 const form = reactive({ email: '', password: '' })
 const submitting = ref(false)
 const message = ref('')
@@ -38,6 +49,11 @@ useSeoMeta({ title: () => $t('auth.metaSignIn'), robots: 'noindex' })
       <h1>{{ $t('auth.signInTitle') }}</h1>
       <p class="small muted">{{ $t('auth.lead') }}</p>
 
+      <!-- Only rendered when the server has credentials; see GoogleSignIn.vue. -->
+      <GoogleSignIn class="google-row" />
+
+      <p v-if="googleProblem" class="small bad-text" role="alert">{{ googleProblem }}</p>
+
       <form class="form" novalidate @submit.prevent="submit">
         <div class="field-row">
           <label for="email" class="tiny muted">{{ $t('auth.email') }}</label>
@@ -63,6 +79,8 @@ useSeoMeta({ title: () => $t('auth.metaSignIn'), robots: 'noindex' })
 </template>
 
 <style scoped>
+.google-row { margin-top: var(--s4); }
+.bad-text { color: var(--danger); }
 .narrow { max-width: 480px; }
 .section { padding: var(--s5); }
 .form { display: grid; gap: var(--s4); margin: var(--s5) 0; }
