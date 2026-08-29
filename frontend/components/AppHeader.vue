@@ -1,4 +1,8 @@
 <script setup lang="ts">
+
+// A missing avatar file must not leave a broken-image icon in the header. It
+// falls back to the name alone, which is what was there before pictures.
+const avatarBroken = ref(false)
 const { user, restore, signOut } = useAuth()
 const { unread, start, stop } = useNotifications()
 const route = useRoute()
@@ -54,7 +58,13 @@ function search(value: string) {
             <span aria-hidden="true">🔔</span>
             <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
           </NuxtLink>
-          <NuxtLink to="/community" class="nav-link nickname">{{ user.nickname }}</NuxtLink>
+          <!-- Your own name goes to your own page. It used to go to the
+               community, which answered a question nobody was asking. -->
+          <NuxtLink to="/profile" class="nav-link nickname">
+            <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
+                 class="nickname-avatar" alt="" @error="avatarBroken = true">
+            {{ user.nickname }}
+          </NuxtLink>
           <button class="btn btn--ghost btn--small" @click="signOut">{{ $t('nav.signOut') }}</button>
         </template>
         <NuxtLink v-else to="/login" class="btn btn--ghost btn--small">{{ $t('nav.signIn') }}</NuxtLink>
@@ -64,6 +74,10 @@ function search(value: string) {
 </template>
 
 <style scoped>
+.nickname { display: inline-flex; align-items: center; gap: var(--s2); }
+.nickname-avatar {
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none;
+}
 .header {
   position: sticky;
   top: 0;

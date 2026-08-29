@@ -62,6 +62,13 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
 
+    # --- Avatars ------------------------------------------------------------
+    # Written by the API, served by nginx straight off disk - a request for a
+    # profile picture should not wake Python up. The directory is a mounted
+    # volume; see docker-compose.yml and deployment/nginx/monash-hub.conf.
+    avatar_dir: str = "/data/avatars"
+    avatar_url_prefix: str = "/avatars"
+
     # --- Database pool ------------------------------------------------------
     # Sized for one API container against one PostgreSQL: enough for concurrent
     # readers without letting a traffic spike open more connections than the

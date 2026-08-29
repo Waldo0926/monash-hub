@@ -35,6 +35,35 @@ export const DEFAULT_LOCALE: LocaleCode = 'en'
 type Messages = Record<string, string>
 
 const en: Messages = {
+  // --- your own profile ---------------------------------------------------
+  'profile.metaTitle': 'Your profile — Monash Hub',
+  'profile.title': 'Your profile',
+  'profile.signedOut': 'Sign in to see your profile and everything you have written.',
+  'profile.joined': 'Joined {date}',
+  'profile.changeAvatar': 'Change picture',
+  'profile.removeAvatar': 'Remove',
+  'profile.uploading': 'Uploading…',
+  'profile.avatarSaved': 'Picture updated.',
+  'profile.avatarFailed': 'That picture could not be saved.',
+  'profile.avatarHelp': 'Square crop, up to 4MB. It is resized on the server, and only your own account can see this page.',
+  'profile.statPosts': 'Questions asked',
+  'profile.statAnswers': 'Answers written',
+  'profile.statBookmarks': 'Saved',
+  'profile.details': 'Details',
+  'profile.nicknameHelp': 'This is the only thing other students see. Your email is never shown.',
+  'profile.bio': 'About you',
+  'profile.bioPlaceholder': 'Third year, Malaysia campus. Happy to answer questions about FIT units.',
+  'profile.save': 'Save changes',
+  'profile.saved': 'Saved.',
+  'profile.activity': 'What you have written',
+  'profile.tab.posts': 'Your questions',
+  'profile.tab.answered': 'You answered',
+  'profile.tab.bookmarks': 'Saved',
+  'profile.empty.posts': 'You have not asked anything yet.',
+  'profile.empty.answered': 'You have not answered anything yet.',
+  'profile.empty.bookmarks': 'Nothing saved yet.',
+  'profile.emptyHint': 'The community is where students answer each other about units, enrolment and life on campus.',
+
   // --- translation notice -------------------------------------------------
   'translation.label.human': 'Unofficial translation.',
   'translation.explain.human':
@@ -598,6 +627,35 @@ const en: Messages = {
 }
 
 const zh: Messages = {
+  // --- your own profile ---------------------------------------------------
+  'profile.metaTitle': '个人资料 — Monash Hub',
+  'profile.title': '个人资料',
+  'profile.signedOut': '登录后可以查看你的资料和你写过的全部内容。',
+  'profile.joined': '{date} 加入',
+  'profile.changeAvatar': '更换头像',
+  'profile.removeAvatar': '移除',
+  'profile.uploading': '上传中…',
+  'profile.avatarSaved': '头像已更新。',
+  'profile.avatarFailed': '这张图片没能保存。',
+  'profile.avatarHelp': '会居中裁成方形，最大 4MB。图片在服务器上重新压缩，而且这个页面只有你自己能看到。',
+  'profile.statPosts': '提过的问题',
+  'profile.statAnswers': '写过的回答',
+  'profile.statBookmarks': '收藏',
+  'profile.details': '资料',
+  'profile.nicknameHelp': '这是其他同学唯一能看到的信息。你的邮箱不会公开。',
+  'profile.bio': '介绍',
+  'profile.bioPlaceholder': '大三，马来西亚校区。FIT 的课欢迎来问。',
+  'profile.save': '保存修改',
+  'profile.saved': '已保存。',
+  'profile.activity': '你写过的内容',
+  'profile.tab.posts': '我的提问',
+  'profile.tab.answered': '我回答过的',
+  'profile.tab.bookmarks': '我的收藏',
+  'profile.empty.posts': '你还没有提过问题。',
+  'profile.empty.answered': '你还没有回答过问题。',
+  'profile.empty.bookmarks': '还没有收藏任何内容。',
+  'profile.emptyHint': '社区是同学之间互相回答课程、选课和校园生活问题的地方。',
+
   // --- translation notice -------------------------------------------------
   'translation.label.human': '非官方翻译。',
   'translation.explain.human':
@@ -1122,6 +1180,35 @@ const zh: Messages = {
 }
 
 const ja: Messages = {
+  // --- your own profile ---------------------------------------------------
+  'profile.metaTitle': 'プロフィール — Monash Hub',
+  'profile.title': 'プロフィール',
+  'profile.signedOut': 'ログインすると、プロフィールとこれまでに書いた内容を確認できます。',
+  'profile.joined': '{date} に登録',
+  'profile.changeAvatar': '画像を変更',
+  'profile.removeAvatar': '削除',
+  'profile.uploading': 'アップロード中…',
+  'profile.avatarSaved': '画像を更新しました。',
+  'profile.avatarFailed': 'この画像は保存できませんでした。',
+  'profile.avatarHelp': '中央を正方形に切り出します。4MB まで。サーバー側で再圧縮され、このページはご本人にしか見えません。',
+  'profile.statPosts': '投稿した質問',
+  'profile.statAnswers': '書いた回答',
+  'profile.statBookmarks': '保存済み',
+  'profile.details': '基本情報',
+  'profile.nicknameHelp': '他の学生に見えるのはこれだけです。メールアドレスは公開されません。',
+  'profile.bio': '自己紹介',
+  'profile.bioPlaceholder': '3 年生、マレーシアキャンパス。FIT のユニットについてなら答えられます。',
+  'profile.save': '変更を保存',
+  'profile.saved': '保存しました。',
+  'profile.activity': 'これまでに書いた内容',
+  'profile.tab.posts': '自分の質問',
+  'profile.tab.answered': '回答したもの',
+  'profile.tab.bookmarks': '保存済み',
+  'profile.empty.posts': 'まだ質問していません。',
+  'profile.empty.answered': 'まだ回答していません。',
+  'profile.empty.bookmarks': 'まだ何も保存していません。',
+  'profile.emptyHint': 'コミュニティは、ユニットや履修、キャンパスでの生活について学生同士が答え合う場所です。',
+
   // --- translation notice -------------------------------------------------
   'translation.label.human': '非公式翻訳です。',
   'translation.explain.human':
@@ -1662,6 +1749,35 @@ const ja: Messages = {
 }
 
 const ko: Messages = {
+  // --- your own profile ---------------------------------------------------
+  'profile.metaTitle': '내 프로필 — Monash Hub',
+  'profile.title': '내 프로필',
+  'profile.signedOut': '로그인하면 프로필과 지금까지 쓴 글을 볼 수 있습니다.',
+  'profile.joined': '{date} 가입',
+  'profile.changeAvatar': '사진 변경',
+  'profile.removeAvatar': '삭제',
+  'profile.uploading': '업로드 중…',
+  'profile.avatarSaved': '사진을 변경했습니다.',
+  'profile.avatarFailed': '이 사진은 저장하지 못했습니다.',
+  'profile.avatarHelp': '가운데를 정사각형으로 자릅니다. 최대 4MB. 서버에서 다시 압축되며, 이 페이지는 본인만 볼 수 있습니다.',
+  'profile.statPosts': '올린 질문',
+  'profile.statAnswers': '작성한 답변',
+  'profile.statBookmarks': '저장함',
+  'profile.details': '기본 정보',
+  'profile.nicknameHelp': '다른 학생에게 보이는 것은 이것뿐입니다. 이메일은 공개되지 않습니다.',
+  'profile.bio': '소개',
+  'profile.bioPlaceholder': '3학년, 말레이시아 캠퍼스. FIT 과목은 편하게 물어보세요.',
+  'profile.save': '변경 사항 저장',
+  'profile.saved': '저장했습니다.',
+  'profile.activity': '내가 쓴 글',
+  'profile.tab.posts': '내 질문',
+  'profile.tab.answered': '내가 답변한 글',
+  'profile.tab.bookmarks': '저장함',
+  'profile.empty.posts': '아직 질문한 것이 없습니다.',
+  'profile.empty.answered': '아직 답변한 것이 없습니다.',
+  'profile.empty.bookmarks': '아직 저장한 것이 없습니다.',
+  'profile.emptyHint': '커뮤니티는 학생들이 과목, 수강신청, 캠퍼스 생활에 대해 서로 답해 주는 곳입니다.',
+
   // --- translation notice -------------------------------------------------
   'translation.label.human': '비공식 번역입니다.',
   'translation.explain.human':
