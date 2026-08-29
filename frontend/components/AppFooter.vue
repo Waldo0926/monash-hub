@@ -10,7 +10,7 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
     <div class="container inner">
       <div class="about">
         <p class="brand">
-          <AppLogo :size="32" tone="onDark" :tile="false" />
+          <AppLogo :size="32" tone="onDeep" />
           <span>
             <strong>Monash Hub</strong>
             <span class="tiny muted block">{{ $t('footer.about') }}</span>
