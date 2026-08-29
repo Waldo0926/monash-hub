@@ -6,6 +6,11 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Production deploys now apply the curated seed automatically, so
+  human-reviewed unit titles such as `FIT2085` (工程师算法基础), `FIT1054`
+  (算法基础（进阶）), and `ENG1014` (工程数值分析) cannot remain hidden behind
+  older machine translations merely because a separate seed command was
+  missed.
 - A free elective part of a degree is now credited with the units no other part
   uses, instead of only the handful it happens to list. "Part E. Free elective
   studies" read 0/48 for a student whose plan held twelve units that counted

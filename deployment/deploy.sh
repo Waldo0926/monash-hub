@@ -52,6 +52,13 @@ echo "==> Building images"
 echo "==> Running migrations"
 "${COMPOSE[@]}" run --rm migrate
 
+echo "==> Seeding curated content"
+# Human-reviewed translations and curated FAQ entries ship with the code. They
+# are idempotent upserts, so every deploy must apply them; otherwise a release
+# can contain the corrected wording while production keeps an older machine
+# translation indefinitely.
+"${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
+
 echo "==> Starting services"
 # Deliberately not --remove-orphans. A crawl started with `compose run` is a
 # container Compose does not consider part of the active profile, so a deploy
