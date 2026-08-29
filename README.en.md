@@ -35,6 +35,21 @@ Instead of switching between the Handbook, university websites, policy pages and
 - Read translated support for Handbook and official-guide content
 - See translation provenance and links to the original page
 
+### Plan your degree
+
+- **Degrees**: what a degree is made of — how many credit points each group of requirements is worth, and which of its units your campus does not actually teach
+- **Course map**: put units into semesters and have each one checked for you — whether your campus offers it, whether that teaching period offers it, and whether what it requires is sitting earlier in the plan
+- **Unit tree**: follow a unit back to what it needs, or forward to what it unlocks; units your campus does not teach are marked rather than hidden
+
+A plan lives only in your own browser. It is not uploaded and does not follow you to another device — use Export to move it.
+
+### Work out your WAM / GPA
+
+- Type a unit code and the credit points and level come from the Handbook; you do not have to remember the level weighting
+- Malaysia uses CGPA, which is a different scale — switch between them
+- You can also upload a screenshot of your WES results or paste the text, and have it read into the table
+- Marks are worked out in your browser. They are not sent to a server and not stored on your account
+
 ### Join the student community
 
 - Browse and search public questions and discussions
@@ -43,6 +58,10 @@ Instead of switching between the Handbook, university websites, policy pages and
 - Find study partners, activity companions or people with shared interests
 
 Community content is student experience, not Monash University policy.
+
+### MUM Guide
+
+An index of the articles from the 马莫百科 WeChat account: searchable, grouped by topic, and linked back to the original post. Like the community, it is a student's write-up rather than official policy.
 
 ## How to use it
 
