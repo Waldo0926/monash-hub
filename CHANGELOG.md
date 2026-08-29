@@ -89,6 +89,10 @@ is not presented as shipped code.
 这里记录每一个 PR，包括不需要单独撰写长篇发布说明的小修复。未合并就关闭的
 PR 会明确标注，不会被误写成已经上线的功能。
 
+### 2026-08-30
+
+- [#76](https://github.com/Waldo0926/monash-hub/pull/76) Refresh search answers after language changes / 切换语言后刷新搜索直达答案，并补齐 #68–#75 的 Changelog 记录。
+
 ### 2026-08-29
 
 - [#75](https://github.com/Waldo0926/monash-hub/pull/75) Describe the half of the site the README never mentioned / 补全 README 中遗漏的核心功能说明。
