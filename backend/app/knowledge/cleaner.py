@@ -44,9 +44,12 @@ from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 5
+EXTRACTOR_VERSION = 6
 
-DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
+DROP_TAGS = (
+    "script", "style", "noscript", "svg", "iframe", "form", "button",
+    "input", "label", "option", "select", "textarea",
+)
 
 # Template plumbing that renders as a sentence. Monash ships an unconfigured
 # share widget on many pages and it comes through the extractor as a paragraph
@@ -55,6 +58,11 @@ DROP_TAGS = ("script", "style", "noscript", "svg", "iframe", "form", "button")
 JUNK_TEXT = re.compile(
     r"^\s*(?:social media share bar\s*:?\s*not configured|not configured|"
     r"skip to (?:content|main content)|back to top|"
+    # Interactive controls from accordions and decision trees. They are useful
+    # on monash.edu, but without the original JavaScript they appeared here as
+    # standalone body paragraphs such as "View / Close / ▾".
+    r"view|close|go back|choose a topic|select a topic|"
+    r"what would you like help with\??|no banners found|▾|"
     # The CMS's own note to whoever writes the page. It reached the results
     # legend as the description of five grades, and was then translated.
     r"need description)\s*$",
@@ -79,6 +87,17 @@ DROP_SELECTORS = (
     # A search widget, not content: it extracts to "Search / Top FAQs / Chat".
     ".monash-faq-help-panel",
     ".visuallyhidden",
+    # Nested accordions put "View" inside the heading and a hidden
+    # "View / Close" pair beside the panel. The heading itself is content; the
+    # toggle controls are not.
+    ".accTitle__toggle-wrapper",
+    ".nested-accordion__expand-text",
+    ".nested-accordion__collapse_text",
+    # Selectric mirrors a <select> as another list, so keeping it duplicates all
+    # options. Decision-tree forms cannot work in the read-only guide copy and
+    # the page already links to the official interactive original.
+    ".selectric-wrapper",
+    ".sq_question_wrapper",
 )
 # Most specific first: monash.edu's <main> also contains the left-hand section
 # nav and the page furniture, and .content-inner__main is the article itself.
@@ -423,9 +442,32 @@ def _drop_junk(blocks: list[dict]) -> list[dict]:
             text = "".join(span.get("text", "") for span in block.get("spans") or [])
             if JUNK_TEXT.match(text):
                 continue
-        elif block.get("type") == "heading" and JUNK_TEXT.match(block.get("text") or ""):
-            continue
+        elif block.get("type") == "heading":
+            text = block.get("text") or ""
+            if JUNK_TEXT.match(text):
+                continue
+            # The nested-accordion toggle is normally removed by its class, but
+            # this also repairs older/variant templates where it was already
+            # flattened into the heading text.
+            cleaned = re.sub(r"\s+(?:View|Close)\s*$", "", text, flags=re.IGNORECASE)
+            if cleaned != text:
+                block = {**block, "text": cleaned}
+        elif block.get("type") == "list":
+            items = [rich_to_text(item) for item in block.get("items") or []]
+            # A JavaScript-enhanced select is emitted twice by the source page:
+            # once as <option>s and once as a Selectric <ul>. Neither is useful
+            # without the form, and rendering the latter as a real content list
+            # is especially misleading.
+            if items and JUNK_TEXT.match(items[0]) and all(len(item) <= 80 for item in items):
+                continue
         kept.append(block)
+
+    # Heading text may have lost a trailing toggle word above; rebuild anchors
+    # so the outline and the actual heading still point at the same id.
+    taken: set[str] = set()
+    for block in kept:
+        if block.get("type") == "heading":
+            block["id"] = _slug(block.get("text") or "", taken)
     return kept
 
 

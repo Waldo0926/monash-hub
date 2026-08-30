@@ -6,6 +6,15 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Audited the rendered body structure of all 45 official guides and removed 98
+  leaked interface controls across 10 affected pages. Nested-accordion buttons
+  no longer append `View` / `Close` to real headings or appear as standalone
+  paragraphs; hidden decision-tree actions such as `Go back`, placeholder text
+  such as `No banners found`, and the duplicated topic selector on the course
+  advice page are no longer presented as guide content. Existing reviewed
+  Chinese heading translations are preserved under the cleaned English source
+  keys, and the extractor version bump forces the next crawl to replace stored
+  legacy blocks.
 - Audited the Simplified-Chinese output of all 45 official guides, with
   page-specific human translations for policy labels, table cells and academic
   result terminology. This replaces misleading literal output such as `Yes` →

@@ -8997,6 +8997,23 @@ for _guide_slug, _reviewed_strings in GUIDE_AUDIT_OVERRIDES.items():
     GUIDE_BODIES.setdefault(_guide_slug, {}).update(_reviewed_strings)
 
 
+# Extractor v6 removes the nested-accordion button word from headings. Keep the
+# old source keys for a safe rolling deploy, and add the cleaned keys so the
+# reviewed Chinese survives the next crawl instead of falling back to a new
+# machine translation.
+for _guide_strings in GUIDE_BODIES.values():
+    for _english, _chinese in list(_guide_strings.items()):
+        if not _english.endswith((" View", " Close")):
+            continue
+        _clean_english = _english.rsplit(" ", 1)[0]
+        _clean_chinese = _chinese
+        for _suffix in (" 查看", " 收起", "（查看）", "（收起）", " (查看)", " (收起)"):
+            if _clean_chinese.endswith(_suffix):
+                _clean_chinese = _clean_chinese.removesuffix(_suffix)
+                break
+        _guide_strings.setdefault(_clean_english, _clean_chinese)
+
+
 def all_seeds() -> tuple[TranslationSeed, ...]:
     seeds: list[TranslationSeed] = [
         TranslationSeed(

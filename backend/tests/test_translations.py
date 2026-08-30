@@ -466,6 +466,23 @@ def test_gpa_and_wam_status_codes_have_the_same_reviewed_meaning():
         assert strings["WN (withdrawn fail)"] == "WN（退课不及格）"
 
 
+def test_cleaned_accordion_headings_keep_reviewed_chinese_without_toggle_words():
+    """Extractor v6 removes View/Close; translations must use the new keys too."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    expected = {
+        ("defer-final-assessment", "Before you apply"): "申请之前",
+        ("course-advice", "Course planning tools"): "课程规划工具",
+        ("academic-transcripts", "Your privacy"): "你的隐私",
+        ("supporting-documents", "Medical condition"): "健康问题",
+        ("census-dates", "2026 Census dates for all teaching periods (sorted by census date)"):
+            "2026 年全部开课学期的 census dates（学籍统计日）（按学籍统计日排序）",
+    }
+    for (slug, english), chinese in expected.items():
+        assert GUIDE_BODIES[slug][english] == chinese
+        assert not chinese.endswith(("查看", "收起"))
+
+
 def test_human_boilerplate_outranks_a_machine_page_string(db):
     """ENG1090 kept saying 最大分数为课程45 after that sentence was hand-written.
 
