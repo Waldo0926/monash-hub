@@ -117,6 +117,7 @@ PR 会明确标注，不会被误写成已经上线的功能。
 
 ### 2026-08-30
 
+- [#78](https://github.com/Waldo0926/monash-hub/pull/78) Review Chinese unit titles and degree categories / 不再展示未经人工校对的机器课程译名，校正首页会计课程与高风险错译，并修复学位分类和语言切换不一致。
 - [#77](https://github.com/Waldo0926/monash-hub/pull/77) Audit every Chinese degree title / 全面检查 503 条在用学位记录，人工校对 93 个中文名称并确保其覆盖旧机器译文。
 - [#76](https://github.com/Waldo0926/monash-hub/pull/76) Make Chinese titles searchable and refresh answers after language changes / 支持用中文搜索课程、学位和官方指南，切换语言后刷新直达答案，并补齐 #68–#75 的 Changelog 记录。
 
