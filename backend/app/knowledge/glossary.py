@@ -2449,6 +2449,32 @@ ENUMS: dict[str, dict[str, str]] = {
     "Research": {"zh": "研究型", "ja": "研究型", "ko": "연구 중심"},
     "Honours - 1 yr": {"zh": "荣誉学位（1 年）", "ja": "オナーズ（1 年）", "ko": "우등 학위(1년)"},
     "Honours": {"zh": "荣誉学位", "ja": "オナーズ", "ko": "우등 학위"},
+    # Current 2026 course index values.  Earlier Handbook exports used the
+    # shorter PG coursework / Research labels above; these exact replacements
+    # keep the new abbreviations out of the translator too.
+    "Doctorate by research": {
+        "zh": "研究型博士学位", "ja": "研究博士課程", "ko": "연구 박사과정",
+    },
+    "Higher doctorate": {
+        "zh": "高级博士学位", "ja": "上位博士号", "ko": "고등 박사학위",
+    },
+    "Masters by research": {
+        "zh": "研究型硕士学位", "ja": "研究修士課程", "ko": "연구 석사과정",
+    },
+    "Non award pathway": {
+        "zh": "非学位衔接课程", "ja": "非学位進学課程", "ko": "비학위 진학과정",
+    },
+    "PG Grad Cert / Grad Dip": {
+        "zh": "研究生证书／研究生文凭",
+        "ja": "大学院サーティフィケート／ディプロマ",
+        "ko": "대학원 수료증 / 디플로마",
+    },
+    "PG Masters": {
+        "zh": "授课型硕士学位", "ja": "授業型修士課程", "ko": "수업형 석사과정",
+    },
+    "UG diploma": {
+        "zh": "本科文凭", "ja": "学部ディプロマ", "ko": "학부 디플로마",
+    },
 
     # --- what kind of area of study it is -------------------------------------
     "UG specialisation": {"zh": "本科专业方向", "ja": "学部専門分野", "ko": "학부 세부전공"},
@@ -3184,4 +3210,3 @@ def is_only_placeholders(text: str) -> bool:
     ``Zqa`` it returns 兹卡.
     """
     return not re.search(r"[A-Za-z]", _ANY_PLACEHOLDER.sub("", text))
-

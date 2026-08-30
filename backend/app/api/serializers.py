@@ -381,6 +381,11 @@ def course_brief(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str, 
         "abbreviated_name": course.abbreviated_name,
         "credit_points": course.credit_points,
         "course_type": tr.string(course.course_type),
+        # A closed-list value used for grouping and filtering.  The translated
+        # display value is useful to API clients, but the UI also needs the
+        # source key so it can select a reviewed label rather than grouping on
+        # whatever an older machine-translation row happened to contain.
+        "course_type_raw": course.course_type,
         "faculty": tr.string(course.faculty),
         "campuses": [tr.string(c) for c in course.campuses or []],
         "campuses_raw": list(course.campuses or []),

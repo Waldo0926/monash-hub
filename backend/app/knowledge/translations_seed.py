@@ -247,16 +247,13 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
 
 # --- unit titles ------------------------------------------------------------
 #
-# The machine handles most of the 5227 titles, and the ones it does not it
-# fails at loudly, because a title is a noun phrase with no sentence around it
-# to reorder from. Masking makes that worse rather than better: "Fundamentals
-# of algorithms" reaches the model as two protected tokens joined by "of", and
-# 基础 of 算法 is what comes back.
+# The complete machine baseline lives in ``unit_titles_zh.json``. A title is a
+# noun phrase with little context, so exact human-reviewed strings here and in
+# ``titles.py`` correct the cases where a general translator chose the wrong
+# academic sense. Human rows load after machine rows and always win.
 #
 # These are the ones a reader meets first - the unit tree puts eleven titles on
-# one screen - so they are written out. Everything not listed here is still
-# machine-translated; this is a correction list, not a claim to have translated
-# the Handbook.
+# one screen - so they are written out.
 
 UNIT_TITLES: dict[str, tuple[str, str]] = {
     # code: (English source, Chinese)
