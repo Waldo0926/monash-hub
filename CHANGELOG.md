@@ -121,6 +121,10 @@ is not presented as shipped code.
 这里记录每一个 PR，包括不需要单独撰写长篇发布说明的小修复。未合并就关闭的
 PR 会明确标注，不会被误写成已经上线的功能。
 
+### 2026-08-31
+
+- [#79](https://github.com/Waldo0926/monash-hub/pull/79) Audit Chinese translations across all official guides / 全面审查 45 篇官方指南的简体中文翻译，修复考试规则、成绩等级、日历日期及其他政策术语误译。
+
 ### 2026-08-30
 
 - [#78](https://github.com/Waldo0926/monash-hub/pull/78) Review Chinese unit titles and degree categories / 为 2026 Handbook 全部课程名称提供完整简体中文基线，校正会计课程与高风险错译，并修复学位分类和语言切换不一致。
