@@ -6,6 +6,22 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Audited the rendered body structure of all 45 official guides and removed 98
+  leaked interface controls across 10 affected pages. Nested-accordion buttons
+  no longer append `View` / `Close` to real headings or appear as standalone
+  paragraphs; hidden decision-tree actions such as `Go back`, placeholder text
+  such as `No banners found`, and the duplicated topic selector on the course
+  advice page are no longer presented as guide content. Existing reviewed
+  Chinese heading translations are preserved under the cleaned English source
+  keys, and the extractor version bump forces the next crawl to replace stored
+  legacy blocks.
+- Audited the Simplified-Chinese output of all 45 official guides, with
+  page-specific human translations for policy labels, table cells and academic
+  result terminology. This replaces misleading literal output such as `Yes` →
+  `对`, `Pencil cases` → `笔会案件`, `First Class Honours` → `头等舱荣誉学位`,
+  and weekday cells such as `Sat 01` → `卫星1号`; critical exam-rule sentences
+  also retain their conditions and disciplinary consequences instead of being
+  shortened into a different rule.
 - Replaced the inconsistent unit-title output with a complete Simplified-Chinese
   baseline covering all 4,212 distinct titles in the 5,228-record 2026
   catalogue, so the Chinese interface no longer falls back to English names.
@@ -113,6 +129,10 @@ is not presented as shipped code.
 
 这里记录每一个 PR，包括不需要单独撰写长篇发布说明的小修复。未合并就关闭的
 PR 会明确标注，不会被误写成已经上线的功能。
+
+### 2026-08-31
+
+- [#79](https://github.com/Waldo0926/monash-hub/pull/79) Audit Chinese translations across all official guides / 全面审查 45 篇官方指南的简体中文翻译，修复考试规则、成绩等级、日历日期及其他政策术语误译。
 
 ### 2026-08-30
 

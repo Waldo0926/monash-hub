@@ -249,3 +249,93 @@ def test_the_cms_placeholder_is_not_a_description():
     )
     assert "NEED DESCRIPTION" not in text
     assert "non-assessed" in text
+
+
+def test_nested_accordion_controls_do_not_become_body_text_or_heading_suffixes():
+    """Monash puts View/Close controls inside and beside the real heading."""
+    html = """
+    <html><body><main>
+      <h1>Deferred assessments</h1>
+      <p>If exceptional circumstances prevent you sitting an exam, apply by the deadline.</p>
+      <div class="hidden">
+        <span class="hidden nested-accordion__expand-text">View</span>
+        <span class="hidden nested-accordion__collapse_text">Close</span>
+      </div>
+      <h3 class="accTitle uber-accordion__button">
+        <span class="accTitle__text">Before you apply</span>
+        <span class="accTitle__toggle-wrapper">
+          <a class="accTitle__toggle" href="#before">
+            <span class="accTitle__toggle-text">View</span>
+          </a>
+        </span>
+      </h3>
+      <div><p>Apply before 23:55 on the day of your scheduled assessment.</p></div>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://www.monash.edu/defer")
+
+    assert [heading["text"] for heading in result["headings"]] == ["Before you apply"]
+    assert "\nView\n" not in f"\n{result['clean_text']}\n"
+    assert "\nClose\n" not in f"\n{result['clean_text']}\n"
+    assert result["headings"][0]["id"] == "before-you-apply"
+
+
+def test_flattened_accordion_controls_are_repaired_as_a_second_line_of_defence():
+    """Old and alternate templates do not always carry the expected classes."""
+    html = """
+    <html><body><main>
+      <h1>Supporting documents</h1>
+      <p>Read the evidence requirements before submitting an application.</p>
+      <p>View</p><p>Close</p>
+      <h3>Medical condition View</h3>
+      <p>Your certificate must cover the relevant assessment date.</p>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://www.monash.edu/documents")
+
+    assert [heading["text"] for heading in result["headings"]] == ["Medical condition"]
+    assert "View" not in result["clean_text"]
+    assert "Close" not in result["clean_text"]
+
+
+def test_decision_tree_form_and_enhanced_select_are_not_copied_as_prose():
+    """A read-only page must not render a form's options as a content list."""
+    html = """
+    <html><body><main>
+      <h1>Course advice</h1>
+      <p>Use course advice to make an informed decision about your enrolment.</p>
+      <h3>Enrolment and credit</h3>
+      <div class="sq_question_wrapper">
+        <label for="topic">What would you like help with?</label>
+        <select id="topic"><option>Choose a topic</option><option>Study load</option></select>
+        <div class="selectric-wrapper">
+          <span>Choose a topic</span><b>▾</b>
+          <ul><li>Choose a topic</li><li>Study load</li></ul>
+        </div>
+      </div>
+      <h3>Response times</h3>
+      <p>We usually reply within five working days.</p>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://www.monash.edu/course-advice")
+
+    assert [heading["text"] for heading in result["headings"]] == [
+        "Enrolment and credit", "Response times",
+    ]
+    for noise in ("What would you like help with", "Choose a topic", "Study load", "▾"):
+        assert noise not in result["clean_text"]
+
+
+def test_stray_decision_tree_list_is_dropped_even_without_selectric_classes():
+    html = """
+    <html><body><main>
+      <h1>Credit and enrolment</h1>
+      <p>Choose the right advice for your circumstances and check the official page.</p>
+      <ul><li>Choose a topic</li><li>Changing my study load</li><li>Course transfer</li></ul>
+      <p>No banners found</p>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://www.monash.edu/credit")
+
+    assert "Choose a topic" not in result["clean_text"]
+    assert "No banners found" not in result["clean_text"]
