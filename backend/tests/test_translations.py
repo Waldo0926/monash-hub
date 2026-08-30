@@ -369,6 +369,103 @@ def test_no_unit_title_seed_is_still_english():
     assert unchanged == set()
 
 
+def test_exam_rules_table_uses_permission_language_and_correct_item_names():
+    """Short table cells need context; generic machine wording was misleading."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-exam-rules"]
+    assert strings["Yes"] == "允许"
+    assert strings["No"] == "不允许"
+    assert strings["Notes"] == "笔记"
+    assert strings["Pencil cases"] == "笔袋"
+    assert strings["Bag"] == "包袋"
+    assert strings["Face masks"] == "口罩"
+    assert strings["Headphones"] == "耳机或耳麦"
+
+
+def test_exam_rules_reviewed_sentences_retain_the_safety_qualifications():
+    """Do not shorten rules in ways that remove conditions or consequences."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-exam-rules"]
+    cancel = next(value for key, value in strings.items() if key.startswith(
+        "You can’t cancel or reschedule your eExam."
+    ))
+    supervision = next(value for key, value in strings.items() if key.startswith(
+        "If your eExam is supervised, you must stay in sight"
+    ))
+    identity = next(value for key, value in strings.items() if key.startswith(
+        "You must have your M-Pass"
+    ))
+    headphones = next(value for key, value in strings.items() if key.startswith(
+        "On-campus eExams"
+    ))
+    permitted = next(value for key, value in strings.items() if key.startswith(
+        "Your lecturer will tell you if there are any specifically permitted items"
+    ))
+
+    assert "不再符合延期考核的申请条件" in cancel
+    assert "仍会继续录制" in supervision
+    assert "你将无法参加" in identity
+    assert "不得听音乐或音频文件" in headphones
+    assert "一张预先写好笔记的 A4 纸" in permitted
+
+
+def test_all_guide_audit_overrides_reach_the_seeded_page_maps():
+    """The full-guide audit must affect the rows the seeder actually writes."""
+    from app.knowledge.translations_seed import GUIDE_AUDIT_OVERRIDES, GUIDE_BODIES
+
+    for slug, overrides in GUIDE_AUDIT_OVERRIDES.items():
+        for english, chinese in overrides.items():
+            assert GUIDE_BODIES[slug][english] == chinese
+
+
+def test_student_pass_table_uses_document_and_permission_language():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-student-pass"]
+    assert strings["Documents"] == "文件"
+    assert strings["Yes"] == "允许"
+    assert strings["No"] == "不允许"
+
+
+def test_results_legend_uses_academic_not_literal_word_senses():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["results-legend"]
+    expected = {
+        "First Class Honours": "一等荣誉",
+        "Faculty Pass": "学院评定及格",
+        "Hurdle Fail": "未达到及格门槛",
+        "Non Assessed": "未评定",
+        "Not Examinable": "无需参加考试",
+        "Pass Division I": "一等及格",
+        "Withheld": "暂缓公布",
+        "Withdrawn Fail": "退课不及格",
+    }
+    assert {key: strings[key] for key in expected} == expected
+
+
+def test_principal_date_cells_keep_weekdays_and_months_intact():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["principal-dates"]
+    assert strings["Sat 01"] == "周六 01"
+    assert strings["Wed 28"] == "周三 28"
+    assert strings["February"] == "2 月"
+    assert strings["October"] == "10 月"
+
+
+def test_gpa_and_wam_status_codes_have_the_same_reviewed_meaning():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    for slug in ("gpa", "wam"):
+        strings = GUIDE_BODIES[slug]
+        assert strings["NE (not examinable)"] == "NE（无需参加考试）"
+        assert strings["NAS (not assessed)"] == "NAS（未评定）"
+        assert strings["WN (withdrawn fail)"] == "WN（退课不及格）"
+
+
 def test_human_boilerplate_outranks_a_machine_page_string(db):
     """ENG1090 kept saying 最大分数为课程45 after that sentence was hand-written.
 

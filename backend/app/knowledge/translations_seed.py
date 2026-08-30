@@ -2332,10 +2332,14 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "无论你是刚来 Monash 还是要重新注册，都可以在这里了解如何管理自己的选课注册。",
     },
     "malaysia-exam-rules": {
+        "Bag":
+            "包袋",
         "Books, study materials":
             "书籍、学习资料",
+        "Calculators":
+            "计算器",
         "Cap, hooded top":
-            "帽子、连帽衫",
+            "帽子、连帽上衣",
         "Cheating can come in many forms, and can occur in exams and "
         "other types of assessments. To cheat could be to copy the "
         "work of others, to get someone to do your assessment for you, "
@@ -2343,7 +2347,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "breaches academic integrity and Monash University has various "
         "methods of detecting it.":
             "作弊有很多种形式，可能发生在考试里，也可能发生在其他类型的考核中。抄袭他人作业、找人代做考核、把未经许可的材料带进 "
-            "eExam（线上考试），都属于作弊。作弊违反学术诚信。",
+            "eExam（线上考试），都属于作弊。作弊违反学术诚信，Monash 大学也采用多种方法侦测作弊行为。",
         "Cheating is a very serious offence and could result in "
         "suspension or exclusion from the University.":
             "作弊是非常严重的违规行为，可能导致停学或被学校退学处理（exclusion）。",
@@ -2353,6 +2357,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "闭卷考试不允许你带笔记、书本或任何其他参考资料进场，只能完全靠记忆作答。",
         "Closed-book remote eExams":
             "远程闭卷 eExam（线上考试）",
+        "Clock":
+            "计时器",
         "Dictionaries (electronic)":
             "词典（电子版）",
         "Dictionaries (hard copy)":
@@ -2363,7 +2369,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "materials which haven’t been authorised for the exam. "
         "Possession of unauthorised materials, or attempting to cheat "
         "or cheating in an exam, is a disciplinary offence.":
-            "考试期间不得携带计算器、笔袋、手机、智能手表或智能设备，也不得有任何书本、笔记、纸张、写在身体任何部位的字迹，或其他未经本场考试许可的材料。持有未经许可的材料本身即构成违规。",
+            "考试期间不得携带计算器、笔袋、手机、智能手表或智能设备，也不得有任何书本、笔记、纸张、写在身体任何部位的字迹，或其他未经本场考试许可的材料。持有未经许可的材料、试图作弊或在考试中作弊，均属于纪律违规。",
         "During your exam, you must not speak with other students or "
         "persons outside the University. You should only communicate "
         "with your online supervisor or exam staff. Colluding with "
@@ -2377,7 +2383,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "it’s visible. The session will continue to be recorded while "
         "you’re out of the room.":
             "如果你的 "
-            "eExam（线上考试）有监考，全程都必须待在摄像头可见范围内。如需离开房间上洗手间，要把手机和所有考试材料留在考场内、放在摄像头前可见的位置。",
+            "eExam（线上考试）有监考，全程都必须待在摄像头可见范围内。如需离开房间上洗手间，要把手机和所有考试材料留在考场内、放在摄像头前可见的位置。离开房间期间，考试会话仍会继续录制。",
         "Learn more about academic integrity, plagiarism and collusion.":
             "进一步了解学术诚信、抄袭与合谋作弊。",
         "Mask-wearing is required for indoor settings and optional in "
@@ -2401,17 +2407,36 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "communicating with your online supervisor. You’re not allowed "
         "to listen to music, audio files or speak with anyone other "
         "than your online supervisor during your exam.":
-            "校内 eExam（线上考试）　有线上监考的 "
-            "eExam（线上考试）：你需要自带带麦克风的耳机或耳麦，以便与线上监考员清楚沟通，同时尽量不打扰同一考场的其他学生。",
+            "校内 eExam（线上考试）：有线上监考时，你需要自带带麦克风的耳机或耳麦，以便与线上监考员清楚沟通，同时尽量不打扰同一考场的其他学生；无线上监考时，可以使用耳机的降噪功能或耳塞来减少干扰。校外 eExam（线上考试）：校外有监考的场次可以选择使用带内置麦克风的耳机或耳麦，但只能用于与线上监考员沟通。考试期间不得听音乐或音频文件，也不得与线上监考员以外的任何人交谈。",
         "Open-book exams allow you to access notes, texts or resource "
         "materials in your exam.":
             "开卷考试允许你在考试中查阅笔记、教材或参考资料。",
         "Open-book remote eExams":
             "远程开卷 eExam（线上考试）",
+        "Exam Rules":
+            "考试规则",
+        "Face masks":
+            "口罩",
+        "Food and drink":
+            "食物和饮料",
+        "Headphones":
+            "耳机或耳麦",
+        "Item":
+            "物品",
+        "No":
+            "不允许",
+        "Notes":
+            "笔记",
         "Paper, including blank A4 paper":
             "纸张，包括空白 A4 纸",
+        "Pencil cases":
+            "笔袋",
+        "Smartphones":
+            "智能手机",
         "Specifically permitted items":
-            "特别许可携带的物品",
+            "特别许可物品",
+        "Stationery":
+            "文具",
         "There is an inbuilt timer on your eExam screen that will "
         "count down the time you have left.":
             "eExam（线上考试）界面自带计时器，会倒数你剩余的时间。",
@@ -2423,7 +2448,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "any unauthorised materials in an exam is a disciplinary "
         "offence.":
             "这些信息也会显示在 "
-            "eExam（线上考试）的首页上。开考前请仔细阅读，确认你的所有材料和设备都是经许可的。桌上出现的任何材料或物品，只要未经许可，我们都会视为违规。",
+            "eExam（线上考试）的首页上。开考前请仔细阅读，确认你的所有材料和设备都是经许可的。桌面、椅子或你身上的任何材料或物品，都会被视为由你持有。在考试中持有任何未经许可的材料，均属于纪律违规。",
         "To ensure you get your full exam time, log into the "
         "eAssessment platform 30 minutes before the scheduled start "
         "time (if it’s supervised) or 10 minutes before if you have an "
@@ -2444,6 +2469,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "device you’re using for your eExam (unless specifically "
         "instructed by your teaching staff or faculty).":
             "可以，但不得在你用来考 eExam（线上考试）的那台设备上查看电子版笔记（除非任课教师或学院另有明确指示）。",
+        "Yes":
+            "允许",
         "Yes, food and drink are allowed in your private exam space. "
         "If you have an on-campus eExam, please ensure any food you "
         "bring with you won't disturb those around you.":
@@ -2462,12 +2489,12 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "handwritten responses – don't access your phone until the "
         "instructions appear on your screen.":
             "你可以带智能手机，但必须调到「勿扰」模式并正面朝下放在桌上。手机的用途是：用多因素认证登录 "
-            "eExam（线上考试），以及在考试结束时上传手写作答的照片（如需要）。",
+            "eExam（线上考试），以及在考试结束时上传手写作答的照片（如需要）。在屏幕出现相关指示前，不得使用手机。",
         "You can wear a cap or hooded top, but you may be asked to "
         "remove it as part of your online supervision so we can verify "
         "your identity. Your online supervisor may ask you to remove "
         "your hood at any time.":
-            "你可以戴帽子或穿连帽衫，但线上监考过程中可能会被要求摘下，以便核验身份。线上监考员可以随时要求你放下帽兜。",
+            "你可以戴帽子或穿连帽上衣，但线上监考为核验身份可能要求你摘下帽子或放下帽兜。线上监考员可以随时要求你放下帽兜。",
         "You can’t cancel or reschedule your eExam. By starting your "
         "eExam, you’re confirming that you’re well enough to do the "
         "exam. If you suddenly become unwell during your exam, tell "
@@ -2477,7 +2504,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "and/or attempted to answer the exam questions, you won't be "
         "eligible for a deferred assessment.":
             "你不能取消或改期 "
-            "eExam（线上考试）。一旦开考，就等于确认自己身体状况适合参加考试。如果考试中途突然不适，请立刻告知监考员，他们会告诉你该怎么做。",
+            "eExam（线上考试）。一旦开考，就等于确认自己身体状况适合参加考试。如果考试中途突然不适，请立刻告知监考员，他们会告诉你该怎么做。如果身体状况允许，建议尽量完成考试；在大多数情况下，如果你已经看过试题或尝试作答，就不再符合延期考核的申请条件。",
         "You must have your M-Pass (student ID card) or a "
         "government-issued photo ID (e.g. your passport) if you’re "
         "sitting a supervised eExam or an unsupervised eExam on "
@@ -2485,7 +2512,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "microphone must be working – if the online supervisor can't "
         "see or hear you, you won't be allowed to sit your eExam.":
             "参加有监考的 eExam（线上考试）、或在校内参加无监考 eExam（线上考试）时，必须携带 "
-            "M-Pass（学生证）或政府签发的带照片身份证件（例如护照）。有监考的场次，摄像头和麦克风必须正常工作。",
+            "M-Pass（学生证）或政府签发的带照片身份证件（例如护照）。有监考的场次，摄像头和麦克风必须正常工作；如果线上监考员看不到或听不到你，你将无法参加 eExam（线上考试）。",
         "You must remove your smartwatch and place it face down on "
         "your desk for the duration of your eExam. The eExam on-screen "
         "timer will show you how much exam time you have left.":
@@ -2501,7 +2528,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "also be listed on your exam home screen if they apply. For "
         "example, you may be permitted to use a translation dictionary "
         "for your exam or a single A4 page of pre-prepared notes.":
-            "如果有特别许可携带进考场的物品，任课教师会告知你；适用时，这些物品也会列在考试首页上。例如，某些考试可能允许你使用翻译词典。",
+            "如果有特别许可携带进考场的物品，任课教师会告知你；适用时，这些物品也会列在考试首页上。例如，某些考试可能允许你使用翻译词典，或携带一张预先写好笔记的 A4 纸。",
         "Your personal belongings are allowed to be in the room, but "
         "they must not be in reach during your exam.":
             "个人物品可以放在房间里，但考试期间不得放在伸手可及之处。",
@@ -2512,7 +2539,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "required handwritten responses – don’t access your phone "
         "until the instructions appear on your screen.":
             "手机必须调到「勿扰」模式并正面朝下放在桌上。只能用于两件事：用多因素认证登录 "
-            "eExam（线上考试），以及在考试结束时上传所需的手写作答照片。",
+            "eExam（线上考试），以及在考试结束时上传所需的手写作答照片。在屏幕出现相关指示前，不得使用手机。",
         "You’ll need to check with your lecturer to see whether your "
         "exam requires the use of a calculator and, if so, whether "
         "there are restrictions on the type you’re allowed to use.":
@@ -2522,6 +2549,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "authorised materials on your unit’s Moodle page and the "
         "landing page of your eExam.":
             "只有经本场考试许可的纸张才可以带在身边。许可材料清单请查看该课程的 Moodle 页面，以及 eExam（线上考试）的首页。",
+        "USB devices":
+            "USB 设备",
         "eExam rules":
             "eExam（线上考试）规则",
         "the eExam spell check function will be disabled.":
@@ -8588,6 +8617,384 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "加权学分",
     },
 }
+
+
+# Reviewed page-specific overrides are kept out of the global glossary because
+# short labels such as "Pass", "Credit", "View" and "Withdrawn" depend on the
+# guide in which they appear. This map was audited against all 45 guide payloads.
+GUIDE_AUDIT_OVERRIDES: dict[str, dict[str, str]] = {
+    "academic-progress": {"Hearing decisions": "听证决定"},
+    "academic-transcripts": {
+        "About your results": "关于你的成绩",
+        "Click Add.": "点击“添加”。",
+        "Click Continue.": "点击“继续”。",
+        "Click Link Account.": "点击“关联账户”。",
+        "Current students": "在读学生",
+        "Digital format": "电子版",
+        "Hard copy format": "纸质版",
+        "Log into My eQuals.": "登录 My eQuals。",
+        "Monash Study app.": "Monash Study 应用。",
+        "Official record": "正式学业记录",
+        "Past students": "往届学生",
+        "Results legend": "成绩等级说明",
+        "Unofficial record": "非正式学业记录",
+        "View": "查看",
+        "Your privacy View": "你的隐私（查看）",
+    },
+    "add-or-withdraw-units": {
+        "Adding units": "添加课程",
+        "Before enrolling": "选课注册前",
+        "Domestic students": "澳大利亚本地学生",
+        "How to add a unit": "如何添加课程",
+        "Dates to check": "需要留意的日期",
+        "Relevant policies": "相关政策",
+        "Selecting units": "选择课程",
+        "Withdrawn Early": "提前退课",
+        "Withdrawn Fail": "退课不及格",
+        "Withdrawn Late": "逾期退课",
+        "Withdrawn fail": "退课不及格",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+        "WD-EARLY": "WD-EARLY（提前退课）",
+        "WD-LATE": "WD-LATE（逾期退课）",
+        "WD-FAIL": "WD-FAIL（退课不及格）",
+    },
+    "assessment-at-monash": {
+        "Extensions": "延期提交",
+        "Grading and results": "评分与成绩",
+        "Late submissions": "逾期提交",
+        "Marking criteria": "评分标准",
+        "Relevant procedures": "相关流程",
+    },
+    "census-dates": {"View": "查看"},
+    "census-dates-explained": {
+        "Academic penalties": "学业后果",
+        "Before enrolling": "选课注册前",
+        "Financial penalties": "财务后果",
+        "HELP loans": "HELP 学生贷款",
+        "Research students": "研究型学位学生",
+    },
+    "changing-your-enrolment": {
+        "Honours students": "荣誉学位学生",
+        "Study load": "修读负荷",
+        "University changes": "学校对选课的调整",
+    },
+    "course-advice": {"Assessments View": "考核（查看）", "View": "查看"},
+    "defer-final-assessment": {
+        "Apply to reschedule": "申请改期",
+        "Late applications": "逾期申请",
+        "View": "查看",
+    },
+    "discontinue-course": {
+        "Go back": "返回",
+        "How to discontinue": "如何退读学位课程",
+        "Re-enrolling": "重新选课注册",
+        "What happens next": "接下来会怎样？",
+    },
+    "enrolments": {
+        "Double degrees": "双学位",
+        "Enrolments": "选课注册",
+        "Making changes": "更改选课注册",
+        "Re-enrol": "重新选课注册",
+        "Study load": "修读负荷",
+    },
+    "fees": {
+        "Course fees": "学位课程学费",
+        "Fees and payments": "学费与缴费",
+        "Fees statements": "费用账单",
+        "Payments": "缴费",
+    },
+    "final-assessment-dates": {
+        "Final assessments": "期末考核",
+        "Swot vac": "SWOT Vac（复习周）",
+        "View": "查看",
+    },
+    "gpa": {
+        "Converting your GPA": "GPA 换算",
+        "Cumulative Grade Point Average (CGPA)": "累计平均绩点（CGPA）",
+        "How to find out your GPA": "如何查看 GPA",
+        "How to get your CGPA": "如何计算 CGPA",
+        "Methodology": "计算方法",
+        "Re-marking": "复核评分",
+        "Hurdle fail": "未达到及格门槛",
+        "Withdrawn fail": "退课不及格",
+        "SFR (satisfied faculty requirements)": "SFR（已满足学院要求）",
+        "NE (not examinable)": "NE（无需参加考试）",
+        "NAS (not assessed)": "NAS（未评定）",
+        "WI (withdrawn incomplete)": "WI（退课未完成）",
+        "PGO (pass grade only)": "PGO（仅评定为及格）",
+        "N (fail)": "N（不及格）",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+    },
+    "important-dates": {"Principal dates": "校历主要日期", "Semester dates": "学期日期"},
+    "intermission": {"Go back": "返回", "View": "查看"},
+    "malaysia-insurance": {"Study Interruption": "学业中断"},
+    "malaysia-special-consideration": {
+        "Applying late": "逾期申请",
+        "Examples": "示例",
+        "Group assessments": "小组考核",
+    },
+    "malaysia-student-admin": {
+        "MonPlan": "MonPlan 学业规划系统",
+        "Principal dates": "校历主要日期",
+        "Timetabling": "排课与课表",
+    },
+    "malaysia-student-pass": {"Documents": "文件", "No": "不允许", "Yes": "允许"},
+    "malaysia-student-services": {
+        "Career services": "就业服务",
+        "New to Monash": "Monash 新生",
+        "News and Events": "新闻与活动",
+        "Support services": "支持服务",
+    },
+    "oshc": {"Pricing": "费用"},
+    "principal-dates": {
+        "Australian campuses": "澳大利亚各校区",
+        "Principal dates": "校历主要日期",
+        "University reopens": "大学恢复开放",
+        "Full year – 2026": "2026 全学年",
+    },
+    "results-legend": {
+        "2020 to 2021: Temporary grading system":
+            "2020–2021 年 COVID-19 疫情期间临时成绩评定制度",
+        "Credit": "良好（Credit）",
+        "Deferred Assessment": "延期考核",
+        "Did Not Sit": "未参加考试",
+        "Discontinued": "已终止修读",
+        "Distinction": "优秀（Distinction）",
+        "Exempt": "豁免",
+        "Faculty Pass": "学院评定及格",
+        "Fail": "不及格",
+        "First Class Honours": "一等荣誉",
+        "High Distinction": "最高等级优秀（High Distinction）",
+        "High Satisfactory": "高度满意",
+        "Higher Distinction": "更高等级优秀",
+        "Honours course grades": "荣誉学位课程成绩等级",
+        "Hurdle Fail": "未达到及格门槛",
+        "Incomplete": "未完成",
+        "Lower Level Pass": "低等级及格",
+        "Masters awarded with distinction": "获授优秀等级的硕士学位",
+        "Merit": "优良（Merit）",
+        "NGO (Fail)": "NGO（不及格）",
+        "Near Pass": "接近及格",
+        "Non Assessed": "未评定",
+        "Non-Assessed": "未评定",
+        "Not Assessed": "未评定",
+        "Not Examinable": "无需参加考试",
+        "Not Satisfied Requirements": "未满足要求",
+        "Not-Examinable": "无需参加考试",
+        "PGO (Pass)": "PGO（及格）",
+        "Pass": "及格",
+        "Pass Applies only to students who started on or after 1 January 2021":
+            "及格——仅适用于 2021 年 1 月 1 日或之后入学的学生",
+        "Pass Division I": "一等及格",
+        "Pass Division II": "二等及格",
+        "Pass Division IIE": "二等及格（补考）",
+        "Pass Grade Only. No higher grade available":
+            "仅评定为及格，不提供更高等级",
+        "Pass Grade Only (no higher grade available)":
+            "仅评定为及格（不提供更高等级）",
+        "Pass on Appeal": "申诉后评定及格",
+        "Pass with Credit": "良好及格",
+        "Provisional Grade": "暂定成绩",
+        "Satisfied Faculty Requirements": "已满足学院要求",
+        "Second Class Honours Division A": "二等荣誉 A 级",
+        "Second Class Honours Division B": "二等荣誉 B 级",
+        "Supplementary Assessment": "补考",
+        "Supplementary Assessment Granted": "已获准补考",
+        "Sound pass": "稳健及格",
+        "Subject Not Graded": "该科目不评定等级",
+        "The Monash grading system": "Monash 成绩评定体系",
+        "Third Class Honours": "三等荣誉",
+        "Third Class Honours Applies only to students who started before 2021":
+            "三等荣誉——仅适用于 2021 年之前入学的学生",
+        "2020–2021 Temporary grading system in response to COVID-19":
+            "2020–2021 年应对 COVID-19 的临时成绩评定制度",
+        "Withheld": "暂缓公布",
+        "Withdrawn": "已退课",
+        "Withdrawn Fail": "退课不及格",
+        "Withdrawn Incomplete": "退课未完成",
+        "Assessment Deferred": "考核延期",
+        "Literal Marks": "原始分数",
+        "Not Pass": "不及格",
+        "Satisfactory": "满意",
+        "Unsatisfactory": "不满意",
+    },
+    "special-consideration": {
+        "Applying late": "逾期申请",
+        "Examples": "示例",
+        "Group assessments": "小组考核",
+    },
+    "student-conduct": {"Breaches": "违规行为"},
+    "student-visa": {
+        "Processing times": "签证审理时间",
+        "Study load": "修读负荷",
+        "Study mode": "修读方式",
+    },
+    "study-at-another-institution": {
+        "Closing dates": "申请截止日期",
+        "Fees and offers": "费用与录取通知",
+        "Limits on credit": "学分限制",
+        "To apply": "申请方法",
+    },
+    "supporting-documents": {
+        "Extension documents": "延期申请所需文件",
+        "Impact statement": "影响情况说明",
+        "Loss or bereavement": "亲友去世或丧亲",
+        "View": "查看",
+    },
+    "visa-changes": {"Extending your stay": "延长在澳停留时间"},
+    "wam": {
+        "Converting your WAM": "WAM 换算",
+        "HWA for Engineering": "工程学院 HWA",
+        "HWA for Law": "法学院 HWA",
+        "Methodology": "计算方法",
+        "N (fail)": "N（不及格）",
+        "NAS (not assessed)": "NAS（未评定）",
+        "NE (not examinable)": "NE（无需参加考试）",
+        "NGO (fail grade)": "NGO（不及格成绩）",
+        "Re-marking": "复核评分",
+        "WDN (withdrawn)": "WDN（已退课）",
+        "WH (withheld)": "WH（暂缓公布）",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+    },
+    "working-on-a-student-visa": {"The current rules": "现行规定"},
+}
+
+
+# Headings which were already readable in the generated Chinese are pinned as
+# reviewed too. This keeps a later machine-translation refresh from changing
+# navigation terminology that was checked during the same all-guide audit.
+GUIDE_REVIEWED_HEADINGS: dict[str, dict[str, str]] = {
+    "about-academic-progress": {
+        "Review periods": "审核周期",
+        "What we review": "审核内容",
+    },
+    "academic-integrity": {"Troubleshooting": "问题排查"},
+    "academic-progress": {"Appeals and reviews": "申诉与复核"},
+    "academic-transcripts": {"Graduates": "毕业生"},
+    "add-or-withdraw-units": {"Update Allocate+": "更新 Allocate+（排课系统）"},
+    "assessment-at-monash": {
+        "Academic integrity": "学术诚信",
+        "Assessment details": "考核详情",
+        "Types of assessment": "考核类型",
+    },
+    "census-dates-explained": {"Exceptions": "例外情况"},
+    "confirmation-of-enrolment": {"Application outcome": "申请结果"},
+    "course-advice": {"Course advice": "学位课程咨询"},
+    "defer-final-assessment": {"How to apply": "如何申请", "Outcome": "申请结果"},
+    "discontinue-course": {"Related links": "相关链接"},
+    "enrolments": {"Study options": "修读选项"},
+    "fee-payment-dates": {"Related links": "相关链接"},
+    "fees": {"Refunds": "退款"},
+    "final-assessment-dates": {"Related links": "相关链接"},
+    "gpa": {
+        "Australia": "澳大利亚",
+        "Calculation steps": "计算步骤",
+        "CGPA calculator": "CGPA 计算器",
+        "Example": "示例",
+        "GPA calculation formula": "GPA 计算公式",
+        "GPA calculator": "GPA 计算器",
+        "Malaysia": "马来西亚校区",
+    },
+    "graduations": {"Graduations": "毕业典礼"},
+    "important-dates": {
+        "Important dates": "重要日期",
+        "System access dates": "系统开放日期",
+    },
+    "intermission": {
+        "Before you apply": "申请前",
+        "Exception": "例外情况",
+        "Exceptions": "例外情况",
+        "Fees": "学费",
+        "How to apply": "如何申请",
+        "Related links": "相关链接",
+    },
+    "international-students": {"Student news": "学生资讯"},
+    "malaysia-special-consideration": {
+        "Eligibility": "申请资格",
+        "Outcome": "申请结果",
+        "Quick links": "快捷链接",
+    },
+    "malaysia-student-admin": {"Enrolment": "选课注册"},
+    "malaysia-student-services": {
+        "Campus Life": "校园生活",
+        "Study abroad": "海外学习与交换",
+    },
+    "oshc": {"Advice": "咨询", "Renewing your OSHC": "续保 OSHC"},
+    "principal-dates": {
+        "Exceptions": "例外情况",
+        "Monash Indonesia": "Monash 印度尼西亚校区",
+        "Monash Malaysia": "Monash 马来西亚校区",
+        "Previous years": "往年",
+        "This month": "本月",
+    },
+    "results-legend": {
+        "Marks from previous years": "往年成绩",
+        "Related links": "相关链接",
+    },
+    "special-consideration": {
+        "Eligibility": "申请资格",
+        "Outcome": "申请结果",
+        "Quick links": "快捷链接",
+    },
+    "student-visa": {
+        "After you apply": "申请后",
+        "Applying for a visa": "申请签证",
+        "Before you apply": "申请前",
+        "Visa conditions": "签证条件",
+    },
+    "study-abroad": {
+        "Contact Us": "联系我们",
+        "Monash Abroad": "Monash Abroad（海外学习与交换）",
+        "Study Overseas": "海外学习",
+    },
+    "study-at-another-institution": {
+        "Eligibility": "申请资格",
+        "Related links": "相关链接",
+        "Semester one": "第一学期",
+        "Semester two": "第二学期",
+        "Unit results": "课程成绩",
+    },
+    "wam": {
+        "Calculation steps": "计算步骤",
+        "Example": "示例",
+        "Formula": "计算公式",
+        "Related links": "相关链接",
+        "WAM calculator": "WAM 计算器",
+    },
+    "working-on-a-student-visa": {"Exceptions": "例外情况"},
+}
+for _guide_slug, _headings in GUIDE_REVIEWED_HEADINGS.items():
+    GUIDE_AUDIT_OVERRIDES.setdefault(_guide_slug, {}).update(_headings)
+
+
+# The principal-dates page exposes weekday abbreviations as separate table
+# cells. Translating them one at a time produced nonsense such as “卫星1号” for
+# “Sat 01” and “结婚 28” for “Wed 28”. Pin every possible calendar cell.
+_WEEKDAYS_ZH = {
+    "Mon": "周一",
+    "Tue": "周二",
+    "Wed": "周三",
+    "Thu": "周四",
+    "Fri": "周五",
+    "Sat": "周六",
+    "Sun": "周日",
+}
+GUIDE_AUDIT_OVERRIDES["principal-dates"].update({
+    f"{weekday} {day:02d}": f"{chinese} {day:02d}"
+    for weekday, chinese in _WEEKDAYS_ZH.items()
+    for day in range(1, 32)
+})
+GUIDE_AUDIT_OVERRIDES["principal-dates"].update({
+    month: f"{number} 月"
+    for number, month in enumerate((
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ), start=1)
+})
+
+
+for _guide_slug, _reviewed_strings in GUIDE_AUDIT_OVERRIDES.items():
+    GUIDE_BODIES.setdefault(_guide_slug, {}).update(_reviewed_strings)
 
 
 def all_seeds() -> tuple[TranslationSeed, ...]:

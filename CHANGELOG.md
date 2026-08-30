@@ -6,6 +6,13 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Audited the Simplified-Chinese output of all 45 official guides, with
+  page-specific human translations for policy labels, table cells and academic
+  result terminology. This replaces misleading literal output such as `Yes` →
+  `对`, `Pencil cases` → `笔会案件`, `First Class Honours` → `头等舱荣誉学位`,
+  and weekday cells such as `Sat 01` → `卫星1号`; critical exam-rule sentences
+  also retain their conditions and disciplinary consequences instead of being
+  shortened into a different rule.
 - Replaced the inconsistent unit-title output with a complete Simplified-Chinese
   baseline covering all 4,212 distinct titles in the 5,228-record 2026
   catalogue, so the Chinese interface no longer falls back to English names.
