@@ -69,10 +69,7 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     """
     return {
         "unit_code": unit.unit_code,
-        # A wrong course title is worse than an untranslated official one.
-        # Only exact, human-reviewed title translations are shown on cards;
-        # unreviewed machine strings fall back to the Handbook English.
-        "title": tr.reviewed_string(unit.title),
+        "title": tr.field("title", unit.title),
         "academic_year": unit.academic_year,
         "credit_points": unit.credit_points,
         "level": tr.string(unit.level),

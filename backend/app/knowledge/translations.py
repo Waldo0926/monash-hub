@@ -82,21 +82,6 @@ class Translation:
             return None
         return self.strings.get(source.strip()) or source
 
-    def reviewed_string(self, source: str | None) -> str | None:
-        """Return a human-reviewed exact translation, otherwise the source.
-
-        Unit titles are short noun phrases where an apparently fluent machine
-        rendering can silently change the subject.  Cards therefore use this
-        stricter lookup: machine text may still help Chinese search, but it is
-        never presented as the authoritative title.
-        """
-        if source is None:
-            return None
-        key = source.strip()
-        if key in self.human_strings:
-            return self.strings.get(key) or source
-        return source
-
     def meta(self) -> dict[str, Any] | None:
         """What the UI needs to label this as a translation rather than a source."""
         if not self:

@@ -369,27 +369,6 @@ def test_no_unit_title_seed_is_still_english():
     assert unchanged == set()
 
 
-def test_machine_only_unit_title_is_not_presented_as_reviewed_chinese():
-    from app.knowledge.translations import Translation
-
-    tr = Translation("zh")
-    tr.strings = {"Accounting in business": "商业中的会计"}
-    tr.machine = True
-
-    assert tr.reviewed_string("Accounting in business") == "Accounting in business"
-
-
-def test_human_reviewed_unit_title_is_presented_in_chinese():
-    from app.knowledge.translations import Translation
-
-    tr = Translation("zh")
-    tr.strings = {"Accounting in business": "商业会计"}
-    tr.human_strings = {"Accounting in business"}
-    tr.reviewed = True
-
-    assert tr.reviewed_string("Accounting in business") == "商业会计"
-
-
 def test_human_boilerplate_outranks_a_machine_page_string(db):
     """ENG1090 kept saying 最大分数为课程45 after that sentence was hand-written.
 

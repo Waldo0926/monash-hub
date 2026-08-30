@@ -105,3 +105,25 @@ def test_reviewed_exact_titles_are_real_translations():
     from app.knowledge.titles import ZH_TITLE_OVERRIDES
 
     assert all(english != chinese for english, chinese in ZH_TITLE_OVERRIDES.items())
+
+
+def test_complete_chinese_title_baseline_covers_the_production_catalogue():
+    from app.knowledge.unit_title_baseline import ZH_TITLE_BASELINE
+
+    assert len(ZH_TITLE_BASELINE) == 4212
+    assert all(english.strip() and chinese.strip() for english, chinese in ZH_TITLE_BASELINE.items())
+    # Proper acronyms may remain unchanged, but a normal Handbook title must
+    # never silently fall back to English on the Simplified-Chinese site.
+    unchanged = {
+        english for english, chinese in ZH_TITLE_BASELINE.items() if english == chinese
+    }
+    assert unchanged == {"MBA 3"}
+    assert ZH_TITLE_BASELINE["Accounting in business"] == "商业会计"
+    assert ZH_TITLE_BASELINE["Academic literacies"] == "学术素养"
+
+
+def test_human_title_corrections_exist_in_the_complete_baseline():
+    from app.knowledge.titles import ZH_TITLE_OVERRIDES
+    from app.knowledge.unit_title_baseline import ZH_TITLE_BASELINE
+
+    assert set(ZH_TITLE_OVERRIDES) <= set(ZH_TITLE_BASELINE)

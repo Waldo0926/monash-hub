@@ -247,16 +247,13 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
 
 # --- unit titles ------------------------------------------------------------
 #
-# A machine pass can make titles searchable, but it is not reliable enough to
-# name a course on screen. A title is a noun phrase with no sentence around it
-# to disambiguate: "Accounting in business" became 商业中的会计, and curating
-# variously became punishment, cracking and cursing. Cards therefore display
-# only the human-reviewed exact strings below (and the expanded source-keyed
-# set in ``titles.py``); every miss stays in official Handbook English.
+# The complete machine baseline lives in ``unit_titles_zh.json``. A title is a
+# noun phrase with little context, so exact human-reviewed strings here and in
+# ``titles.py`` correct the cases where a general translator chose the wrong
+# academic sense. Human rows load after machine rows and always win.
 #
 # These are the ones a reader meets first - the unit tree puts eleven titles on
-# one screen - so they are written out. This is a correction list, not a claim
-# to have translated the Handbook.
+# one screen - so they are written out.
 
 UNIT_TITLES: dict[str, tuple[str, str]] = {
     # code: (English source, Chinese)

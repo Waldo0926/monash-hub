@@ -6,17 +6,16 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
-- Stopped presenting unreviewed machine-generated unit titles as authoritative
-  Chinese. Cards now use exact human-reviewed titles and otherwise retain the
-  official Handbook English, while machine text can still help Chinese search.
-  Added reviewed corrections for the accounting cards shown on the home page
-  (`Accounting in business` → `商业会计`, `Assurance and audit services` →
-  `鉴证与审计服务`) and for high-risk mistranslations found in the full 5,228-row
-  title audit, including curating, assurance, academic literacy and
-  communication titles. Degree categories now use exact bilingual labels rather
-  than machine renderings such as `大师研究型` and `PG主控制器`; changing the
-  site language also reloads once so the selector and every navigation item
-  cannot remain in different languages.
+- Replaced the inconsistent unit-title output with a complete Simplified-Chinese
+  baseline covering all 4,212 distinct titles in the 5,228-record 2026
+  catalogue, so the Chinese interface no longer falls back to English names.
+  The baseline remains explicitly machine-labelled and is overlaid by exact
+  human-reviewed corrections, including `Accounting in business` → `商业会计`,
+  `Assurance and audit services` → `鉴证与审计服务`, and high-risk curating,
+  assurance, academic-literacy and communication terminology. Degree categories
+  now use exact bilingual labels rather than renderings such as `大师研究型` and
+  `PG主控制器`; changing the site language also reloads once so the selector
+  and every navigation item cannot remain in different languages.
 - Audited all 503 active degree records against their 2026 Handbook English
   titles and added 93 exact, human-reviewed Chinese title corrections, covering
   95 course codes. This fixes recurring errors such as *Business and Commerce*
@@ -117,7 +116,7 @@ PR 会明确标注，不会被误写成已经上线的功能。
 
 ### 2026-08-30
 
-- [#78](https://github.com/Waldo0926/monash-hub/pull/78) Review Chinese unit titles and degree categories / 不再展示未经人工校对的机器课程译名，校正首页会计课程与高风险错译，并修复学位分类和语言切换不一致。
+- [#78](https://github.com/Waldo0926/monash-hub/pull/78) Review Chinese unit titles and degree categories / 为 2026 Handbook 全部课程名称提供完整简体中文基线，校正会计课程与高风险错译，并修复学位分类和语言切换不一致。
 - [#77](https://github.com/Waldo0926/monash-hub/pull/77) Audit every Chinese degree title / 全面检查 503 条在用学位记录，人工校对 93 个中文名称并确保其覆盖旧机器译文。
 - [#76](https://github.com/Waldo0926/monash-hub/pull/76) Make Chinese titles searchable and refresh answers after language changes / 支持用中文搜索课程、学位和官方指南，切换语言后刷新直达答案，并补齐 #68–#75 的 Changelog 记录。
 
