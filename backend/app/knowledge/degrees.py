@@ -37,6 +37,153 @@ import re
 
 LOCALES = ("zh", "ja", "ko")
 
+# Whole Chinese titles that were checked against the 2026 Handbook catalogue.
+#
+# The ordinary composer below is deliberately conservative: it understands an
+# award, a discipline and a small closed list of qualifiers.  Some official
+# titles are not that shape, and some short disciplines are ambiguous enough
+# that a general translator repeatedly chose the wrong sense (``retrieval`` as
+# information retrieval, ``perfusion`` as transfusion, ``professional`` as a
+# person).  Exact source strings are safer than teaching the general glossary a
+# meaning that would be wrong in prose.  The seeder also publishes these as
+# human-reviewed course-title string maps, so they take effect on deployment
+# without waiting for another machine-translation batch.
+ZH_TITLE_OVERRIDES: dict[str, str] = {
+    # Malaysia undergraduate titles reported by readers.
+    "Bachelor of Digital Media and Communication": "数字媒体与传播学士学位",
+    "Bachelor of Actuarial Science and Master of Actuarial Studies":
+        "精算学学士和精算学硕士",
+    "Bachelor of Business and Commerce": "商业与贸易学士学位",
+    "Bachelor of Business and Commerce (Honours)": "商业与贸易学士学位（荣誉）",
+    "Bachelor of Business and Commerce and Bachelor of Computer Science":
+        "商业学士和计算机科学学士",
+    "Bachelor of Business and Commerce and Bachelor of Digital Media and Communication":
+        "商业与贸易学士学位和数字媒体与传播学士学位",
+
+    # Undergraduate names where a conjunction, modifier or subtitle was lost.
+    "Bachelor of Arts and Social Sciences": "文学与社会科学学士",
+    "Bachelor of Banking and Finance": "银行与金融学士",
+    "Bachelor of Criminology and Policing": "犯罪学与警务学士",
+    "Bachelor of Engineering (Honours) Dual Bachelors International":
+        "工程学士（荣誉学位）国际双学位项目",
+    "Bachelor of Food Science and Technology": "食品科学与技术学士",
+    "Bachelor of Learning Design and Technology": "学习设计与技术学士",
+    "Bachelor of Medical Science (Honours)": "医学科学学士（荣誉学位）",
+    "Bachelor of Nutrition Science": "营养科学学士",
+    "Bachelor of Politics, Philosophy and Economics": "政治、哲学与经济学学士",
+    "Bachelor of Politics, Philosophy and Economics and Bachelor of Arts":
+        "政治、哲学与经济学学士和文学学士",
+    "Bachelor of Psychology and Business": "心理学与商业学士",
+    "Bachelor of Radiography and Medical Imaging (Honours)":
+        "放射学与医学影像学士（荣誉学位）",
+    "Bachelor of Science Advanced - Global Challenges (Honours)":
+        "高级理学学士（全球挑战）（荣誉学位）",
+    "Bachelor of Science Advanced - Research (Honours)":
+        "高级理学学士（研究）（荣誉学位）",
+
+    # Diplomas, pathways and higher degrees with a misleading literal reading.
+    "Diploma of Languages": "语言文凭",
+    "Doctor of Science (Medical and Health Sciences)": "理学博士（医学与健康科学）",
+    "Monash Access Program": "Monash 入学衔接课程",
+    "Monash Advanced Preparation Program": "Monash 高级预科课程",
+    "Monash Transition Program": "Monash 过渡课程",
+    "Postgraduate Diploma in Business and Commerce": "商业与贸易研究生文凭",
+
+    # Certificates and diplomas whose noun phrase was translated in the wrong sense.
+    "Graduate Certificate of Advanced Pharmacy Practice": "高级药学实践研究生证书",
+    "Professional Certificate of Advanced Pharmacy Practice": "高级药学实践专业证书",
+    "Graduate Certificate of Aeromedical Retrieval": "航空医疗转运研究生证书",
+    "Graduate Certificate of Corporate and Financial Regulation": "公司与金融监管研究生证书",
+    "Graduate Certificate of Communications and Media Studies": "传播与媒体研究研究生证书",
+    "Graduate Certificate of Employment Regulation": "雇佣关系监管研究生证书",
+    "Graduate Certificate of Food Science and Agribusiness": "食品科学与农业商业研究生证书",
+    "Graduate Certificate of Forensic Nursing and Midwifery": "法医护理与助产研究生证书",
+    "Graduate Certificate of Health Administration": "卫生行政管理研究生证书",
+    "Graduate Certificate of Health Professions Education": "卫生专业教育研究生证书",
+    "Professional Certificate of Health Professions Education": "卫生专业教育专业证书",
+    "Graduate Certificate of Innovation for Sustainability": "可持续发展创新研究生证书",
+    "Graduate Certificate of Business Management": "商业管理研究生证书",
+    "Graduate Certificate of Marketing and Digital Communications":
+        "市场营销与数字传播研究生证书",
+    "Graduate Certificate of Pharmacist Prescribing": "药师处方权研究生证书",
+    "Graduate Certificate of Wound Care": "伤口护理研究生证书",
+    "Graduate Certificate of X-ray Image Interpretation": "X 射线影像判读研究生证书",
+    "Graduate Diploma of Occupational and Environmental Health": "职业与环境健康研究生文凭",
+    "Graduate Diploma of Professional Psychology": "专业心理学研究生文凭",
+    "Graduate Diploma of Wound Care": "伤口护理研究生文凭",
+    "Professional Certificate of Specialised Health and Legal Interpreting":
+        "专业医疗与法律口译专业证书",
+
+    # Master's titles affected by the same recurring terminology errors.
+    "Master of Actuarial Studies": "精算学硕士",
+    "Master of Advanced Finance": "高级金融硕士",
+    "Master of Applied Econometrics and Master of Advanced Finance":
+        "应用计量经济学硕士和高级金融硕士",
+    "Master of Advanced Health Care Practice": "高级医疗实践硕士",
+    "Master of Arts Research Training": "文学研究训练硕士",
+    "Master of Banking and Finance": "银行与金融硕士",
+    "Master of Biomedical and Health Science": "生物医学与健康科学硕士",
+    "Master of Business Information Systems": "商业信息系统硕士",
+    "Master of Business Information Systems and Master of Global Business":
+        "商业信息系统硕士和全球商业硕士",
+    "Master of Business Information Systems and Master of Management":
+        "商业信息系统硕士和管理学硕士",
+    "Master of Business Management": "商业管理硕士",
+    "Master of Business Management and Master of Human Resource Management":
+        "商业管理硕士和人力资源管理硕士",
+    "Master of Business Management and Master of Marketing and Digital Communications":
+        "商业管理硕士和市场营销与数字传播硕士",
+    "Master of Business Management and Master of Project Management":
+        "商业管理硕士和项目管理硕士",
+    "Master of Cardiovascular Perfusion": "心血管灌注硕士",
+    "Master of Communications and Media Studies": "传播与媒体研究硕士",
+    "Master of Critical Care Paramedicine": "重症监护辅助医疗硕士",
+    "Master of Engineering Research (Monash - Southeast University)":
+        "工程研究硕士（Monash－东南大学）",
+    "Master of Environment and Sustainability": "环境与可持续发展硕士",
+    "Master of Food Science and Agribusiness": "食品科学与农业商业硕士",
+    "Master of Forensic Medicine": "法医学硕士",
+    "Master of Geographical Information Science and Technology": "地理信息科学与技术硕士",
+    "Master of Global Medicines Development": "全球药物研发硕士",
+    "Master of Global Business and Master of Advanced Finance": "全球商业硕士和高级金融硕士",
+    "Master of Global Business and Master of Marketing and Digital Communications":
+        "全球商业硕士和市场营销与数字传播硕士",
+    "Master of Health Administration": "卫生行政管理硕士",
+    "Master of Health Professions Education": "卫生专业教育硕士",
+    "Master of Indigenous Business Leadership": "原住民商业领导力硕士",
+    "Master of Interpreting and Translation Studies": "口笔译研究硕士",
+    "Master of Management and Master of Advanced Finance": "管理学硕士和高级金融硕士",
+    "Master of Management and Master of Marketing and Digital Communications":
+        "管理学硕士和市场营销与数字传播硕士",
+    "Master of Marketing and Digital Communications": "市场营销与数字传播硕士",
+    "Master of Marketing and Digital Communications and Master of Cultural and Creative Industries":
+        "市场营销与数字传播硕士和文化与创意产业硕士",
+    (
+        "Master of Marketing and Digital Communications and Master of International "
+        "Sustainable Tourism Management"
+    ):
+        "市场营销与数字传播硕士和国际可持续旅游管理硕士",
+    "Master of Medical Ultrasound": "医学超声硕士",
+    "Master of Nutrition and Dietetics": "营养与饮食学硕士",
+    "Master of Occupational and Environmental Health": "职业与环境健康硕士",
+    "Master of Professional Accounting": "专业会计硕士",
+    "Master of Professional Counselling": "专业咨询硕士",
+    "Master of Professional Engineering": "专业工程硕士",
+    "Master of Professional Psychology": "专业心理学硕士",
+    "Master of Transport and Mobility Planning": "交通与出行规划硕士",
+    "Master of Transportation Systems": "交通系统硕士",
+    "Master of Wound Care": "伤口护理硕士",
+
+    # Partner names are proper nouns; the model invented 焦塘 and punctuation.
+    "Master of International Relations (Double Masters with Shanghai Jiao Tong University)":
+        "国际关系硕士（与上海交通大学合作双硕士）",
+    (
+        "Master of Strategic Communications Management "
+        "(Double Masters with Shanghai Jiao Tong University)"
+    ):
+        "战略传播管理硕士（与上海交通大学合作双硕士）",
+}
+
 # The award, which in Chinese goes last. Longest first when matching, so
 # "Graduate Certificate" is not read as "Certificate".
 AWARDS: dict[str, dict[str, str]] = {
@@ -170,6 +317,9 @@ def compose(title: str, locale: str, translate) -> str | None:
     if locale not in LOCALES:
         return None
     title = title.strip()
+
+    if locale == "zh" and title in ZH_TITLE_OVERRIDES:
+        return ZH_TITLE_OVERRIDES[title]
 
     # A double degree is two names joined by "and", and each half composes on
     # its own. The split is only taken when both halves are themselves degree

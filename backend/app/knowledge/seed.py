@@ -22,10 +22,12 @@ from sqlalchemy import select
 
 from app.core.db import SessionLocal
 from app.core.security import hash_password
+from app.knowledge.degrees import ZH_TITLE_OVERRIDES
 from app.knowledge.faq_seed import FAQ_SEEDS
 from app.knowledge.translations_seed import TRANSLATION_SEEDS
+from app.models.curriculum import Course
 from app.models.knowledge import FaqEntry, OfficialPage
-from app.models.translation import OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+from app.models.translation import COURSE, HUMAN, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
 from app.models.user import User
 
 log = logging.getLogger("seed")
@@ -66,6 +68,7 @@ def seed_translations() -> int:
                     ContentTranslation.target_type == item.target_type,
                     ContentTranslation.target_key == item.target_key,
                     ContentTranslation.field == item.field,
+                    ContentTranslation.provenance == HUMAN,
                 )
             )
             if row is None:
@@ -74,6 +77,7 @@ def seed_translations() -> int:
                     target_type=item.target_type,
                     target_key=item.target_key,
                     field=item.field,
+                    provenance=HUMAN,
                 )
                 db.add(row)
             row.text = item.text
@@ -91,6 +95,43 @@ def seed_translations() -> int:
                     "%s has a translation but is not crawled yet - it will show as stale",
                     item.target_key,
                 )
+            written += 1
+
+        # Exact reviewed degree titles are selected by their official English
+        # source rather than by code.  The same award can have several campus
+        # codes, and a later Handbook can assign it another one; matching the
+        # source keeps the correction attached to the words that were reviewed.
+        courses = db.scalars(
+            select(Course).where(Course.title.in_(ZH_TITLE_OVERRIDES))
+        ).all()
+        for course in courses:
+            row = db.scalar(
+                select(ContentTranslation).where(
+                    ContentTranslation.locale == "zh",
+                    ContentTranslation.target_type == COURSE,
+                    ContentTranslation.target_key == course.course_code,
+                    ContentTranslation.field == "content",
+                    ContentTranslation.provenance == HUMAN,
+                )
+            )
+            if row is None:
+                row = ContentTranslation(
+                    locale="zh",
+                    target_type=COURSE,
+                    target_key=course.course_code,
+                    field="content",
+                    provenance=HUMAN,
+                )
+                db.add(row)
+            strings = dict((row.data or {}).get("strings") or {})
+            strings[course.title] = ZH_TITLE_OVERRIDES[course.title]
+            row.data = {"strings": strings}
+            row.status = PUBLISHED
+            row.translator = "monash-hub"
+            row.note = "学位名称人工校对：2026 Handbook 全目录审计"
+            # An exact string map naturally expires when the English changes:
+            # the old key stops matching, so no hash warning is needed.
+            row.source_hash = None
             written += 1
         db.commit()
     log.info("seeded %d translations", written)
