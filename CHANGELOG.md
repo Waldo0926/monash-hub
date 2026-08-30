@@ -6,6 +6,14 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Audited all 503 active degree records against their 2026 Handbook English
+  titles and added 93 exact, human-reviewed Chinese title corrections, covering
+  95 course codes. This fixes recurring errors such as *Business and Commerce*
+  becoming 工商业, *Digital Media and Communication* becoming 数字媒体和通信,
+  *Cardiovascular Perfusion* becoming 心血管输血, and *Aeromedical Retrieval*
+  becoming 空中医疗检索, as well as broken partner names and Science Advanced
+  subtitles. Curated seed rows now explicitly use human provenance, so they
+  reliably override older machine translations and remain searchable.
 - Chinese titles are searchable for units, degrees and official guides. The
   unified search did not include degrees at all, so a parent searching `理学学士`
   could not reach *Bachelor of Science*; translated unit and guide titles also
@@ -98,6 +106,7 @@ PR 会明确标注，不会被误写成已经上线的功能。
 
 ### 2026-08-30
 
+- [#77](https://github.com/Waldo0926/monash-hub/pull/77) Audit every Chinese degree title / 全面检查 503 条在用学位记录，人工校对 93 个中文名称并确保其覆盖旧机器译文。
 - [#76](https://github.com/Waldo0926/monash-hub/pull/76) Make Chinese titles searchable and refresh answers after language changes / 支持用中文搜索课程、学位和官方指南，切换语言后刷新直达答案，并补齐 #68–#75 的 Changelog 记录。
 
 ### 2026-08-29

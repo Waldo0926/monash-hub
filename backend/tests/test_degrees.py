@@ -9,7 +9,7 @@ subject altogether. Each case below was taken off the live site.
 from __future__ import annotations
 
 import pytest
-from app.knowledge.degrees import compose
+from app.knowledge.degrees import ZH_TITLE_OVERRIDES, compose
 
 # A stand-in for the pipeline. The real one translates the subject with the
 # glossary in front; here it answers for the subjects these cases need and
@@ -76,10 +76,8 @@ def test_a_name_it_does_not_understand_is_left_alone():
     of being wrong. A subtitle after a dash, or a partner university in
     brackets, is not a shape this claims to read."""
     for name in (
-        "Bachelor of Science Advanced - Global Challenges (Honours)",
         "Doctor of Philosophy (Monash - Warwick)",
         "Doctor of Philosophy (Clinical Psychology)",
-        "Monash Transition Program",
         "Master of Advanced Study (Engineering Research)",
     ):
         assert compose(name, "zh", tr) is None, name
@@ -144,3 +142,31 @@ def test_a_translation_that_is_only_punctuation_is_refused():
 def test_the_subjects_that_were_wrong_on_the_live_site():
     assert compose("Bachelor of Architectural Studies", "zh", tr) == "建筑学学士"
     assert compose("Master of Regulation and Compliance", "zh", tr) == "监管与合规硕士"
+
+
+@pytest.mark.parametrize(
+    ("english", "chinese"),
+    list(ZH_TITLE_OVERRIDES.items()),
+)
+def test_every_reviewed_chinese_degree_title_is_an_exact_override(english, chinese):
+    """A later model or composer refactor must not replace a reviewed title."""
+    assert compose(english, "zh", lambda _subject: "不应调用机器翻译") == chinese
+
+
+def test_reported_malaysia_degree_names_use_the_reviewed_wording():
+    assert compose("Bachelor of Digital Media and Communication", "zh", tr) == (
+        "数字媒体与传播学士学位"
+    )
+    assert compose("Bachelor of Business and Commerce", "zh", tr) == "商业与贸易学士学位"
+    assert compose(
+        "Bachelor of Business and Commerce and Bachelor of Computer Science", "zh", tr
+    ) == "商业学士和计算机科学学士"
+
+
+def test_reviewed_titles_do_not_contain_known_machine_translation_failures():
+    broken = (
+        "工商业", "数字媒体和通信", "营养学科学", "空中医疗检索",
+        "心血管输血", "上海焦塘", "伤病护理", "专业人员",
+    )
+    for english, chinese in ZH_TITLE_OVERRIDES.items():
+        assert not any(term in chinese for term in broken), f"{english}: {chinese}"
