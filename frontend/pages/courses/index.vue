@@ -43,18 +43,56 @@ const campusLabel = computed(() =>
   campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
 )
 
-/** Undergraduate before postgraduate, then alphabetical - how a student looks. */
-const ORDER = ['UG specialist', 'UG comprehensive', 'Honours', 'PG coursework', 'Research']
+/** Undergraduate before postgraduate, then research - how a student looks. */
+const ORDER = [
+  'UG specialist',
+  'UG comprehensive',
+  'UG double',
+  'Vertical double',
+  'Honours - 1 yr',
+  'UG diploma',
+  'PG Grad Cert / Grad Dip',
+  'PG Masters',
+  'PG coursework double',
+  'Masters by research',
+  'Doctorate by research',
+  'Higher doctorate',
+  'Non award pathway',
+  'Other'
+]
+
+const TYPE_KEYS: Record<string, string> = {
+  'UG specialist': 'courses.type.ugSpecialist',
+  'UG comprehensive': 'courses.type.ugComprehensive',
+  'UG double': 'courses.type.ugDouble',
+  'Vertical double': 'courses.type.verticalDouble',
+  'Honours - 1 yr': 'courses.type.honoursOneYear',
+  'UG diploma': 'courses.type.ugDiploma',
+  'PG Grad Cert / Grad Dip': 'courses.type.pgCertificateDiploma',
+  'PG Masters': 'courses.type.pgMasters',
+  'PG coursework double': 'courses.type.pgCourseworkDouble',
+  'Masters by research': 'courses.type.mastersResearch',
+  'Doctorate by research': 'courses.type.doctorateResearch',
+  'Higher doctorate': 'courses.type.higherDoctorate',
+  'Non award pathway': 'courses.type.nonAward',
+  'Other': 'courses.otherType'
+}
+
+function typeLabel(type: string) {
+  const key = TYPE_KEYS[type]
+  return key ? $t(key) : type
+}
+
 const grouped = computed(() => {
   const buckets = new Map<string, any[]>()
   for (const course of data.value?.results || []) {
-    const key = course.course_type || $t('courses.otherType')
+    const key = course.course_type_raw || course.course_type || 'Other'
     if (!buckets.has(key)) buckets.set(key, [])
     buckets.get(key)!.push(course)
   }
   return [...buckets.entries()].sort((a, b) => {
-    const ia = ORDER.findIndex((o) => a[0].startsWith(o))
-    const ib = ORDER.findIndex((o) => b[0].startsWith(o))
+    const ia = ORDER.indexOf(a[0])
+    const ib = ORDER.indexOf(b[0])
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a[0].localeCompare(b[0])
   })
 })
@@ -98,7 +136,7 @@ useHead({ title: $t('courses.title') })
     <EmptyState v-else-if="!data?.total" :title="$t('courses.noneTitle')" :body="$t('courses.noneBody')" />
 
     <section v-for="[type, courses] in grouped" v-else :key="type" class="group">
-      <h2>{{ type }}</h2>
+      <h2>{{ typeLabel(type) }}</h2>
       <ul class="cards">
         <li v-for="course in courses" :key="course.course_code">
           <CourseCard :course="course" />

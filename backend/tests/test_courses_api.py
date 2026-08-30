@@ -54,6 +54,7 @@ def test_the_picker_lists_a_degree_with_what_you_choose_it_by(client, degrees):
     assert row["course_code"] == "C2001"
     assert row["credit_points"] == 144
     assert row["duration_years"] == 3
+    assert row["course_type_raw"] == "UG specialist"
     assert set(row["campuses"]) == {"Clayton", "Malaysia"}
 
 

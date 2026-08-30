@@ -90,3 +90,18 @@ def test_a_full_stop_from_the_translator_does_not_land_inside_the_title():
     """Same fault as the degree names: the qualifier would go after the stop."""
     assert compose("Introduction to basket weaving", "zh", lambda s: "编织。") == "编织导论"
     assert compose("Introduction to basket weaving", "zh", lambda s: "。") is None
+
+
+def test_reviewed_exact_titles_cover_reported_machine_failures():
+    from app.knowledge.titles import ZH_TITLE_OVERRIDES
+
+    assert ZH_TITLE_OVERRIDES["Accounting in business"] == "商业会计"
+    assert ZH_TITLE_OVERRIDES["Assurance and audit services"] == "鉴证与审计服务"
+    assert ZH_TITLE_OVERRIDES["Curating: Introduction"] == "策展导论"
+    assert ZH_TITLE_OVERRIDES["Academic literacies"] == "学术素养"
+
+
+def test_reviewed_exact_titles_are_real_translations():
+    from app.knowledge.titles import ZH_TITLE_OVERRIDES
+
+    assert all(english != chinese for english, chinese in ZH_TITLE_OVERRIDES.items())

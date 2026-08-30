@@ -14,7 +14,15 @@ const { locale, setLocale } = useLocale()
 const { $t } = useNuxtApp()
 
 function onChange(event: Event) {
-  setLocale((event.target as HTMLSelectElement).value as LocaleCode)
+  const next = (event.target as HTMLSelectElement).value as LocaleCode
+  if (next === locale.value) return
+  setLocale(next)
+
+  // A language change affects navigation assembled in composables as well as
+  // text rendered directly in templates. Reload from the cookie so the whole
+  // page is server-rendered in one locale; otherwise a stale hydrated header
+  // can show English links beside a Chinese selector until the next visit.
+  if (import.meta.client) window.location.reload()
 }
 </script>
 

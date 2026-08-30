@@ -6,6 +6,17 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Stopped presenting unreviewed machine-generated unit titles as authoritative
+  Chinese. Cards now use exact human-reviewed titles and otherwise retain the
+  official Handbook English, while machine text can still help Chinese search.
+  Added reviewed corrections for the accounting cards shown on the home page
+  (`Accounting in business` → `商业会计`, `Assurance and audit services` →
+  `鉴证与审计服务`) and for high-risk mistranslations found in the full 5,228-row
+  title audit, including curating, assurance, academic literacy and
+  communication titles. Degree categories now use exact bilingual labels rather
+  than machine renderings such as `大师研究型` and `PG主控制器`; changing the
+  site language also reloads once so the selector and every navigation item
+  cannot remain in different languages.
 - Audited all 503 active degree records against their 2026 Handbook English
   titles and added 93 exact, human-reviewed Chinese title corrections, covering
   95 course codes. This fixes recurring errors such as *Business and Commerce*

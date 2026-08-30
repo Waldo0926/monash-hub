@@ -26,6 +26,65 @@ import re
 
 LOCALES = ("zh", "ja", "ko")
 
+# Exact title translations reviewed against the official English source.
+#
+# A catalogue title is a claim, not interface chrome.  The machine rendered
+# "Accounting in business" as 商业中的会计, "assurance" as 保证, and
+# "curating" as 惩罚/破解/诅咒 depending on the sentence.  Keep corrections
+# keyed by the English title so every campus/code variant gets the same wording
+# and a later Handbook rename naturally stops matching instead of retaining a
+# stale Chinese title.
+ZH_TITLE_OVERRIDES: dict[str, str] = {
+    # Accounting — includes the eight cards surfaced on the home page.
+    "Accounting in business": "商业会计",
+    "Financial accounting 1": "财务会计 1",
+    "Financial accounting 2": "财务会计 2",
+    "Financial accounting 3": "财务会计 3",
+    "Management accounting 1": "管理会计 1",
+    "Management accounting 2": "管理会计 2",
+    "Accounting information systems": "会计信息系统",
+    "Assurance and audit services": "鉴证与审计服务",
+    "Auditing and assurance": "审计与鉴证",
+    "Accounting for business": "商业会计",
+    "Business communication for accounting professionals": "会计专业人员商务沟通",
+    "Forensic accounting and fraud examination": "法务会计与舞弊调查",
+    "Foundations of accounting research": "会计研究基础",
+    "Current issues in accounting research": "会计研究前沿问题",
+    "Accounting for sustainability": "可持续发展会计",
+    "Accounting for climate change": "气候变化会计",
+    "Global issues in accounting": "会计全球议题",
+    "Issues in financial accounting and auditing": "财务会计与审计专题",
+    "Issues in management accounting and systems": "管理会计与系统专题",
+
+    # Art history and curating — the machine repeatedly confused curating with
+    # punishment, cracking, calibration and cursing.
+    "Modernism and the avant-garde": "现代主义与先锋派",
+    "Curating: Introduction": "策展导论",
+    "Curating: Histories and theories": "策展：历史与理论",
+    "Curating: Making exhibitions": "策展：展览实践",
+    "Curating: Project studies": "策展项目研究",
+    "Curating internship": "策展实习",
+    "World wide: Art beyond the Western canon": "世界艺术：超越西方经典",
+    "History of art in public space": "公共空间艺术史",
+
+    # Communication and academic skills — literal machine readings changed
+    # the discipline or produced non-existent terms such as 学术诉讼.
+    "Academic literacies": "学术素养",
+    "Communications research project": "传播学研究项目",
+    "Communications research thesis": "传播学研究论文",
+    "Communications industry internship": "传播行业实习",
+    "Data analytics in communication": "传播数据分析",
+    "Film, television and screen studies: Forms": "电影、电视与银幕研究：形式",
+    "AI-powered public relations: Social media, digital PR and emerging technologies":
+        "AI 驱动的公共关系：社交媒体、数字公关与新兴技术",
+    "Climate change communication in Malaysia": "马来西亚气候变化传播",
+    "Research methods in the arts and social sciences": "艺术与社会科学研究方法",
+    "Public Relations: Cases and approaches": "公共关系：案例与方法",
+    "Writing portfolio": "写作作品集",
+    "Arts honours dissertation 1": "艺术荣誉学位论文 1",
+    "Arts honours dissertation 2": "艺术荣誉学位论文 2",
+}
+
 #: English qualifier -> what it becomes, written after the topic.
 QUALIFIERS: dict[str, dict[str, str]] = {
     "Introduction to": {"zh": "导论", "ja": "入門", "ko": "개론"},

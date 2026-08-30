@@ -188,6 +188,11 @@ def test_prose_still_needs_the_model():
         ("Level 2", "第 2 级"),
         ("First semester", "第一学期"),
         ("Quiz / Test", "小测 / 测验"),
+        ("Masters by research", "研究型硕士学位"),
+        ("PG Masters", "授课型硕士学位"),
+        ("PG Grad Cert / Grad Dip", "研究生证书／研究生文凭"),
+        ("UG diploma", "本科文凭"),
+        ("Doctorate by research", "研究型博士学位"),
     ],
 )
 def test_closed_list_values_are_exact(value, expected):
