@@ -18,15 +18,14 @@
  * - `onDark` for the blue header, where the tile is a lift of white and the
  *   blue underneath it is the header's own.
  * - `onLight` anywhere the page is white.
- * - `onDeep` on the near-black footer. It draws the same solid brand tile as
- *   `onLight`, and it exists under its own name because "onLight" on a black
+ * - `onDeep` on the deep-navy footer. It draws the same solid brand tile as
+ *   `onLight`, and it exists under its own name because "onLight" on a dark
  *   background reads as a mistake to the next person editing this.
  *
- * The footer wants the tile, not the bare glyph: white strokes on near-black
+ * The footer wants the tile, not the bare glyph: white strokes on deep navy
  * are legible but carry no brand colour at all, and the footer is half the
- * site's dark surface. The solid brand blue puts it back - 5.70:1 for the white
- * mark on the tile, and 3.42:1 for the tile against the footer, both clear of
- * the 3:1 a graphic needs.
+ * site's dark surface. The solid brand blue puts it back and keeps the mark a
+ * recognisable tile rather than a loose white symbol beside the text.
  */
 withDefaults(
   defineProps<{

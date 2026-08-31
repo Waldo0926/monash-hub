@@ -6,6 +6,13 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Moved Official Guides to the first navigation position beside the Monash Hub
+  logo, ahead of Units, while retaining the clearer Chinese label `先修图` for
+  the prerequisite and unlock graph. The footer now uses a deep brand navy
+  instead of black, and its WeChat introduction spans the full row rather than
+  wrapping into three lines inside the narrow first column.
+  中文：将“官方指南”移到 Logo 旁并排在“课程”之前；关系图继续使用更准确的
+  “先修图”。页脚由黑色改为品牌深蓝，微信公众号介绍改为横跨整行显示。
 - Audited the rendered body structure of all 45 official guides and removed 98
   leaked interface controls across 10 affected pages. Nested-accordion buttons
   no longer append `View` / `Close` to real headings or appear as standalone
