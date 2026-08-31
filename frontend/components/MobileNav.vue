@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
 .mobile-nav { display: none; }
 .menu-layer { display: none; }
 
-@media (max-width: 980px) {
+@media (max-width: 1180px) {
   .mobile-nav {
     position: fixed;
     inset: auto 0 0 0;

@@ -2,8 +2,14 @@
 // The main way into the product. Submitting always lands on unified search,
 // so a student never has to decide which section their question belongs to.
 const props = withDefaults(
-  defineProps<{ modelValue?: string; placeholder?: string; autofocus?: boolean; big?: boolean }>(),
-  { modelValue: '', placeholder: '', big: false }
+  defineProps<{
+    modelValue?: string
+    placeholder?: string
+    autofocus?: boolean
+    big?: boolean
+    compactButton?: boolean
+  }>(),
+  { modelValue: '', placeholder: '', big: false, compactButton: false }
 )
 const { $t } = useNuxtApp()
 const resolvedPlaceholder = computed(() => props.placeholder || $t('search.placeholder'))
@@ -22,7 +28,7 @@ function submit() {
 </script>
 
 <template>
-  <form class="search" :class="{ big }" role="search" @submit.prevent="submit">
+  <form class="search" :class="{ big, 'compact-button': compactButton }" role="search" @submit.prevent="submit">
     <label class="visually-hidden" :for="inputId">{{ $t('search.label') }}</label>
     <input
       :id="inputId"
@@ -39,6 +45,8 @@ function submit() {
 
 <style scoped>
 .search { display: flex; gap: var(--s2); width: 100%; }
+.field { flex: 1; width: auto; min-width: 0; }
+.compact-button .btn { padding-inline: var(--s3); }
 .search.big .field { min-height: 56px; font-size: 1.05rem; }
 .search.big .btn { min-height: 56px; }
 @media (max-width: 520px) {
