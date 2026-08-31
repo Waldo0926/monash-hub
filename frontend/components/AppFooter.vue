@@ -17,17 +17,12 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
           </span>
         </p>
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
-        <!-- Kept visually apart from the disclaimer above it. One says what
-             this site is not; the other invites you somewhere. Run together in
-             the same grey they read as one long block of small print and the
-             invitation is the half nobody finishes. -->
-        <p class="small wechat">{{ $t('footer.wechat') }}</p>
       </div>
 
       <nav class="col" :aria-label="$t('footer.explore')">
         <h2 class="tiny muted heading">{{ $t('footer.explore') }}</h2>
-        <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink>
         <NuxtLink to="/guides">{{ $t('nav.guides') }}</NuxtLink>
+        <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink>
         <NuxtLink to="/community">{{ $t('nav.community') }}</NuxtLink>
         <NuxtLink to="/mamo">{{ $t('nav.mamo') }}</NuxtLink>
       </nav>
@@ -71,6 +66,11 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
           target="_blank"
         >{{ system.name }} ↗</a>
       </nav>
+
+      <!-- This invitation used to sit inside the narrow first column, where a
+           single sentence became three lines and made the rest of the footer
+           look empty. It belongs to the whole site, so it gets the whole row. -->
+      <p class="small wechat">{{ $t('footer.wechat') }}</p>
     </div>
   </footer>
 </template>
@@ -85,9 +85,8 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
  * footer visibly empty. Putting the navigation beside it means the measure stays
  * comfortable and the space is actually used.
  */
-/* Near-black, the way the official site closes a page. A dark band under a blue
-   header is what makes the whole thing read as blue and white rather than as a
-   blue strip on a grey page. */
+/* A deep version of the header blue closes the page without the visual weight
+   of a black slab, while still keeping the footer distinct from navigation. */
 .footer {
   margin-top: var(--s8);
   padding: var(--s6) 0 var(--s7);
@@ -110,7 +109,8 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 .block { display: block; }
 .disclaimer { margin: 0; color: var(--muted); }
 .wechat {
-  margin: var(--s3) 0 0;
+  grid-column: 1 / -1;
+  margin: 0;
   padding-left: var(--s3);
   border-left: 2px solid var(--footer-accent);
   color: var(--footer-heading);
@@ -132,14 +132,12 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
      columns pair up under it rather than each taking a half-width
      column of their own and leaving one stranded. */
   .about { grid-column: 1 / -1; }
-  .about { grid-column: 1 / -1; }
 }
 @media (max-width: 980px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
 }
-/* The footer is the one dark region on a light page, so every rule that names a
-   colour has to be restated here - inherited .muted and link colours are chosen
-   against white and disappear on near-black. */
+/* The footer is a dark region on a light page, so every rule that names a
+   colour has to be restated here; the default muted text targets white. */
 .footer :deep(h2),
 .footer :deep(.foot-heading) { color: var(--footer-heading); }
 .footer :deep(a) { color: #dbeafe; }
