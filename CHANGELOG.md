@@ -6,6 +6,15 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Gave the English header search field the space previously wasted by the
+  oversized Search button, while preserving the full button label. Intermediate
+  desktop widths now tighten their navigation spacing, and narrow tablets use
+  the existing compact navigation instead of overflowing horizontally. Footer
+  credits now distinguish the original concept by @Laceyxinx from the build
+  and ongoing maintenance by @Waldo0926, with both GitHub profiles linked.
+  中文：压缩英文页头“Search”按钮的多余留白，把空间还给搜索输入框；同时修复
+  中等宽度桌面和平板的导航横向溢出。页脚新增清晰分行的署名，区分
+  @Laceyxinx 提出的创意与 @Waldo0926 的搭建和持续维护，并链接双方 GitHub 主页。
 - Moved Official Guides to the first navigation position beside the Monash Hub
   logo, ahead of Units, while retaining the clearer Chinese label `先修图` for
   the prerequisite and unlock graph. The footer now uses a deep brand navy

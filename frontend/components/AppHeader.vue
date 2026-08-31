@@ -39,7 +39,12 @@ function search(value: string) {
       </nav>
 
       <div class="header-search">
-        <SearchInput v-model="query" :placeholder="$t('search.placeholderShort')" @submit="search" />
+        <SearchInput
+          v-model="query"
+          compact-button
+          :placeholder="$t('search.placeholderShort')"
+          @submit="search"
+        />
       </div>
 
       <div class="account">
@@ -82,12 +87,12 @@ function search(value: string) {
 .inner {
   display: flex;
   align-items: center;
-  gap: var(--s4);
+  gap: var(--s2);
   min-height: var(--header-h);
-  padding: 0 var(--s5);
+  padding: 0 var(--s3);
 }
 .brand {
-  display: flex; align-items: center; gap: var(--s3);
+  display: flex; align-items: center; gap: var(--s2);
   color: var(--text-inverse); font-weight: 700; flex: none;
   letter-spacing: -0.01em;
 }
@@ -95,10 +100,10 @@ function search(value: string) {
 
 /* Natural width, sitting with the brand. The elastic space belongs to the
    search box, which is the thing that benefits from being wider. */
-.nav { display: flex; flex: none; gap: var(--s4); }
+.nav { display: flex; flex: none; gap: var(--s2); }
 .nav-link {
   color: rgba(255, 255, 255, 0.86);
-  font-size: 0.95rem;
+  font-size: 0.84rem;
   white-space: nowrap;
   padding: 6px 2px;
   border-bottom: 2px solid transparent;
@@ -108,8 +113,8 @@ function search(value: string) {
 
 /* Takes every pixel left between the navigation and the account block, which
    pushes the account hard against the right edge. */
-.header-search { flex: 1; min-width: 200px; max-width: 620px; margin-left: auto; }
-.account { display: flex; align-items: center; gap: var(--s2); flex: none; }
+.header-search { flex: 1; min-width: 150px; max-width: 620px; margin-left: auto; }
+.account { display: flex; align-items: center; gap: var(--s1); flex: none; }
 
 .bell {
   position: relative;
@@ -137,9 +142,9 @@ function search(value: string) {
   text-align: center;
 }
 
-/* On a phone the header keeps the brand, language and account only; navigation
-   moves to the bottom bar and search lives on the page itself. */
-@media (max-width: 980px) {
+/* On a phone, tablet or compact laptop the header keeps the brand, language and
+   account only; navigation moves to the bottom bar and search lives on the page. */
+@media (max-width: 1180px) {
   .nav, .header-search, .nickname { display: none; }
   .account { margin-left: auto; }
 }

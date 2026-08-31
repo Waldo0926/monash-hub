@@ -338,7 +338,9 @@ const en: Messages = {
   'footer.systemsMalaysia': 'Malaysia systems',
   'footer.monashMalaysia': 'Monash Malaysia students',
   'footer.monashStudents': 'Monash current students',
-  'footer.about': 'An independent student platform · built by @Waldo',
+  'footer.about': 'An independent student platform',
+  'footer.conceptBy': 'Concept by',
+  'footer.builtMaintainedBy': 'Built and maintained by',
   'footer.wechat':
     'More on the 马莫百科 WeChat account, updated as things change — questions are welcome by direct message there.',
   'home.communityEmpty': 'No discussions yet',
@@ -943,7 +945,9 @@ const zh: Messages = {
   'footer.systemsMalaysia': '马来西亚校区系统',
   'footer.monashMalaysia': 'Monash 马来西亚校区学生网站',
   'footer.monashStudents': 'Monash 在读学生页',
-  'footer.about': '独立学生平台 · 由 @Waldo 开发',
+  'footer.about': '独立学生平台',
+  'footer.conceptBy': '创意：',
+  'footer.builtMaintainedBy': '搭建与维护：',
   'footer.wechat':
     '更多资讯请关注「马莫百科」微信公众号，后续将持续更新；有问题欢迎在公众号后台私信。',
   'home.communityEmpty': '还没有讨论',
@@ -1523,7 +1527,9 @@ const ja: Messages = {
   'footer.systemsMalaysia': 'マレーシア校のシステム',
   'footer.monashMalaysia': 'Monash マレーシア校 学生サイト',
   'footer.monashStudents': 'Monash 在学生ページ',
-  'footer.about': '独立した学生プラットフォーム · 開発 @Waldo',
+  'footer.about': '独立した学生プラットフォーム',
+  'footer.conceptBy': '企画：',
+  'footer.builtMaintainedBy': '構築・運営：',
   'footer.wechat':
     '「马莫百科」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
   'home.communityEmpty': 'まだ投稿がありません',
@@ -2116,7 +2122,9 @@ const ko: Messages = {
   'footer.systemsMalaysia': '말레이시아 캠퍼스 시스템',
   'footer.monashMalaysia': 'Monash 말레이시아 학생 사이트',
   'footer.monashStudents': 'Monash 재학생 페이지',
-  'footer.about': '독립 학생 플랫폼 · 제작 @Waldo',
+  'footer.about': '독립 학생 플랫폼',
+  'footer.conceptBy': '기획:',
+  'footer.builtMaintainedBy': '구축 및 유지보수:',
   'footer.wechat':
     '「马莫百科」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
   'home.communityEmpty': '아직 글이 없습니다',

@@ -14,6 +14,14 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
           <span>
             <strong>Monash Hub</strong>
             <span class="tiny muted block">{{ $t('footer.about') }}</span>
+            <span class="tiny muted block credit">
+              {{ $t('footer.conceptBy') }}
+              <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a>
+            </span>
+            <span class="tiny muted block credit">
+              {{ $t('footer.builtMaintainedBy') }}
+              <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a>
+            </span>
           </span>
         </p>
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
@@ -107,6 +115,8 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 
 .brand { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
 .block { display: block; }
+.credit { line-height: 1.45; }
+.credit :deep(a) { font-weight: 600; }
 .disclaimer { margin: 0; color: var(--muted); }
 .wechat {
   grid-column: 1 / -1;
@@ -133,7 +143,7 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
      column of their own and leaving one stranded. */
   .about { grid-column: 1 / -1; }
 }
-@media (max-width: 980px) {
+@media (max-width: 1180px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
 }
 /* The footer is a dark region on a light page, so every rule that names a
