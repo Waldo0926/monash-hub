@@ -3,7 +3,7 @@
 <h1 align="center">Monash Hub</h1>
 <p align="center">Monash 정보를 더 쉽게 찾고 이해할 수 있도록</p>
 <p align="center"><a href="https://monashhub.secureview.tech">Monash Hub 열기</a></p>
-<p align="center"><a href="./README.md">简体中文</a> | <a href="./README.en.md">English</a> | <a href="./README.ja.md">日本語</a> | <strong>한국어</strong></p>
+<p align="center"><a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja.md">日本語</a> | <strong>한국어</strong></p>
 
 ---
 
