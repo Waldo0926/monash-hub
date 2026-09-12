@@ -2,6 +2,13 @@
 
 <h1 align="center">Monash Hub</h1>
 <p align="center">帮助学生更轻松地查找和理解 Monash 信息</p>
+
+<p align="center">
+  <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff" alt="Live site" /></a>
+  <img src="https://img.shields.io/badge/status-in%20production-2ea44f" alt="Status: in production" />
+  <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black" alt="Unofficial" />
+</p>
+
 <p align="center"><a href="https://monashhub.secureview.tech">进入 Monash Hub 网站</a></p>
 <p align="center"><strong>简体中文</strong> | <a href="./README.en.md">English</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
 
@@ -14,7 +21,6 @@ Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其
 你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
 
 > Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
-
 ## 你可以做什么？
 
 ### 查课程信息
