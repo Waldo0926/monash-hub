@@ -17,7 +17,7 @@ export const MAMO_ACCOUNT = {
   name: '马莫百科',
   region: '马来西亚',
   channel: '马莫百科Waldo学长',
-  originals: 5,
+  originals: 6,
   /** The account's own description, as written on its profile page. */
   about:
     '由马莫（Monash University Malaysia）在读学生运营，专注分享新生申请、学分减免、' +
@@ -27,6 +27,12 @@ export const MAMO_ACCOUNT = {
 
 /** Newest first, the way the account itself lists them. */
 export const MAMO_POSTS: MamoPost[] = [
+  {
+    url: 'https://mp.weixin.qq.com/s/gUhzWBd5Q66N2rSf7auLnw',
+    date: '2026-09-01',
+    title: '马莫百科｜赴台必看：入台证申请条件、材料清单与完整办理指南',
+    summary: '入台证申请条件・材料清单・完整办理流程'
+  },
   {
     url: 'https://mp.weixin.qq.com/s/r_QD2P-dLUYyl0pQi2cgJw',
     date: '2026-08-26',
