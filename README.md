@@ -1,7 +1,7 @@
 <p align="center"><img src="./frontend/public/favicon.svg" alt="Monash Hub Logo" width="120" /></p>
 
 <h1 align="center">Monash Hub</h1>
-<p align="center">帮助学生更轻松地查找和理解 Monash 信息</p>
+<p align="center">Making Monash information easier to find and understand</p>
 
 <p align="center">
   <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff" alt="Live site" /></a>
@@ -9,92 +9,83 @@
   <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black" alt="Unofficial" />
 </p>
 
-<p align="center"><a href="https://monashhub.secureview.tech">进入 Monash Hub 网站</a></p>
-<p align="center"><strong>简体中文</strong> | <a href="./README.en.md">English</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
+<p align="center"><a href="https://monashhub.secureview.tech">Visit Monash Hub</a></p>
+<p align="center"><strong>English</strong> | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
 
 ---
 
-## Monash Hub 是什么？
+## What is Monash Hub?
 
-Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其帮助非英语母语学生更轻松地搜索、理解和核实与 Monash 学习和校园生活相关的信息。
+Monash Hub is an independent information platform for Monash University students. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
 
-你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
+Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
-> Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
-## 你可以做什么？
+> Monash Hub is not affiliated with or endorsed by Monash University. For enrolment, visas, assessment and academic-policy decisions, always confirm details through Monash websites, the Handbook, Moodle or WES.
+## What can you do here?
 
-### 查课程信息
+### Find unit information
 
-- 按 Unit code 或课程名称搜索
-- 查看开课校区、教学期、考核、考试、先修/同修要求、学习成果和预期工作量
-- 通过 Handbook 原始链接和最近检查时间核实信息
+- Search by unit code or title
+- Check campuses, teaching periods, assessments, exams, requisites, learning outcomes and workload
+- Verify details through the Handbook link and last-checked date
 
-### 查 Monash 官方信息
+### Find official Monash information
 
-- 搜索 WAM、Special Consideration、Census Date、签证、交换和校园服务等常见主题
-- 查看经过整理的官方内容、来源链接和最近检查时间
-- 优先阅读带有 `Official Handbook` 或 `Official source` 标识的结果
+- Search WAM, Special Consideration, census dates, visas, exchange and campus services
+- Read curated official content with its source link and last-checked date
+- Prioritise results labelled `Official Handbook` or `Official source`
 
-### 更容易理解信息
+### Understand information more easily
 
-- 使用简体中文、英语、日语或韩语界面
-- 阅读 Handbook 与官方指南的翻译辅助内容
-- 查看清楚标示的翻译来源与原始页面链接
+- Use the interface in Simplified Chinese, English, Japanese or Korean
+- Read translated support for Handbook and official-guide content
+- See translation provenance and links to the original page
 
-### 规划你的学位
+### Plan your degree
 
-- **学位**：一个学位由什么构成——每一组要求各占多少学分，以及其中哪些课你所在的校区其实不开
-- **选课规划**：把课排进各个学期，每一门都替你核对本校区开不开、那个学期开不开、它要求的课有没有排在更早的位置
-- **先修图**：沿着一门课往回看它需要先修哪些课，或者往前看它能解锁哪些课；本校区不开的课不会被隐藏，而是标出来
+- **Degrees**: what a degree is made of — how many credit points each group of requirements is worth, and which of its units your campus does not actually teach
+- **Course map**: put units into semesters and have each one checked for you — whether your campus offers it, whether that teaching period offers it, and whether what it requires is sitting earlier in the plan
+- **Unit tree**: follow a unit back to what it needs, or forward to what it unlocks; units your campus does not teach are marked rather than hidden
 
-规划只存在你自己的浏览器里，不会上传，也不会跟着你到别的设备——要转移请用「导出」。
+A plan lives only in your own browser. It is not uploaded and does not follow you to another device — use Export to move it.
 
-### 算 WAM / GPA
+### Work out your WAM / GPA
 
-- 输入课程代码，学分和课程级别直接从 Handbook 带出来，级别权重不用自己记
-- 马来西亚校区用的是 CGPA，那是另一套刻度，可以切换
-- 也可以上传 WES 成绩截图或粘贴文本，自动识别成表格
-- 分数只在你的浏览器里计算，不会发到服务器，也不会存进账号
+- Type a unit code and the credit points and level come from the Handbook; you do not have to remember the level weighting
+- Malaysia uses CGPA, which is a different scale — switch between them
+- You can also upload a screenshot of your WES results or paste the text, and have it read into the table
+- Marks are worked out in your browser. They are not sent to a server and not stored on your account
 
-### 参与学生社区
+### Join the student community
 
-- 浏览和搜索公开问题与讨论
-- 登录后提问、回答、投票、收藏和举报
-- 查看与特定 Unit 相关的学生经验
-- 在社区中寻找学习搭子、活动同伴或兴趣相近的同学
+- Browse and search public questions and discussions
+- Sign in to post, answer, vote, bookmark or report
+- Read student experience linked to a particular unit
+- Find study partners, activity companions or people with shared interests
 
-社区内容代表学生个人经验，不代表 Monash University 的官方规定。
+Community content is student experience, not Monash University policy.
 
-### 马莫百科
+### MUM Guide
 
-「马莫百科」微信公众号的文章索引，可以直接搜索、按主题浏览，并跳转到公众号原文阅读。公众号内容同样是学生视角的整理，不是官方规定。
+An index of the articles from the 马莫百科 WeChat account: searchable, grouped by topic, and linked back to the original post. Like the community, it is a student's write-up rather than official policy.
 
-## 如何使用
+## How to use it
 
-1. 在首页输入 Unit code、关键词或问题。
-2. 优先查看官方来源的结果；重要事项请打开原始链接确认。
-3. 需要真实学习体验时，再阅读带有 `Community` 标识的讨论。
-4. 需要提问或回答时，用邮箱注册并登录。
+1. Search from the home page with a unit code, keyword or question.
+2. Start with official results and open source links for important decisions.
+3. Read results labelled `Community` when you need student experience.
+4. Register with an email address to ask or answer questions.
 
-## 信息来源说明
+## Source labels
 
-| 标识 | 含义 |
+| Label | Meaning |
 | --- | --- |
-| `Official Handbook` | 来自 Monash Handbook 的结构化课程信息 |
-| `Official source` | 来自 Monash 官方网页的已整理信息 |
-| `Community` | 由学生发布的个人经验、问题或讨论 |
+| `Official Handbook` | Structured information from the Monash Handbook |
+| `Official source` | Curated information from official Monash web pages |
+| `Community` | Student questions, discussions and personal experience |
 
-三类内容会明确区分展示。学生经验有助于了解实际情况，但不能替代官方政策。
+## For developers and contributors
 
-## 给开发者与贡献者
+This README is for product users. See [architecture](docs/ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md) and the [changelog](CHANGELOG.md) for project work.
 
-本 README 面向产品使用者。架构、部署、抓取和本地开发说明请查看：
-
-- [架构说明](docs/ARCHITECTURE.md)
-- [部署说明](docs/DEPLOYMENT.md)
-- [抓取说明](docs/CRAWLING.md)
-- [产品路线图](docs/ROADMAP-STATUS.md)
-- [贡献规则](AGENTS.md)
-- [更新日志](CHANGELOG.md)
-
-开发改动请使用 `feat/*`、`fix/*` 或 `chore/*` 分支，发起 Pull Request 审查后再合并到 `main`。
+Development changes should use `feat/*`, `fix/*` or `chore/*` branches, with a Pull Request reviewed before merging into `main`.
