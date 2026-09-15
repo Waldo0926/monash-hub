@@ -36,7 +36,7 @@ const joiner = computed(() => {
     <p v-if="rule.description" class="small pre">{{ rule.description }}</p>
 
     <template v-for="(operand, index) in operands" :key="index">
-      <p v-if="index > 0" class="joiner"><span>{{ joiner }}</span></p>
+      <p v-if="index > 0 && rule.connector !== 'TEXT'" class="joiner"><span>{{ joiner }}</span></p>
 
       <NuxtLink v-if="operand.kind === 'unit'" class="unit" :to="`/units/${operand.item.code}`">
         <span class="mono">{{ operand.item.code }}</span>
