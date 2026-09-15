@@ -14,7 +14,6 @@ const { $t } = useNuxtApp()
          never opens an Australian visa page cannot be misled by it. -->
     <CampusNotice :applies-to="page.applies_to" compact class="scope" />
     <p class="small muted summary">{{ page.summary }}</p>
-    <LastChecked :value="page.last_checked" />
   </NuxtLink>
 </template>
 
