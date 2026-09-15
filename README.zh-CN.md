@@ -14,6 +14,7 @@ Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其
 你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
 
 > Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
+
 ## 你可以做什么？
 
 ### 查课程信息
@@ -79,6 +80,12 @@ Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其
 
 三类内容会明确区分展示。学生经验有助于了解实际情况，但不能替代官方政策。
 
+## 源码与隐私边界
+
+仓库可以公开应用源码、数据结构/迁移、部署模板、测试以及用于测试解析逻辑的小型合成 fixture。生产环境密码、API key、SSH 私钥、数据库备份、用户导出以及真实抓取输出不应进入 Git。
+
+抓取器保留官方来源链接，并只提取产品需要的结构化字段和文本，不把第三方页面当作镜像保存。公开前检查项目边界可查看 [Public release checklist](docs/PUBLIC-RELEASE.md)。
+
 ## 给开发者与贡献者
 
 本 README 面向产品使用者。架构、部署、抓取和本地开发说明请查看：
@@ -86,6 +93,7 @@ Monash Hub 是一个面向蒙纳士大学学生的独立信息平台。它尤其
 - [架构说明](docs/ARCHITECTURE.md)
 - [部署说明](docs/DEPLOYMENT.md)
 - [抓取说明](docs/CRAWLING.md)
+- [公开发布检查清单](docs/PUBLIC-RELEASE.md)
 - [产品路线图](docs/ROADMAP-STATUS.md)
 - [贡献规则](AGENTS.md)
 - [更新日志](CHANGELOG.md)

@@ -1,7 +1,8 @@
 """Runtime configuration.
 
-Everything that differs between a laptop and the VPS lives here and comes from
-the environment, so the repository never carries a credential or a host address.
+Environment-specific credentials and private infrastructure values come from the
+environment. Repository defaults are development-only placeholders or public
+application URLs; production secrets never belong in source control.
 """
 from functools import lru_cache
 
@@ -25,7 +26,10 @@ class Settings(BaseSettings):
     # Handbook year the MVP treats as current.
     current_academic_year: int = 2026
 
-    secret_key: str = "dev-only-change-me"
+    # Development-only placeholder. Production requires SECRET_KEY from the
+    # environment; keep the local default long enough to avoid weak-key warnings
+    # while making it unmistakably unsuitable as a real secret.
+    secret_key: str = "dev-only-not-a-secret-change-in-production-0001"
     access_token_ttl_minutes: int = 60 * 24 * 14
 
     # The public origin, for links inside emails. The frontend has its own copy

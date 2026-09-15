@@ -1,8 +1,8 @@
 # Monash Hub stack.
 #
-# Deliberately isolated from anything else on the host: its own compose project
-# (`-p monash-hub`), its own network, its own volume. Nothing here touches the
-# FYP platform or the Monash Abroad Tracker that share the same server.
+# Deliberately isolated from other services on a shared host: its own Compose
+# project (`-p monash-hub`), network and volumes. Deployment must not modify
+# unrelated containers, data or reverse-proxy configuration.
 #
 # Only the web and api containers publish a port, and both bind to 127.0.0.1 -
 # the host's existing nginx is what faces the internet. PostgreSQL publishes

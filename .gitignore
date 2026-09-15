@@ -2,6 +2,14 @@
 .env
 .env.*
 !.env.example
+secrets/
+credentials/
+.htpasswd
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
 
 # Python
 __pycache__/

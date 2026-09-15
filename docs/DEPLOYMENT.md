@@ -1,244 +1,145 @@
 # Deployment
 
-Production is `https://monashhub.secureview.tech`, served from the VPS that
-already hosts two other projects. Everything below is written on the assumption
-that **those other projects must not be disturbed**.
+Production is served at `https://monashhub.secureview.tech` from a Linux host running nginx and Docker Compose. This document intentionally describes the Monash Hub deployment only; unrelated services and host-specific credentials are outside the repository.
 
-## What is already on that host
+## Security boundary
 
-Check before you change anything:
+- Production secrets live in the host environment / `.env` and GitHub environment secrets, never in Git.
+- PostgreSQL is not published to the internet.
+- Application containers bind to loopback or an internal Docker network and nginx owns the public HTTP(S) ports.
+- Deployment changes must not modify unrelated services on a shared host.
+- Raw crawl output, database dumps and user data are not committed.
 
-```bash
-ss -tlnp | grep -E ':(80|443) '        # nginx, on the host, not in a container
-ls /etc/nginx/sites-enabled/           # existing server blocks
-docker ps                              # existing containers
-docker network ls && docker volume ls  # existing networks and volumes
-certbot certificates                   # existing certificates
-```
+## Server layout
 
-nginx runs on the host and owns 80/443. **Do not install a second proxy.**
-Monash Hub adds one server block and binds its own containers to loopback only.
+The current deployment script expects the checkout at:
 
-## Layout on the server
-
-```
+```text
 /opt/monash-hub/
-├── repo/        git checkout of main (this repository)
-├── backups/     nightly pg_dump output, 14 days retained
-└── data/        anything else that must live on the host
+├── repo/        # checkout of this repository
+├── backups/     # database backups
+└── data/        # host-persistent application data
 ```
+
+The path is an operational convention, not a credential. Hostname, SSH user, port, private key and known-host material are supplied through GitHub environment secrets.
 
 ## First deploy
 
-1. **Directory and deploy key**
-
-   ```bash
-   mkdir -p /opt/monash-hub/{repo,backups,data}
-   ssh-keygen -t ed25519 -f /root/.ssh/monash_hub_deploy -N '' -C 'monash-hub deploy key'
-   cat /root/.ssh/monash_hub_deploy.pub
-   ```
-
-   Add that public key to the repository under **Settings → Deploy keys**, read
-   only. The server pulls; it never pushes.
-
-   ```bash
-   cat >> /root/.ssh/config <<'EOF'
-   Host github.com-monashhub
-       HostName github.com
-       User git
-       IdentityFile /root/.ssh/monash_hub_deploy
-       IdentitiesOnly yes
-   EOF
-
-   git clone git@github.com-monashhub:<owner>/monash-hub.git /opt/monash-hub/repo
-   ```
-
-2. **Environment**
-
-   ```bash
-   cd /opt/monash-hub/repo
-   cp .env.example .env
-   sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -base64 24)|" .env
-   sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 32)|" .env
-   chmod 600 .env
-   ```
-
-3. **Bring the stack up**
-
-   ```bash
-   ./deployment/deploy.sh
-   ```
-
-   That backs up, pulls, builds, migrates, applies the curated FAQ and
-   human-reviewed translations, restarts, and waits for `/api/health`. It is
-   safe to re-run.
-
-4. **TLS first, then nginx**
-
-   The site config references the certificate, so the certificate has to exist
-   before nginx will load it. Serve the ACME challenge from a throwaway block:
-
-   ```bash
-   cat > /etc/nginx/sites-available/monash-hub-bootstrap <<'EOF'
-   server {
-       listen 80;
-       listen [::]:80;
-       server_name monashhub.secureview.tech;
-       location ^~ /.well-known/acme-challenge/ { allow all; root /var/www/html; }
-       location / { return 503; }
-   }
-   EOF
-   ln -sf /etc/nginx/sites-available/monash-hub-bootstrap /etc/nginx/sites-enabled/
-   nginx -t && systemctl reload nginx
-
-   certbot certonly --webroot -w /var/www/html -d monashhub.secureview.tech
-   ```
-
-   Then swap in the real config:
-
-   ```bash
-   rm -f /etc/nginx/sites-enabled/monash-hub-bootstrap
-   cp deployment/nginx/monash-hub-limits.conf /etc/nginx/conf.d/
-   cp deployment/nginx/monash-hub.conf /etc/nginx/sites-available/monash-hub
-   ln -s /etc/nginx/sites-available/monash-hub /etc/nginx/sites-enabled/
-   nginx -t && systemctl reload nginx
-   ```
-
-   `certonly` is used rather than `certbot --nginx` so the server block stays
-   exactly what is in Git instead of something certbot rewrote. The existing
-   `certbot.timer` renews it.
-
-5. **Load data**
-
-   ```bash
-   ./deployment/crawl.sh handbook       # 20 fixture units
-   ./deployment/crawl.sh official --all # 40 seed pages
-   ./deployment/crawl.sh seed           # curated FAQ and Chinese translations
-   ```
-
-   **Order matters, and `--all` matters.** Run the official crawl before the
-   seed, and run it with `--all` after any release that changes
-   `app/knowledge/cleaner.py`:
-
-   * The structured blocks a guide page renders from only exist once the page
-     has been crawled by the current extractor. A page still holding the old
-     flat text falls back to showing that text, so nothing breaks - it just
-     stays ugly until the crawl runs. `EXTRACTOR_VERSION` in `cleaner.py` is
-     what makes the crawl treat every page as changed; without `--all`, a page
-     whose refresh interval has not elapsed is not fetched at all and keeps the
-     old shape.
-   * Each translation is stamped with the content hash of the English it was
-     made from, and the seeder reads that hash off the crawled page. Seeding
-     before the crawl leaves every translation unable to tell whether it is
-     still current, and the site marks them all stale. The seeder warns by name
-     about any page in that state.
-
-## Chinese search
-
-Searching in Chinese needs one step that a crawl does not do for you:
+### 1. Create the application directories
 
 ```bash
-cd /opt/monash-hub/repo
-./deployment/crawl.sh reindex-zh --stats   # coverage, writes nothing
-./deployment/crawl.sh reindex-zh
+mkdir -p /opt/monash-hub/{repo,backups,data}
 ```
 
-**Run it after a crawl and after any translation batch.** Translations live in
-`content_translations`; search runs against `units` and `official_pages`. The
-reindex copies the Chinese onto those rows, where `pg_trgm` can index it. It is
-idempotent and only writes rows whose text actually changed, so a run after a
-quiet crawl costs nothing.
+Create a read-only deploy key for the repository and clone `main` into `/opt/monash-hub/repo`.
 
-Forgetting it is not an outage. Chinese search keeps working through the
-glossary expansion below — it just stops finding pages by their translated body
-until the reindex catches up.
-
-### How a Chinese query is answered
-
-PostgreSQL cannot tokenise Chinese: `to_tsvector('english', '选课与注册')` yields
-one meaningless token, and the extensions that fix that (`zhparser`, `pg_jieba`)
-are server-side installs we do not have. So two mechanisms run side by side.
-
-1. **Glossary expansion.** The query is matched against the Chinese side of
-   `app/knowledge/glossary.py`, and the English terms it translates are OR-ed
-   into the text query. 休学 also searches for "intermission", which finds the
-   page whether or not anybody has translated it. This works with no reindex at
-   all, and it grows on its own as terms are added for the translator.
-2. **Trigram match on `search_zh`.** For pages that *are* translated, the query
-   is matched as a substring against the stored Chinese. For a language with no
-   word boundaries substring is the natural query, not a fallback.
-
-English search is untouched: an English query expands to nothing and keeps its
-original AND semantics.
-
-## Email delivery
-
-Registration and password reset send a six-digit code. With
-`EMAIL_PROVIDER=console` the code goes to the API log and nobody outside the
-server can finish a signup, so production needs a real provider:
+### 2. Create the environment file
 
 ```bash
 cd /opt/monash-hub/repo
-cat >> .env <<'EOF'
-EMAIL_PROVIDER=resend
-EMAIL_FROM_ADDRESS=no-reply@secureview.tech
-RESEND_API_KEY=<key>
-EOF
+cp .env.example .env
+sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -base64 24)|" .env
+sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 32)|" .env
+chmod 600 .env
+```
+
+Review the remaining variables before starting production. Do not commit the resulting `.env`.
+
+### 3. Start / update the stack
+
+```bash
 ./deployment/deploy.sh
 ```
 
-`GET /api/health` does not report this, but the client does: the
-`verification-code` endpoint returns `delivery_configured`, and the signup form
-says plainly that the code will not arrive when it is false.
+The deployment script backs up the database, pulls the reviewed `main` branch, rebuilds containers, applies migrations and idempotent seed data, restarts services, and verifies the health endpoint.
 
-## Creating the first moderator
+### 4. TLS and nginx
 
-Reports and hidden posts need someone who can act on them. The seed script
-creates that account, and only when both variables are present - so a default
-password can never end up on a public server:
+The repository contains nginx templates for the application. Obtain a certificate for the production hostname before enabling a server block that references it. The exact ACME/certbot procedure depends on the host's existing nginx setup.
+
+After the certificate exists, install the Monash Hub nginx snippets from `deployment/nginx/`, run `nginx -t`, then reload nginx.
+
+Do not copy host-wide nginx configuration, credentials, certificates or unrelated server blocks into the repository.
+
+## Loading official-source data
+
+Typical commands are:
 
 ```bash
-cd /opt/monash-hub/repo
+./deployment/crawl.sh handbook --all
+./deployment/crawl.sh official --all
+./deployment/crawl.sh seed
+```
+
+The crawler is deliberately rate-limited and resumable. Run the official crawl before reseeding translations after extractor changes so source hashes describe the current extracted content.
+
+Test fixtures in `backend/tests/fixtures/` are intentionally minimal synthetic documents. They are not production crawl output and are not a mirror of Monash pages.
+
+## Chinese search
+
+After a crawl or translation update, refresh the Chinese search materialisation:
+
+```bash
+./deployment/crawl.sh reindex-zh --stats
+./deployment/crawl.sh reindex-zh
+```
+
+English search continues to use its normal PostgreSQL text-search path. Chinese support combines glossary expansion with substring/trigram matching over reviewed or generated translated text.
+
+## Email delivery
+
+Development may use `EMAIL_PROVIDER=console`. Production should configure a real provider using environment variables such as:
+
+```text
+EMAIL_PROVIDER=resend
+EMAIL_FROM_ADDRESS=<verified sender>
+RESEND_API_KEY=<secret supplied outside Git>
+```
+
+SMTP can be configured instead through the corresponding `SMTP_*` variables in `.env.example`.
+
+## Initial moderator account
+
+The seeder can create the first moderator only when credentials are explicitly supplied at runtime:
+
+```bash
 docker compose -p monash-hub run --rm \
   -e ADMIN_EMAIL='you@example.com' \
   -e ADMIN_NICKNAME='moderator' \
-  -e ADMIN_PASSWORD='<a password you choose>' \
+  -e ADMIN_PASSWORD='<a password from your password manager>' \
   crawler python -m app.knowledge.seed
 ```
 
-Use a password manager. Do not put it in `.env`.
+Do not add a real moderator password or email to repository configuration.
 
-## Routine deploys
+## Automated deployments
 
-```bash
-cd /opt/monash-hub/repo && ./deployment/deploy.sh
-```
+`.github/workflows/deploy.yml` runs only after a successful CI run on `main` (or a manual dispatch) and reads SSH connection values from GitHub environment secrets:
 
-The deploy applies the curated seed on every run. This is intentional: those
-rows are idempotent, and a hand-corrected translation committed to the
-repository must not wait for somebody to remember a separate seed command.
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PORT`
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_KNOWN_HOSTS`
 
-The server only ever checks out `main`. Do not edit files there — a change made
-on the server is lost on the next deploy, and worse, it is invisible to everyone
-else.
+The workflow contains secret *names*, not secret values.
 
-## Rollback
+## Routine deploy
 
 ```bash
 cd /opt/monash-hub/repo
-git log --oneline -10
-git checkout <previous-sha>
-docker compose -p monash-hub build && docker compose -p monash-hub up -d
+./deployment/deploy.sh
 ```
 
-If a migration is involved, restore the dump `deploy.sh` took first:
+Do not edit application files directly on the production host. A deployment should always be reproducible from the reviewed repository plus environment-specific secrets/data.
 
-```bash
-gunzip -c /opt/monash-hub/backups/monashhub-<stamp>.sql.gz \
-  | docker compose -p monash-hub exec -T postgres psql -U monashhub monashhub
-```
+## Rollback
 
-## Checks that matter
+Use a previously reviewed commit and restore the matching database backup if a migration requires it. Keep backups outside Git and protect them as production data.
+
+## Verification
+
+Useful checks include:
 
 ```bash
 curl -s https://monashhub.secureview.tech/api/health | python3 -m json.tool
@@ -246,16 +147,14 @@ docker compose -p monash-hub ps
 docker compose -p monash-hub logs --tail 100 api
 ```
 
-`/api/health` reports row counts and the last crawl, so it answers both "is it
-up" and "is the data current".
+`/api/health` reports service/data freshness information without exposing credentials.
 
 ## Isolation checklist
 
-Before and after any deploy:
+Before and after a production deploy:
 
-- Compose project is `monash-hub`; no other project's containers restarted.
-- Network is `monash-hub-internal`; volume is `monash-hub-postgres-data`.
-- PostgreSQL publishes no port: `docker compose -p monash-hub ps` shows nothing
-  under PORTS for it.
-- API and web bind `127.0.0.1` only.
-- The FYP and tracker nginx server blocks are untouched.
+- Compose project name is `monash-hub`.
+- PostgreSQL has no public port.
+- API/web containers are reachable only through the intended reverse-proxy path.
+- Only Monash Hub containers, volumes and nginx configuration are modified.
+- Secrets, dumps and raw production crawl output remain outside version control.
