@@ -78,7 +78,10 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
       <!-- This invitation used to sit inside the narrow first column, where a
            single sentence became three lines and made the rest of the footer
            look empty. It belongs to the whole site, so it gets the whole row. -->
-      <p class="small wechat">{{ $t('footer.wechat') }}</p>
+      <div class="footer-bottom">
+        <p class="small wechat">{{ $t('footer.wechat') }}</p>
+        <p class="tiny copyright">© 2026 Shuoxun Wen. All rights reserved.</p>
+      </div>
     </div>
   </footer>
 </template>
@@ -118,12 +121,21 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 .credit { line-height: 1.45; }
 .credit :deep(a) { font-weight: 600; }
 .disclaimer { margin: 0; color: var(--muted); }
-.wechat {
+.footer-bottom {
   grid-column: 1 / -1;
+  display: grid;
+  gap: var(--s3);
+}
+.wechat {
   margin: 0;
   padding-left: var(--s3);
   border-left: 2px solid var(--footer-accent);
   color: var(--footer-heading);
+}
+.copyright {
+  margin: 0;
+  color: var(--footer-text);
+  opacity: 0.85;
 }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
