@@ -58,7 +58,7 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Deploy main on the VPS
+      - name: Deploy latest main on the VPS
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +71,7 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            /opt/monash-hub/repo/deployment/deploy.sh
+            'set -euo pipefail; cd /opt/monash-hub/repo; git fetch --prune origin; git checkout main; git reset --hard origin/main; exec ./deployment/deploy.sh'
 
       - name: Verify public health endpoint
         shell: bash
@@ -85,3 +85,22 @@ jobs:
             --retry-all-errors \
             --retry-delay 5 \
             https://monashhub.secureview.tech/api/health
+
+      - name: Verify public MTH2051 prerequisite graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          tree="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 6 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            'https://monashhub.secureview.tech/api/v1/units/MTH2051/tree?direction=upstream&depth=1&campus=Malaysia')"
+          if ! grep -q '"MTH2010"' <<<"$tree"; then
+            echo '::error::Public MTH2051 prerequisite graph still lacks MTH2010'
+            echo "$tree"
+            exit 1
+          fi
+          echo 'Public MTH2051 prerequisite graph verified'
