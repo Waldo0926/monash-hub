@@ -4,6 +4,14 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 const sectionLinks = useSectionNavigation()
+const { locale } = useLocale()
+const { $t } = useNuxtApp()
+
+const featuresHeading = computed(() => {
+  if (locale.value === 'zh') return '功能导航'
+  if (locale.value === 'en') return 'Features'
+  return $t('footer.explore')
+})
 </script>
 
 <template>
@@ -28,11 +36,13 @@ const sectionLinks = useSectionNavigation()
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
       </div>
 
-      <nav class="col explore-col" :aria-label="$t('footer.explore')">
-        <h2 class="tiny muted heading">{{ $t('footer.explore') }}</h2>
-        <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">
-          {{ link.label }}
-        </NuxtLink>
+      <nav class="col explore-col" :aria-label="featuresHeading">
+        <h2 class="tiny muted heading">{{ featuresHeading }}</h2>
+        <div class="explore-links">
+          <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">
+            {{ link.label }}
+          </NuxtLink>
+        </div>
       </nav>
 
       <nav class="col" :aria-label="$t('footer.official')">
@@ -92,13 +102,16 @@ const sectionLinks = useSectionNavigation()
 }
 .inner {
   display: grid;
-  /* The first column keeps the product description readable; the remaining
-     columns spread navigation and external systems more evenly across the full
-     footer width now that Explore mirrors every primary header destination. */
+  width: 100%;
+  max-width: 1540px;
+  padding-inline: clamp(24px, 3vw, 56px);
+  /* The feature navigation gets enough room for two balanced columns while the
+     product description and external-resource groups keep comfortable widths. */
   grid-template-columns:
-    minmax(250px, 1.6fr) minmax(150px, 0.9fr) minmax(180px, 1.15fr)
-    minmax(140px, 0.9fr) minmax(150px, 0.95fr);
-  gap: var(--s5);
+    minmax(280px, 1.45fr) minmax(320px, 1.35fr) minmax(190px, 1.05fr)
+    minmax(150px, 0.8fr) minmax(165px, 0.85fr);
+  column-gap: clamp(28px, 2.8vw, 52px);
+  row-gap: var(--s5);
   align-items: start;
 }
 
@@ -125,7 +138,15 @@ const sectionLinks = useSectionNavigation()
 }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
-.explore-col { grid-auto-rows: minmax(22px, auto); }
+.explore-col { grid-template-rows: auto 1fr; }
+.explore-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--s5);
+  row-gap: var(--s2);
+  align-content: start;
+}
+.explore-links a { white-space: nowrap; }
 
 .heading {
   margin: 0 0 var(--s1);
@@ -135,9 +156,22 @@ const sectionLinks = useSectionNavigation()
 }
 .col a { font-size: 0.9rem; }
 
-@media (max-width: 1000px) {
-  .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
+@media (max-width: 1280px) {
+  .inner {
+    max-width: var(--container);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s5);
+  }
   .about { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .inner { grid-template-columns: 1fr; }
+  .about { grid-column: auto; }
+  .explore-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .explore-links a { white-space: normal; }
+}
+@media (max-width: 420px) {
+  .explore-links { grid-template-columns: 1fr; }
 }
 @media (max-width: 1180px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
