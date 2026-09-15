@@ -29,7 +29,7 @@ fi
 cd "$PROJECT_DIR"
 echo "==> $(date -u +%FT%TZ) refreshing MTH2051 first"
 "${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1
+  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1 --fail-on-errors
 
 if [[ -f "$STARTED" ]]; then
   echo "==> resuming the full 2026 Handbook refresh; recent successful rows are skipped"
@@ -41,7 +41,11 @@ else
 fi
 
 "${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --all --year 2026 --min-interval 3 "${fresh[@]}"
+  python -m crawler.handbook.run --all --year 2026 --min-interval 3 \
+  --fail-on-errors "${fresh[@]}"
 
+# Reaching this line means every target in the discovery pass fetched and
+# parsed successfully. If even one target failed, the crawler exits non-zero,
+# the done marker is not written, and the next deployment resumes the repair.
 touch "$DONE"
 echo "==> $(date -u +%FT%TZ) requisite refresh $VERSION completed"
