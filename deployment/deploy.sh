@@ -88,21 +88,38 @@ for attempt in $(seq 1 30); do
   sleep 2
 done
 
-# This release fixes a class of Handbook pages whose prerequisites exist only
-# in Rules / Enrolment Rule prose. Existing database rows have to be reparsed;
-# merely deploying the new parser cannot reconstruct data it never stored.
-# MTH2051 is refreshed first, then the whole 2026 Handbook runs rate-limited in
-# the background. The helper is locked and version-marked, so later deploys do
-# not start another full pass.
-requisite_version="20260915-text-requisites-v1"
+# MTH2051 is the production regression that exposed the parser gap. Repair it
+# synchronously and assert the live API graph contains an expected prerequisite
+# before a deployment is allowed to succeed. This is intentionally separate
+# from the hours-long all-unit audit below: a green deployment now proves the
+# reported bug is fixed in production, not merely fixed in source code.
+echo "==> Refreshing and verifying MTH2051 prerequisite data"
+"${COMPOSE[@]}" run --rm crawler \
+  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1 --fail-on-errors
+mth2051_tree="$(curl -fsS \
+  "http://127.0.0.1:${api_port}/api/v1/units/MTH2051/tree?direction=upstream&depth=1&campus=Malaysia")"
+if ! grep -q '"MTH2010"' <<<"$mth2051_tree"; then
+  echo "error: MTH2051 refresh completed but its live prerequisite graph still lacks MTH2010" >&2
+  echo "$mth2051_tree" >&2
+  exit 1
+fi
+echo "    MTH2051 prerequisite graph verified"
+
+# Existing database rows also need the new parser applied globally. The full
+# 2026 pass is rate-limited and therefore runs in the background. The helper is
+# locked, versioned, resumable, and writes its done marker only after a clean
+# discovery/fetch/parse pass.
+requisite_version="20260915-text-requisites-v2"
 requisite_done="/opt/monash-hub/state/handbook-requisites-$requisite_version.done"
+log_dir="/opt/monash-hub/logs"
+mkdir -p "$log_dir"
 if [[ ! -f "$requisite_done" ]]; then
-  log_dir="/opt/monash-hub/logs"
-  mkdir -p "$log_dir"
   requisite_log="$log_dir/handbook-requisites-$requisite_version.log"
   nohup bash "$PROJECT_DIR/deployment/refresh-handbook-requisites.sh" \
     >"$requisite_log" 2>&1 < /dev/null &
-  echo "==> Started one-time Handbook requisite refresh (pid $!, log: $requisite_log)"
+  echo "==> Started full 2026 Handbook requisite audit (pid $!, log: $requisite_log)"
+else
+  echo "==> Full 2026 Handbook requisite audit $requisite_version already complete"
 fi
 
 echo "==> Done"
