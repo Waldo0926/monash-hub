@@ -21,6 +21,7 @@ Monash Hub is an independent information platform for Monash University students
 Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
 > Monash Hub is not affiliated with or endorsed by Monash University. For enrolment, visas, assessment and academic-policy decisions, always confirm details through Monash websites, the Handbook, Moodle or WES.
+
 ## What can you do here?
 
 ### Find unit information
@@ -84,8 +85,14 @@ An index of the articles from the 马莫百科 WeChat account: searchable, group
 | `Official source` | Curated information from official Monash web pages |
 | `Community` | Student questions, discussions and personal experience |
 
+## Source and privacy boundary
+
+The repository contains application source code, schema/migrations, deployment templates, tests and small synthetic parser fixtures. Production credentials, database dumps, user exports and raw crawl output do not belong in Git. The crawler links back to official sources rather than mirroring binary content.
+
+See [Public release checklist](docs/PUBLIC-RELEASE.md) for the repository's privacy, secret and third-party-content boundary.
+
 ## For developers and contributors
 
-This README is for product users. See [architecture](docs/ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md) and the [changelog](CHANGELOG.md) for project work.
+This README is for product users. See [architecture](docs/ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md) and the [changelog](CHANGELOG.md) for project work.
 
 Development changes should use `feat/*`, `fix/*` or `chore/*` branches, with a Pull Request reviewed before merging into `main`.
