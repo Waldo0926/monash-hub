@@ -178,9 +178,14 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unm
 
     A group's ``connector`` says how its contents combine, where the contents
     are its items and the groups inside it. AND needs all of them, OR needs one.
+    ``TEXT`` is different: the Handbook published prose but no machine-readable
+    boolean structure. The graph may show the unit references, but the planner
+    must not pretend it knows which combinations satisfy that prose.
     """
-    corequisite = (group.requisite_type or "").startswith("coreq")
+    corequisite = "corequisite" in (group.requisite_type or "").lower()
     connector = (group.connector or "AND").upper()
+    if connector == "TEXT":
+        return None
 
     met_codes: list[str] = []
     missing_codes: list[str] = []
@@ -294,13 +299,13 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
                     issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
                                         "error", "prohibited_with", {"units": sorted(clash)}))
                 continue
-            if not (kind.startswith("prereq") or kind.startswith("coreq")):
+            if not ("prerequisite" in kind or "corequisite" in kind):
                 continue
             unmet = _evaluate(group, seen, entry.slot)
             if unmet:
                 issues.append(Issue(
                     entry.unit_code, entry.slot.year, entry.slot.period, "error",
-                    "missing_corequisite" if kind.startswith("coreq") else "missing_prerequisite",
+                    "missing_corequisite" if "corequisite" in kind else "missing_prerequisite",
                     {
                         "any_of": unmet.flatten() if unmet.connector == "OR" else [],
                         "all_of": [] if unmet.connector == "OR" else unmet.codes,
