@@ -98,19 +98,22 @@ function search(value: string) {
 }
 .brand:hover { text-decoration: none; }
 
-/* Every primary destination gets the same column width. This removes the
-   uneven visual rhythm caused by labels such as "Units" sitting beside the
-   much longer "WAM/GPA calculator", while keeping the whole group centred. */
+/* Navigation follows the content instead of forcing every label into an equal
+   column. Short labels therefore stay compact, long labels get the room they
+   actually need, and the remaining space is shared evenly between links. */
 .nav {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  flex: 1 1 700px;
-  max-width: 760px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-evenly;
+  flex: 1 1 760px;
+  max-width: 880px;
   min-width: 0;
-  gap: 0;
+  gap: clamp(10px, 1vw, 24px);
+  padding-inline: clamp(2px, 0.35vw, 8px);
 }
 .nav-link {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.86);
@@ -118,13 +121,15 @@ function search(value: string) {
   line-height: 1.15;
   text-align: center;
   white-space: nowrap;
-  padding: 7px 6px;
+  padding: 7px 3px;
   border-bottom: 2px solid transparent;
 }
 .nav-link:hover { color: #fff; text-decoration: none; }
 .nav .router-link-active { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.75); }
 
-.header-search { flex: 1 1 420px; min-width: 180px; max-width: 620px; }
+/* Search can give up a little width before the navigation does. This keeps long
+   destinations such as WAM/GPA calculator visually separate from Community. */
+.header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
 .account { display: flex; align-items: center; gap: var(--s1); flex: none; }
 
 .bell {
@@ -153,9 +158,10 @@ function search(value: string) {
   text-align: center;
 }
 
-/* On narrower screens the equal-width desktop navigation becomes too dense;
-   navigation moves to the bottom bar and search lives on the page. */
-@media (max-width: 1320px) {
+/* Below this width there is not enough room for eight intrinsic-width labels,
+   search and account controls without crowding. Navigation moves to the bottom
+   bar and search lives on the page instead. */
+@media (max-width: 1420px) {
   .nav, .header-search, .nickname { display: none; }
   .account { margin-left: auto; }
 }
