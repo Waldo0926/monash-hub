@@ -96,3 +96,17 @@ See [Public release checklist](docs/PUBLIC-RELEASE.md) for the repository's priv
 This README is for product users. See [architecture](docs/ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md) and the [changelog](CHANGELOG.md) for project work.
 
 Development changes should use `feat/*`, `fix/*` or `chore/*` branches, with a Pull Request reviewed before merging into `main`.
+
+## License and copyright
+
+**Public visibility does not make this project open source.**
+
+Copyright © 2026 Shuoxun Wen. All rights reserved.
+
+The source code in this repository is made publicly visible for portfolio presentation, educational review and code inspection. Unless you have prior written permission from the copyright holder, no permission is granted to copy, modify, distribute, sublicense, sell, commercially use, deploy as a competing service, or create derivative products from this software.
+
+GitHub features such as viewing, cloning or forking a public repository do not constitute an additional software licence from the copyright holder.
+
+Third-party names, trademarks and source material — including Monash University names, marks and source content — remain the property of their respective rights holders and are not relicensed by this repository.
+
+See [COPYRIGHT.md](COPYRIGHT.md) and [NOTICE.md](NOTICE.md) for the detailed ownership boundary.
