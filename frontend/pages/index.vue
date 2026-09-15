@@ -10,6 +10,7 @@
  */
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 const query = ref('')
 const sectionItems = useSectionNavigation()
 const secondaryItems = computed(() => sectionItems.value.filter(item =>
@@ -20,7 +21,47 @@ const { data: units } = await useLocalisedApiFetch<any>('/v1/units?limit=8&sort=
 const { data: guides } = await useLocalisedApiFetch<any>('/v1/guides?limit=8')
 const { data: posts } = await useApiFetch<any>('/v1/community/posts?limit=4')
 
-const trending = ['FIT2102', 'Special consideration', 'WAM', 'Census dates', 'Student visa']
+// The home hero is deliberately concrete rather than slogan-heavy. English and
+// Chinese are the two actively maintained marketing copies; the other locales
+// continue to use their existing interface translations.
+const homeHero = computed(() => {
+  if (locale.value === 'en') return 'Monash student essentials, all in one place.'
+  if (locale.value === 'zh') return 'Monash 学习生活，一站查清。'
+  return $t('home.hero')
+})
+const homeLead = computed(() => {
+  if (locale.value === 'en') {
+    return 'Courses, degrees, study planning, WAM/GPA tools, official guides and a student community — all in one place.'
+  }
+  if (locale.value === 'zh') {
+    return '课程、学位、选课规划、WAM/GPA、官方指南和学生社区，都集中在这里。'
+  }
+  return $t('home.lead')
+})
+const homeSearchPlaceholder = computed(() => {
+  if (locale.value === 'en') return 'Search courses, degrees, guides or community...'
+  if (locale.value === 'zh') return '搜索课程、学位、指南或社区……'
+  return $t('search.placeholder')
+})
+const popularLabel = computed(() => {
+  if (locale.value === 'en') return 'Popular'
+  if (locale.value === 'zh') return '常用'
+  return $t('home.trending')
+})
+const popularTerms = computed(() => {
+  const terms = [
+    { query: 'C2001', en: 'C2001', zh: 'C2001' },
+    { query: 'FIT2102', en: 'FIT2102', zh: 'FIT2102' },
+    { query: 'Special consideration', en: 'Special consideration', zh: '特殊考虑' },
+    { query: 'WAM', en: 'WAM/GPA', zh: 'WAM/GPA' },
+    { query: 'Student visa', en: 'Student visa', zh: '学生签证' },
+    { query: 'Exchange', en: 'Exchange', zh: '交换' }
+  ]
+  return terms.map(term => ({
+    query: term.query,
+    label: locale.value === 'zh' ? term.zh : term.en
+  }))
+})
 
 function search(value: string) {
   if (value) navigateTo({ path: '/search', query: { q: value } })
@@ -28,9 +69,9 @@ function search(value: string) {
 
 useSeoMeta({
   title: () => $t('home.title'),
-  description: () => $t('home.metaDescription'),
+  description: () => homeLead.value,
   ogTitle: 'Monash Hub',
-  ogDescription: () => $t('home.hero'),
+  ogDescription: () => homeHero.value,
   ogUrl: config.public.siteUrl
 })
 useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
@@ -39,13 +80,24 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 <template>
   <div class="container">
     <section class="hero">
-      <h1>{{ $t('home.hero') }}</h1>
-      <p class="lead">{{ $t('home.lead') }}</p>
-      <SearchInput v-model="query" big autofocus @submit="search" />
-      <p class="trending tiny muted">
-        {{ $t('home.trending') }}:
-        <button v-for="term in trending" :key="term" class="term" @click="search(term)">
-          {{ term }}
+      <h1>{{ homeHero }}</h1>
+      <p class="lead">{{ homeLead }}</p>
+      <SearchInput
+        v-model="query"
+        big
+        autofocus
+        :placeholder="homeSearchPlaceholder"
+        @submit="search"
+      />
+      <p class="popular tiny muted">
+        {{ popularLabel }}:
+        <button
+          v-for="term in popularTerms"
+          :key="term.query"
+          class="term"
+          @click="search(term.query)"
+        >
+          {{ term.label }}
         </button>
       </p>
     </section>
@@ -131,7 +183,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 <style scoped>
 .hero { max-width: 760px; margin: 0 auto var(--s6); text-align: center; }
 .lead { color: var(--muted); font-size: 1.05rem; }
-.trending { margin-top: var(--s3); }
+.popular { margin-top: var(--s3); }
 .term {
   border: 0;
   background: none;
