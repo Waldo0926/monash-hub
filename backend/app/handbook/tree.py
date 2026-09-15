@@ -26,16 +26,10 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.handbook import Unit, UnitRequisiteGroup, UnitRequisiteItem
-
-# The edge types that mean "you cannot sit in this room yet". Prohibitions are
-# real and are returned on the node, but they are not edges: they say two units
-# may not both be counted, not that one leads to the other, and drawing them as
-# arrows would tell students to take a unit that locks them out of the seed.
-EDGE_TYPES = ("prerequisite", "corequisite")
 
 MAX_DEPTH = 4
 MAX_NODES = 220
@@ -65,6 +59,26 @@ class Walk:
         return sorted(self.depth_of, key=lambda c: (self.depth_of[c], c))
 
 
+def _edge_type_clause():
+    """Match every upstream spelling that means prerequisite/corequisite.
+
+    New crawls canonicalise the labels, but production rows written before that
+    fix may still say ``prerequisites`` or ``corequisites``. The graph must work
+    immediately after deploy rather than waiting for a several-hour recrawl.
+    """
+    lowered = func.lower(UnitRequisiteGroup.requisite_type)
+    return or_(
+        lowered.like("prereq%"),
+        lowered.like("additional prereq%"),
+        lowered.like("coreq%"),
+    )
+
+
+def _canonical_edge_type(value: str | None) -> str:
+    value = (value or "").strip().lower()
+    return "corequisite" if "corequisite" in value else "prerequisite"
+
+
 def _requisite_rows(db: Session, codes: list[str], year: int) -> list[tuple]:
     """The requisite rules of every unit in ``codes``, one query."""
     if not codes:
@@ -82,7 +96,7 @@ def _requisite_rows(db: Session, codes: list[str], year: int) -> list[tuple]:
         .where(
             Unit.unit_code.in_(codes),
             Unit.academic_year == year,
-            UnitRequisiteGroup.requisite_type.in_(EDGE_TYPES),
+            _edge_type_clause(),
             UnitRequisiteItem.item_code.is_not(None),
         )
     )
@@ -106,7 +120,7 @@ def _dependent_rows(db: Session, codes: list[str], year: int) -> list[tuple]:
         .where(
             UnitRequisiteItem.item_code.in_(codes),
             Unit.academic_year == year,
-            UnitRequisiteGroup.requisite_type.in_(EDGE_TYPES),
+            _edge_type_clause(),
         )
     )
     return list(db.execute(stmt))
@@ -143,7 +157,13 @@ def walk(db: Session, seed: str, year: int, direction: str, depth: int) -> Walk:
                 if not parent or not child:
                     continue
                 found = parent if sign < 0 else child
-                edge = Edge(parent, child, req_type, connector, group_id)
+                edge = Edge(
+                    parent,
+                    child,
+                    _canonical_edge_type(req_type),
+                    connector,
+                    group_id,
+                )
                 result.edges.setdefault(edge.key(), edge)
                 if found in result.depth_of:
                     continue

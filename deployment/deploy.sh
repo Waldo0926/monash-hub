@@ -88,5 +88,22 @@ for attempt in $(seq 1 30); do
   sleep 2
 done
 
+# This release fixes a class of Handbook pages whose prerequisites exist only
+# in Rules / Enrolment Rule prose. Existing database rows have to be reparsed;
+# merely deploying the new parser cannot reconstruct data it never stored.
+# MTH2051 is refreshed first, then the whole 2026 Handbook runs rate-limited in
+# the background. The helper is locked and version-marked, so later deploys do
+# not start another full pass.
+requisite_version="20260915-text-requisites-v1"
+requisite_done="/opt/monash-hub/state/handbook-requisites-$requisite_version.done"
+if [[ ! -f "$requisite_done" ]]; then
+  log_dir="/opt/monash-hub/logs"
+  mkdir -p "$log_dir"
+  requisite_log="$log_dir/handbook-requisites-$requisite_version.log"
+  nohup bash "$PROJECT_DIR/deployment/refresh-handbook-requisites.sh" \
+    >"$requisite_log" 2>&1 < /dev/null &
+  echo "==> Started one-time Handbook requisite refresh (pid $!, log: $requisite_log)"
+fi
+
 echo "==> Done"
 curl -fsS "http://127.0.0.1:${api_port}/api/health"; echo

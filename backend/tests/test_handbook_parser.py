@@ -76,11 +76,36 @@ def test_requisites_keep_their_connector_and_members(handbook_html):
     assert "FIT1008" in {item["item_code"] for item in prereq[0]["items"]}
 
 
-def test_prohibitions_are_a_separate_group(handbook_html):
+def test_requisite_types_are_canonicalised(handbook_html):
     unit = _parse(handbook_html, "BFF2140")
     kinds = {g["requisite_type"] for g in unit["requisite_groups"]}
-    assert "prohibitions" in kinds
-    assert "prerequisite" in kinds
+    assert kinds == {"prerequisite", "prohibition"}
+
+
+def test_text_only_enrolment_rule_keeps_every_unit_reference(handbook_html):
+    """MTH2051-style Rules prose must not produce an empty dependency graph.
+
+    Some Handbook pages publish the prerequisite as prose under Rules while
+    only the prohibition is present in the structured requisite feed. We keep
+    the exact prose and make its unit references traversable, but mark the
+    connector TEXT rather than inventing AND/OR semantics.
+    """
+    unit = _parse(handbook_html, "MTH2051")
+    prereq = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prerequisite"]
+    assert len(prereq) == 1
+    assert prereq[0]["connector"] == "TEXT"
+    assert "Alternatively" in prereq[0]["description"]
+    assert {item["item_code"] for item in prereq[0]["items"]} == {
+        "MTH2010", "MTH2015", "MTH2019", "ENG2005", "MAT1830",
+        "MTH2021", "MTH2025", "MTH2040", "MAT1841", "SCI1022",
+        "FIT1045", "FIT1053", "ENG1060", "ETC2440",
+    }
+
+    prohibition = [
+        g for g in unit["requisite_groups"] if g["requisite_type"] == "prohibition"
+    ]
+    assert len(prohibition) == 1, "the prose fallback must not duplicate structured types"
+    assert {item["item_code"] for item in prohibition[0]["items"]} == {"MTH3051"}
 
 
 def test_two_and_ed_choices_stay_two_choices(handbook_html):
