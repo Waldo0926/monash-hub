@@ -1,7 +1,9 @@
 """The degree endpoints.
 
-Built on the real C2001 and DATASCI11 fixtures, plus a handful of units, so the
-assertions are about the shape a reader meets rather than about invented data.
+These tests use compact synthetic fixtures that preserve the upstream Handbook
+shapes the API must handle: nested requirement groups, specialisations, campus
+offerings, missing units and free-elective parts. They deliberately avoid
+storing complete copies of third-party Handbook pages.
 """
 from __future__ import annotations
 
@@ -40,7 +42,7 @@ def degrees(db, handbook_html):
     upsert_area_of_study(
         db, parse_aos_page(handbook_html("aos-DATASCI11"), aos_url("DATASCI11", 2026))
     )
-    # Two of Part A's units, one taught here and one not.
+    # Two units referenced by the synthetic Part A fixture, one taught here and one not.
     _unit(db, "FIT1045", "Introduction to programming", ("Malaysia", "Clayton"))
     _unit(db, "FIT1047", "Introduction to computer systems", ("Clayton",))
     db.commit()
@@ -100,9 +102,9 @@ def test_a_unit_the_campus_does_not_teach_is_marked_in_the_degree(client, degree
 
 
 def test_a_unit_missing_from_the_year_is_reported_not_omitted(client, degrees):
-    """Part A names seven units and only two are loaded here.
+    """The synthetic Part A names units that are not loaded into this test database.
 
-    The rest have to come back as "not in this year" rather than absent, or the
+    They must come back as "not in this year" rather than disappearing, or the
     page renders a requirement with holes in it and no explanation.
     """
     body = client.get("/api/v1/courses/C2001").json()
@@ -132,11 +134,6 @@ def test_the_filters_come_from_the_data(client, degrees):
 
 
 # --- a part that asks for a specialisation --------------------------------
-#
-# "Part C. Specialist studies" reported 0/36 for a student who had planned the
-# whole specialisation. The part does not list units at all - it lists the four
-# specialisations on offer - and a plan holds unit codes, so nothing downstream
-# could ever match FIT2102 against ALGSFTWR01.
 
 def test_a_specialisation_carries_the_units_inside_it(client, degrees):
     body = client.get("/api/v1/courses/C2001").json()
@@ -149,8 +146,7 @@ def test_a_specialisation_carries_the_units_inside_it(client, degrees):
 
 
 def test_part_c_names_specialisations_not_units(client, degrees):
-    """The shape that caused the bug, pinned so a refactor cannot quietly undo
-    the fix by changing what Part C contains."""
+    """A specialisation requirement must remain a specialisation, not a unit list."""
     body = client.get("/api/v1/courses/C2001").json()
     part_c = next(c for c in body["containers"] if "Specialist" in (c["title"] or ""))
     kinds = {item["type"] for item in part_c["items"]}
@@ -159,36 +155,22 @@ def test_part_c_names_specialisations_not_units(client, degrees):
 
 
 def test_the_facts_map_covers_the_specialisation_units(client, degrees):
-    """A planned unit with no entry here contributes zero credit points, which
-    is the same wrong answer by a different route."""
+    """A planned unit with no facts entry would incorrectly contribute zero credit."""
     body = client.get("/api/v1/courses/C2001").json()
     by_code = {a["code"]: a for a in body["areas_of_study"]}
     for code in by_code["DATASCI11"]["unit_codes"]:
         assert code in body["units"], code
 
 
-# --- free elective parts ------------------------------------------------------
-#
-# A part that lists what counts and a part that counts anything are scored
-# differently by the planner, and only the API knows which is which - the
-# titles it decides from are English, and the planner may be reading Chinese.
-
-
+# --- free elective parts --------------------------------------------------
 @pytest.mark.parametrize(
     ("title", "description", "expected"),
     [
-        # The Handbook's plainest form, and the one that was reported: Part E
-        # of C2001, showing 0/48 for a student who had planned twelve units.
         ("Part E. Free elective studies", "48 credit points of free electives", True),
         ("Part D. Free electives", "", True),
-        # No "free" in the title, but the description has the Handbook's phrase
-        # for a part with no list. 31 parts across the catalogue look like this.
         ("Part D. Elective studies", "select any units from across the University", True),
-        # Named lists. These are satisfied only by what they name.
         ("Part B. Specified elective studies", "from the following elective units", False),
         ("Discipline elective studies", "the units listed below", False),
-        # Mentions the University in passing and is not an elective part at all.
-        # Without the title clause, all three of these matched.
         ("Part A. Foundation studies", "units from across the University", False),
         ("Rules", "you may take units from across the University", False),
         ("Course requirements", "across the University", False),
@@ -202,8 +184,7 @@ def test_a_part_that_counts_anything_is_told_apart_from_one_that_lists(
 
 
 def test_the_flag_reaches_the_planner(client, degrees):
-    """It is read off every container, so a missing key would silently score
-    every free elective part as zero again."""
+    """The API must carry the free-elective flag into the planner payload."""
     body = client.get("/api/v1/courses/C2001").json()
     assert all("free_elective" in part for part in body["containers"])
     part_e = next(c for c in body["containers"] if "Free elective" in (c["title"] or ""))
