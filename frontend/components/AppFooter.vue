@@ -3,6 +3,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
+const sectionLinks = useSectionNavigation()
 </script>
 
 <template>
@@ -27,12 +28,11 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
       </div>
 
-      <nav class="col" :aria-label="$t('footer.explore')">
+      <nav class="col explore-col" :aria-label="$t('footer.explore')">
         <h2 class="tiny muted heading">{{ $t('footer.explore') }}</h2>
-        <NuxtLink to="/guides">{{ $t('nav.guides') }}</NuxtLink>
-        <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink>
-        <NuxtLink to="/community">{{ $t('nav.community') }}</NuxtLink>
-        <NuxtLink to="/mamo">{{ $t('nav.mamo') }}</NuxtLink>
+        <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">
+          {{ link.label }}
+        </NuxtLink>
       </nav>
 
       <nav class="col" :aria-label="$t('footer.official')">
@@ -75,9 +75,6 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
         >{{ system.name }} ↗</a>
       </nav>
 
-      <!-- This invitation used to sit inside the narrow first column, where a
-           single sentence became three lines and made the rest of the footer
-           look empty. It belongs to the whole site, so it gets the whole row. -->
       <div class="footer-bottom">
         <p class="small wechat">{{ $t('footer.wechat') }}</p>
         <p class="tiny copyright">© 2026 Shuoxun Wen. All rights reserved.</p>
@@ -87,17 +84,6 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 </template>
 
 <style scoped>
-/*
- * Four columns rather than one.
- *
- * The disclaimer is the longest single piece of text on the site and it sits at
- * the bottom of every page, so left on its own it either runs the full window
- * width - unreadable on a wide screen - or gets capped and leaves half the
- * footer visibly empty. Putting the navigation beside it means the measure stays
- * comfortable and the space is actually used.
- */
-/* A deep version of the header blue closes the page without the visual weight
-   of a black slab, while still keeping the footer distinct from navigation. */
 .footer {
   margin-top: var(--s8);
   padding: var(--s6) 0 var(--s7);
@@ -106,13 +92,13 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 }
 .inner {
   display: grid;
-  /* The four columns are not the same shape. "Browse" is four short words
-     and needs the least; the source and system columns carry long names and
-     a campus label, so they get the room the browse column gives up. */
+  /* The first column keeps the product description readable; the remaining
+     columns spread navigation and external systems more evenly across the full
+     footer width now that Explore mirrors every primary header destination. */
   grid-template-columns:
-    minmax(0, 1.9fr) minmax(80px, 0.6fr) minmax(150px, 1.1fr)
-    minmax(105px, 0.75fr) minmax(120px, 0.85fr);
-  gap: var(--s6);
+    minmax(250px, 1.6fr) minmax(150px, 0.9fr) minmax(180px, 1.15fr)
+    minmax(140px, 0.9fr) minmax(150px, 0.95fr);
+  gap: var(--s5);
   align-items: start;
 }
 
@@ -139,6 +125,7 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
+.explore-col { grid-auto-rows: minmax(22px, auto); }
 
 .heading {
   margin: 0 0 var(--s1);
@@ -148,18 +135,13 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 }
 .col a { font-size: 0.9rem; }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
-  /* The disclaimer spans the row on a narrow screen; the three link
-     columns pair up under it rather than each taking a half-width
-     column of their own and leaving one stranded. */
   .about { grid-column: 1 / -1; }
 }
 @media (max-width: 1180px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
 }
-/* The footer is a dark region on a light page, so every rule that names a
-   colour has to be restated here; the default muted text targets white. */
 .footer :deep(h2),
 .footer :deep(.foot-heading) { color: var(--footer-heading); }
 .footer :deep(a) { color: #dbeafe; }

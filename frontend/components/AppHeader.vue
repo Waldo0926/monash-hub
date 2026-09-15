@@ -82,8 +82,8 @@ function search(value: string) {
   color: var(--text-inverse);
 }
 /* Full width rather than the page container: the brand belongs against the left
-   edge and the account against the right, and a centred 1220px box leaves both
-   of them floating in the middle of a wide screen. */
+   edge and the account against the right, while the middle of the header is
+   shared deliberately between navigation and search. */
 .inner {
   display: flex;
   align-items: center;
@@ -98,22 +98,33 @@ function search(value: string) {
 }
 .brand:hover { text-decoration: none; }
 
-/* Natural width, sitting with the brand. The elastic space belongs to the
-   search box, which is the thing that benefits from being wider. */
-.nav { display: flex; flex: none; gap: var(--s2); }
+/* Every primary destination gets the same column width. This removes the
+   uneven visual rhythm caused by labels such as "Units" sitting beside the
+   much longer "WAM/GPA calculator", while keeping the whole group centred. */
+.nav {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  flex: 1 1 700px;
+  max-width: 760px;
+  min-width: 0;
+  gap: 0;
+}
 .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: rgba(255, 255, 255, 0.86);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
+  line-height: 1.15;
+  text-align: center;
   white-space: nowrap;
-  padding: 6px 2px;
+  padding: 7px 6px;
   border-bottom: 2px solid transparent;
 }
 .nav-link:hover { color: #fff; text-decoration: none; }
 .nav .router-link-active { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.75); }
 
-/* Takes every pixel left between the navigation and the account block, which
-   pushes the account hard against the right edge. */
-.header-search { flex: 1; min-width: 150px; max-width: 620px; margin-left: auto; }
+.header-search { flex: 1 1 420px; min-width: 180px; max-width: 620px; }
 .account { display: flex; align-items: center; gap: var(--s1); flex: none; }
 
 .bell {
@@ -142,9 +153,9 @@ function search(value: string) {
   text-align: center;
 }
 
-/* On a phone, tablet or compact laptop the header keeps the brand, language and
-   account only; navigation moves to the bottom bar and search lives on the page. */
-@media (max-width: 1180px) {
+/* On narrower screens the equal-width desktop navigation becomes too dense;
+   navigation moves to the bottom bar and search lives on the page. */
+@media (max-width: 1320px) {
   .nav, .header-search, .nickname { display: none; }
   .account { margin-left: auto; }
 }
