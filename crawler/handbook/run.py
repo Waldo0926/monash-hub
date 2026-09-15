@@ -133,6 +133,11 @@ def main() -> None:
         default=3.0,
         help="minimum seconds between requests (floor: 1.0)",
     )
+    parser.add_argument(
+        "--fail-on-errors",
+        action="store_true",
+        help="exit non-zero when any target failed, for verified repair/backfill jobs",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -171,6 +176,8 @@ def main() -> None:
 
     summary = crawl(codes, year, min_interval=interval)
     log.info("summary: %s", summary)
+    if args.fail_on_errors and summary["failed"]:
+        raise SystemExit(f"{summary['failed']} Handbook target(s) failed")
 
 
 if __name__ == "__main__":
