@@ -1,137 +1,70 @@
 # AGENTS.md
 
-Rules for anyone writing code in this repository, human or otherwise. They come
-from the product roadmap and they are not stylistic preferences — each one is
-here because breaking it costs money, trust, or someone else's server.
+Repository rules for human and automated contributors. The project handles official-source data, student-generated content, authentication, and production deployment, so changes must preserve source boundaries, privacy, and reproducibility.
 
 ## Do not
 
-- **Do not add an LLM.** No OpenAI, Anthropic, or any other model SDK. No
-  pgvector, no embeddings, no RAG. That is Stage 7, after there are real users
-  and a reason to pay for it. Every question the MVP answers is a database
-  lookup or a template.
-- **Do not merge official data and community content.** Handbook fields,
-  official Monash pages and student posts stay in separate tables and are
-  labelled differently everywhere they appear. There is no shared `answers`
-  table, and there never will be.
-- **Do not crawl monash.edu indiscriminately.** The seed list is curated by
-  hand. It grows from real search queries after public beta, not because
-  crawling more is easy.
-- **Do not mirror files.** Text, structured fields, links and metadata only.
-  No images, no videos, no lecture recordings, no PDFs into the database.
-  Structure *is* text: headings, lists and tables are extracted as typed blocks
-  (`app/knowledge/cleaner.py`) because a table flattened into a column of loose
-  numbers is not a cheaper copy of the page, it is a broken one. Screenshotting
-  a page to preserve its layout is still mirroring, and still out.
-- **Do not touch the other projects on the VPS.** The FYP secure file platform
-  and the Monash Abroad Tracker share that host. Different compose project,
-  different network, different volumes, different nginx server block.
-- **Do not commit secrets or data.** No `.env`, no keys, no database dumps, no
-  crawled HTML. `.env.example` is the only environment file in Git.
-- **Do not develop on the server.** The VPS checks out `main` and deploys it.
-  Test locally, open a PR, merge, deploy.
-- **Do not expose PostgreSQL.** It has no published port and lives on an
-  internal Docker network.
-- **Do not copy third-party code with an incompatible licence.** Implement it,
-  and record where an idea came from.
-- **Do not translate source content *silently*.** This rule used to be an
-  outright ban, and the reason for the ban still stands: translating a quotation
-  without saying so turns someone else's statement into ours. What changed is
-  that a Chinese-reading student was being handed English on the pages that
-  decide their enrolment, and "read it in the original" is not a neutral default
-  for them. So translation is now allowed under five conditions, all of which
-  are enforced in code:
-
-  1. **The reader is told who wrote it.** A person or a machine — both are
-     allowed, they are stored apart (`provenance`), and the notice on the page
-     says which. Hand-written translations live in
-     `backend/app/knowledge/translations_seed.py` where they can be read in a
-     diff, and they always win on read, so translating a page properly later
-     takes over from the machine without deleting anything.
-  2. **The machine never decides a term that costs money.** `census date`,
-     `hurdle`, `WAM`, `credit points`, `intermission`, `prohibition` and the
-     rest live in `app/knowledge/glossary.py`. They are substituted out before
-     the model sees the sentence and put back afterwards, and closed-list values
-     — every campus, teaching period, assessment type, level — never reach it at
-     all. Left to itself the model renders *census date* as 人口普查日期 and the
-     assessment type *Exercise* as 锻炼. **Add the term before you add a
-     translation pass over anything new.**
-  3. **A missing translation stays in English.** Never approximate by hand.
-     `app/knowledge/translations.py` falls back to the source on every miss.
-  4. **It is labelled on screen.** `TranslationNotice.vue` says it is unofficial,
-     says whether a person checked it, and links to the original. A reader must
-     never be able to mistake this for something Monash published.
-  5. **It expires.** Every translation is stored against the content hash of the
-     English it was made from. When the source changes, the hash stops matching
-     and the page says the translation may be out of date, rather than
-     continuing to speak for text that has changed underneath it.
-
-  Student posts are still never translated: they are somebody's own words in a
-  forum, and there is no version of that which is ours to rewrite.
-
-  Handbook *field values* - campus, teaching period, attendance mode, assessment
-  type - are a separate case handled by `frontend/i18n/handbook-terms.ts`. Those
-  come from closed lists a few dozen entries long, so they are translated by
-  exact lookup at display time and the stored value is never touched.
-- **Do not read the counters and write them back.** `answer_count`,
-  `vote_count`, `view_count`: `UPDATE ... SET x = x + 1`, always. A
-  read-modify-write loses one of two concurrent updates.
+- **Do not merge official data and community content.** Handbook fields, official Monash pages and student posts remain separate data types and are labelled differently in the UI.
+- **Do not crawl monash.edu indiscriminately.** Official-page seeds are curated. Expand coverage deliberately and respect rate limits and upstream availability.
+- **Do not mirror files.** Store structured fields, text, links and metadata only. Do not ingest images, videos, lecture recordings, PDFs or other binary copies of third-party material.
+- **Do not commit secrets or production data.** No `.env`, credentials, private keys, database dumps, raw crawl output or user exports. `.env.example` is the only environment file intended for Git.
+- **Do not modify unrelated services on a shared production host.** Monash Hub must remain isolated by its own Compose project, network, volumes and reverse-proxy configuration.
+- **Do not develop on the production server.** Develop and test on a branch, merge through a Pull Request, then deploy the reviewed `main` branch.
+- **Do not expose PostgreSQL publicly.** It belongs on the internal container network and has no published database port.
+- **Do not copy third-party code under an incompatible licence.** Reimplement ideas when necessary and preserve attribution where required.
+- **Do not translate source content silently.** Translations must be clearly marked as unofficial, preserve a link to the original source, record provenance, and fail back to the original language when a trustworthy translation is unavailable.
+- **Do not let machine translation decide high-impact terminology.** Terms such as `census date`, `hurdle`, `WAM`, `credit points`, `intermission` and `prohibition` are protected through the glossary/closed-list translation layer.
+- **Do not use read-modify-write for counters.** `answer_count`, `vote_count` and `view_count` must use atomic database updates.
 
 ## Do
 
-- **Keep the parser pure.** `app/handbook/parser.py` takes HTML and returns
-  dicts. No network, no database. That is what makes it testable against saved
-  fixtures, and the fixtures are what stop a Handbook redesign from silently
-  corrupting real data.
-- **Never overwrite good data with a failure.** A fetch error or a parse error
-  keeps the last valid row, records the failure in `crawl_history`, and shouts.
-  A gap in today's crawl is recoverable; a blanked unit record is not.
-- **Hash before you write.** If `content_hash` is unchanged, skip the parse,
-  skip the write, skip the reindex. Most of a healthy crawl should be skips.
-- **Rate limit every fetcher.** One request at a time, seconds between them,
-  exponential backoff, a retry cap. The floor is not configurable away.
-- **Say when you last checked.** Any official value shown to a student carries
-  its source link and its check date.
-- **Keep account endpoints uninformative.** Requesting a code, signing in and
-  resetting a password must not reveal whether an address has an account. The
-  wording on screen has to match, or the UI undoes the precaution.
-- **Index the ordering, not just the filter.** A new community sort or filter
-  needs a composite index that matches it, or it is a sequential scan the day
-  the forum gets busy.
-- **State uncertainty as uncertainty.** "The Handbook does not list an exam" is
-  true. "There is no exam" is not ours to say. `has_exam` is nullable for
-  exactly this reason.
-- **Design mobile-first and accessible.** 44px touch targets, visible focus
-  rings, real headings, no horizontal page overflow, and colour never as the
-  only signal.
-- **Design every state.** Loading, empty, error, stale and permission-denied are
-  part of the feature, not a follow-up ticket.
+- **Keep parsers pure.** Handbook parsers accept HTML and return normalised Python dictionaries without network or database access. Tests use small synthetic fixtures that exercise upstream page shapes without redistributing full page snapshots.
+- **Never overwrite good data with a failed crawl.** Fetch or parse failures keep the last valid record and are recorded separately.
+- **Hash before writing.** Unchanged normalised content should not cause a database rewrite or reindex.
+- **Rate-limit every fetcher.** Fetch sequentially, keep a non-zero delay floor, cap retries and use backoff.
+- **Show provenance and freshness.** Official information displayed to a student should retain its source link and last-checked date.
+- **Keep account endpoints uninformative.** Registration, sign-in and password-reset responses must not reveal whether an email address already has an account.
+- **Index for the actual query pattern.** New community sorts and filters should have indexes that match their filtering and ordering behaviour.
+- **State uncertainty as uncertainty.** “The Handbook does not list an exam” is different from “there is no exam”. Preserve nullable/unknown states where the source is silent.
+- **Design mobile-first and accessibly.** Use visible focus states, real headings, usable touch targets and redundant signals beyond colour.
+- **Design loading, empty, error, stale and permission-denied states as part of each feature.**
+
+## Translation rules
+
+1. Human-reviewed and machine translations are stored with provenance and surfaced as unofficial translations.
+2. Protected terminology and closed-list Handbook values are handled by exact lookup before free-form translation.
+3. A missing or invalid translation stays in the source language instead of being approximated.
+4. Translation UI links back to the original source.
+5. Whole-field translations are associated with source hashes so upstream changes can be surfaced as stale.
+6. Student community posts are not automatically translated.
 
 ## Workflow
 
-- `main` is the only deployable branch. The VPS tracks it and deploys on merge.
-- Branches are `feat/*`, `fix/*` or `chore/*`, merged by pull request.
-- CI must pass: ruff, the migration drift check, backend tests, frontend build.
-- Schema changes come with an Alembic migration in the same commit.
-- New parser behaviour comes with a fixture test in the same commit.
+- `main` is the production branch.
+- Feature work uses `feat/*`, `fix/*` or `chore/*` branches and is merged by Pull Request.
+- CI must pass linting, migration drift checks, backend tests and the frontend build.
+- Schema changes include an Alembic migration in the same change.
+- Parser behaviour changes include or update a synthetic fixture test.
+- Production credentials are injected through environment variables or GitHub environment secrets; they never belong in the repository.
 
 ## Where things live
 
 | I want to change… | Look in |
 | --- | --- |
-| How a Handbook field is read | `backend/app/handbook/parser.py` |
-| What is stored, and how versioning works | `backend/app/models/`, `backend/app/handbook/repository.py` |
-| Which official pages are indexed | `crawler/official/seeds.py` |
-| How a question is routed | `backend/app/search/keywords.py`, `backend/app/search/router.py` |
-| Search ranking | `backend/app/search/service.py` |
-| Curated FAQ answers | `backend/app/knowledge/faq_seed.py` |
-| Rate limits and retries | `crawler/throttling/limiter.py` |
-| Colours, spacing, type | `frontend/assets/css/tokens.css` |
-| Interface translations | `frontend/i18n/index.ts` |
-| Chinese for Handbook field values | `frontend/i18n/handbook-terms.ts` |
-| Chinese for official page and unit prose | `backend/app/knowledge/translations_seed.py` |
-| How an official page is turned into blocks | `backend/app/knowledge/cleaner.py` |
-| How a guide page renders | `frontend/components/PageBlocks.vue` |
-| Registration and reset rules | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |
-| What sends a notification | `backend/app/community/notifications.py` |
-| Production topology | `docker-compose.yml`, `deployment/` |
+| Handbook unit parsing | `backend/app/handbook/parser.py` |
+| Course / area-of-study parsing | `backend/app/handbook/course_parser.py` |
+| Models and persistence | `backend/app/models/`, `backend/app/handbook/repository.py` |
+| Official-page seeds | `crawler/official/seeds.py` |
+| Search routing and ranking | `backend/app/search/` |
+| Curated FAQ data | `backend/app/knowledge/faq_seed.py` |
+| Official-page extraction | `backend/app/knowledge/cleaner.py` |
+| Translation mechanics / glossary | `backend/app/knowledge/translations.py`, `backend/app/knowledge/glossary.py` |
+| Interface translations | `frontend/i18n/` |
+| Guide rendering | `frontend/components/PageBlocks.vue` |
+| Authentication and verification | `backend/app/api/v1/auth.py`, `backend/app/core/verification.py` |
+| Community notifications | `backend/app/community/notifications.py` |
+| Deployment topology | `docker-compose.yml`, `deployment/` |
+
+## Public-repository boundary
+
+The public repository may contain source code, synthetic fixtures, example configuration and deployment templates. It must not contain private user data, credentials, database contents, customer data, raw production crawl output, or unrelated infrastructure details.
