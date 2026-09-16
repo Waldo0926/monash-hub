@@ -16,7 +16,7 @@
 
 ## What is Monash Hub?
 
-Monash Hub is an independent information platform for Monash University students. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
+Monash Hub brings Monash student essentials — courses, degrees, study planning, WAM/GPA tools, official guides and a student community — into one place. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
 
 Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
