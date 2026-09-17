@@ -20,6 +20,27 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Fixed a crash in `upsert_unit` when a unit's content reverts to a hash it
+  had several versions ago - a Handbook edit undone, or a parser fix (like the
+  FIT1055 one above) making today's output match an even older, correct
+  crawl. It only compared the incoming hash against the unit's *current* one
+  to decide whether anything changed, then unconditionally inserted a new
+  `unit_versions` row - which collided with the unique `(unit_id,
+  content_hash)` constraint whenever that exact hash had already been
+  recorded further back in the unit's history, not just last time. Surfaced
+  by the full-catalogue reparse this release's FIT1055 fix kicked off:
+  `--fail-on-errors` meant one such unit (ADS1001) took the entire background
+  pass down with it. The unit and its children still refresh normally; the
+  redundant history row is now skipped instead of crashing.
+  中文：修复了 `upsert_unit` 在课程内容"变回了历史上更早出现过的某个版本"时
+  会崩溃的问题——比如 Monash 撤回了一次修改，或者是一次解析器修复（比如本次
+  的 FIT1055 修复）让今天解析出的结果正好和更早、正确的某次抓取结果一致。
+  原来的判断只拿新哈希和课程*当前*的哈希比较来决定"是否有变化"，然后无条件
+  往 `unit_versions` 插一条新记录——只要这个哈希在这门课更早的历史里（不一
+  定是上一次）出现过，就会撞上 `(unit_id, content_hash)` 的唯一约束而报错。
+  这次 FIT1055 修复触发的全量重新解析就撞上了这个问题：`--fail-on-errors`
+  下，ADS1001 这一门课踩中就把整个后台任务拖垮了。课程本身和它的子数据照常
+  刷新，重复的历史记录现在会被跳过，而不是直接崩溃。
 - Fixed the machine-translation coverage tracker (source hash + field scope,
   stored in each unit's `content_translations.note`) being silently wiped on
   every single deploy. The 2026-08-30 title-baseline import and
