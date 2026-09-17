@@ -65,6 +65,42 @@ def seed_faq() -> int:
     return len(FAQ_SEEDS)
 
 
+def _merge_baseline_title(
+    row: ContentTranslation | None, *, unit_code: str, title: str, zh_title: str,
+) -> ContentTranslation:
+    """Add one baseline title to a unit's machine translation row, in place.
+
+    This row is shared with ``crawler.translate.run``: same (locale,
+    target_type, target_key, field, provenance) key, because a unit gets
+    exactly one machine translation, not one per producer. Its ``note`` and
+    ``source_hash`` are not free-form metadata - they are the coverage
+    tracking ``_up_to_date()`` reads to decide whether a ``--fields all`` pass
+    can skip a unit. Overwriting them here on every deploy (this seed step
+    runs on every one) used to tell that check every baseline-covered unit's
+    translation had just gone stale, forcing needless full re-translation
+    passes and making "unchanged" stop meaning anything across most of the
+    catalogue. Only a row this function itself creates - one translate.run
+    has not touched yet - gets the baseline's own attribution; a row that
+    already existed keeps whatever coverage state it had and only gains the
+    title string.
+    """
+    existed = row is not None
+    if row is None:
+        row = ContentTranslation(
+            locale="zh", target_type=UNIT, target_key=unit_code,
+            field="content", provenance=MACHINE,
+        )
+    strings = dict((row.data or {}).get("strings") or {})
+    strings[title] = zh_title
+    row.data = {"strings": strings}
+    if not existed:
+        row.status = PUBLISHED
+        row.translator = "google-translate-baseline"
+        row.note = "课程名称完整中文基线：2026 Handbook 4,212 个唯一标题"
+        row.source_hash = None
+    return row
+
+
 def seed_translations() -> int:
     """Write the Chinese, stamped with the hash of the English it was made from."""
     written = 0
@@ -166,23 +202,14 @@ def seed_translations() -> int:
         }
         for unit in baseline_units:
             row = machine_rows.get(unit.unit_code)
-            if row is None:
-                row = ContentTranslation(
-                    locale="zh",
-                    target_type=UNIT,
-                    target_key=unit.unit_code,
-                    field="content",
-                    provenance=MACHINE,
-                )
+            is_new = row is None
+            row = _merge_baseline_title(
+                row, unit_code=unit.unit_code,
+                title=unit.title, zh_title=ZH_TITLE_BASELINE[unit.title],
+            )
+            if is_new:
                 db.add(row)
                 machine_rows[unit.unit_code] = row
-            strings = dict((row.data or {}).get("strings") or {})
-            strings[unit.title] = ZH_TITLE_BASELINE[unit.title]
-            row.data = {"strings": strings}
-            row.status = PUBLISHED
-            row.translator = "google-translate-baseline"
-            row.note = "课程名称完整中文基线：2026 Handbook 4,212 个唯一标题"
-            row.source_hash = None
             written += 1
 
         # The same unit title can exist under several codes/campuses.  Attach

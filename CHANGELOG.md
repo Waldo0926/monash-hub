@@ -4,8 +4,45 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added
+
+- Added `--units CODE [CODE ...]` to `crawler.translate.run --targets units`, to
+  re-translate specific units instead of a full-catalogue pass. This was
+  missing when FIT1008 needed re-translating after Monash republished its
+  Semester 2, 2026 description mid-cycle: the only way to pick it up was a
+  full `--fields all --refresh` run, which takes 1.5-7 hours depending on the
+  CPU cap and would have re-translated all ~5,200 units to fix one.
+  中文：给 `crawler.translate.run --targets units` 增加了 `--units 课程代码...`
+  参数，可以只针对指定课程重新翻译，不用跑全量。起因是 FIT1008 被 Monash 在
+  学期中重新发布了 2026 年第二学期的课程简介，之前唯一的补救办法是跑一次全量
+  的 `--fields all --refresh`，视 CPU 上限要花 1.5 到 7 小时，为了修一门课要
+  把全部约5200门课重新翻译一遍。
+
 ### Fixed
 
+- Fixed the machine-translation coverage tracker (source hash + field scope,
+  stored in each unit's `content_translations.note`) being silently wiped on
+  every single deploy. The 2026-08-30 title-baseline import and
+  `crawler.translate.run` share one machine row per unit - a unit gets exactly
+  one machine translation, not one per producer - and the baseline seed step
+  (which runs on every deploy, not just once) overwrote that row's `note` and
+  `source_hash` with its own attribution regardless of whether a real
+  `--fields all` translation already lived there. That told the coverage
+  check every baseline-covered unit's translation had gone stale immediately
+  after it was correctly done, which is why a routine `--fields all` run
+  reported 0 units skipped instead of nearly all of them. Only a row the
+  baseline itself creates now gets its attribution; a row `crawler.translate.run`
+  already wrote keeps its coverage state and only gains the title string.
+  中文：修复了每次部署都会悄悄清空翻译覆盖率追踪标记（源内容哈希+字段范围，
+  存在每门课 `content_translations.note` 里）的问题。8月30日的课程名称基线
+  导入和 `crawler.translate.run` 共用同一行机器翻译记录——一门课只有一条机器
+  翻译，不是每个来源一条——而基线的种子步骤（每次部署都会跑，不是只跑一次）
+  会无条件用自己的署名覆盖掉这一行的 `note` 和 `source_hash`，不管这一行是不
+  是已经有一次真正的 `--fields all` 翻译。这会让覆盖率检查以为每门在基线里的
+  课程翻译"刚做完就过期了"，也是为什么一次正常的 `--fields all` 运行会报告
+  0 门课被跳过，而不是几乎全部跳过。现在只有基线自己新建的行才会打上它的署
+  名；`crawler.translate.run` 已经写过的行会保留自己的覆盖率状态，只是新增
+  这一个标题的翻译。
 - Fixed a Handbook parser bug where units publishing their prerequisite and
   prohibition rules under `enrolment_rules` (rather than the structured
   `requisites` block) leaked CMS metadata into the rule text. FIT1055 was the

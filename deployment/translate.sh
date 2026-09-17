@@ -5,6 +5,9 @@
 #   deployment/translate.sh zh short     # titles and the enumerable values
 #   deployment/translate.sh zh all       # adds overviews, outcomes, workload
 #   deployment/translate.sh ja short
+#   deployment/translate.sh zh all --targets units --units FIT1008 FIT1055
+#                                         # only these units, e.g. after a
+#                                         # mid-year Handbook republish
 #
 # Everything it writes is marked as machine-written. A hand-written translation
 # for the same target always wins on read, so this can be re-run safely and

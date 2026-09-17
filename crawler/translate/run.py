@@ -3,6 +3,7 @@
     python -m crawler.translate.run --locale zh --targets official
     python -m crawler.translate.run --locale zh --targets units --fields short
     python -m crawler.translate.run --locale zh --targets units --fields all
+    python -m crawler.translate.run --locale zh --targets units --fields all --units FIT1008
     python -m crawler.translate.run --locale zh --targets all
 
 Everything it writes is marked ``provenance='machine'``. A human row for the
@@ -233,15 +234,37 @@ def _up_to_date(
 
 # --- the passes ------------------------------------------------------------
 
-def translate_units(translator: Translator, *, long_prose: bool, limit: int, refresh: bool) -> dict:
+def _select_codes(all_codes: list[str], units: list[str] | None, limit: int) -> list[str]:
+    """Which unit codes a pass should touch.
+
+    ``units`` scopes to specific codes - for the day a Handbook page like
+    FIT1008 is republished mid-year and the rest of the catalogue does not
+    need re-translating with it. It is checked against what actually exists
+    so a typo fails loudly instead of silently translating nothing. ``limit``
+    only makes sense against the full catalogue, so it is ignored once
+    ``units`` has already scoped the list down to what was asked for.
+    """
+    if not units:
+        return all_codes[:limit] if limit else all_codes
+    existing = set(all_codes)
+    wanted = [code.strip().upper() for code in units if code.strip()]
+    missing = [code for code in wanted if code not in existing]
+    if missing:
+        raise ValueError(f"unit code(s) not found: {', '.join(missing)}")
+    return wanted
+
+
+def translate_units(
+    translator: Translator, *, long_prose: bool, limit: int, refresh: bool,
+    units: list[str] | None = None,
+) -> dict:
     locale = translator.locale
     summary = {"translated": 0, "skipped": 0, "strings": 0}
     started = time.monotonic()
 
     with SessionLocal() as db:
-        codes = list(db.scalars(select(Unit.unit_code).order_by(Unit.unit_code)))
-        if limit:
-            codes = codes[:limit]
+        all_codes = list(db.scalars(select(Unit.unit_code).order_by(Unit.unit_code)))
+        codes = _select_codes(all_codes, units, limit)
 
         for index, code in enumerate(codes, start=1):
             unit = db.scalar(
@@ -378,10 +401,17 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int, default=0, help="stop after this many units")
     parser.add_argument(
+        "--units", nargs="+", default=None, metavar="CODE",
+        help="only these unit codes, e.g. --units FIT1008 FIT1055 "
+             "(units target only; a code not in the catalogue is an error)",
+    )
+    parser.add_argument(
         "--refresh", action="store_true", help="re-translate even when the source is unchanged"
     )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
+    if args.units and args.targets != "units":
+        parser.error("--units requires --targets units")
 
     # Argos and Stanza log every sentence they see at INFO on the root logger,
     # which at five thousand units is the whole log. Root stays quiet and this
@@ -411,6 +441,7 @@ def main() -> None:
                 long_prose=args.fields == "all",
                 limit=args.limit,
                 refresh=args.refresh,
+                units=args.units,
             ),
         )
     log.info("distinct strings translated this run: %d", translator.cached)
