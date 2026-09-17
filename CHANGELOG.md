@@ -4,8 +4,27 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
-### Fixed
+### Added
 
+- Added `--units CODE [CODE ...]` to `crawler.translate.run --targets units`, to
+  re-translate specific units instead of a full-catalogue pass. This was
+  missing when FIT1008 needed re-translating after Monash republished its
+  Semester 2, 2026 description mid-cycle: the only way to pick it up was a
+  full `--fields all --refresh` run, which takes 1.5-7 hours depending on the
+  CPU cap and would have re-translated all ~5,200 units to fix one. Also
+  surfaced doing this by hand: the machine-translation coverage tracked per
+  unit (source hash + field scope) was silently invalidated for most units by
+  an unrelated title-baseline import back on 2026-08-30, so "unchanged" no
+  longer means what it should across the catalogue - a separate, pre-existing
+  issue that `--units` sidesteps rather than fixes.
+  中文：给 `crawler.translate.run --targets units` 增加了 `--units 课程代码...`
+  参数，可以只针对指定课程重新翻译，不用跑全量。起因是 FIT1008 被 Monash 在
+  学期中重新发布了 2026 年第二学期的课程简介，之前唯一的补救办法是跑一次全量
+  的 `--fields all --refresh`，视 CPU 上限要花 1.5 到 7 小时，为了修一门课要
+  把全部约5200门课重新翻译一遍。排查过程中还发现：8月30日的一次课程名称基线
+  导入把大部分课程的翻译覆盖率追踪标记（源内容哈希+字段范围）不小心覆盖失效
+  了，导致"是否已是最新翻译"这个判断现在对整个课程库都不可靠——这是一个独立
+  的、早就存在的遗留问题，`--units` 只是绕开了它，并没有修复它。
 - Fixed a Handbook parser bug where units publishing their prerequisite and
   prohibition rules under `enrolment_rules` (rather than the structured
   `requisites` block) leaked CMS metadata into the rule text. FIT1055 was the
