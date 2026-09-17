@@ -6,6 +6,24 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Fixed a Handbook parser bug where units publishing their prerequisite and
+  prohibition rules under `enrolment_rules` (rather than the structured
+  `requisites` block) leaked CMS metadata into the rule text. FIT1055 was the
+  reported case: its own unit code, plus raw `cl_id` identifiers and literal
+  labels like `code` and `Enrolment Rule`, were being read as if they were
+  part of the rule prose, which listed FIT1055 as prohibiting itself and
+  broke study plans containing it. The parser now reads only the `description`
+  field of each rule entry, and a defensive check strips any unit from its own
+  requisite/prohibition groups regardless of source. This affects every unit
+  whose rules are published in that shape, not just FIT1055.
+  中文：修复先修图解析器的一个 bug——当课程的先修/互斥规则发布在
+  `enrolment_rules` 字段（而非结构化的 `requisites` 字段）时，解析器会把
+  CMS 元数据一并当作规则正文读入。以 FIT1055 为例：它自己的课程代码、原始
+  `cl_id` 内部标识符，以及“code”“Enrolment Rule”这类字段标签，都被误当作
+  规则文字的一部分，导致 FIT1055 被列为与自己互斥，选课规划里只要放入
+  FIT1055 就会报错。现在解析器只读取每条规则的 `description` 字段，并新增
+  一道防御性检查，无论数据来源如何都会把课程自身从其先修/互斥列表中剔除。
+  这个问题影响所有采用该数据格式发布规则的课程，不只是 FIT1055。
 - Gave the English header search field the space previously wasted by the
   oversized Search button, while preserving the full button label. Intermediate
   desktop widths now tighten their navigation spacing, and narrow tablets use

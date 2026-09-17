@@ -294,13 +294,47 @@ def _group_has_references(group: dict[str, Any]) -> bool:
     )
 
 
+def _drop_self_reference(groups: list[dict[str, Any]], unit_code: str) -> list[dict[str, Any]]:
+    """Strip a unit's own code from its own requisite/prohibition groups.
+
+    A unit can never be its own prerequisite or prohibition. Malformed source
+    data has produced exactly that (FIT1055 listing FIT1055 as a prohibition),
+    so this is a last-resort guard on top of the parsers that should already
+    exclude it - correct in whatever quirky JSON shape the Handbook publishes
+    next.
+    """
+    for group in groups:
+        group["items"] = [
+            item for item in group.get("items") or []
+            if (item.get("item_code") or "").upper() != unit_code
+        ]
+        _drop_self_reference(group.get("groups") or [], unit_code)
+    return groups
+
+
 def _flatten_rule_field(node: Any) -> str:
-    """Flatten one rule-like JSON field, including rich-text span structures."""
+    """Flatten one rule-like JSON field down to its rule prose.
+
+    A rule entry's actual text lives under ``description``; the Handbook ships
+    that alongside sibling metadata - ``academic_item`` (which carries the
+    *current* unit's own code and an internal ``cl_id``), ``type``, and more
+    ``cl_id`` fields - on the same dict. Blindly joining every value in the
+    tree, as this used to, leaks that metadata into the rule text: literal
+    strings like "code" or "info", raw CMS ids, and worst of all the unit's
+    own code re-appearing as if it were a referenced unit, which turned
+    FIT1055's prohibitions into a prohibition against itself. Only
+    ``description`` (and, one level up, ``rules`` lists of these entries) is
+    prose; everything else here is CMS bookkeeping and is dropped.
+    """
     if isinstance(node, str):
         return html_to_text(node) or ""
     if isinstance(node, dict):
-        parts = [_flatten_rule_field(value) for value in node.values()]
-    elif isinstance(node, list):
+        if "description" in node:
+            return _flatten_rule_field(node["description"])
+        if "rules" in node:
+            return _flatten_rule_field(node["rules"])
+        return ""
+    if isinstance(node, list):
         parts = [_flatten_rule_field(value) for value in node]
     else:
         return ""
@@ -436,6 +470,7 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
     assessment_summary = html_to_text(content.get("handbook_assessment_summary"))
     requisite_groups = _parse_requisites(content.get("requisites"))
     requisite_groups += _parse_rule_text_requisites(content, requisite_groups)
+    requisite_groups = _drop_self_reference(requisite_groups, unit_code)
 
     record: dict[str, Any] = {
         "unit_code": unit_code,
