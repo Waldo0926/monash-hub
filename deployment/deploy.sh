@@ -105,11 +105,30 @@ if ! grep -q '"MTH2010"' <<<"$mth2051_tree"; then
 fi
 echo "    MTH2051 prerequisite graph verified"
 
+# FIT1055 is the production regression that exposed the enrolment_rules
+# metadata leak: academic_item/cl_id/type siblings of the rule's description
+# were flattened into rule text, which reintroduced FIT1055's own code as a
+# reference inside its own prohibitions. Repair it synchronously and assert
+# the live API no longer lists the unit as prohibiting itself.
+echo "==> Refreshing and verifying FIT1055 prerequisite data"
+"${COMPOSE[@]}" run --rm crawler \
+  python -m crawler.handbook.run --units FIT1055 --year 2026 --min-interval 1 --fail-on-errors
+fit1055_requisites="$(curl -fsS \
+  "http://127.0.0.1:${api_port}/api/v1/units/FIT1055/requisites")"
+# "unit_code": "FIT1055" always appears in this payload; only a requisite
+# item's own "code" field naming FIT1055 is the self-reference bug.
+if grep -Eq '"code": *"FIT1055"' <<<"$fit1055_requisites"; then
+  echo "error: FIT1055 refresh completed but it still lists itself as a requisite/prohibition" >&2
+  echo "$fit1055_requisites" >&2
+  exit 1
+fi
+echo "    FIT1055 prerequisite graph verified"
+
 # Existing database rows also need the new parser applied globally. The full
 # 2026 pass is rate-limited and therefore runs in the background. The helper is
 # locked, versioned, resumable, and writes its done marker only after a clean
 # discovery/fetch/parse pass.
-requisite_version="20260915-text-requisites-v2"
+requisite_version="20260917-enrolment-rule-metadata-v3"
 requisite_done="/opt/monash-hub/state/handbook-requisites-$requisite_version.done"
 log_dir="/opt/monash-hub/logs"
 mkdir -p "$log_dir"

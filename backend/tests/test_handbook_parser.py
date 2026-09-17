@@ -108,6 +108,29 @@ def test_text_only_enrolment_rule_keeps_every_unit_reference(handbook_html):
     assert {item["item_code"] for item in prohibition[0]["items"]} == {"MTH3051"}
 
 
+def test_enrolment_rule_metadata_does_not_leak_into_rule_text(handbook_html):
+    """FIT1055 publishes its rule under enrolment_rules, wrapped in metadata.
+
+    Each entry there nests the actual prose under ``description`` alongside
+    ``academic_item`` (which restates the *current* unit's own code and an
+    internal ``cl_id``), a ``type`` label/value pair, and another ``cl_id``.
+    A blind flatten of that dict turned "code", "info", "Enrolment Rule" and
+    both hex ids into rule text, and reintroduced FIT1055 as a reference
+    inside its own prohibitions - so the plan checker flagged FIT1055 as
+    conflicting with itself.
+    """
+    unit = _parse(handbook_html, "FIT1055")
+    prohibition = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prohibition"]
+    assert len(prohibition) == 1
+    codes = {item["item_code"] for item in prohibition[0]["items"]}
+    assert codes == {"FIT1049", "FIT2003"}
+    assert "FIT1055" not in codes
+
+    for group in unit["requisite_groups"]:
+        assert "cl_id" not in (group.get("description") or "")
+        assert "Enrolment Rule" not in (group.get("description") or "")
+
+
 def test_two_and_ed_choices_stay_two_choices(handbook_html):
     """FIT1008 needs (FIT1045 or FIT1053) *and* (FIT1058 or MAT1830).
 
