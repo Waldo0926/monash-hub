@@ -92,14 +92,30 @@ def upsert_unit(db: Session, record: dict[str, Any]) -> tuple[Unit, str]:
 
     _replace_children(db, unit, record)
 
-    db.add(
-        UnitVersion(
-            unit_id=unit.id,
-            version_name=record.get("handbook_version"),
-            content_hash=record["content_hash"],
-            raw_payload=_version_payload(record),
+    # A unit's content can revert to a hash last seen several versions ago -
+    # a Handbook edit undone, or a parser fix (like the one that stopped
+    # FIT1055's own code leaking into its prohibitions) making today's output
+    # match what an even older, correct crawl already recorded. Comparing only
+    # against unit.content_hash above catches "unchanged from last time" but
+    # not "changed back to two versions ago", so this insert used to crash on
+    # (unit_id, content_hash) already existing - and with --fail-on-errors,
+    # took the rest of a full-catalogue crawl down with it. The unit and its
+    # children are still refreshed either way; only the redundant history row
+    # is skipped.
+    if db.scalar(
+        select(UnitVersion.id).where(
+            UnitVersion.unit_id == unit.id,
+            UnitVersion.content_hash == record["content_hash"],
         )
-    )
+    ) is None:
+        db.add(
+            UnitVersion(
+                unit_id=unit.id,
+                version_name=record.get("handbook_version"),
+                content_hash=record["content_hash"],
+                raw_payload=_version_payload(record),
+            )
+        )
     db.add(
         SourceChangeEvent(
             target_type="handbook_unit",
