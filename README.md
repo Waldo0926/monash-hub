@@ -22,6 +22,19 @@ Instead of switching between the Handbook, university websites, policy pages and
 
 > Monash Hub is not affiliated with or endorsed by Monash University. For enrolment, visas, assessment and academic-policy decisions, always confirm details through Monash websites, the Handbook, Moodle or WES.
 
+## Technology stack
+
+The current production stack is:
+
+- **Frontend:** Nuxt 4, Vue 3 and TypeScript, rendered with SSR
+- **Backend:** FastAPI and Python
+- **Database and search:** PostgreSQL 17, using `tsvector`, GIN indexes and `pg_trgm` for full-text and fuzzy search
+- **Infrastructure:** Docker Compose, Nginx and HTTPS
+- **Data pipeline:** Python crawlers with hash-based incremental synchronisation and failure-safe persistence
+- **Production:** [monashhub.secureview.tech](https://monashhub.secureview.tech)
+
+The production request path is Nginx → Nuxt SSR for the web interface and Nginx → FastAPI for `/api/*`, with PostgreSQL on a private Docker network. See [architecture](docs/ARCHITECTURE.md) for the current system design.
+
 ## What can you do here?
 
 ### Find unit information
