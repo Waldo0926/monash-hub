@@ -15,6 +15,19 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 
 > Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
 
+## 技术栈
+
+当前生产环境技术栈：
+
+- **前端：** Nuxt 4、Vue 3、TypeScript，采用 SSR 服务端渲染
+- **后端：** FastAPI、Python
+- **数据库与搜索：** PostgreSQL 17，使用 `tsvector`、GIN 索引和 `pg_trgm` 实现全文检索与模糊匹配
+- **基础设施：** Docker Compose、Nginx、HTTPS
+- **数据同步：** Python 爬虫，采用基于内容哈希的增量同步与失败保护机制
+- **生产环境：** [monashhub.secureview.tech](https://monashhub.secureview.tech)
+
+当前生产请求链路为：Nginx → Nuxt SSR 提供网页界面，Nginx → FastAPI 处理 `/api/*` 请求，PostgreSQL 运行在私有 Docker 网络中。完整系统设计见 [架构说明](docs/ARCHITECTURE.md)。
+
 ## 你可以做什么？
 
 ### 查课程信息
