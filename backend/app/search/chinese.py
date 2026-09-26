@@ -34,6 +34,7 @@ import re
 from functools import lru_cache
 
 from app.knowledge import glossary
+from app.search import synonyms
 
 # CJK ideographs, plus the kana and Hangul the other two locales need. A query
 # with any of these cannot be served by the English text search config.
@@ -64,65 +65,136 @@ def has_cjk(text: str | None) -> bool:
 
 
 @lru_cache(maxsize=1)
-def _reverse_index() -> tuple[tuple[str, str], ...]:
-    """Chinese run -> the English term it translates, longest run first.
+def _reverse_index() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """CJK run -> the English it means, longest run first.
 
-    Built from the glossary rather than maintained separately, so a term added
-    for the translator is searchable the same day without anyone remembering to
-    add it here too. Longest first because 学籍统计日 must win over 学籍.
+    Two sources, in order of authority:
+
+    1. ``app/search/synonyms.py`` - the words students type (续签, 挂科, 转专业)
+       mapped to the words Monash writes. Nobody translating a policy page ever
+       needed these, so the glossary cannot know them.
+    2. The glossary, read backwards - so a term added for the translator is
+       searchable the same day without anyone remembering to add it here too.
+       Japanese and Korean come from here as well: the glossary carries all
+       three locales and the reverse lookup does not care which one it is.
+
+    Longest first because 学籍统计日 must win over 学籍.
     """
-    pairs: dict[str, str] = {}
+    pairs: dict[str, list[str]] = {}
+
+    def add(run: str, english: str) -> None:
+        alternatives = pairs.setdefault(run, [])
+        if english not in alternatives:
+            alternatives.append(english)
+
+    for run, alternatives in synonyms.ZH_TERMS.items():
+        for english in alternatives:
+            add(run, english)
+
+    glossary_pairs: dict[str, str] = {}
     for source, translations in ((*glossary.TERMS.items(), *glossary.ENUMS.items())):
-        chinese = translations.get("zh")
-        if not chinese:
-            continue
-        for run in CJK_RUN.findall(chinese):
-            if len(run) < MIN_RUN:
+        for locale in ("zh", "ja", "ko"):
+            written = translations.get(locale)
+            if not written:
                 continue
-            # First writer wins: TERMS is iterated before ENUMS, and a term is
-            # the more specific of the two.
-            pairs.setdefault(run, source)
-    return tuple(sorted(pairs.items(), key=lambda kv: -len(kv[0])))
+            for run in CJK_RUN.findall(written):
+                if len(run) < MIN_RUN:
+                    continue
+                # First writer wins: TERMS is iterated before ENUMS, and a term
+                # is the more specific of the two.
+                glossary_pairs.setdefault(run, source)
+    for run, english in glossary_pairs.items():
+        # A curated search synonym is the better authority for a word it
+        # covers. The glossary maps 退课 to "discontinue" because that is how
+        # one Handbook sentence used it; a student typing 退课 means withdraw.
+        if run not in synonyms.ZH_TERMS:
+            add(run, english)
+
+    return tuple(
+        (run, tuple(alternatives))
+        for run, alternatives in sorted(pairs.items(), key=lambda kv: -len(kv[0]))
+    )
 
 
-def expand(term: str) -> list[str]:
-    """English terms implied by the Chinese in ``term``.
+def concept_runs(term: str) -> list[tuple[str, tuple[str, ...]]]:
+    """Each CJK run the query uses, with the English alternatives it means.
 
-    Only whole glossary runs count, and a run already covered by a longer match
-    is skipped - otherwise 学籍统计日 expands to both "census date" and whatever
-    shorter fragment sits inside it, and the shorter one drags in every page
-    that mentions enrolment.
+    Runs never overlap, and the longest wins: 学籍统计日 is one concept, not
+    学籍统计日 plus a shorter fragment that drags in every page about enrolment.
     """
     if not has_cjk(term):
         return []
-    found: list[str] = []
-    consumed: list[tuple[int, int]] = []
-    for run, english in _reverse_index():
+    found: list[tuple[str, tuple[str, ...]]] = []
+    taken = [False] * len(term)
+    for run, alternatives in _reverse_index():
         start = term.find(run)
+        while start >= 0 and any(taken[start:start + len(run)]):
+            start = term.find(run, start + 1)
         if start < 0:
             continue
-        end = start + len(run)
-        if any(s <= start and end <= e for s, e in consumed):
-            continue
-        consumed.append((start, end))
-        if english not in found:
-            found.append(english)
+        for index in range(start, start + len(run)):
+            taken[index] = True
+        if all(alternatives != seen for _, seen in found):
+            found.append((run, alternatives))
         if len(found) >= MAX_EXPANSIONS:
             break
     return found
 
 
-def expanded_query(term: str) -> str:
-    """The query as the English text search should see it.
+def concepts(term: str) -> list[tuple[str, ...]]:
+    """The distinct things a CJK query asks about, each as its English alternatives.
 
-    Joined with ``or``, which is the whole trick. ``websearch_to_tsquery`` ANDs
-    bare words, so "休学 intermission" asks for a document containing both - and
-    no English page contains 休学, so the expansion made the query match *less*
-    rather than more. Searching 休学 returned nothing for exactly that reason.
+    学生签证续签 is two concepts - student visa, and renewing one - and a page
+    has to be about both to answer it. Returning them separately is what lets
+    the search AND the concepts and OR the alternatives inside each: before,
+    every expansion was ORed together, so 签证 alone matched and the question
+    about renewing a visa was answered with a sentence that mentioned visas.
+    """
+    return [alternatives for _, alternatives in concept_runs(term)]
+
+
+def chinese_for(term: str) -> list[str]:
+    """Chinese words an English query means, from the search synonym table.
+
+    The other direction from :func:`expand`, and deliberately narrower: only a
+    whole English alternative matching the whole query counts. It exists for
+    the one kind of content that is written in Chinese to begin with - student
+    posts - so that "withdraw" also finds a post titled 退课.
+    """
+    wanted = " ".join((term or "").lower().split())
+    if not wanted or has_cjk(wanted):
+        return []
+    return [run for run, alternatives in synonyms.ZH_TERMS.items() if wanted in alternatives]
+
+
+def expand(term: str) -> list[str]:
+    """Every English term implied by the CJK in ``term``, flattened."""
+    flat: list[str] = []
+    for alternatives in concepts(term):
+        for english in alternatives:
+            if english not in flat:
+                flat.append(english)
+    return flat
+
+
+LATIN_WORD = re.compile(r"[A-Za-z][A-Za-z0-9+#.-]*")
+
+
+def latin_part(term: str) -> str:
+    """The Latin-script words in a mixed query - "SC" in 怎么申请 SC."""
+    return " ".join(LATIN_WORD.findall(term or ""))
+
+
+def expanded_query(term: str) -> str:
+    """The query as one ``websearch_to_tsquery`` string, every expansion ORed.
+
+    This is the loose form: it finds a page that mentions any one concept.
+    ``app/search/service.py`` builds the strict form - every concept present -
+    out of :func:`concepts` and falls back to this one only when the strict
+    form finds nothing.
 
     The Chinese is left in rather than stripped: a query that is only Chinese
     would otherwise become empty, and an empty tsquery matches everything.
-
     An English query expands to nothing and comes back untouched, so English
     search keeps its AND semantics exactly as before.
     """

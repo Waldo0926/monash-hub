@@ -115,9 +115,13 @@ class OfficialPage(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(title, '') || ' ' || "
-            "coalesce(summary, '') || ' ' || coalesce(category, '') || ' ' || "
-            "coalesce(clean_text, ''))",
+            # Weighted, so a page *about* a word outranks one that mentions it:
+            # title A, summary B, category C, body D. See HEADLINE_WEIGHTS in
+            # app/search/service.py for the query that relies on this.
+            "setweight(to_tsvector('english', coalesce(title, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(summary, '')), 'B') || "
+            "setweight(to_tsvector('english', coalesce(category, '')), 'C') || "
+            "setweight(to_tsvector('english', coalesce(clean_text, '')), 'D')",
             persisted=True,
         ),
     )
@@ -174,7 +178,8 @@ class FaqEntry(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(question, '') || ' ' || coalesce(answer, ''))",
+            "setweight(to_tsvector('english', coalesce(question, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(answer, '')), 'D')",
             persisted=True,
         ),
     )

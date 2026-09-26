@@ -93,9 +93,12 @@ class Unit(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(unit_code, '') || ' ' || "
-            "coalesce(title, '') || ' ' || coalesce(overview, '') || ' ' || "
-            "coalesce(areas_of_study, ''))",
+            # Code and title A, areas of study B, overview D: "algorithms"
+            # should put units called that above units whose prose uses it.
+            "setweight(to_tsvector('english', coalesce(unit_code, '') || ' ' || "
+            "coalesce(title, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(areas_of_study, '')), 'B') || "
+            "setweight(to_tsvector('english', coalesce(overview, '')), 'D')",
             persisted=True,
         ),
     )

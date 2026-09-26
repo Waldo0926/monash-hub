@@ -12,6 +12,13 @@ from app.search.keywords import classify_intent, extract_unit_codes, is_subjecti
         ("what are the prerequisites for fit 2102", ["FIT2102"]),
         ("compare FIT2102 and BFF2140", ["FIT2102", "BFF2140"]),
         ("how do I apply for special consideration", []),
+        # No space between the code and the question, as Chinese is typed.
+        ("FIT2102有考试吗", ["FIT2102"]),
+        ("问一下FIT2102的先修课", ["FIT2102"]),
+        ("FIT2102에 기말시험이 있나요?", ["FIT2102"]),
+        ("FIT2102に試験はありますか", ["FIT2102"]),
+        ("ABCDE2102", []),
+        ("FIT21023", []),
     ],
 )
 def test_extract_unit_codes(query, expected):
