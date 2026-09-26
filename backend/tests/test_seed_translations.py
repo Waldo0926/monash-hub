@@ -47,3 +47,22 @@ def test_an_existing_translation_pass_keeps_its_coverage_tracking():
     assert row.note == "fields=all"
     assert row.source_hash == "fit1099-hash"
     assert row.translator == "machine:argos+glossary"
+
+
+def test_no_two_seeds_write_the_same_row():
+    """Two seeds for one row used to overwrite each other on every deploy: the
+    GPA page kept 55 of its 117 hand-translated sentences."""
+    from collections import Counter
+
+    from app.knowledge.translations_seed import GPA_PAGE, GUIDE_BODIES, TRANSLATION_SEEDS
+
+    keys = Counter(
+        (s.locale, s.target_type, s.target_key, s.field) for s in TRANSLATION_SEEDS
+    )
+    assert [k for k, n in keys.items() if n > 1] == []
+
+    gpa = next(
+        s for s in TRANSLATION_SEEDS
+        if s.target_key == "gpa" and s.field == "body"
+    )
+    assert set(GPA_PAGE) | set(GUIDE_BODIES["gpa"]) == set(gpa.strings)

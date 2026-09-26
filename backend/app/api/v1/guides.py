@@ -60,11 +60,20 @@ def get_guide(
         select(FaqEntry).where(FaqEntry.official_page_id == page.id).limit(5)
     ).all()
     if not related_faq:
-        related_faq = service.search_faq(db, page.title, limit=3)
+        # No FAQ cites this page, so offer the ones on the same topic: any whose
+        # curated vocabulary shares a tag with the page. A page title is not a
+        # question, and feeding it to the FAQ matcher as one finds nothing.
+        page_tags = {tag.lower() for tag in page.tags or []}
+        related_faq = [
+            entry
+            for entry in db.scalars(select(FaqEntry).order_by(FaqEntry.priority.desc()))
+            if page_tags & {word.lower() for word in (*entry.tags, *entry.keywords)}
+        ][:3]
     posts, _ = service.search_community(db, page.title, limit=4)
 
     tr = translations.load(db, locale, OFFICIAL_PAGE, page.slug, source_hash=page.content_hash)
-    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in related_faq])
+    faq_tr = translations.load_many(
+        db, locale, FAQ_ENTRY, [f.slug for f in related_faq], global_key=None)
     return {
         **official_detail(page, tr),
         "related_faq": [faq_brief(f, faq_tr[f.slug]) for f in related_faq],
@@ -82,5 +91,5 @@ def list_faq(
     db: Session = Depends(get_db),
 ) -> dict:
     entries = service.search_faq(db, q, limit=limit)
-    tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in entries])
+    tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in entries], global_key=None)
     return {"total": len(entries), "results": [faq_brief(f, tr[f.slug]) for f in entries]}

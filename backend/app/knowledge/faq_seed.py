@@ -12,6 +12,17 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class FaqSeed:
+    """One curated answer.
+
+    ``keywords`` and ``tags`` do different jobs - see app/search/faq_match.py.
+
+    * ``keywords`` *trigger* the entry. Each one must be specific to this entry
+      alone: 退课 is, 签证 is not. A generic word here is how a question about
+      renewing a visa got answered with the work-hours entry.
+    * ``tags`` are topic words the question may also use. They never start a
+      match; they only stop a question that uses them from being treated as
+      asking about something this entry does not cover.
+    """
     slug: str
     question: str
     answer: str
@@ -33,8 +44,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "coursework are handled separately by your unit's teaching team. Check the official "
         "page for the current deadline and the exact evidence required before you apply.",
         "assessment",
-        ("special consideration", "sc", "extension"),
-        ("sc", "special consideration", "特殊考虑", "延期", "extension"),
+        ("assessment", "assignment", "apply", "deadline", "due date", "form", "申请",
+         "作业", "截止", "考核", "medical", "illness", "missed", "miss", "online"),
+        ("sc", "special consideration", "特殊考虑", "extension", "extensions",
+         "申请延期", "作业延期", "延期交", "晚交", "sick", "病假", "生病"),
         "special-consideration",
         priority=100,
     ),
@@ -46,10 +59,31 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "statements and undated letters are generally not accepted. The official page lists "
         "which document type applies to which circumstance.",
         "assessment",
-        ("special consideration", "documents"),
-        ("documents", "medical certificate", "证明", "医生证明"),
+        ("special consideration", "sc", "特殊考虑", "need", "required", "evidence",
+         "需要", "提交", "申请"),
+        ("documents", "document", "supporting documents", "medical certificate",
+         "health professional report", "证明", "证明材料", "材料", "医生证明", "病假条"),
         "supporting-documents",
         priority=70,
+    ),
+    FaqSeed(
+        "defer-a-final-assessment",
+        "Can I defer my final exam?",
+        "You ask to defer a final assessment through special consideration - there is no "
+        "separate form. If it is approved, you sit the assessment later, in the deferred "
+        "assessment period. The official page explains when a deferral applies, how "
+        "rescheduling works and when the deferred period runs; check it before you apply.",
+        "assessment",
+        ("special consideration", "sc", "特殊考虑", "final", "exam", "assessment", "期末",
+         "考试", "申请", "can", "my", "miss", "missed", "sick", "ill", "illness",
+         "病", "生病", "病假", "去", "参加"),
+        ("deferred exam", "deferred exams", "deferred assessment", "defer exam",
+         "defer my exam", "defer a final", "defer my final", "defer final",
+         "deferral", "missed my exam", "missed the exam", "missed exam",
+         "missed my final", "延期考试", "缓考", "推迟考试", "考试延期", "没去考试",
+         "错过考试", "缺考"),
+        "defer-final-assessment",
+        priority=60,
     ),
     FaqSeed(
         "what-is-wam",
@@ -59,8 +93,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "grades, so it is more precise than GPA. Monash publishes the exact formula and which "
         "units are excluded on the official WAM page.",
         "assessment",
-        ("wam", "results"),
-        ("wam", "average", "均分", "加权"),
+        ("results", "average", "calculate", "calculation", "formula", "mark", "marks",
+         "怎么算", "计算", "算", "公式", "平均分"),
+        ("wam", "weighted average mark", "weighted average", "均分", "加权平均",
+         "加权平均分"),
         "wam",
         priority=90,
     ),
@@ -71,8 +107,8 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "and N is 0. Monash uses GPA for some scholarship and admission decisions and WAM for "
         "others, so check which one a specific application asks for.",
         "assessment",
-        ("gpa", "results"),
-        ("gpa", "绩点", "grade point average"),
+        ("results", "calculate", "calculation", "scale", "怎么算", "计算", "算"),
+        ("gpa", "绩点", "平均绩点", "grade point average"),
         "gpa",
         priority=80,
     ),
@@ -84,8 +120,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "withdrawal is recorded. Census dates differ by teaching period, so check the date for "
         "your specific unit rather than assuming one date covers the semester.",
         "enrolment",
-        ("census", "withdraw", "fees"),
-        ("census", "census date", "退课截止", "截止日"),
+        ("withdraw", "fees", "deadline", "date", "dates", "important", "matter",
+         "截止", "截止日", "日期", "学费", "重要", "为什么", "退课"),
+        ("census", "census date", "census dates", "学籍统计日", "退课截止",
+         "退课截止日", "退课截止日期", "退课的截止日期"),
         "census-dates-explained",
         priority=85,
     ),
@@ -97,8 +135,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "withdrawal. If you are on a student visa, dropping below full-time load can affect "
         "your visa, so check with an adviser first.",
         "enrolment",
-        ("withdraw", "enrolment", "units"),
-        ("withdraw", "drop", "退课", "退选"),
+        ("enrolment", "unit", "units", "subject", "course", "wes", "课", "一门课",
+         "课程", "网上"),
+        ("withdraw", "withdrawal", "drop", "discontinue a unit", "退课", "退选",
+         "退掉"),
         "add-or-withdraw-units",
         priority=75,
     ),
@@ -113,8 +153,12 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "the current Department of Home Affairs conditions - always confirm the number there "
         "before relying on it.",
         "international",
-        ("visa", "work"),
-        ("visa", "work", "打工", "工作时长", "签证"),
+        ("visa", "student visa", "签证", "学生签证", "hours", "hour", "week",
+         "fortnight", "australia", "australian", "小时", "每周", "一周", "两周",
+         "澳洲", "澳大利亚", "多少", "能", "可以", "limit", "cap", "job",
+         "international", "国际学生", "留学生"),
+        ("work", "working", "work hours", "work rights", "part-time work",
+         "打工", "兼职", "工作时长", "打工时长"),
         "working-on-a-student-visa",
         priority=70,
     ),
@@ -128,8 +172,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "including if you take intermission or reduce your load. Request it before your current "
         "CoE expires.",
         "international",
-        ("coe", "visa"),
-        ("coe", "confirmation of enrolment", "入学确认"),
+        ("visa", "签证", "new", "need", "when", "change", "新", "换", "需要",
+         "什么时候", "australia", "澳洲"),
+        ("coe", "confirmation of enrolment", "confirmation of enrollment", "入学确认",
+         "入学确认书"),
         "confirmation-of-enrolment",
         priority=60,
     ),
@@ -141,8 +187,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "student visa need to check the visa consequences before applying, because intermission "
         "changes your CoE.",
         "enrolment",
-        ("intermission", "leave"),
-        ("intermission", "休学", "gap", "leave of absence"),
+        ("leave", "semester", "take", "off", "break", "study", "apply", "学期",
+         "一个学期", "申请", "请假"),
+        ("intermission", "休学", "停学", "gap year", "leave of absence",
+         "semester off", "break from study", "break from studies", "study break"),
         "intermission",
         priority=55,
     ),
@@ -153,8 +201,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "calendar, and appear in WES. A grade can be withheld if there is an outstanding matter "
         "such as unpaid fees or an academic integrity process.",
         "assessment",
-        ("results", "dates"),
-        ("results", "成绩", "出分", "什么时候出成绩"),
+        ("dates", "date", "when", "come out", "release", "released", "wes",
+         "什么时候", "公布", "发布", "出来", "查", "日期"),
+        ("results", "result", "grades", "成绩", "出分", "出成绩", "成绩发布",
+         "什么时候出成绩"),
         "results",
         priority=65,
     ),
@@ -165,8 +215,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "an unofficial statement of marks in WES for free; a certified transcript is a separate "
         "paid request with its own processing time.",
         "enrolment",
-        ("transcript", "records"),
-        ("transcript", "成绩单", "academic record"),
+        ("records", "official", "get", "order", "request", "copy", "certified",
+         "正式", "开", "申请", "打印", "办", "官方"),
+        ("transcript", "transcripts", "成绩单", "academic record", "academic records",
+         "academic transcript", "statement of marks"),
         "academic-transcripts",
         priority=40,
     ),
@@ -178,8 +230,10 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "Applications open well before the semester you want to travel in, so check the round "
         "dates early.",
         "exchange",
-        ("exchange", "abroad"),
-        ("exchange", "交换", "abroad", "海外交换"),
+        ("go", "eligible", "eligibility", "requirement", "requirements", "apply",
+         "条件", "要求", "申请", "去", "出国"),
+        ("exchange", "study abroad", "abroad", "monash abroad", "交换", "海外交换",
+         "出国交换", "交换生"),
         "study-abroad",
         priority=50,
     ),

@@ -121,6 +121,7 @@ useSeoMeta({
                 <CampusNotice :applies-to="faq.applies_to" compact />
               </div>
               <h3>{{ faq.question }}</h3>
+              <TranslationNotice v-if="faq.translation" :translation="faq.translation" :source-url="faq.official_url" />
               <p class="small">{{ faq.answer }}</p>
               <a
                 v-if="faq.official_url"
