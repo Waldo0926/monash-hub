@@ -9,7 +9,12 @@ from __future__ import annotations
 
 import re
 
-UNIT_CODE_RE = re.compile(r"\b([A-Z]{3,4})\s?-?\s?(\d{4})\b", re.IGNORECASE)
+# ASCII-only lookarounds instead of ``\b``: Python counts CJK characters as word
+# characters, so "FIT2004有期末考试吗" has no word boundary after the digits and
+# a ``\b`` pattern silently finds no unit at all. Explicit ranges instead of
+# ``\d`` and IGNORECASE keep full-width digits and look-alike letters out of the
+# code we hand to the database.
+UNIT_CODE_RE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]{3,4})\s?-?\s?([0-9]{4})(?![0-9])")
 
 INTENT_KEYWORDS: dict[str, tuple[str, ...]] = {
     "assessment": (

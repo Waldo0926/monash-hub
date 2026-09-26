@@ -12,6 +12,14 @@ from app.search.keywords import classify_intent, extract_unit_codes, is_subjecti
         ("what are the prerequisites for fit 2102", ["FIT2102"]),
         ("compare FIT2102 and BFF2140", ["FIT2102", "BFF2140"]),
         ("how do I apply for special consideration", []),
+        # Python's \b counts CJK as word characters, so these used to find nothing.
+        ("FIT2004有期末考试吗？", ["FIT2004"]),
+        ("请问FIT2004有期末考试吗", ["FIT2004"]),
+        ("FIT2004和FIT2014哪个难", ["FIT2004", "FIT2014"]),
+        ("fit 2102", ["FIT2102"]),
+        ("FIT-2102", ["FIT2102"]),
+        ("FIT12345678", []),
+        ("学号12345678", []),
     ],
 )
 def test_extract_unit_codes(query, expected):
