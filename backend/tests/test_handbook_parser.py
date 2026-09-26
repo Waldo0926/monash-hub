@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 from app.handbook.parser import (
     ParseError,
+    _unit_codes,
     compute_content_hash,
     derive_has_exam,
     html_to_text,
@@ -199,3 +200,17 @@ def test_html_to_text_flattens_lists_and_entities():
     assert "First line" in text
     assert "• one" in text and "• two" in text
     assert "<" not in text
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Prerequisite: FIT1045 or FIT1053", ["FIT1045", "FIT1053"]),
+        ("先修FIT1045和FIT1053", ["FIT1045", "FIT1053"]),
+        ("CHI1010汉字入门", ["CHI1010"]),
+        ("FIT1045A or 12FIT1045", []),
+        ("ABC12345678", []),
+    ],
+)
+def test_unit_codes_ignore_cjk_neighbours(text, expected):
+    assert _unit_codes(text) == expected
