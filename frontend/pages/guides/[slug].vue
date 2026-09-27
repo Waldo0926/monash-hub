@@ -18,7 +18,11 @@ const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides
 
 useSeoMeta({
   title: () => (guide.value ? `${guide.value.title} — Monash Hub` : 'Guide — Monash Hub'),
-  description: () => guide.value?.summary || ''
+  // A guide with no summary still gets a sentence of its own: an empty
+  // description would override the site's default and leave a preview blank.
+  description: () =>
+    guide.value?.summary ||
+    (guide.value ? `${guide.value.title}: the official Monash guide, with its source link and when it was last checked.` : undefined)
 })
 useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guides/${slug.value}` }] }))
 </script>

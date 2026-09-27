@@ -47,6 +47,12 @@ function isOpen(id: number, depth: number) {
 }
 
 useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : code.value }))
+useSeoMeta({
+  description: () =>
+    course.value
+      ? `${code.value} ${course.value.title}: structure, requirements and the units in it, from the ${course.value.academic_year} Monash Handbook.`
+      : undefined
+})
 </script>
 
 <template>
