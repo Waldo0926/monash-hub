@@ -551,3 +551,14 @@ def test_an_alert_without_an_address_is_only_logged(monkeypatch):
     monkeypatch.setattr(notify, "get_settings",
                         lambda: type("S", (), {"alert_email": None})())
     assert notify.notify("s", "b") is False and sent == []
+
+
+def test_an_alert_goes_to_every_listed_address(monkeypatch):
+    from app.core import notify
+
+    sent = []
+    monkeypatch.setattr(notify.Emailer, "send", lambda self, message: sent.append(message.to))
+    monkeypatch.setattr(notify, "get_settings", lambda: type(
+        "S", (), {"alert_email": " a@example.com, b@example.com ,"})())
+    assert notify.notify("s", "b") is True
+    assert sent == ["a@example.com", "b@example.com"]
