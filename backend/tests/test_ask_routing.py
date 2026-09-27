@@ -21,6 +21,7 @@ from app.models.curriculum import Course
 from app.models.knowledge import FaqEntry
 from app.models.translation import HUMAN, PUBLISHED, ContentTranslation
 from app.models.user import User
+
 from crawler.official.seeds import SEEDS
 
 
