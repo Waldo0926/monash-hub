@@ -170,6 +170,8 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
         "slug": entry.slug,
         "question": tr.field("question", entry.question),
         "answer": tr.field("answer", entry.answer),
+        # Labelled like every other translated source - see TranslationNotice.
+        "translation": tr.meta(),
         "category": entry.category,
         "tags": list(entry.tags or []),
         "official_url": entry.official_url

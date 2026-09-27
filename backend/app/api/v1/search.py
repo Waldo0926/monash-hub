@@ -45,7 +45,7 @@ def unified_search(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],
         source_hashes={p.slug: p.content_hash for p in pages},
     )
-    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in faqs])
+    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in faqs], global_key=None)
 
     return {
         "query": q,

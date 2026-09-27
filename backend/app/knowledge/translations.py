@@ -26,7 +26,7 @@ class Translation:
     """Everything stored for one target in one language, ready to apply."""
 
     __slots__ = (
-        "fields", "human_strings", "locale", "machine", "reviewed",
+        "fields", "human_fields", "human_strings", "locale", "machine", "reviewed",
         "source_hash", "stale", "strings",
     )
 
@@ -38,6 +38,12 @@ class Translation:
         # of a whole field would otherwise hide a hand-written paragraph
         # inside it - see ``field``.
         self.human_strings: set[str] = set()
+        # Whole fields a person wrote. A guide's title is one: 退出所修课程
+        # for "Discontinue your course". The same English sentence also sits in
+        # the body's string map, translated there as 退课 - "drop a unit",
+        # which is a different and much smaller thing - and the paragraph rule
+        # below let that win over the title somebody had written on purpose.
+        self.human_fields: set[str] = set()
         self.source_hash: str | None = None
         # True when the source has changed since the translation was written.
         self.stale = False
@@ -60,6 +66,8 @@ class Translation:
         """
         if source is None:
             return None
+        if name in self.human_fields:
+            return self.fields[name]
 
         paragraphs = source.split("\n\n")
         # A hand-written paragraph beats a machine translation of the whole
@@ -204,6 +212,11 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
         translation.reviewed = True
     if row.text is not None:
         translation.fields[row.field] = row.text
+        if row.provenance == HUMAN:
+            translation.human_fields.add(row.field)
+        else:
+            # A machine row never carries a person's precedence.
+            translation.human_fields.discard(row.field)
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
             translation.strings[source.strip()] = translated

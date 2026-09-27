@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import and_, case, func, literal, or_, select, text
+from sqlalchemy import and_, case, func, literal, literal_column, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
@@ -23,12 +23,24 @@ from app.models.translation import (
     ContentTranslation,
 )
 from app.models.translation import (
+    FAQ_ENTRY as FAQ_ENTRY_TRANSLATION,
+)
+from app.models.translation import (
     OFFICIAL_PAGE as OFFICIAL_PAGE_TRANSLATION,
 )
 from app.models.translation import (
     UNIT as UNIT_TRANSLATION,
 )
-from app.search.chinese import expanded_query, has_cjk
+from app.search import faq_match
+from app.search.chinese import (
+    chinese_for,
+    concept_runs,
+    concepts,
+    expand,
+    expanded_query,
+    has_cjk,
+    latin_part,
+)
 from app.search.keywords import extract_unit_codes
 
 
@@ -49,15 +61,52 @@ def _is_code_fragment(term: str) -> bool:
     return term.isalnum() and term.isascii() and 2 <= len(term) <= 8
 
 
-def _ts_query(term: str):
-    """``websearch_to_tsquery`` handles quotes and OR without us sanitising input.
+def _websearch(text_: str):
+    return func.websearch_to_tsquery("english", text_)
 
-    The term is expanded through the glossary first, so a Chinese query carries
-    the English terms it means. 学籍统计日 contributes nothing to an English
-    tsvector on its own; alongside "census date" it finds the page even where
-    nobody has translated that page's body yet.
+
+def _any_of(alternatives) -> Any:
+    query = None
+    for alternative in alternatives:
+        part = _websearch(alternative)
+        query = part if query is None else query.op("||")(part)
+    return query
+
+
+def _ts_query(term: str, *, strict: bool = True):
+    """The English text-search query for ``term``.
+
+    ``websearch_to_tsquery`` handles quotes and OR without us sanitising input.
+
+    A CJK query is expanded through ``app/search/chinese.py`` into the concepts
+    it names, each with its English alternatives. Strict - the default - wants
+    every concept on the page: 学生签证续签 is (student visa) AND (renew OR
+    extend OR ...). Loose wants any one of them, which is what the query used
+    to be, and it found a page about visas for a question about renewing one.
+    Callers fall back to loose only when strict finds nothing, so a question
+    phrased in words no page uses still gets somewhere.
+
+    The raw term is always ORed in as well: a Chinese-only query contributes
+    nothing to an English tsvector, but an English one is left exactly as it
+    was.
     """
-    return func.websearch_to_tsquery("english", expanded_query(term))
+    groups = concepts(term)
+    if not groups:
+        return _websearch(expanded_query(term))
+    latin = latin_part(term)
+    parts = [_any_of(alternatives) for alternatives in groups]
+    if latin:
+        parts.append(_websearch(latin))
+    combined = parts[0]
+    for part in parts[1:]:
+        combined = combined.op("&&" if strict else "||")(part)
+    return _websearch(term).op("||")(combined)
+
+
+def _is_multi_concept(term: str) -> bool:
+    """Whether strict and loose can give different answers for ``term``."""
+    groups = concepts(term)
+    return len(groups) + (1 if groups and latin_part(term) else 0) > 1
 
 
 # Chinese has no word boundaries, so a student typing 学籍统计 is typing a
@@ -67,15 +116,28 @@ def _ts_query(term: str):
 ZH_SIMILARITY = 0.3
 
 
+def _like(term: str) -> str:
+    """``term`` with LIKE's wildcards escaped, so "100%" is not "100 then anything"."""
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _contains(column, term: str):
+    return column.ilike(f"%{_like(term)}%", escape="\\")
+
+
+def _starts(column, term: str):
+    return column.ilike(f"{_like(term)}%", escape="\\")
+
+
 def _zh_match(column, term: str):
     """Match a Chinese query against a column holding translated text."""
     return or_(
-        column.ilike(f"%{term}%"),
+        _contains(column, term),
         func.similarity(column, term) > ZH_SIMILARITY,
     )
 
 
-def _array_contained_in_query(column: str, term: str):
+def _array_contained_in_query(column: str, term: str, alternatives: tuple[str, ...] = ()):
     """True when any tag/keyword in ``column`` appears inside the query text.
 
     The usual direction - does the query match the text - fails for a bilingual
@@ -84,11 +146,16 @@ def _array_contained_in_query(column: str, term: str):
     other way round - "does the query contain one of this row's curated
     keywords" - handles both languages without a second text-search config.
 
+    ``alternatives`` are the English phrases a CJK query expands to. A tag
+    has to *be* one of them, not sit inside one: 续签 expands to "visa
+    extension", and the special consideration page's tag "extension" is not
+    what a student renewing a visa is looking for.
+
     Keyword and tag values are curated in the repository, never user input, so
     they are safe to use as a regex pattern here.
     """
     return text(
-        f"EXISTS (SELECT 1 FROM unnest({column}) AS kw WHERE kw <> '' AND CASE "
+        f"EXISTS (SELECT 1 FROM unnest({column}) AS kw WHERE kw <> '' AND (CASE "
         # Latin keywords need a word boundary: without it the curated keyword
         # "sc" fires on "scooter" and every stray question lands on the special
         # consideration page.
@@ -96,11 +163,26 @@ def _array_contained_in_query(column: str, term: str):
         "THEN :kw_query ~* ('(^|[^[:alnum:]])' || kw || '([^[:alnum:]]|$)') "
         # CJK has no word boundaries to anchor to, so substring is the only
         # sensible test - and Chinese keywords are long enough not to collide.
-        "ELSE :kw_query ILIKE '%%' || kw || '%%' END)"
-    ).bindparams(kw_query=term)
+        "ELSE :kw_query ILIKE '%%' || kw || '%%' END "
+        "OR lower(kw) = ANY(CAST(:kw_alternatives AS text[]))))"
+    ).bindparams(kw_query=term, kw_alternatives=[a.lower() for a in alternatives])
 
 
-def search_units(
+def search_units(db: Session, query: str, *, year: int, **kwargs) -> tuple[list[Unit], int]:
+    """Units matching ``query``, most relevant first.
+
+    A query naming several concepts is first asked for units about all of them.
+    Only when none are is it asked again for units about any: 延期考试 used to
+    list 1,247 units - every one that mentions an exam - because the loose
+    query was the only one there was.
+    """
+    found = _search_units(db, query, year=year, **kwargs)
+    if found[1] == 0 and _is_multi_concept((query or "").strip()):
+        return _search_units(db, query, year=year, strict=False, **kwargs)
+    return found
+
+
+def _search_units(
     db: Session,
     query: str,
     *,
@@ -113,6 +195,7 @@ def search_units(
     prefix: str | None = None,
     has_exam: bool | None = None,
     sort: str = "relevance",
+    strict: bool = True,
 ) -> tuple[list[Unit], int]:
     stmt = select(Unit).where(Unit.academic_year == year, Unit.is_active.is_(True))
     count_stmt = select(func.count(Unit.id)).where(
@@ -131,18 +214,18 @@ def search_units(
         if codes:
             matches = [
                 Unit.unit_code.in_(codes),
-                Unit.search_vector.op("@@")(_ts_query(term)),
+                Unit.search_vector.op("@@")(_ts_query(term, strict=strict)),
             ]
         else:
             matches = [
-                Unit.unit_code.ilike(f"{term}%"),
-                *( [Unit.unit_code.ilike(f"%{term}%")] if _is_code_fragment(term) else [] ),
-                Unit.search_vector.op("@@")(_ts_query(term)),
+                _starts(Unit.unit_code, term),
+                *([_contains(Unit.unit_code, term)] if _is_code_fragment(term) else []),
+                Unit.search_vector.op("@@")(_ts_query(term, strict=strict)),
                 func.similarity(Unit.title, term) > 0.25,
             ]
         if translated_title is not None:
             matches.extend(
-                [translated_title.ilike(f"%{term}%"), _zh_match(Unit.search_zh, term)]
+                [_contains(translated_title, term), _zh_match(Unit.search_zh, term)]
             )
         match = or_(*matches)
         stmt = stmt.where(match)
@@ -185,9 +268,9 @@ def search_units(
         # A code carrying the fragment beats a title that merely resembles it:
         # searching "5215" should put FIT5215 above anything with a 5215 in its
         # prose.
-        in_code = case((Unit.unit_code.ilike(f"%{term}%"), 1), else_=0) \
+        in_code = case((_contains(Unit.unit_code, term), 1), else_=0) \
             if _is_code_fragment(term) else literal(0)
-        rank = func.ts_rank(Unit.search_vector, _ts_query(term))
+        rank = func.ts_rank(Unit.search_vector, _ts_query(term, strict=strict))
         # A Chinese query gets little or nothing from ts_rank even after the
         # glossary expansion, so the Chinese text is what orders those results.
         zh_rank = (
@@ -200,7 +283,7 @@ def search_units(
             else literal(0)
         )
         translated_title_contains = (
-            case((translated_title.ilike(f"%{term}%"), 1), else_=0)
+            case((_contains(translated_title, term), 1), else_=0)
             if translated_title is not None
             else literal(0)
         )
@@ -283,12 +366,20 @@ def search_courses(
 
     if term:
         matches = [
-            Course.course_code.ilike(f"{term}%"),
-            Course.title.ilike(f"%{term}%"),
-            Course.abbreviated_name.ilike(f"{term}%"),
+            _starts(Course.course_code, term),
+            _contains(Course.title, term),
+            _starts(Course.abbreviated_name, term),
         ]
         if translated_title is not None:
-            matches.append(translated_title.ilike(f"%{term}%"))
+            matches.append(_contains(translated_title, term))
+        # 商科学士 is "bachelor" and "commerce or business". Degree titles are
+        # short and English, so every concept has to appear in the title.
+        groups = concepts(term)
+        if groups:
+            matches.append(and_(*(
+                or_(*(_contains(Course.title, alternative) for alternative in alternatives))
+                for alternatives in groups
+            )))
         match = or_(*matches)
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
@@ -320,7 +411,38 @@ def search_courses(
 
 
 def search_official(
-    db: Session, query: str, *, limit: int = 10, offset: int = 0, category: str | None = None
+    db: Session, query: str, *, limit: int = 10, offset: int = 0,
+    category: str | None = None, strong_only: bool = False,
+) -> tuple[list[OfficialPage], int]:
+    """Official pages matching ``query``; strict first, loose if strict finds nothing.
+
+    ``strong_only`` keeps the pages that are *about* the query - it is in their
+    title, summary or curated tags - and drops the ones that merely mention it
+    somewhere in the body. The answer card uses it: "accounting" matched five
+    pages because each of them says "your Monash account", and the card listed
+    them as the official answer to a question about studying accounting.
+    """
+    kwargs = {"limit": limit, "offset": offset, "category": category,
+              "strong_only": strong_only}
+    found = _search_official(db, query, **kwargs)
+    if found[1] == 0 and _is_multi_concept((query or "").strip()):
+        return _search_official(db, query, strict=False, **kwargs)
+    return found
+
+
+# Title and summary carry weights A and B in the search vector (see the model);
+# body text is D. Ranking with D and C zeroed asks "is the query in the part of
+# the page that says what the page is about".
+HEADLINE_WEIGHTS = literal_column("ARRAY[0, 0, 1, 1]::float4[]")
+
+# Trigram similarity against a title. 0.2 let "accounting" resemble "Academic
+# records"; typo tolerance ("intermision") scores well above this.
+TITLE_SIMILARITY = 0.3
+
+
+def _search_official(
+    db: Session, query: str, *, limit: int = 10, offset: int = 0, category: str | None = None,
+    strict: bool = True, strong_only: bool = False,
 ) -> tuple[list[OfficialPage], int]:
     stmt = select(OfficialPage).where(OfficialPage.status == "ok")
     count_stmt = select(func.count(OfficialPage.id)).where(OfficialPage.status == "ok")
@@ -336,19 +458,24 @@ def search_official(
         else None
     )
     if term:
-        matches = [
-            OfficialPage.search_vector.op("@@")(_ts_query(term)),
-            func.similarity(OfficialPage.title, term) > 0.2,
-            _array_contained_in_query("official_pages.tags", term),
-        ]
+        ts_query = _ts_query(term, strict=strict)
+        # A curated tag is English or Chinese; the question may be the other.
+        # 抄袭 has to reach the page tagged "plagiarism", so the tags are also
+        # tried against the English the question expands to.
+        tag_hit = _array_contained_in_query(
+            "official_pages.tags", term, tuple(expand(term)))
+        title_like = func.similarity(OfficialPage.title, term) > TITLE_SIMILARITY
+        headline = and_(
+            OfficialPage.search_vector.op("@@")(ts_query),
+            func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query) > 0,
+        )
+        strong = [tag_hit, title_like, headline]
         if translated_title is not None:
-            matches.extend(
-                [
-                    translated_title.ilike(f"%{term}%"),
-                    _zh_match(OfficialPage.search_zh, term),
-                ]
-            )
-        match = or_(*matches)
+            strong.append(_contains(translated_title, term))
+        matches = [OfficialPage.search_vector.op("@@")(ts_query), *strong]
+        if translated_title is not None:
+            matches.append(_zh_match(OfficialPage.search_zh, term))
+        match = or_(*(strong if strong_only else matches))
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
     if category:
@@ -364,17 +491,15 @@ def search_official(
             if translated_title is not None
             else literal(0)
         )
-        translated_title_contains = (
-            case((translated_title.ilike(f"%{term}%"), 1), else_=0)
-            if translated_title is not None
-            else literal(0)
-        )
         stmt = stmt.order_by(
             exact_translation.desc(),
-            translated_title_contains.desc(),
-            func.ts_rank(OfficialPage.search_vector, _ts_query(term)).desc(),
+            # A page the query is about beats a page that mentions it.
+            case((or_(*strong), 1), else_=0).desc(),
+            func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query).desc(),
+            func.ts_rank(OfficialPage.search_vector, ts_query).desc(),
             zh_rank.desc(),
             func.similarity(OfficialPage.title, term).desc(),
+            OfficialPage.title,
         )
     else:
         stmt = stmt.order_by(OfficialPage.category, OfficialPage.title)
@@ -382,23 +507,68 @@ def search_official(
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
 
 
-def search_faq(db: Session, query: str, *, limit: int = 5) -> list[FaqEntry]:
-    term = (query or "").strip()
-    stmt = select(FaqEntry)
-    if term:
-        stmt = stmt.where(
-            or_(
-                FaqEntry.search_vector.op("@@")(_ts_query(term)),
-                _array_contained_in_query("faq_entries.keywords", term),
-                func.similarity(FaqEntry.question, term) > 0.2,
-            )
-        ).order_by(
-            FaqEntry.priority.desc(),
-            func.ts_rank(FaqEntry.search_vector, _ts_query(term)).desc(),
+def _faq_questions(db: Session) -> dict[str, list[str]]:
+    """Every published translation of every FAQ question, by slug.
+
+    They are part of what the question may be asked with: a reader who clicks
+    the Chinese question as a suggestion is asking exactly that question.
+    """
+    rows = db.execute(
+        select(ContentTranslation.target_key, ContentTranslation.text).where(
+            ContentTranslation.target_type == FAQ_ENTRY_TRANSLATION,
+            ContentTranslation.field == "question",
+            ContentTranslation.status == PUBLISHED,
+            ContentTranslation.text.is_not(None),
         )
-    else:
-        stmt = stmt.order_by(FaqEntry.priority.desc())
-    return list(db.scalars(stmt.limit(limit)))
+    ).all()
+    found: dict[str, list[str]] = {}
+    for slug, question in rows:
+        found.setdefault(slug, []).append(question)
+    return found
+
+
+def match_faqs(
+    db: Session, query: str, *, ignore: set[str] | None = None
+) -> list[tuple[FaqEntry, faq_match.FaqMatch]]:
+    """Curated answers triggered by ``query``, the ones that cover it first.
+
+    See app/search/faq_match.py for what "triggered" and "cover" mean. The
+    table is a few dozen hand-written rows, so it is read whole and matched in
+    Python, where the rules can be read and tested.
+    """
+    term = (query or "").strip()
+    if not term:
+        return []
+    entries = list(db.scalars(select(FaqEntry).options(selectinload(FaqEntry.official_page))))
+    translated = _faq_questions(db)
+    by_slug = {entry.slug: entry for entry in entries}
+    candidates = [
+        faq_match.FaqCandidate(
+            slug=entry.slug,
+            question=entry.question,
+            keywords=tuple(entry.keywords or ()),
+            tags=tuple(entry.tags or ()),
+            priority=entry.priority or 0,
+            translated_questions=tuple(translated.get(entry.slug, ())),
+        )
+        for entry in entries
+    ]
+    return [
+        (by_slug[found.candidate.slug], found)
+        for found in faq_match.match(term, candidates, ignore=ignore)
+    ]
+
+
+def search_faq(db: Session, query: str, *, limit: int = 5) -> list[FaqEntry]:
+    """The FAQ group of unified search: answers first, then related questions.
+
+    An empty query lists the curated set by priority, as the browse view does.
+    """
+    term = (query or "").strip()
+    if not term:
+        stmt = select(FaqEntry).order_by(FaqEntry.priority.desc(), FaqEntry.slug)
+        return list(db.scalars(stmt.limit(limit)))
+    return [entry for entry, _ in match_faqs(db, term)][:limit]
 
 
 def search_community(
@@ -412,15 +582,26 @@ def search_community(
         stmt = stmt.where(CommunityPost.unit_code == unit_code.upper())
         count_stmt = count_stmt.where(CommunityPost.unit_code == unit_code.upper())
     elif term:
+        def written(word: str):
+            return or_(_contains(CommunityPost.title, word), _contains(CommunityPost.body, word))
+
+        chinese: list = []
+        if has_cjk(term):
+            # Nothing to translate here - a post written in Chinese already is
+            # Chinese, and the English tsvector simply cannot see it. The whole
+            # query as typed, or every concept it names: 退课截止日期 should
+            # find a post that says 退课 … 截止日期 with words in between.
+            chinese.append(written(term))
+            runs = [run for run, _ in concept_runs(term)]
+            if runs:
+                chinese.append(and_(*(written(run) for run in runs)))
+        else:
+            # And the other way: "withdraw" should find a post titled 退课.
+            chinese.extend(written(run) for run in chinese_for(term))
         match = or_(
             CommunityPost.search_vector.op("@@")(_ts_query(term)),
             CommunityPost.unit_code.in_(codes) if codes else CommunityPost.id.is_(None),
-            # Nothing to translate here - a post written in Chinese already is
-            # Chinese, and the English tsvector simply cannot see it.
-            *( [
-                or_(CommunityPost.title.ilike(f"%{term}%"),
-                    CommunityPost.body.ilike(f"%{term}%"))
-            ] if has_cjk(term) else [] ),
+            *chinese,
         )
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)

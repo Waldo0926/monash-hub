@@ -78,8 +78,9 @@ class CommunityPost(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(title, '') || ' ' || "
-            "coalesce(body, '') || ' ' || coalesce(unit_code, ''))",
+            "setweight(to_tsvector('english', coalesce(title, '') || ' ' || "
+            "coalesce(unit_code, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(body, '')), 'D')",
             persisted=True,
         ),
     )
