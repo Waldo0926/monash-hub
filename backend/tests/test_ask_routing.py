@@ -260,3 +260,9 @@ def test_the_faq_group_lists_only_triggered_entries(client, seeded):
     body = client.get("/api/v1/search", params={"q": "学生签证续签"}).json()
     faq = next(g for g in body["groups"] if g["kind"] == "faq")
     assert "how-to-withdraw-from-a-unit" not in [f["slug"] for f in faq["results"]]
+
+
+def test_the_guides_group_lists_pages_about_the_query(client, seeded):
+    body = client.get("/api/v1/search", params={"q": "学术诚信"}).json()
+    guides = next(g for g in body["groups"] if g["kind"] == "official")
+    assert [p["slug"] for p in guides["results"]] == ["academic-integrity"]

@@ -24,7 +24,7 @@ def _year(year: int | None) -> int:
 
 @router.get("")
 def list_units(
-    q: str = Query("", description="Unit code, title or keyword"),
+    q: str = Query("", max_length=300, description="Unit code, title or keyword"),
     year: int | None = None,
     campus: str | None = None,
     teaching_period: str | None = None,
@@ -32,8 +32,8 @@ def list_units(
     prefix: str | None = Query(None, description="Subject prefix, e.g. FIT"),
     has_exam: bool | None = None,
     sort: str = Query("relevance", pattern="^(relevance|code|title)$"),
-    limit: int = Query(20, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:

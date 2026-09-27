@@ -18,10 +18,10 @@ router = APIRouter(tags=["guides"])
 
 @router.get("/guides")
 def list_guides(
-    q: str = "",
+    q: str = Query("", max_length=300),
     category: str | None = None,
-    limit: int = Query(50, le=200),
-    offset: int = 0,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -85,8 +85,8 @@ def get_guide(
 
 @router.get("/faq")
 def list_faq(
-    q: str = "",
-    limit: int = Query(50, le=200),
+    q: str = Query("", max_length=300),
+    limit: int = Query(50, ge=1, le=200),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:

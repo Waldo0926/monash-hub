@@ -317,13 +317,24 @@ def test_anonymous_can_read_everything_public(client, loaded):
 
 
 def test_reports_can_be_filed_and_only_admins_can_read_them(client, loaded, mailbox):
-    filed = client.post(
+    # Nothing to report yet: a report about a post that does not exist is
+    # refused rather than queued for a moderator to chase.
+    assert client.post(
         "/api/v1/community/reports",
         json={"target_type": "post", "target_id": 1, "reason": "spam"},
+    ).status_code == 404
+
+    token = _account(client, mailbox, "nosy@example.com", "nosy")
+    auth = {"Authorization": f"Bearer {token}"}
+    post = client.post("/api/v1/community/posts", headers=auth, json={
+        "title": "Buy cheap essays", "body": "Visit my totally legit website", "category": "units",
+    }).json()
+    filed = client.post(
+        "/api/v1/community/reports",
+        json={"target_type": "post", "target_id": post["id"], "reason": "spam"},
     )
     assert filed.status_code == 201
 
-    token = _account(client, mailbox, "nosy@example.com", "nosy")
     assert client.get(
         "/api/v1/community/reports", headers={"Authorization": f"Bearer {token}"}
     ).status_code == 403

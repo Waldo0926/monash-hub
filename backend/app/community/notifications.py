@@ -31,7 +31,10 @@ def notify_answer(
         Notification(
             user_id=post.author_id,
             kind="answer",
-            actor_nickname=actor.nickname,
+            # An anonymous answer stays anonymous here too. The notification
+            # used to carry the nickname regardless, so the one person the
+            # answerer most wanted to stay anonymous from was told who it was.
+            actor_nickname=None if answer.is_anonymous else actor.nickname,
             post_id=post.id,
             post_title=post.title,
             answer_id=answer.id,
@@ -50,7 +53,12 @@ def notify_accepted(
         Notification(
             user_id=answer.author_id,
             kind="accepted",
-            actor_nickname=actor.nickname,
+            # The person accepting is the asker; if they asked anonymously, the
+            # answerer is not told who they are either. A moderator accepting
+            # on someone's behalf is not named at all.
+            actor_nickname=(
+                None if post.is_anonymous or actor.id != post.author_id else actor.nickname
+            ),
             post_id=post.id,
             post_title=post.title,
             answer_id=answer.id,

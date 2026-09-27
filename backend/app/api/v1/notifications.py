@@ -37,8 +37,8 @@ def _brief(row) -> dict:
 
 @router.get("")
 def list_notifications(
-    limit: int = Query(20, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100_000),
     db: Session = Depends(get_db),
     user: User = Depends(current_user),
 ) -> dict:

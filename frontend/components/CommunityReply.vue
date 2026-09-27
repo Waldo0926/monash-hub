@@ -21,6 +21,7 @@ const emit = defineEmits<{
   vote: [id: number]
   accept: [id: number]
   report: [id: number]
+  remove: [id: number]
   reply: [payload: { parentId: number; body: string; anonymous: boolean }]
 }>()
 const { $t } = useNuxtApp()
@@ -49,6 +50,8 @@ const who = computed(() =>
 
 <template>
   <article class="reply" :class="{ 'reply--accepted': reply.is_accepted }">
+    <p v-if="reply.deleted" class="tiny muted deleted">{{ $t('community.replyDeleted') }}</p>
+    <template v-else>
     <p class="tiny muted byline">
       <span :class="{ anon: reply.anonymous }">{{ who }}</span>
       <span v-if="reply.is_accepted" class="tag"> {{ $t('community.acceptedBy') }}</span>
@@ -76,6 +79,9 @@ const who = computed(() =>
       <button class="link" type="button" @click="emit('report', reply.id)">
         {{ $t('community.report') }}
       </button>
+      <button v-if="reply.is_mine" class="link" type="button" @click="emit('remove', reply.id)">
+        {{ $t('community.delete') }}
+      </button>
     </div>
 
     <div v-if="open" class="composer">
@@ -98,6 +104,7 @@ const who = computed(() =>
         </button>
       </div>
     </div>
+    </template>
 
     <div v-if="reply.replies?.length" class="children" :class="{ flat: depth >= 1 }">
       <CommunityReply
@@ -111,6 +118,7 @@ const who = computed(() =>
         @vote="emit('vote', $event)"
         @accept="emit('accept', $event)"
         @report="emit('report', $event)"
+        @remove="emit('remove', $event)"
         @reply="emit('reply', $event)"
       />
     </div>
@@ -129,6 +137,7 @@ const who = computed(() =>
   border-radius: var(--radius-pill); padding: 1px var(--s2); font-size: 0.7rem;
 }
 .body { margin: 0 0 var(--s2); }
+.deleted { font-style: italic; margin: 0 0 var(--s2); }
 
 .actions { display: flex; gap: var(--s3); align-items: center; }
 .like {

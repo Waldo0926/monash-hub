@@ -6,12 +6,16 @@ onto a live forum is how communities get lost.
 """
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import current_admin, current_user, current_user_optional
+from app.api.serializers import _shown as shown
 from app.api.serializers import answer_brief, post_brief, post_detail
 from app.community import notifications
 from app.core.db import get_db
@@ -39,6 +43,7 @@ CATEGORIES = [
 ]
 VALID_CATEGORIES = {c["key"] for c in CATEGORIES}
 REPORT_REASONS = ("spam", "abuse", "privacy", "advertising", "misinformation", "other")
+UNIT_CODE = re.compile(r"^[A-Z]{3,4}\d{4}$")
 
 
 class PostRequest(BaseModel):
@@ -100,19 +105,22 @@ def list_categories() -> dict:
 
 @router.get("/posts")
 def list_posts(
-    q: str = "",
+    q: str = Query("", max_length=300),
     category: str | None = None,
     unit_code: str | None = None,
     sort: str = Query("recent", pattern="^(recent|top|unanswered)$"),
-    limit: int = Query(20, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User | None = Depends(current_user_optional),
 ) -> dict:
     viewer = user.id if user else None
     if q or unit_code:
+        # The category still applies to a search. It used to be dropped, so
+        # searching inside "Malaysia Campus" searched the whole forum.
         posts, total = service.search_community(
-            db, q, limit=limit, offset=offset, unit_code=unit_code
+            db, q, limit=limit, offset=offset, unit_code=unit_code, category=category,
+            unanswered=sort == "unanswered",
         )
         voted = _voted(db, user, "post", [p.id for p in posts])
         return {
@@ -151,17 +159,33 @@ def list_posts(
 
 def _resolve_tags(db: Session, slugs: list[str]) -> list[CommunityTag]:
     tags: list[CommunityTag] = []
+    seen: set[str] = set()
     for raw in slugs:
-        slug = raw.strip().lower().replace(" ", "-")[:64]
-        if not slug:
+        slug = "-".join(raw.strip().lower().split())[:64]
+        if not slug or slug in seen:
+            # The same tag twice would violate uq_post_tag and fail the post.
             continue
+        seen.add(slug)
         tag = db.scalar(select(CommunityTag).where(CommunityTag.slug == slug))
         if tag is None:
-            tag = CommunityTag(slug=slug, label=raw.strip()[:64], kind="topic")
-            db.add(tag)
-            db.flush()
-        tags.append(tag)
+            try:
+                # A savepoint, so losing a race to create the same new tag
+                # costs one lookup rather than the whole post.
+                with db.begin_nested():
+                    tag = CommunityTag(slug=slug, label=raw.strip()[:64], kind="topic")
+                    db.add(tag)
+            except IntegrityError:
+                tag = db.scalar(select(CommunityTag).where(CommunityTag.slug == slug))
+        if tag is not None:
+            tags.append(tag)
     return tags
+
+
+def _visible_post(db: Session, post_id: int) -> CommunityPost:
+    post = db.get(CommunityPost, post_id)
+    if post is None or post.is_hidden:
+        raise HTTPException(404, "Post not found")
+    return post
 
 
 @router.post("/posts", status_code=status.HTTP_201_CREATED)
@@ -172,12 +196,19 @@ def create_post(
 ) -> dict:
     if payload.category not in VALID_CATEGORIES:
         raise HTTPException(400, f"Unknown category: {payload.category}")
+    title, body = payload.title.strip(), payload.body.strip()
+    # The length limits are on the raw text; five spaces are not a title.
+    if len(title) < 5 or len(body) < 10:
+        raise HTTPException(422, "Write a real title and a question with some detail.")
+    unit_code = "".join((payload.unit_code or "").split()).upper() or None
+    if unit_code and not UNIT_CODE.match(unit_code):
+        raise HTTPException(422, "That is not a unit code (for example FIT2004).")
     post = CommunityPost(
         author_id=user.id,
-        title=payload.title.strip(),
-        body=payload.body.strip(),
+        title=title,
+        body=body,
         category=payload.category,
-        unit_code=payload.unit_code.upper() if payload.unit_code else None,
+        unit_code=unit_code,
         is_anonymous=payload.anonymous,
     )
     db.add(post)
@@ -239,6 +270,7 @@ def list_answers(
         )
         .order_by(CommunityAnswer.is_accepted.desc(), CommunityAnswer.vote_count.desc())
     ).all()
+    answers = [a for a in answers if shown(a)]
     voted = _voted(db, user, "answer", _thread_ids(answers))
     viewer = user.id if user else None
     return {
@@ -254,23 +286,25 @@ def create_answer(
     db: Session = Depends(get_db),
     user: User = Depends(current_user),
 ) -> dict:
-    post = db.get(CommunityPost, post_id)
-    if post is None or post.is_hidden:
-        raise HTTPException(404, "Post not found")
+    post = _visible_post(db, post_id)
+    body = payload.body.strip()
+    if len(body) < 2:
+        raise HTTPException(422, "Write a reply first.")
 
     parent = None
     if payload.parent_id is not None:
         parent = db.get(CommunityAnswer, payload.parent_id)
         # A reply has to belong to the thread it claims to be in, or it would
         # appear under a post its author never opened.
-        if parent is None or parent.post_id != post.id or parent.is_hidden:
+        if (parent is None or parent.post_id != post.id or parent.is_hidden
+                or parent.deleted_at is not None):
             raise HTTPException(404, "The reply you are replying to is not in this thread")
 
     answer = CommunityAnswer(
         post_id=post.id,
         parent_id=parent.id if parent else None,
         author_id=user.id,
-        body=payload.body.strip(),
+        body=body,
         is_anonymous=payload.anonymous,
     )
     db.add(answer)
@@ -293,9 +327,9 @@ def accept_answer(
     user: User = Depends(current_user),
 ) -> dict:
     answer = db.get(CommunityAnswer, answer_id)
-    if answer is None:
+    if answer is None or answer.is_hidden or answer.deleted_at is not None:
         raise HTTPException(404, "Answer not found")
-    post = db.get(CommunityPost, answer.post_id)
+    post = _visible_post(db, answer.post_id)
     if post.author_id != user.id and not user.is_admin:
         raise HTTPException(403, "Only the person who asked can mark an answer as helpful")
     for other in post.answers:
@@ -323,7 +357,7 @@ def vote(
     )
     model = CommunityPost if target_type == "post" else CommunityAnswer
     target = db.get(model, target_id)
-    if target is None:
+    if target is None or target.is_hidden or getattr(target, "deleted_at", None) is not None:
         raise HTTPException(404, "Nothing to vote on")
 
     # Same reasoning as the view counter: the unique constraint stops one person
@@ -334,7 +368,12 @@ def vote(
         db.delete(existing)
     else:
         db.add(CommunityVote(user_id=user.id, target_type=target_type, target_id=target_id))
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        # A double click: the other request already recorded this vote.
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "That vote is already counted") from exc
     db.execute(
         update(model)
         .where(model.id == target_id)
@@ -360,8 +399,13 @@ def toggle_bookmark(
         db.delete(existing)
         db.commit()
         return {"bookmarked": False}
+    _visible_post(db, post_id)
     db.add(CommunityBookmark(user_id=user.id, post_id=post_id))
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Saved twice at once - it is saved, which is what was asked for.
+        db.rollback()
     return {"bookmarked": True}
 
 
@@ -375,12 +419,15 @@ def create_report(
         raise HTTPException(400, f"reason must be one of {', '.join(REPORT_REASONS)}")
     if payload.target_type not in ("post", "answer"):
         raise HTTPException(400, "target_type must be post or answer")
+    model = CommunityPost if payload.target_type == "post" else CommunityAnswer
+    if db.get(model, payload.target_id) is None:
+        raise HTTPException(404, "Nothing to report")
     report = CommunityReport(
         reporter_id=user.id if user else None,
         target_type=payload.target_type,
         target_id=payload.target_id,
         reason=payload.reason,
-        detail=payload.detail,
+        detail=(payload.detail or "").strip() or None,
     )
     db.add(report)
     db.commit()
@@ -418,15 +465,77 @@ def moderate(
     db: Session = Depends(get_db),
     admin: User = Depends(current_admin),
 ) -> dict:
+    if target_type not in ("post", "answer"):
+        raise HTTPException(400, "target_type must be post or answer")
     model = CommunityPost if target_type == "post" else CommunityAnswer
     target = db.get(model, target_id)
     if target is None:
         raise HTTPException(404, "Nothing to moderate")
     if action in ("hide", "unhide"):
-        target.is_hidden = action == "hide"
+        if action == "unhide" and target.deleted_at is not None:
+            raise HTTPException(409, "Its author deleted this; it cannot be restored")
+        hide = action == "hide"
+        if isinstance(target, CommunityAnswer) and target.is_hidden != hide:
+            _count_answer(db, target.post_id, -1 if hide else 1)
+        target.is_hidden = hide
     elif isinstance(target, CommunityPost):
         target.is_pinned = action == "pin"
     else:
         raise HTTPException(400, "Only posts can be pinned")
     db.commit()
     return {"target_type": target_type, "target_id": target_id, "action": action}
+
+
+def _count_answer(db: Session, post_id: int, delta: int) -> None:
+    db.execute(
+        update(CommunityPost)
+        .where(CommunityPost.id == post_id)
+        .values(answer_count=func.greatest(CommunityPost.answer_count + delta, 0))
+    )
+
+
+@router.delete("/posts/{post_id}")
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+) -> dict:
+    """Take down your own question.
+
+    There was no way to do this at all: a student who posted something they
+    regretted - their name in a screenshot, a message meant for somebody else -
+    had to report their own post and wait. The row is kept, hidden, so reports
+    about it and the replies under it stay intact for moderation.
+    """
+    post = _visible_post(db, post_id)
+    if post.author_id != user.id and not user.is_admin:
+        raise HTTPException(403, "Only its author can delete this")
+    post.is_hidden = True
+    post.deleted_at = func.now()
+    db.commit()
+    return {"id": post.id, "deleted": True}
+
+
+@router.delete("/answers/{answer_id}")
+def delete_answer(
+    answer_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+) -> dict:
+    """Take down your own reply. Replies under it stay, under a placeholder."""
+    answer = db.get(CommunityAnswer, answer_id)
+    if answer is None or answer.is_hidden or answer.deleted_at is not None:
+        raise HTTPException(404, "Answer not found")
+    if answer.author_id != user.id and not user.is_admin:
+        raise HTTPException(403, "Only its author can delete this")
+    answer.deleted_at = func.now()
+    if answer.is_accepted:
+        answer.is_accepted = False
+        db.execute(
+            update(CommunityPost)
+            .where(CommunityPost.id == answer.post_id)
+            .values(is_solved=False)
+        )
+    _count_answer(db, answer.post_id, -1)
+    db.commit()
+    return {"id": answer.id, "deleted": True}

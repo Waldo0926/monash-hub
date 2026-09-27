@@ -572,10 +572,18 @@ def search_faq(db: Session, query: str, *, limit: int = 5) -> list[FaqEntry]:
 
 
 def search_community(
-    db: Session, query: str, *, limit: int = 10, offset: int = 0, unit_code: str | None = None
+    db: Session, query: str, *, limit: int = 10, offset: int = 0, unit_code: str | None = None,
+    category: str | None = None, unanswered: bool = False,
 ) -> tuple[list[CommunityPost], int]:
     stmt = select(CommunityPost).where(CommunityPost.is_hidden.is_(False))
     count_stmt = select(func.count(CommunityPost.id)).where(CommunityPost.is_hidden.is_(False))
+    for condition in (
+        CommunityPost.category == category if category else None,
+        CommunityPost.answer_count == 0 if unanswered else None,
+    ):
+        if condition is not None:
+            stmt = stmt.where(condition)
+            count_stmt = count_stmt.where(condition)
     term = (query or "").strip()
     codes = extract_unit_codes(term)
     if unit_code:
