@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * One degree, as the requirement outline the Handbook actually publishes.
  *
@@ -29,9 +30,8 @@ watch(campus, () => {
   router.replace({ query: campus.value ? { campus: campus.value } : {} })
 })
 
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
 
 const elsewhereTotal = computed(() => {
   const facts = course.value?.units || {}
@@ -73,8 +73,7 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
         <label class="campus">
           <span>{{ $t('courses.viewAs') }}</span>
           <select v-model="campus" class="input">
-            <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-            <option value="Clayton">Clayton</option>
+            <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
         </label>

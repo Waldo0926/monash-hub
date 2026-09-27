@@ -269,3 +269,19 @@ def test_production_refuses_a_placeholder_secret(key, bad):
     from app.core.config import Settings
 
     assert (Settings(secret_key=key).secret_key_problem() is not None) is bad
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{"year": "next", "entries": []},
+     {"entries": ["FIT1045"]},
+     {"entries": [{"unit_code": "FIT1045", "year": "soon", "teaching_period": "S1"}]},
+     {"entries": [{"unit_code": "FIT1045", "year": 2026, "teaching_period": "S1"}] * 81}],
+)
+def test_a_malformed_plan_is_a_422_not_a_500(client, db, body):
+    assert client.post("/api/v1/plan/check", json=body).status_code == 422
+
+
+def test_a_plan_without_a_year_is_checked_against_the_current_handbook(client, db):
+    body = client.post("/api/v1/plan/check", json={"entries": []}).json()
+    assert body["academic_year"] == 2026

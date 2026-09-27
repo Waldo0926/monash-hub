@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * The course map.
  *
@@ -15,6 +16,7 @@
 import { OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 
 const { $t } = useNuxtApp()
+const campusName = useCampusName()
 const {
   plan, yearsList, slotEntries, add, remove, reset, addYear, removeYear, exported, imported
 } = usePlan()
@@ -84,8 +86,12 @@ async function check() {
   try {
     report.value = await apiFetch<any>('/v1/plan/check', {
       method: 'POST',
+      // No Handbook year: the plan's calendar years say *when* a unit is
+      // taken, not which Handbook describes it. Sending the start year asked
+      // for the 2025 Handbook for a plan starting in 2025 - which is not
+      // loaded - and every unit came back "not offered that year". The API
+      // checks against the current Handbook.
       body: {
-        year: plan.value.startYear,
         campus: plan.value.campus,
         entries: plan.value.entries
       }
@@ -405,8 +411,7 @@ useHead({ title: $t('plan.title') })
       <label class="field">
         <span>{{ $t('tree.campus') }}</span>
         <select v-model="plan.campus" class="input">
-          <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-          <option value="Clayton">Clayton</option>
+          <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
           <option value="">{{ $t('tree.campusAny') }}</option>
         </select>
       </label>

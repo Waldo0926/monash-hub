@@ -5,12 +5,20 @@
  * grow with every crawl, and a sitemap baked into the image would be stale the
  * day after a deploy.
  */
-export default defineEventHandler(async event => {
+/*
+ * Cached for an hour. Building it walks the whole catalogue - some sixty API
+ * calls - and a crawler that fetches the sitemap on every visit would
+ * otherwise put that load on the API each time.
+ */
+export default defineCachedEventHandler(async event => {
   const config = useRuntimeConfig()
   const site = config.public.siteUrl.replace(/\/$/, '')
   const api = config.apiBase.replace(/\/$/, '')
 
-  const urls: string[] = ['/', '/units', '/guides', '/community', '/exchange']
+  const urls: string[] = [
+    '/', '/units', '/courses', '/guides', '/community', '/exchange',
+    '/plan', '/tree', '/marks', '/mamo'
+  ]
 
   // The API caps a page at 100 results, so walk it rather than asking for
   // everything at once - which silently 422s and leaves the sitemap empty.
@@ -27,6 +35,18 @@ export default defineEventHandler(async event => {
       for (const page of guides.results || []) urls.push(`/guides/${page.slug}`)
       if (offset + PAGE >= (guides.total || 0)) break
     }
+    // Degrees were missing entirely, and they are what a prospective student
+    // searches for by name.
+    for (let offset = 0; ; offset += PAGE) {
+      const courses = await $fetch<any>(`${api}/v1/courses?limit=${PAGE}&offset=${offset}`)
+      for (const course of courses.results || []) urls.push(`/courses/${course.course_code}`)
+      if (offset + PAGE >= (courses.total || 0)) break
+    }
+    for (let offset = 0; ; offset += PAGE) {
+      const posts = await $fetch<any>(`${api}/v1/community/posts?limit=${PAGE}&offset=${offset}`)
+      for (const post of posts.results || []) urls.push(`/community/post/${post.id}`)
+      if (offset + PAGE >= (posts.total || 0)) break
+    }
   } catch {
     // A sitemap with the static routes beats a 500 if the API is briefly down.
   }
@@ -34,7 +54,7 @@ export default defineEventHandler(async event => {
   setHeader(event, 'content-type', 'application/xml; charset=utf-8')
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(path => `  <url><loc>${site}${path}</loc></url>`).join('\n')}
+${[...new Set(urls)].map(path => `  <url><loc>${site}${path}</loc></url>`).join('\n')}
 </urlset>
 `
-})
+}, { maxAge: 60 * 60, name: 'sitemap', getKey: () => 'all' })
