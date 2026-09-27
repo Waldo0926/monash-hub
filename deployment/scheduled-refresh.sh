@@ -40,6 +40,7 @@ case "${1:-}" in
     docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
       run --rm crawler python -m crawler.translate.run --locale zh --fields all --targets official
     ;;
+
   handbook)
     # Units crawled in the last six days are skipped, so a run interrupted by
     # a deploy or a reboot resumes rather than starting over next week.
@@ -53,6 +54,26 @@ case "${1:-}" in
     exit 2
     ;;
 esac
+
+# Is next year's Handbook out? One request. When it first is, say so once -
+# loading a new year and switching to it is a decision for a person, and the
+# faculties' course maps for that year are already up months before.
+if [[ "${1}" == official ]]; then
+  answer="$("${COMPOSE[@]}" run --rm crawler python -m crawler.handbook.next_year 2>/dev/null | tail -1 || true)"
+  if [[ "$answer" == published* ]]; then
+    year="$(awk '{print $2}' <<<"$answer")"
+    marker="$STATE_DIR/handbook-$year-published"
+    if [[ ! -f "$marker" ]]; then
+      touch "$marker"
+      echo "the $year Handbook is now published: $answer"
+      "${COMPOSE[@]}" exec -T api python -m app.core.notify \
+        "Monash Hub: the $year Handbook is published" \
+        "handbook.monash.edu now lists $year ($answer). Load it with
+deployment/crawl.sh handbook --all --year $year (and run_courses), then switch
+CURRENT_ACADEMIC_YEAR when it is complete. See docs/DEPLOYMENT.md." || true
+    fi
+  fi
+fi
 
 # A refreshed page keeps its translations, but search reads the flattened copy.
 "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh

@@ -501,3 +501,53 @@ def test_a_withdrawn_unit_is_not_answered_for_and_its_page_says_so(client, db, h
     assert client.post("/api/v1/ask", json={"query": "FIT2102 exam"}).json()["answer_type"] \
         == "unit_not_found"
     assert client.get("/api/v1/units/FIT2102").json()["is_active"] is False
+
+
+def test_next_year_is_published_only_when_the_index_lists_that_year(monkeypatch):
+    from crawler.handbook import next_year
+
+    class Response:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"data": self.payload}
+
+    payloads = {
+        "2027": {"total": 0, "results": []},
+        "2026": {"total": 6143, "results": [{"uri": "/2026/units/ACB1020"}]},
+        # An index that answers an unpublished year with the current one's
+        # entries must not count as that year being out.
+        "2028": {"total": 6143, "results": [{"uri": "/2026/units/ACB1020"}]},
+    }
+
+    class Client:
+        def __init__(self, **_):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def get(self, url, params):
+            return Response(payloads[params["siteYear"]])
+
+    monkeypatch.setattr(next_year.httpx, "Client", Client)
+    assert next_year.published_entries(2027) == 0
+    assert next_year.published_entries(2026) == 6143
+    assert next_year.published_entries(2028) == 0
+
+
+def test_an_alert_without_an_address_is_only_logged(monkeypatch):
+    from app.core import notify
+
+    sent = []
+    monkeypatch.setattr(notify.Emailer, "send", lambda self, message: sent.append(message))
+    monkeypatch.setattr(notify, "get_settings",
+                        lambda: type("S", (), {"alert_email": None})())
+    assert notify.notify("s", "b") is False and sent == []

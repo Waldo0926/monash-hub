@@ -58,6 +58,7 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
       AVATAR_DIR: /data/avatars
     volumes:
       # Profile pictures. The API writes here; the host's nginx serves the same

@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     email_reply_to: str | None = None
     email_timeout_seconds: int = 10
 
+    # Where operational alerts go - "next year's Handbook is out". Optional;
+    # without it the alert is only logged. See app/core/notify.py.
+    alert_email: str | None = None
+
     resend_api_key: str = ""
     resend_api_url: str = "https://api.resend.com/emails"
 
