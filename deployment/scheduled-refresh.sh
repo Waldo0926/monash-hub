@@ -33,6 +33,12 @@ case "${1:-}" in
     # Only pages whose tier says they are due, so running this often costs a
     # handful of requests, not the whole seed list.
     "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run
+    # A page that changed keeps its old Chinese, flagged stale, until it is
+    # translated again. Only changed or new pages are sent - the pass skips
+    # any whose English hash it has already translated - so this is a minute
+    # or two, and a person's translation still wins on read.
+    docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
+      run --rm crawler python -m crawler.translate.run --locale zh --fields all --targets official
     ;;
   handbook)
     # Units crawled in the last six days are skipped, so a run interrupted by
