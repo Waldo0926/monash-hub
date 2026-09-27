@@ -25,7 +25,10 @@ NEXT_DATA_RE = re.compile(
 )
 TAG_RE = re.compile(r"<[^>]+>")
 WS_RE = re.compile(r"[ \t\r\f\v ]+")
-UNIT_CODE_RE = re.compile(r"\b[A-Z]{2,5}\d{4}\b")
+# Not ``\b``: it treats CJK characters as word characters, and language-unit
+# prose can put "汉字" or "日本語" right against a code. ASCII neighbours still
+# block a match exactly as ``\b`` did.
+UNIT_CODE_RE = re.compile(r"(?<![A-Z0-9])[A-Z]{2,5}[0-9]{4}(?![A-Z0-9])")
 RULE_LABEL_RE = re.compile(
     r"\b(?P<label>(?:ADDITIONAL\s+)?PREREQUISITES?|COREQUISITES?|PROHIBITIONS?)\s*:",
     re.IGNORECASE,

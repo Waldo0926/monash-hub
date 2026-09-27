@@ -12,8 +12,10 @@ import re
 # Bounded by "not a Latin letter or digit" rather than \b. Python's \b treats
 # CJK as word characters, so "FIT2102有考试吗" - typed without a space, the way
 # Chinese is written - had no boundary after the code and found no unit at all.
+# Explicit ASCII ranges instead of \d and IGNORECASE keep full-width digits and
+# Unicode case-fold look-alikes out of the code we hand to the database.
 UNIT_CODE_RE = re.compile(
-    r"(?<![A-Za-z0-9])([A-Z]{3,4})\s?-?\s?(\d{4})(?![A-Za-z0-9])", re.IGNORECASE
+    r"(?<![A-Za-z0-9])([A-Za-z]{3,4})\s?-?\s?([0-9]{4})(?![A-Za-z0-9])"
 )
 
 INTENT_KEYWORDS: dict[str, tuple[str, ...]] = {

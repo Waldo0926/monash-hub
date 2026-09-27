@@ -20,6 +20,22 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed
 
+- Fixed the question box missing a unit code written right up against
+  Chinese text, e.g. `FIT2004有期末考试吗？` or `请问FIT2004…`. The unit-code
+  pattern used `\b`, and Python's regex treats CJK characters as word
+  characters, so there was no word boundary between `2004` and `有` and no code
+  was found: `/api/v1/ask` fell back to an official-page search instead of the
+  Handbook assessment answer it gives for `FIT2004 有期末考试吗？`. Both the
+  search and the Handbook parser's unit-code patterns now use ASCII-only
+  lookarounds, so `fit 2102`, `FIT-2102` and codes joined by `和` all work,
+  and an 8-digit number still does not match.
+  中文：修复了问答框识别不出紧贴中文的课程代码的问题，比如
+  `FIT2004有期末考试吗？` 或 `请问FIT2004…`。课程代码的正则用的是 `\b`，
+  而 Python 正则把中日韩文字也当作单词字符，所以 `2004` 和 `有` 之间没有
+  单词边界，代码识别不到：`/api/v1/ask` 会退回到官方页面搜索，而不是像
+  `FIT2004 有期末考试吗？` 那样给出 Handbook 考核信息。现在搜索和 Handbook
+  解析器里的课程代码正则都改成只看 ASCII 字符的前后断言，`fit 2102`、
+  `FIT-2102`、用 `和` 连起来的两个代码都能识别，8 位数字仍然不会被误认。
 - Fixed a crash in `upsert_unit` when a unit's content reverts to a hash it
   had several versions ago - a Handbook edit undone, or a parser fix (like the
   FIT1055 one above) making today's output match an even older, correct
