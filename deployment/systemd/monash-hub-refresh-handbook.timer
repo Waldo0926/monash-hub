@@ -1,0 +1,12 @@
+# The Handbook: weekly, overnight on Sunday (server time), when the box is quiet.
+[Unit]
+Description=Refresh every Monash Handbook unit and degree weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 02:10:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=monash-hub-refresh@handbook.service
+
+[Install]
+WantedBy=timers.target

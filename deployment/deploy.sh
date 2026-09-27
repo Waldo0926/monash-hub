@@ -94,8 +94,11 @@ done
 # from the hours-long all-unit audit below: a green deployment now proves the
 # reported bug is fixed in production, not merely fixed in source code.
 echo "==> Refreshing and verifying MTH2051 prerequisite data"
+# A Handbook outage must not fail the deploy - the services are already up by
+# now. The check below still fails it if the stored data is wrong.
 "${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1 --fail-on-errors
+  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1 --fail-on-errors \
+  || echo "warning: could not refresh MTH2051 from the Handbook; checking the stored data" >&2
 mth2051_tree="$(curl -fsS \
   "http://127.0.0.1:${api_port}/api/v1/units/MTH2051/tree?direction=upstream&depth=1&campus=Malaysia")"
 if ! grep -q '"MTH2010"' <<<"$mth2051_tree"; then
@@ -111,8 +114,11 @@ echo "    MTH2051 prerequisite graph verified"
 # reference inside its own prohibitions. Repair it synchronously and assert
 # the live API no longer lists the unit as prohibiting itself.
 echo "==> Refreshing and verifying FIT1055 prerequisite data"
+# A Handbook outage must not fail the deploy - the services are already up by
+# now. The check below still fails it if the stored data is wrong.
 "${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --units FIT1055 --year 2026 --min-interval 1 --fail-on-errors
+  python -m crawler.handbook.run --units FIT1055 --year 2026 --min-interval 1 --fail-on-errors \
+  || echo "warning: could not refresh FIT1055 from the Handbook; checking the stored data" >&2
 fit1055_requisites="$(curl -fsS \
   "http://127.0.0.1:${api_port}/api/v1/units/FIT1055/requisites")"
 # "unit_code": "FIT1055" always appears in this payload; only a requisite

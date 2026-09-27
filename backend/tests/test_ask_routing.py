@@ -96,7 +96,9 @@ def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, loca
         ("医保", "oshc"),
         ("学费", "fees"),
         ("转专业", "changing-your-enrolment"),
-        ("学分转换", "credit-and-enrolment"),
+        ("学分转换", "apply-for-credit"),
+        ("挂科", "failed-units"),
+        ("全日制", "study-load"),
     ],
 )
 def test_a_topic_reaches_its_official_page_in_either_language(client, seeded, query, slug):

@@ -70,9 +70,25 @@ SEEDS: tuple[Seed, ...] = (
     Seed("course-advice", "https://www.monash.edu/students/study-success/course-advice",
          "Course advice", "enrolment", ("course advice", "planning", "课程规划"),
          applies_to="all"),
-    Seed("credit-and-enrolment",
-         "https://www.monash.edu/students/study-success/course-advice/enrolment-and-credit",
-         "Enrolment and credit", "enrolment", ("credit", "exemption", "学分减免"),
+    # "Enrolment and credit" was here. Monash turned it into an interactive
+    # "choose a topic" picker whose answers are loaded by script, so it has no
+    # text to extract and has failed every crawl since 30 Aug 2026. The static
+    # pages below cover what it used to: credit, study load and failed units.
+    Seed("apply-for-credit", "https://www.monash.edu/admissions/credit",
+         "Apply for credit", "enrolment",
+         ("credit", "credit transfer", "exemption", "advanced standing", "学分减免", "学分转换"),
+         applies_to="all"),
+    Seed("study-load", "https://www.monash.edu/students/admin/enrolments/study-load",
+         "Study load (overload and underload)", "enrolment",
+         ("study load", "full-time", "part-time", "overload", "underload", "全日制", "学习负荷"),
+         applies_to="all"),
+    Seed("failed-units",
+         "https://www.monash.edu/students/admin/enrolments/change/failed-withheld-invalid-units",
+         "Failed, withheld and invalid units", "enrolment",
+         ("fail", "failed", "withheld", "挂科", "不及格"),
+         applies_to="all"),
+    Seed("double-degrees", "https://www.monash.edu/students/admin/enrolments/double-degrees",
+         "Double degrees", "enrolment", ("double degree", "双学位"),
          applies_to="all"),
     Seed("study-at-another-institution",
          "https://www.monash.edu/students/admin/enrolments/change/complementary-study",

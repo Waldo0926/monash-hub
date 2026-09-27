@@ -75,6 +75,28 @@ The crawler is deliberately rate-limited and resumable. Run the official crawl b
 
 Test fixtures in `backend/tests/fixtures/` are intentionally minimal synthetic documents. They are not production crawl output and are not a mirror of Monash pages.
 
+## Scheduled refreshes
+
+Two systemd timers keep the data current. Both run
+`deployment/scheduled-refresh.sh`, which holds one lock so they never overlap,
+and reindex Chinese search afterwards.
+
+| Timer | When | What |
+| --- | --- | --- |
+| `monash-hub-refresh-official.timer` | every six hours | official pages whose refresh tier is due |
+| `monash-hub-refresh-handbook.timer` | Sunday overnight | every unit, then every degree and area of study |
+
+Install or update them:
+
+```bash
+sudo install -m 644 deployment/systemd/monash-hub-refresh@.service \
+  deployment/systemd/monash-hub-refresh-*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now monash-hub-refresh-official.timer monash-hub-refresh-handbook.timer
+systemctl list-timers 'monash-hub-*'
+journalctl -u 'monash-hub-refresh@*' -n 50
+```
+
 ## Chinese search
 
 After a crawl or translation update, refresh the Chinese search materialisation:
