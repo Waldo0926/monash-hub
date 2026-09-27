@@ -63,6 +63,27 @@ def test_prose_is_translated_paragraph_by_paragraph(db):
     )
 
 
+def test_a_title_a_person_wrote_beats_the_same_sentence_in_the_body(db):
+    """The body's string map translated "Discontinue your course" as 退课 -
+    dropping a unit - and it won over the title written for the page."""
+    from app.models.translation import HUMAN, MACHINE
+
+    _store(db, target_type=OFFICIAL_PAGE, target_key="discontinue-course", field="title",
+           text="退出所修课程", provenance=HUMAN)
+    _store(db, target_type=OFFICIAL_PAGE, target_key="discontinue-course", field="body",
+           data={"strings": {"Discontinue your course": "退课"}}, provenance=HUMAN)
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "discontinue-course")
+    assert tr.field("title", "Discontinue your course") == "退出所修课程"
+
+    # A machine title still yields to a sentence somebody checked.
+    _store(db, target_type=OFFICIAL_PAGE, target_key="wam", field="title",
+           text="机器标题", provenance=MACHINE)
+    _store(db, target_type=OFFICIAL_PAGE, target_key="wam", field="body",
+           data={"strings": {"Weighted average mark": "加权平均分"}}, provenance=HUMAN)
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "wam")
+    assert tr.field("title", "Weighted average mark") == "加权平均分"
+
+
 def test_load_many_is_one_query_for_many_targets(db):
     _store(db, target_type=OFFICIAL_PAGE, target_key="gpa", field="title", text="平均绩点")
     _store(db, target_type=OFFICIAL_PAGE, target_key="wam", field="title", text="加权平均分")

@@ -217,7 +217,13 @@ useHead(() => ({
               <button v-for="s in suggestions" :key="s" class="chip-btn" @click="ask(s)">{{ s }}</button>
             </p>
             <Skeleton v-if="asking" :lines="3" />
-            <AnswerBlocks v-else-if="answer" :answer="answer" class="answer" />
+            <AnswerBlocks
+              v-else-if="answer"
+              :answer="answer"
+              :suggest="!answer.answer_type?.startsWith('handbook')"
+              class="answer"
+              @ask="ask"
+            />
           </section>
 
           <section id="community" class="card section">

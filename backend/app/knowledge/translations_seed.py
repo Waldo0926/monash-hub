@@ -532,6 +532,13 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "最常见的是医生证明或 Monash 的 Health Professional Report。"
         "截图、自己写的说明、没有日期的信函通常不被接受。官方页面列明了哪种情形对应哪种材料。",
     ),
+    "defer-a-final-assessment": (
+        "期末考试可以延期吗？",
+        "延期期末考核要通过特殊考虑（special consideration）申请，没有单独的表格。"
+        "获批后，你会在之后的延期考核期（deferred assessment period）参加这次考核。"
+        "官方页面说明了什么情况可以延期、怎么改期，以及延期考核期的时间——"
+        "申请前请先看一遍。",
+    ),
     "what-is-wam": (
         "WAM 是什么，怎么算？",
         "WAM 是加权平均分：按每门课的学分加权求出你各门课分数的平均值，"
@@ -9057,7 +9064,37 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
     for slug, (question, answer) in FAQ_ZH.items():
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "question", text=question))
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "answer", text=answer))
-    return tuple(seeds)
+    return _merged(seeds)
+
+
+def _merged(seeds: list[TranslationSeed]) -> tuple[TranslationSeed, ...]:
+    """One seed per stored row, with every string set for that row combined.
+
+    The database keeps one human row per (locale, target, field). The GPA page
+    had two seeds for its body - the full translation and the sentences the
+    machine could not do - and the seeder wrote them to the same row one after
+    the other, so the second replaced the first and 62 of the page's 81
+    hand-translated sentences were silently lost. The results legend lost its
+    grade names the same way. Merging here makes that impossible: strings are
+    combined, and where two sets translate the same sentence the later one -
+    the reviewed pass - wins.
+    """
+    merged: dict[tuple[str, str, str, str], TranslationSeed] = {}
+    for seed in seeds:
+        key = (seed.locale, seed.target_type, seed.target_key, seed.field)
+        first = merged.get(key)
+        if first is None:
+            merged[key] = seed
+            continue
+        notes = [n for n in (first.note, seed.note) if n]
+        merged[key] = TranslationSeed(
+            seed.locale, seed.target_type, seed.target_key, seed.field,
+            text=seed.text if seed.text is not None else first.text,
+            strings={**first.strings, **seed.strings},
+            translator=seed.translator,
+            note="；".join(dict.fromkeys(notes)) or None,
+        )
+    return tuple(merged.values())
 
 
 TRANSLATION_SEEDS: tuple[TranslationSeed, ...] = all_seeds()
