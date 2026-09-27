@@ -14,6 +14,8 @@ export function useVerificationCode(purpose: 'registration' | 'password_reset') 
   const notice = ref('')
   const error = ref('')
   const deliveryConfigured = ref(true)
+  // The From address, so the page can say what to look for in a spam folder.
+  const sender = ref('')
   let timer: ReturnType<typeof setInterval> | undefined
 
   function startCooldown(seconds: number) {
@@ -40,9 +42,11 @@ export function useVerificationCode(purpose: 'registration' | 'password_reset') 
         expires_in_seconds: number
         resend_available_in_seconds: number
         delivery_configured: boolean
+        sender?: string
       }>('/v1/auth/verification-code', { method: 'POST', body: { email: email.trim(), purpose } })
 
       deliveryConfigured.value = result.delivery_configured
+      sender.value = result.sender || ''
       notice.value = $t('auth.codeSent', {
         email: email.trim(),
         minutes: Math.max(1, Math.round(result.expires_in_seconds / 60))
@@ -58,5 +62,5 @@ export function useVerificationCode(purpose: 'registration' | 'password_reset') 
     }
   }
 
-  return { send, sending, cooldown, notice, error, deliveryConfigured }
+  return { send, sending, cooldown, notice, error, deliveryConfigured, sender }
 }

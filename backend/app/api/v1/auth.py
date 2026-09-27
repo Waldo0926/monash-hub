@@ -177,6 +177,9 @@ def send_verification_code(
         "expires_in_seconds": settings.verification_code_ttl_seconds,
         "resend_available_in_seconds": settings.verification_resend_interval_seconds,
         "delivery_configured": settings.email_is_deliverable,
+        # So the page can say which sender to look for in a spam folder: a new
+        # sending domain's first message to a Gmail inbox often lands there.
+        "sender": settings.email_from_address,
     }
 
 

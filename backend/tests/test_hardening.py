@@ -551,3 +551,9 @@ def test_an_alert_without_an_address_is_only_logged(monkeypatch):
     monkeypatch.setattr(notify, "get_settings",
                         lambda: type("S", (), {"alert_email": None})())
     assert notify.notify("s", "b") is False and sent == []
+
+
+def test_a_code_request_names_the_sender_to_look_for(client, db):
+    body = client.post("/api/v1/auth/verification-code",
+                       json={"email": "new@example.com", "purpose": "registration"}).json()
+    assert body["sender"] and "@" in body["sender"]
