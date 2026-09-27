@@ -205,6 +205,9 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
           </div>
           <p v-if="errorFor('code')" class="tiny bad-text" role="alert">{{ errorFor('code') }}</p>
           <p v-if="code.notice.value" class="tiny notice">{{ code.notice.value }}</p>
+          <p v-if="code.notice.value && code.deliveryConfigured.value" class="tiny muted spam-hint">
+            {{ code.sender.value ? $t('auth.checkSpam', { sender: code.sender.value }) : $t('auth.checkSpamNoSender') }}
+          </p>
           <p v-if="!code.deliveryConfigured.value" class="tiny bad-text">
             {{ $t('auth.deliveryNotConfigured') }}
           </p>
@@ -236,4 +239,5 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
 .bad { border-color: var(--danger); }
 .bad-text { color: var(--danger); }
 .notice { color: var(--success); }
+.spam-hint { margin-top: calc(-1 * var(--s1)); }
 </style>
