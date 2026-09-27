@@ -137,6 +137,47 @@ SEEDS: tuple[Seed, ...] = (
          "Your timetable - Allocate+", "assessment", ("timetable", "allocate", "课表"),
          applies_to="all"),
 
+    # --- Course maps ------------------------------------------------------
+    #
+    # Each faculty publishes, per commencement year, the order to take a
+    # degree's units in. They are PDFs, so what is indexed is the faculty's page
+    # listing them, never the files: the page names every degree and links the
+    # official map. Next year's maps appear months before next year's Handbook
+    # (see crawler/handbook/next_year.py), so these are how a student finds them.
+    Seed("it-course-maps", "https://www.monash.edu/it/current-students/courses/maps",
+         "Course maps - Information Technology", "enrolment",
+         ("course map", "course maps", "course progression", "information technology",
+          "computer science", "课程地图", "修读顺序")),
+    Seed("engineering-course-maps",
+         "https://www.monash.edu/engineering/current-students/enrolment-and-re-enrolment"
+         "/course-information/course-maps",
+         "Course maps - Engineering", "enrolment",
+         ("course map", "course maps", "course progression", "engineering",
+          "课程地图", "修读顺序")),
+    Seed("business-course-maps",
+         "https://www.monash.edu/business/current-students/course-advice-and-planning"
+         "/helpful-links/course-maps",
+         "Course maps - Business and Economics", "enrolment",
+         ("course map", "course maps", "course progression", "commerce", "business",
+          "课程地图", "修读顺序")),
+    Seed("arts-course-maps",
+         "https://www.monash.edu/arts/current-students/course-and-unit-information/course-maps",
+         "Course maps - Arts", "enrolment",
+         ("course map", "course maps", "course progression", "arts", "课程地图", "修读顺序")),
+    Seed("education-course-maps", "https://www.monash.edu/education/students/courses/maps",
+         "Course maps - Education", "enrolment",
+         ("course map", "course maps", "course progression", "education", "课程地图", "修读顺序")),
+    Seed("mada-course-maps",
+         "https://www.monash.edu/mada/current-students/planning-your-course/course-maps",
+         "Course maps - Art, Design and Architecture", "enrolment",
+         ("course map", "course maps", "course progression", "design", "architecture",
+          "课程地图", "修读顺序")),
+    Seed("law-course-maps",
+         "https://www.monash.edu/law/current-students/resources/course-unit-information"
+         "/course-information",
+         "Course maps - Law", "enrolment",
+         ("course map", "course maps", "course progression", "law", "课程地图", "修读顺序")),
+
     # --- Academic rules ---------------------------------------------------
     Seed("academic-progress", "https://www.monash.edu/students/study-success/academic-progress",
          "Student academic progress", "academic-rules",
@@ -236,6 +277,17 @@ SEEDS: tuple[Seed, ...] = (
          "/assessments-and-results/special-consideration2",
          "Special consideration (Monash Malaysia)", "malaysia",
          ("malaysia", "special consideration", "特殊考虑"), applies_to="malaysia"),
+    Seed("malaysia-science-course-maps",
+         "https://www.monash.edu.my/science/current/undergraduate/course-and-unit-information"
+         "/course-maps",
+         "Course structure and course maps (Monash Malaysia Science)", "malaysia",
+         ("malaysia", "course map", "course maps", "science", "课程地图", "修读顺序"),
+         applies_to="malaysia"),
+    Seed("malaysia-business-course-maps",
+         "https://www.monash.edu.my/business/current/course-map-tool",
+         "Course map tool (Monash Malaysia Business)", "malaysia",
+         ("malaysia", "course map", "course maps", "business", "commerce", "课程地图", "修读顺序"),
+         applies_to="malaysia"),
     Seed("malaysia-exam-rules",
          "https://www.monash.edu.my/student-services/student-admin/examinations-results"
          "/exam-rules",

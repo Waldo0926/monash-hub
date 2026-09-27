@@ -268,3 +268,10 @@ def test_the_guides_group_lists_pages_about_the_query(client, seeded):
     body = client.get("/api/v1/search", params={"q": "学术诚信"}).json()
     guides = next(g for g in body["groups"] if g["kind"] == "official")
     assert [p["slug"] for p in guides["results"]] == ["academic-integrity"]
+
+
+@pytest.mark.parametrize("query", ["课程地图", "course map", "IT 2027 课程地图", "修读顺序"])
+def test_course_maps_are_findable(client, seeded, query):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert any(slug.endswith("course-maps") for slug in page_slugs(body))

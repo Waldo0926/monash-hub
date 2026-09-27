@@ -97,6 +97,28 @@ systemctl list-timers 'monash-hub-*'
 journalctl -u 'monash-hub-refresh@*' -n 50
 ```
 
+## Moving to next year's Handbook
+
+Monash publishes the next Handbook around October. Faculties post the next
+year's course maps earlier, but a course map only gives the order to take
+units in - prerequisites, offerings and assessment exist only in the Handbook,
+so next year's data is not loaded from course maps.
+
+The six-hourly official refresh checks whether the next Handbook is out
+(`python -m crawler.handbook.next_year`, one request) and, the first time it
+is, emails `ALERT_EMAIL` once. Then:
+
+```bash
+./deployment/crawl.sh handbook --all --year 2027 --min-interval 2
+docker compose -p monash-hub run --rm crawler \
+  python -m crawler.handbook.run_courses --all --year 2027 --min-interval 2
+./deployment/translate.sh zh short --targets units
+```
+
+and only when all three are complete, set `CURRENT_ACADEMIC_YEAR=2027` in
+`.env` and redeploy. The previous year stays in the database: a degree's
+requirements follow the year the student commenced.
+
 ## Chinese search
 
 After a crawl or translation update, refresh the Chinese search materialisation:
