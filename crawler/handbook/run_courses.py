@@ -41,6 +41,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from crawler.handbook.discover import discover_aos_codes, discover_course_codes
 from crawler.handbook.fetch import HandbookFetcher
+from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates
 from crawler.sync.pipeline import crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -95,7 +96,7 @@ def _already_fresh(kind: str, codes: list[str], year: int, hours: float) -> set[
 def crawl(kind: str, codes: list[str], year: int, *, min_interval: float) -> dict[str, int]:
     spec = KINDS[kind]
     throttle = Throttle(RateLimit(min_interval=min_interval))
-    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0}
+    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0, "withdrawn": 0}
     started_at = time.monotonic()
 
     with (
@@ -108,6 +109,16 @@ def crawl(kind: str, codes: list[str], year: int, *, min_interval: float) -> dic
             started = time.monotonic()
             result = fetcher.fetch(url)
             elapsed = int((time.monotonic() - started) * 1000)
+
+            if not result.ok and result.status == 404:
+                # The Handbook says it is gone - see withdrawn.py.
+                if mark_withdrawn(db, spec["model"], spec["code_column"], code, year):
+                    log.warning("%s: no longer in the %s Handbook, marked inactive", code, year)
+                summary["withdrawn"] += 1
+                record(db, job, target_type=spec["target_type"], target_key=code, url=url,
+                       outcome="withdrawn", http_status=404, transport=result.transport,
+                       duration_ms=elapsed, message="not in the Handbook")
+                continue
 
             if not result.ok:
                 summary["failed"] += 1
@@ -204,7 +215,13 @@ def main() -> None:
     else:
         throttle = Throttle(RateLimit(min_interval=interval))
         for kind in ("course", "aos"):
-            plan.append((kind, KINDS[kind]["discover"](year, throttle)))
+            codes = KINDS[kind]["discover"](year, throttle)
+            with SessionLocal() as db:
+                missing = recheck_candidates(
+                    db, KINDS[kind]["model"], KINDS[kind]["code_column"], year, codes)
+            if missing:
+                log.info("rechecking %d active %s the index no longer lists", len(missing), kind)
+            plan.append((kind, codes + missing))
 
     totals: dict[str, dict[str, int]] = {}
     for kind, codes in plan:

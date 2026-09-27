@@ -94,6 +94,9 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
 def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         **unit_brief(unit, tr),
+        # False when the Handbook now answers this code with a 404. The page
+        # still shows what it last said, under a notice saying so.
+        "is_active": unit.is_active,
         "school": tr.string(unit.school),
         "overview": tr.field("overview", unit.overview),
         "areas_of_study": tr.field("areas_of_study", unit.areas_of_study),
@@ -420,6 +423,7 @@ def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str,
     """The header of a degree page. The structure is assembled by the router."""
     return {
         **course_brief(course, tr),
+        "is_active": course.is_active,
         "aqf_level": tr.string(course.aqf_level),
         "cricos_code": course.cricos_code,
         "school": tr.string(course.school),
