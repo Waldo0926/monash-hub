@@ -296,6 +296,7 @@ GUIDE_TITLES: dict[str, str] = {
     "course-advice": "课程规划咨询",
     "credit-and-enrolment": "学分减免与选课",
     "apply-for-credit": "申请学分减免",
+    "semester-exchange": "学期交换",
     "study-load": "学习负荷（超修与减修）",
     "failed-units": "不及格、成绩暂扣与无效的课程",
     "double-degrees": "双学位",

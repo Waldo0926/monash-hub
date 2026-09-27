@@ -201,8 +201,11 @@ SEEDS: tuple[Seed, ...] = (
          applies_to="all"),
 
     # --- Exchange ----------------------------------------------------------
-    Seed("study-abroad", "https://www.monash.edu/study-abroad",
-         "Study abroad and exchange", "exchange", ("exchange", "abroad", "交换")),
+    # Was https://www.monash.edu/study-abroad, which became a 330-character
+    # landing page. The exchange programme itself is described here.
+    Seed("semester-exchange", "https://www.monash.edu/study-abroad/outbound/exchange",
+         "Semester exchange", "exchange",
+         ("exchange", "study abroad", "abroad", "semester exchange", "交换", "海外交换")),
 
     # --- Malaysia campus ----------------------------------------------------
     # --- Monash Malaysia ---------------------------------------------------

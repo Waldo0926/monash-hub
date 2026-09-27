@@ -45,8 +45,18 @@ def _source_key(url: str) -> tuple[str, str, str]:
     return SOURCES.get(host, ("monash-other", "Monash University", f"https://{host}"))
 
 
-def register(seeds: tuple[Seed, ...]) -> int:
-    """Write the curated list into ``official_pages`` without fetching anything."""
+def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
+    """Write the curated list into ``official_pages`` without fetching anything.
+
+    ``retire_others`` takes down every page no longer in the list. Dropping a
+    seed used to leave its row live forever: when Monash turned a page into
+    something that cannot be indexed and it was replaced here, the old copy kept
+    being served and searched. Only a run over the whole list may do this - a
+    ``--slugs`` run would otherwise retire everything it was not asked about.
+    """
+    from app.models.knowledge import OfficialPage
+    from sqlalchemy import update
+
     with SessionLocal() as db:
         for seed in seeds:
             key, name, base = _source_key(seed.url)
@@ -62,6 +72,15 @@ def register(seeds: tuple[Seed, ...]) -> int:
                 refresh_tier=seed.tier,
                 applies_to=seed.applies_to,
             )
+        if retire_others:
+            retired = db.execute(
+                update(OfficialPage)
+                .where(OfficialPage.slug.not_in([seed.slug for seed in seeds]),
+                       OfficialPage.status != "retired")
+                .values(status="retired")
+            ).rowcount
+            if retired:
+                log.info("retired %d pages no longer in the seed list", retired)
         db.commit()
     log.info("registered %d seed pages", len(seeds))
     return len(seeds)
@@ -152,7 +171,7 @@ def main() -> None:
         if missing:
             parser.error(f"unknown slugs: {', '.join(sorted(missing))}")
 
-    register(seeds)
+    register(seeds, retire_others=not args.slugs)
     if args.register:
         return
 

@@ -58,8 +58,11 @@ def seed_faq() -> int:
             entry.tags = list(item.tags)
             entry.keywords = list(item.keywords)
             entry.priority = item.priority
-            entry.official_page_id = page.id if page else None
-            entry.official_url = page.canonical_url if page else None
+            # A page not registered yet keeps the entry's existing link rather
+            # than wiping it; the next seed run links it properly.
+            if page is not None:
+                entry.official_page_id = page.id
+                entry.official_url = page.canonical_url
         db.commit()
     log.info("seeded %d FAQ entries", len(FAQ_SEEDS))
     return len(FAQ_SEEDS)

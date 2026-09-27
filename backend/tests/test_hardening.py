@@ -285,3 +285,25 @@ def test_a_malformed_plan_is_a_422_not_a_500(client, db, body):
 def test_a_plan_without_a_year_is_checked_against_the_current_handbook(client, db):
     body = client.post("/api/v1/plan/check", json={"entries": []}).json()
     assert body["academic_year"] == 2026
+
+
+def test_a_page_dropped_from_the_seed_list_is_retired(db, engine, monkeypatch):
+    from app.models.knowledge import OfficialPage
+    from sqlalchemy import select
+    from sqlalchemy.orm import sessionmaker
+
+    from crawler.official import run
+    from crawler.official.seeds import SEEDS
+
+    monkeypatch.setattr(run, "SessionLocal", sessionmaker(bind=engine))
+    run.register(SEEDS[:3])
+    run.register(SEEDS[:2], retire_others=True)
+    statuses = dict(db.execute(select(OfficialPage.slug, OfficialPage.status)).all())
+    assert statuses[SEEDS[2].slug] == "retired"
+    assert statuses[SEEDS[0].slug] != "retired"
+
+    # A --slugs run must not retire what it was not asked about.
+    run.register(SEEDS[:1])
+    db.expire_all()
+    statuses = dict(db.execute(select(OfficialPage.slug, OfficialPage.status)).all())
+    assert statuses[SEEDS[1].slug] != "retired"

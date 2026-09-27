@@ -52,6 +52,12 @@ echo "==> Building images"
 echo "==> Running migrations"
 "${COMPOSE[@]}" run --rm migrate
 
+echo "==> Registering the official page list"
+# Writes new seed pages (and retires dropped ones) without fetching anything,
+# so the FAQ seeded next can link to a page added in this release. The pages
+# themselves are fetched by the scheduled refresh.
+"${COMPOSE[@]}" run --rm crawler python -m crawler.official.run --register
+
 echo "==> Seeding curated content"
 # Human-reviewed translations and curated FAQ entries ship with the code. They
 # are idempotent upserts, so every deploy must apply them; otherwise a release
