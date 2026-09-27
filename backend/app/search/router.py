@@ -68,7 +68,10 @@ def _title(key: str, text: str, **params: Any) -> dict[str, Any]:
 def _load_unit(db: Session, code: str, year: int) -> Unit | None:
     return db.scalar(
         select(Unit)
-        .where(Unit.unit_code == code.upper(), Unit.academic_year == year)
+        # A unit the Handbook has withdrawn is not answered for; the code then
+        # reaches "not in the Handbook", which is what is true.
+        .where(Unit.unit_code == code.upper(), Unit.academic_year == year,
+               Unit.is_active.is_(True))
         .options(
             selectinload(Unit.offerings),
             selectinload(Unit.assessments),

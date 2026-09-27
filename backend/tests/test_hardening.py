@@ -432,3 +432,72 @@ def test_reports_are_rate_limited(client, db, mailbox):
         "target_type": "post", "target_id": p["id"], "reason": "spam"}).status_code
         for p in posts]
     assert codes[:20] == [201] * 20 and codes[20] == 429
+
+
+# --- entries Monash withdraws from the Handbook -----------------------------------
+
+def test_a_404_retires_a_unit_and_a_network_error_does_not(db, engine, handbook_html, monkeypatch):
+    from app.handbook.parser import parse_unit_page, unit_url
+    from app.handbook.repository import upsert_unit
+    from app.models.handbook import Unit
+    from sqlalchemy.orm import sessionmaker
+
+    from crawler.handbook import run
+    from crawler.handbook.fetch import FetchResult
+
+    for code in ("FIT2102", "BFF2140"):
+        upsert_unit(db, parse_unit_page(handbook_html(code), unit_url(code, 2026)))
+    db.commit()
+
+    answers = {
+        "FIT2102": FetchResult(url="", status=404, html=None, error="not found"),
+        "BFF2140": FetchResult(url="", status=None, html=None, error="ReadTimeout"),
+    }
+
+    class Fetcher:
+        def __init__(self, *_):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def fetch(self, url):
+            return answers[url.rstrip("/").rsplit("/", 1)[-1]]
+
+    monkeypatch.setattr(run, "SessionLocal", sessionmaker(bind=engine))
+    monkeypatch.setattr(run, "HandbookFetcher", Fetcher)
+    summary = run.crawl(["FIT2102", "BFF2140"], 2026, min_interval=1.0)
+    assert summary["withdrawn"] == 1 and summary["failed"] == 1
+
+    db.expire_all()
+    active = {u.unit_code: u.is_active for u in db.query(Unit)}
+    assert active == {"FIT2102": False, "BFF2140": True}
+
+
+def test_rows_the_index_dropped_are_rechecked(db, handbook_html):
+    from app.handbook.parser import parse_unit_page, unit_url
+    from app.handbook.repository import upsert_unit
+    from app.models.handbook import Unit
+
+    from crawler.handbook.withdrawn import recheck_candidates
+
+    for code in ("FIT2102", "BFF2140"):
+        upsert_unit(db, parse_unit_page(handbook_html(code), unit_url(code, 2026)))
+    db.commit()
+    assert recheck_candidates(db, Unit, "unit_code", 2026, ["FIT2102"]) == ["BFF2140"]
+
+
+def test_a_withdrawn_unit_is_not_answered_for_and_its_page_says_so(client, db, handbook_html):
+    from app.handbook.parser import parse_unit_page, unit_url
+    from app.handbook.repository import upsert_unit
+    from app.models.handbook import Unit
+
+    upsert_unit(db, parse_unit_page(handbook_html("FIT2102"), unit_url("FIT2102", 2026)))
+    db.query(Unit).update({"is_active": False})
+    db.commit()
+    assert client.post("/api/v1/ask", json={"query": "FIT2102 exam"}).json()["answer_type"] \
+        == "unit_not_found"
+    assert client.get("/api/v1/units/FIT2102").json()["is_active"] is False

@@ -66,6 +66,9 @@ useHead(() => ({
     <ErrorState v-if="error" :error="error" />
 
     <article v-else-if="unit" class="unit">
+      <p v-if="unit.is_active === false" class="withdrawn small" role="status">
+        {{ $t('handbook.withdrawn', { code: unit.unit_code, year: unit.academic_year }) }}
+      </p>
       <header class="head card">
         <div class="head-top">
           <div>
@@ -279,6 +282,10 @@ useHead(() => ({
 </template>
 
 <style scoped>
+.withdrawn {
+  margin: 0 0 var(--s3); padding: var(--s3) var(--s4); border-radius: var(--radius-sm);
+  background: var(--warning-bg); color: var(--warning);
+}
 .mb { margin-bottom: var(--s5); }
 .head { padding: var(--s5); margin-bottom: var(--s5); }
 .head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }

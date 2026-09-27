@@ -32,6 +32,7 @@ from sqlalchemy import select
 from crawler.handbook.discover import discover_unit_codes
 from crawler.handbook.fetch import HandbookFetcher
 from crawler.handbook.seeds import FIXTURE_CODES
+from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates
 from crawler.sync.pipeline import crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -58,7 +59,7 @@ def _already_fresh(codes: list[str], year: int, hours: float) -> set[str]:
 
 def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]:
     throttle = Throttle(RateLimit(min_interval=min_interval))
-    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0}
+    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0, "withdrawn": 0}
     started_at = time.monotonic()
 
     with (
@@ -71,6 +72,16 @@ def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]
             started = time.monotonic()
             result = fetcher.fetch(url)
             elapsed = int((time.monotonic() - started) * 1000)
+
+            if not result.ok and result.status == 404:
+                # The Handbook says the unit is gone - see withdrawn.py.
+                if mark_withdrawn(db, Unit, "unit_code", code, year):
+                    log.warning("%s: no longer in the %s Handbook, marked inactive", code, year)
+                summary["withdrawn"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="withdrawn", http_status=404, transport=result.transport,
+                       duration_ms=elapsed, message="not in the Handbook")
+                continue
 
             if not result.ok:
                 summary["failed"] += 1
@@ -156,6 +167,11 @@ def main() -> None:
         codes = [c.strip().upper() for c in args.units.split(",") if c.strip()]
     else:
         codes = discover_unit_codes(year, Throttle(RateLimit(min_interval=1.0, jitter=0.5)))
+        with SessionLocal() as db:
+            missing = recheck_candidates(db, Unit, "unit_code", year, codes)
+        if missing:
+            log.info("rechecking %d active units the index no longer lists", len(missing))
+            codes += missing
 
     if args.skip_fresh:
         fresh = _already_fresh(codes, year, args.skip_fresh)

@@ -53,6 +53,9 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
   <div class="page">
     <ErrorState v-if="error" :error="error" />
     <template v-else-if="course">
+      <p v-if="course.is_active === false" class="withdrawn small" role="status">
+        {{ $t('handbook.withdrawn', { code: course.course_code, year: course.academic_year }) }}
+      </p>
       <header class="head">
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ course.title }}</h1>
@@ -117,6 +120,10 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
 </template>
 
 <style scoped>
+.withdrawn {
+  margin: 0 0 var(--s3); padding: var(--s3) var(--s4); border-radius: var(--radius-sm);
+  background: var(--warning-bg); color: var(--warning);
+}
 .page { max-width: 900px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .crumb { margin: 0 0 var(--s2); font-size: 0.85rem; }
 .head h1 { margin: 0 0 var(--s2); }
