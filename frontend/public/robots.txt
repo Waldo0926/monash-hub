@@ -6,6 +6,7 @@ Disallow: /register
 Disallow: /forgot-password
 Disallow: /profile
 Disallow: /notifications
+Disallow: /moderation
 Disallow: /search
 
 Sitemap: https://monashhub.secureview.tech/sitemap.xml

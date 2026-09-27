@@ -122,6 +122,10 @@ def _nickname_problem(nickname: str) -> str | None:
         return f"Use at most {NICKNAME_MAX} characters."
     if not NICKNAME_ALLOWED.match(value):
         return "Use letters, numbers, underscore, dot or hyphen only."
+    # Reserved for closed accounts (see profile.delete_account); taking one
+    # would also block that account from ever being closed.
+    if value.lower().startswith("deleted-"):
+        return "That nickname is taken."
     return None
 
 

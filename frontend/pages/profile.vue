@@ -105,6 +105,38 @@ async function onAvatar(event: Event) {
   }
 }
 
+/**
+ * Closing the account. Behind a disclosure and a password, because it cannot
+ * be undone and a session left open on a shared computer should not be
+ * enough to do it.
+ */
+const closing = ref(false)
+const closePassword = ref('')
+const closeContent = ref(false)
+const closeError = ref('')
+const closeBusy = ref(false)
+
+async function closeAccount() {
+  closeError.value = ''
+  if (!closePassword.value) return
+  if (!window.confirm($t('profile.close.confirm'))) return
+  closeBusy.value = true
+  try {
+    await apiFetch('/v1/profile', {
+      method: 'DELETE',
+      body: { password: closePassword.value, delete_content: closeContent.value }
+    })
+    signOut()
+    await navigateTo({ path: '/', query: { closed: '1' } })
+  } catch (caught: any) {
+    closeError.value = caught?.status === 403
+      ? $t('profile.close.wrongPassword')
+      : apiErrorMessage(caught, $t)
+  } finally {
+    closeBusy.value = false
+  }
+}
+
 async function clearAvatar() {
   uploading.value = true
   try {
@@ -235,9 +267,41 @@ useSeoMeta({ title: () => $t('profile.metaTitle'), robots: 'noindex' })
       </section>
 
       <section class="card section">
+        <NuxtLink v-if="profile.is_admin" to="/moderation" class="btn btn--small mod-link">
+          {{ $t('moderation.link') }}
+        </NuxtLink>
         <button class="btn btn--ghost btn--small" type="button" @click="signOut">
           {{ $t('nav.signOut') }}
         </button>
+      </section>
+
+      <section class="card section danger-zone">
+        <h2>{{ $t('profile.close.title') }}</h2>
+        <p class="small muted">{{ $t('profile.close.explain') }}</p>
+        <button v-if="!closing" class="btn btn--ghost btn--small" type="button" @click="closing = true">
+          {{ $t('profile.close.start') }}
+        </button>
+        <form v-else class="close-form" @submit.prevent="closeAccount">
+          <label class="check">
+            <input v-model="closeContent" type="checkbox">
+            <span>{{ $t('profile.close.deleteContent') }}</span>
+          </label>
+          <p class="tiny muted">
+            {{ closeContent ? $t('profile.close.contentGoes') : $t('profile.close.contentStays') }}
+          </p>
+          <label for="close-password" class="tiny muted">{{ $t('profile.close.password') }}</label>
+          <input id="close-password" v-model="closePassword" class="field" type="password"
+                 autocomplete="current-password">
+          <p v-if="closeError" class="tiny bad-text" role="alert">{{ closeError }}</p>
+          <div class="close-actions">
+            <button class="btn btn--danger" type="submit" :disabled="!closePassword || closeBusy">
+              {{ closeBusy ? $t('auth.working') : $t('profile.close.submit') }}
+            </button>
+            <button class="link-btn" type="button" @click="closing = false">
+              {{ $t('community.cancel') }}
+            </button>
+          </div>
+        </form>
       </section>
     </template>
   </div>
@@ -274,6 +338,14 @@ useSeoMeta({ title: () => $t('profile.metaTitle'), robots: 'noindex' })
 .field-row p { margin: 0; }
 textarea.field { resize: vertical; }
 .notice { color: var(--success); }
+.mod-link { margin-right: var(--s2); }
+.danger-zone { border-color: var(--danger); }
+.danger-zone h2 { color: var(--danger); }
+.close-form { display: grid; gap: var(--s2); max-width: 420px; }
+.check { display: flex; gap: var(--s2); align-items: flex-start; font-size: 0.9rem; }
+.close-actions { display: flex; gap: var(--s3); align-items: center; margin-top: var(--s2); }
+.btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.link-btn { border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
 .bad-text { color: var(--danger); }
 
 .tabs { display: flex; flex-wrap: wrap; gap: var(--s2); margin: var(--s3) 0 var(--s4); }

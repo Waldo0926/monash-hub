@@ -13,19 +13,27 @@ asked last month was findable only by scrolling the category you asked it in.
 from __future__ import annotations
 
 import logging
+import secrets
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import current_user
 from app.api.serializers import post_brief
-from app.core import avatars
+from app.core import avatars, throttle
 from app.core.db import get_db
-from app.models.community import CommunityAnswer, CommunityBookmark, CommunityPost, PostTag
-from app.models.user import User
+from app.core.security import hash_password, verify_password
+from app.models.community import (
+    CommunityAnswer,
+    CommunityBookmark,
+    CommunityPost,
+    CommunityReport,
+    PostTag,
+)
+from app.models.user import AuthThrottle, EmailVerificationCode, Notification, User
 
 log = logging.getLogger(__name__)
 
@@ -223,3 +231,90 @@ def my_activity(
         "answered": [post_brief(p) for p in answered],
         "bookmarks": [post_brief(p) for p in saved],
     }
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    # Off: what you wrote stays, with no name on it, so the threads it answered
+    # still make sense. On: it is taken down as if you had deleted each item.
+    delete_content: bool = False
+
+
+@router.delete("")
+def delete_account(
+    payload: DeleteAccountRequest,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Close your account and remove what identifies you.
+
+    There was no way to leave. The row is kept as an empty tombstone rather
+    than removed, because posts and replies point at it; everything that says
+    who it was - email, nickname, picture, bio, the nickname copied into other
+    people's notifications - is removed, and every session is signed out.
+    The email address can be used to register again straight away.
+    """
+    # The password, because a session left open on a library computer should
+    # not be enough to erase somebody's account. Guesses count against the
+    # same limit as signing in.
+    try:
+        throttle.check(db, throttle.SIGNIN_PER_ACCOUNT, user.email)
+    except throttle.Throttled as limited:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS, "Too many attempts. Try again later.",
+            headers={"Retry-After": str(limited.retry_after_seconds)},
+        ) from limited
+    if not verify_password(payload.password, user.password_hash):
+        throttle.record(db, throttle.SIGNIN_PER_ACCOUNT, user.email)
+        db.commit()
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Wrong password")
+
+    old_email, old_nickname = user.email, user.nickname
+
+    if payload.delete_content:
+        db.execute(
+            update(CommunityPost)
+            .where(CommunityPost.author_id == user.id, CommunityPost.deleted_at.is_(None))
+            .values(is_hidden=True, deleted_at=func.now())
+        )
+        answers = db.scalars(select(CommunityAnswer).where(
+            CommunityAnswer.author_id == user.id, CommunityAnswer.deleted_at.is_(None))).all()
+        for answer in answers:
+            if not answer.is_hidden:
+                db.execute(
+                    update(CommunityPost)
+                    .where(CommunityPost.id == answer.post_id)
+                    .values(answer_count=func.greatest(CommunityPost.answer_count - 1, 0),
+                            **({"is_solved": False} if answer.is_accepted else {}))
+                )
+            answer.is_accepted = False
+            answer.deleted_at = func.now()
+    else:
+        db.execute(update(CommunityPost).where(CommunityPost.author_id == user.id)
+                   .values(is_anonymous=True))
+        db.execute(update(CommunityAnswer).where(CommunityAnswer.author_id == user.id)
+                   .values(is_anonymous=True))
+
+    db.execute(delete(CommunityBookmark).where(CommunityBookmark.user_id == user.id))
+    db.execute(delete(Notification).where(Notification.user_id == user.id))
+    # Other people's notifications carry the nickname as text.
+    db.execute(update(Notification).where(Notification.actor_nickname == old_nickname)
+               .values(actor_nickname=None))
+    db.execute(update(CommunityReport).where(CommunityReport.reporter_id == user.id)
+               .values(reporter_id=None))
+    db.execute(delete(EmailVerificationCode).where(EmailVerificationCode.email == old_email))
+    db.execute(delete(AuthThrottle).where(AuthThrottle.key == old_email))
+
+    previous_avatar = user.avatar_file
+    user.email = f"deleted-{user.id}@deleted.invalid"
+    user.nickname = f"deleted-{user.id}"
+    user.password_hash = hash_password(secrets.token_urlsafe(32)[:60])
+    user.avatar_file = None
+    user.bio = None
+    user.is_active = False
+    user.is_admin = False
+    user.token_version += 1
+    db.commit()
+    avatars.remove(previous_avatar)
+    return {"deleted": True, "content_removed": payload.delete_content}
+

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -18,6 +18,7 @@ from app.api.deps import current_admin, current_user, current_user_optional
 from app.api.serializers import _shown as shown
 from app.api.serializers import answer_brief, post_brief, post_detail
 from app.community import notifications
+from app.core import throttle
 from app.core.db import get_db
 from app.models.community import (
     CommunityAnswer,
@@ -412,6 +413,7 @@ def toggle_bookmark(
 @router.post("/reports", status_code=status.HTTP_201_CREATED)
 def create_report(
     payload: ReportRequest,
+    request: Request,
     db: Session = Depends(get_db),
     user: User | None = Depends(current_user_optional),
 ) -> dict:
@@ -422,6 +424,27 @@ def create_report(
     model = CommunityPost if payload.target_type == "post" else CommunityAnswer
     if db.get(model, payload.target_id) is None:
         raise HTTPException(404, "Nothing to report")
+
+    reporter = f"user:{user.id}" if user else f"ip:{throttle.client_address(request)}"
+    # The same person reporting the same thing again adds nothing for the
+    # moderator to read; answer as if it were filed, because it is.
+    if user is not None:
+        existing = db.scalar(select(CommunityReport).where(
+            CommunityReport.reporter_id == user.id,
+            CommunityReport.target_type == payload.target_type,
+            CommunityReport.target_id == payload.target_id,
+            CommunityReport.status == "open",
+        ))
+        if existing is not None:
+            return {"id": existing.id, "status": existing.status}
+    try:
+        throttle.check(db, throttle.REPORTS_PER_REPORTER, reporter)
+    except throttle.Throttled as limited:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS, "Too many reports. Try again later.",
+            headers={"Retry-After": str(limited.retry_after_seconds)},
+        ) from limited
+
     report = CommunityReport(
         reporter_id=user.id if user else None,
         target_type=payload.target_type,
@@ -430,19 +453,49 @@ def create_report(
         detail=(payload.detail or "").strip() or None,
     )
     db.add(report)
+    throttle.record(db, throttle.REPORTS_PER_REPORTER, reporter)
     db.commit()
     return {"id": report.id, "status": report.status}
 
 
+def _report_target(db: Session, report: CommunityReport) -> dict | None:
+    """What a moderator needs to judge a report without opening five tabs."""
+    if report.target_type == "post":
+        post = db.get(CommunityPost, report.target_id)
+        if post is None:
+            return None
+        return {"post_id": post.id, "title": post.title, "excerpt": post.body[:400],
+                "author": post.author.nickname if post.author else None,
+                "anonymous": post.is_anonymous, "hidden": post.is_hidden,
+                "deleted": post.deleted_at is not None}
+    answer = db.get(CommunityAnswer, report.target_id)
+    if answer is None:
+        return None
+    post = db.get(CommunityPost, answer.post_id)
+    return {"post_id": answer.post_id, "title": post.title if post else None,
+            "excerpt": answer.body[:400],
+            "author": answer.author.nickname if answer.author else None,
+            "anonymous": answer.is_anonymous, "hidden": answer.is_hidden,
+            "deleted": answer.deleted_at is not None}
+
+
 @router.get("/reports")
-def list_reports(db: Session = Depends(get_db), admin: User = Depends(current_admin)) -> dict:
+def list_reports(
+    status_filter: str = Query("open", alias="status", pattern="^(open|resolved|dismissed)$"),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    admin: User = Depends(current_admin),
+) -> dict:
     reports = db.scalars(
         select(CommunityReport)
-        .where(CommunityReport.status == "open")
+        .where(CommunityReport.status == status_filter)
         .order_by(CommunityReport.created_at.desc())
+        .limit(limit)
     ).all()
+    total = db.scalar(select(func.count(CommunityReport.id)).where(
+        CommunityReport.status == status_filter)) or 0
     return {
-        "total": len(reports),
+        "total": int(total),
         "results": [
             {
                 "id": r.id,
@@ -450,11 +503,54 @@ def list_reports(db: Session = Depends(get_db), admin: User = Depends(current_ad
                 "target_id": r.target_id,
                 "reason": r.reason,
                 "detail": r.detail,
+                "status": r.status,
                 "created_at": r.created_at.isoformat(),
+                "target": _report_target(db, r),
             }
             for r in reports
         ],
     }
+
+
+@router.post("/reports/{report_id}/resolve")
+def resolve_report(
+    report_id: int,
+    action: str = Query(pattern="^(hide|dismiss)$"),
+    db: Session = Depends(get_db),
+    admin: User = Depends(current_admin),
+) -> dict:
+    """Close a report: hide what it is about, or decide it is fine.
+
+    Reports could be filed and listed but never closed, so the queue only grew
+    and a moderator could not tell today's reports from last month's. Hiding
+    closes every open report about the same thing at once.
+    """
+    report = db.get(CommunityReport, report_id)
+    if report is None:
+        raise HTTPException(404, "Report not found")
+    if action == "hide":
+        model = CommunityPost if report.target_type == "post" else CommunityAnswer
+        target = db.get(model, report.target_id)
+        if target is not None and not target.is_hidden:
+            if isinstance(target, CommunityAnswer):
+                _count_answer(db, target.post_id, -1)
+            target.is_hidden = True
+        _close_reports(db, report.target_type, report.target_id, "resolved")
+    else:
+        report.status = "dismissed"
+    db.commit()
+    return {"id": report.id, "status": report.status}
+
+
+def _close_reports(db: Session, target_type: str, target_id: int, outcome: str) -> None:
+    db.execute(
+        update(CommunityReport)
+        .where(CommunityReport.target_type == target_type,
+               CommunityReport.target_id == target_id,
+               CommunityReport.status == "open")
+        .values(status=outcome)
+        .execution_options(synchronize_session="fetch")
+    )
 
 
 @router.post("/moderate/{target_type}/{target_id}")
@@ -478,6 +574,8 @@ def moderate(
         if isinstance(target, CommunityAnswer) and target.is_hidden != hide:
             _count_answer(db, target.post_id, -1 if hide else 1)
         target.is_hidden = hide
+        if hide:
+            _close_reports(db, target_type, target_id, "resolved")
     elif isinstance(target, CommunityPost):
         target.is_pinned = action == "pin"
     else:
