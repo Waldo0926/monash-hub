@@ -53,8 +53,8 @@ useSeoMeta({
   description: () =>
     unit.value
       ? `${unit.value.unit_code} ${unit.value.title}: assessment, requisites, offerings and workload from the ${unit.value.academic_year} Monash Handbook.`
-      : '',
-  ogTitle: () => (unit.value ? `${unit.value.unit_code} · ${unit.value.title}` : '')
+      : undefined,
+  ogTitle: () => (unit.value ? `${unit.value.unit_code} · ${unit.value.title}` : undefined)
 })
 useHead(() => ({
   link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/${code.value}` }]

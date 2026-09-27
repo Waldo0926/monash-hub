@@ -140,7 +140,12 @@ const poster = computed(() => {
 })
 
 useSeoMeta({
-  title: () => (post.value ? `${post.value.title} — Monash Hub` : $t('community.title'))
+  title: () => (post.value ? `${post.value.title} — Monash Hub` : $t('community.title')),
+  // The start of the question, so a shared thread previews as what was asked.
+  description: () => {
+    const body = (post.value?.body || '').replace(/\s+/g, ' ').trim()
+    return body ? (body.length > 160 ? `${body.slice(0, 157)}…` : body) : undefined
+  }
 })
 </script>
 
