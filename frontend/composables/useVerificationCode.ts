@@ -52,7 +52,7 @@ export function useVerificationCode(purpose: 'registration' | 'password_reset') 
       if (caught?.status === 429 || caught?.statusCode === 429) {
         startCooldown(Number(caught?.response?.headers?.get?.('retry-after')) || 60)
       }
-      error.value = caught?.data?.detail || $t('state.generic')
+      error.value = apiErrorMessage(caught, $t)
     } finally {
       sending.value = false
     }

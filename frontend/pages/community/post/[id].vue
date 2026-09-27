@@ -40,7 +40,7 @@ async function send(work: () => Promise<unknown>) {
     await refresh()
     return true
   } catch (failure: any) {
-    notice.value = failure?.data?.detail || $t('community.actionFailed')
+    notice.value = apiErrorMessage(failure, $t, 'community.actionFailed')
     return false
   } finally {
     busy.value = false

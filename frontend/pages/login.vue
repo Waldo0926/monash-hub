@@ -18,7 +18,7 @@ async function submit() {
     await refreshNotifications()
     navigateTo('/community')
   } catch (caught: any) {
-    message.value = caught?.data?.detail || $t('state.generic')
+    message.value = apiErrorMessage(caught, $t)
   } finally {
     submitting.value = false
   }
