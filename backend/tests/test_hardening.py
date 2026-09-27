@@ -307,3 +307,128 @@ def test_a_page_dropped_from_the_seed_list_is_retired(db, engine, monkeypatch):
     db.expire_all()
     statuses = dict(db.execute(select(OfficialPage.slug, OfficialPage.status)).all())
     assert statuses[SEEDS[1].slug] != "retired"
+
+
+# --- closing an account --------------------------------------------------------
+
+def test_closing_an_account_removes_what_identifies_you(client, db, mailbox):
+    from app.models.user import User
+
+    leaver = _account(client, mailbox, "leaver@example.com", "leaver")
+    other = _account(client, mailbox, "stayer@example.com", "stayer")
+    post = _post(client, leaver)
+    client.post(f"/api/v1/community/posts/{post['id']}/answers", headers=other,
+                json={"body": "Here is an answer"})
+    answer = client.post(f"/api/v1/community/posts/{post['id']}/answers", headers=leaver,
+                         json={"body": "Thanks, that helped"}).json()
+    other_post = _post(client, other, title="Another question")
+    client.post(f"/api/v1/community/posts/{other_post['id']}/answers", headers=leaver,
+                json={"body": "I think the answer is yes"})
+
+    wrong = client.request("DELETE", "/api/v1/profile", headers=leaver,
+                           json={"password": "not-it-1A"})
+    assert wrong.status_code == 403
+
+    closed = client.request("DELETE", "/api/v1/profile", headers=leaver,
+                            json={"password": PASSWORD})
+    assert closed.status_code == 200
+
+    # Signed out everywhere, and the address is free again.
+    assert client.get("/api/v1/auth/me", headers=leaver).status_code == 401
+    assert _sign_in(client, "leaver@example.com", PASSWORD).status_code == 401
+    _account(client, mailbox, "leaver@example.com", "leaver2")
+
+    # What they wrote stays, with no name on it.
+    thread = client.get(f"/api/v1/community/posts/{post['id']}").json()
+    assert thread["author"] is None and thread["anonymous"] is True
+    mine = next(a for a in thread["answers"] if a["id"] == answer["id"])
+    assert mine["author"] is None
+    # ...including in the notification the other person already received.
+    notes = client.get("/api/v1/notifications", headers=other).json()["results"]
+    assert notes and all(n["actor"] != "leaver" for n in notes)
+
+    row = db.query(User).filter(User.nickname.like("deleted-%")).one()
+    assert row.is_active is False and row.bio is None and row.avatar_file is None
+    assert "leaver" not in row.email
+
+
+def test_closing_an_account_can_take_its_writing_down_too(client, db, mailbox):
+    leaver = _account(client, mailbox, "gone@example.com", "gonegirl")
+    other = _account(client, mailbox, "asker2@example.com", "asker2")
+    post = _post(client, leaver)
+    question = _post(client, other, title="Is FIT1045 hard?")
+    reply = client.post(f"/api/v1/community/posts/{question['id']}/answers", headers=leaver,
+                        json={"body": "Not really, practise loops"}).json()
+    client.post(f"/api/v1/community/answers/{reply['id']}/accept", headers=other)
+
+    client.request("DELETE", "/api/v1/profile", headers=leaver,
+                   json={"password": PASSWORD, "delete_content": True})
+    assert client.get(f"/api/v1/community/posts/{post['id']}").status_code == 404
+    thread = client.get(f"/api/v1/community/posts/{question['id']}").json()
+    assert thread["answers"] == []
+    assert thread["answer_count"] == 0 and thread["is_solved"] is False
+
+
+def test_the_closed_account_nickname_pattern_is_reserved(client, db, mailbox):
+    client.post("/api/v1/auth/verification-code",
+                json={"email": "squat@example.com", "purpose": "registration"})
+    response = client.post("/api/v1/auth/signup", json={
+        "email": "squat@example.com", "nickname": "deleted-1", "password": PASSWORD,
+        "verification_code": mailbox.code_for("squat@example.com")})
+    assert response.status_code == 422
+
+
+# --- reports and the moderation queue --------------------------------------------
+
+def test_reports_are_deduplicated_and_can_be_resolved(client, db, mailbox):
+    from app.models.user import User
+
+    author = _account(client, mailbox, "spam@example.com", "spammer")
+    reporter = _account(client, mailbox, "rep@example.com", "reporter")
+    post = _post(client, author, title="Cheap essays here")
+    body = {"target_type": "post", "target_id": post["id"], "reason": "spam",
+            "detail": "Advertising"}
+    first = client.post("/api/v1/community/reports", headers=reporter, json=body).json()
+    again = client.post("/api/v1/community/reports", headers=reporter, json=body).json()
+    assert first["id"] == again["id"]
+
+    db.query(User).filter(User.nickname == "reporter").update({"is_admin": True})
+    db.commit()
+    queue = client.get("/api/v1/community/reports", headers=reporter).json()
+    assert queue["total"] == 1
+    item = queue["results"][0]
+    assert item["target"]["title"] == "Cheap essays here"
+    assert item["target"]["post_id"] == post["id"]
+
+    resolved = client.post(f"/api/v1/community/reports/{item['id']}/resolve",
+                           params={"action": "hide"}, headers=reporter)
+    assert resolved.status_code == 200
+    assert client.get(f"/api/v1/community/posts/{post['id']}").status_code == 404
+    assert client.get("/api/v1/community/reports", headers=reporter).json()["total"] == 0
+    assert client.get("/api/v1/community/reports", params={"status": "resolved"},
+                      headers=reporter).json()["total"] == 1
+
+
+def test_a_report_can_be_dismissed(client, db, mailbox):
+    from app.models.user import User
+
+    author = _account(client, mailbox, "fine@example.com", "fineauthor")
+    mod = _account(client, mailbox, "mod@example.com", "moderator1")
+    post = _post(client, author)
+    report = client.post("/api/v1/community/reports", headers=mod, json={
+        "target_type": "post", "target_id": post["id"], "reason": "other"}).json()
+    db.query(User).filter(User.nickname == "moderator1").update({"is_admin": True})
+    db.commit()
+    client.post(f"/api/v1/community/reports/{report['id']}/resolve",
+                params={"action": "dismiss"}, headers=mod)
+    assert client.get(f"/api/v1/community/posts/{post['id']}").status_code == 200
+    assert client.get("/api/v1/community/reports", headers=mod).json()["total"] == 0
+
+
+def test_reports_are_rate_limited(client, db, mailbox):
+    author = _account(client, mailbox, "busy@example.com", "busyauthor")
+    posts = [_post(client, author, title=f"Question number {i}") for i in range(21)]
+    codes = [client.post("/api/v1/community/reports", json={
+        "target_type": "post", "target_id": p["id"], "reason": "spam"}).status_code
+        for p in posts]
+    assert codes[:20] == [201] * 20 and codes[20] == 429

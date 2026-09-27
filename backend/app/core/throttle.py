@@ -28,6 +28,7 @@ from app.models.user import AuthThrottle
 SIGNIN_FAILURE = "signin_failure"
 SIGNIN_FAILURE_IP = "signin_failure_ip"
 CODE_REQUEST_IP = "code_request_ip"
+REPORT = "report"
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,9 @@ SIGNIN_PER_ADDRESS = Limit(SIGNIN_FAILURE_IP, 100, 15 * 60)
 # Codes are already limited per email. This stops one client asking for codes
 # to a long list of other people's addresses.
 CODES_PER_ADDRESS = Limit(CODE_REQUEST_IP, 30, 60 * 60)
+# Reports reach a person, so a flood of them is a way to bury the real ones.
+# Keyed by account, or by address for a signed-out reader.
+REPORTS_PER_REPORTER = Limit(REPORT, 20, 60 * 60)
 
 
 class Throttled(Exception):

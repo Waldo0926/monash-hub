@@ -82,15 +82,41 @@ async function accept(answerId: number) {
   await send(() => apiFetch(`/v1/community/answers/${answerId}/accept`, { method: 'POST' }))
 }
 
-async function report(targetType: string, targetId: number) {
-  // One stray tap used to file a report with nobody asked.
-  if (!window.confirm($t('community.reportConfirm'))) return
+/**
+ * Reporting asks why. Every report used to be filed as "other" with no words,
+ * so a moderator could not tell spam from somebody's phone number, and one
+ * stray tap filed it.
+ */
+const REPORT_REASONS = ['spam', 'abuse', 'privacy', 'advertising', 'misinformation', 'other'] as const
+const reporting = ref<{ type: string; id: number } | null>(null)
+const reportReason = ref<string>('spam')
+const reportDetail = ref('')
+
+function report(targetType: string, targetId: number) {
+  if (!user.value) {
+    notice.value = $t('community.signInFirst')
+    return
+  }
+  reporting.value = { type: targetType, id: targetId }
+  reportReason.value = 'spam'
+  reportDetail.value = ''
+}
+
+async function sendReport() {
+  const target = reporting.value
+  if (!target) return
   const ok = await send(() =>
     apiFetch('/v1/community/reports', {
       method: 'POST',
-      body: { target_type: targetType, target_id: targetId, reason: 'other' }
+      body: {
+        target_type: target.type,
+        target_id: target.id,
+        reason: reportReason.value,
+        detail: reportDetail.value.trim() || null
+      }
     })
   )
+  reporting.value = null
   if (ok) notice.value = $t('community.reported')
 }
 
@@ -186,6 +212,28 @@ useSeoMeta({
 
       <p v-if="notice" class="notice small">{{ notice }}</p>
 
+      <div v-if="reporting" class="overlay" role="dialog" aria-modal="true"
+           :aria-label="$t('community.reportTitle')" @click.self="reporting = null">
+        <form class="card dialog" @submit.prevent="sendReport">
+          <h2>{{ $t('community.reportTitle') }}</h2>
+          <fieldset class="reasons">
+            <legend class="tiny muted">{{ $t('community.reportWhy') }}</legend>
+            <label v-for="reason in REPORT_REASONS" :key="reason" class="reason">
+              <input v-model="reportReason" type="radio" name="reason" :value="reason">
+              <span>{{ $t(`community.reportReason.${reason}`) }}</span>
+            </label>
+          </fieldset>
+          <label for="report-detail" class="tiny muted">{{ $t('community.reportDetail') }}</label>
+          <textarea id="report-detail" v-model="reportDetail" class="field" rows="3" maxlength="2000" />
+          <div class="dialog-actions">
+            <button class="btn btn--small" type="submit" :disabled="busy">{{ $t('community.reportSend') }}</button>
+            <button class="btn btn--ghost btn--small" type="button" @click="reporting = null">
+              {{ $t('community.cancel') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
       <section class="card section reply">
         <h2>{{ $t('community.yourAnswer') }}</h2>
         <template v-if="user">
@@ -243,4 +291,17 @@ useSeoMeta({
 .reply { margin-top: var(--s5); display: grid; gap: var(--s3); justify-items: start; }
 .body { min-height: 110px; padding: var(--s3); font-family: inherit; }
 .notice { color: var(--success); }
+.overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  padding: var(--s4); background: rgb(0 0 0 / 0.45);
+}
+.dialog { width: min(440px, 100%); padding: var(--s5); display: grid; gap: var(--s2); }
+.dialog h2 { margin: 0 0 var(--s2); font-size: 1.1rem; }
+.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: var(--s1); }
+.reason { display: flex; gap: var(--s2); align-items: center; min-height: 32px; }
+.dialog .field {
+  width: 100%; padding: var(--s2) var(--s3); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--text);
+}
+.dialog-actions { display: flex; gap: var(--s2); margin-top: var(--s2); }
 </style>

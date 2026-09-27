@@ -79,6 +79,9 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
 <template>
   <div class="container">
+    <p v-if="$route.query.closed" class="closed-note small" role="status">
+      {{ $t('profile.close.done') }}
+    </p>
     <section class="hero">
       <h1>{{ homeHero }}</h1>
       <p class="lead">{{ homeLead }}</p>
@@ -181,6 +184,10 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 </template>
 
 <style scoped>
+.closed-note {
+  margin: var(--s4) 0 0; padding: var(--s3) var(--s4);
+  border-radius: var(--radius-sm); background: var(--success-bg); color: var(--success);
+}
 .hero { max-width: 760px; margin: 0 auto var(--s6); text-align: center; }
 .lead { color: var(--muted); font-size: 1.05rem; }
 .popular { margin-top: var(--s3); }
