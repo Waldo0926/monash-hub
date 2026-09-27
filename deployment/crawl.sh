@@ -11,8 +11,9 @@
 #   deployment/crawl.sh reindex-zh          # make the stored Chinese searchable
 #   deployment/crawl.sh reindex-zh --stats  # coverage only, writes nothing
 #
-# Crawls are one-shot containers, not services. Nothing here runs on a timer
-# yet: the first production crawls are meant to be watched.
+# Crawls are one-shot containers, not services. The routine refreshes run on
+# systemd timers through deployment/scheduled-refresh.sh; this is for doing one
+# by hand.
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"

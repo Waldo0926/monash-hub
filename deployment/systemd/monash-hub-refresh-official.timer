@@ -1,0 +1,13 @@
+# Official pages: every six hours. The crawler only fetches pages whose refresh
+# tier says they are due, so most runs touch a few "dynamic" date pages.
+[Unit]
+Description=Refresh due Monash official pages every six hours
+
+[Timer]
+OnCalendar=*-*-* 01,07,13,19:20:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=monash-hub-refresh@official.service
+
+[Install]
+WantedBy=timers.target

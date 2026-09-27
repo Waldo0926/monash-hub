@@ -237,9 +237,23 @@ def post_detail(
         "answers": [
             answer_brief(a, viewer_id, voted_answers)
             for a in post.answers
-            if not a.is_hidden
+            if _shown(a)
         ],
     }
+
+
+def _shown(answer: CommunityAnswer) -> bool:
+    """Whether a reply appears in its thread.
+
+    Hidden by a moderator: no. Deleted by its author: only as a placeholder,
+    and only while someone else's reply hangs off it - otherwise deleting your
+    own reply would silently take other people's with it.
+    """
+    if answer.is_hidden:
+        return False
+    if answer.deleted_at is not None:
+        return any(_shown(child) for child in answer.children)
+    return True
 
 
 def answer_brief(
@@ -251,11 +265,17 @@ def answer_brief(
     argue about the answer, and a flat list cannot say which remark is about
     which.
     """
+    deleted = answer.deleted_at is not None
     return {
         "id": answer.id,
         "parent_id": answer.parent_id,
-        "body": answer.body,
-        **_writer(answer, viewer_id),
+        # A deleted reply keeps its place and loses its words and its author.
+        "body": None if deleted else answer.body,
+        "deleted": deleted,
+        **(
+            {"author": None, "anonymous": True, "is_mine": False}
+            if deleted else _writer(answer, viewer_id)
+        ),
         "is_accepted": answer.is_accepted,
         "vote_count": answer.vote_count,
         "viewer_voted": answer.id in (voted or set()),
@@ -263,7 +283,7 @@ def answer_brief(
         "replies": [
             answer_brief(child, viewer_id, voted)
             for child in answer.children
-            if not child.is_hidden
+            if _shown(child)
         ],
     }
 

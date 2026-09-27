@@ -43,7 +43,7 @@ async function load() {
     // 401 is not an error worth a red box: it means "sign in", and the template
     // already says so.
     if (caught?.status !== 401 && caught?.statusCode !== 401) {
-      error.value = caught?.data?.detail || $t('state.generic')
+      error.value = apiErrorMessage(caught, $t)
     }
   } finally {
     loading.value = false
@@ -78,7 +78,7 @@ async function save() {
     // The header shows the nickname, so it has to hear about the change.
     if (user.value) user.value.nickname = profile.value.nickname
   } catch (caught: any) {
-    error.value = caught?.data?.detail || $t('state.generic')
+    error.value = apiErrorMessage(caught, $t)
   } finally {
     saving.value = false
   }
@@ -99,7 +99,7 @@ async function onAvatar(event: Event) {
     if (user.value) user.value.avatar_url = profile.value.avatar_url
     notice.value = $t('profile.avatarSaved')
   } catch (caught: any) {
-    error.value = caught?.data?.detail || $t('profile.avatarFailed')
+    error.value = apiErrorMessage(caught, $t, 'profile.avatarFailed')
   } finally {
     uploading.value = false
   }
@@ -111,7 +111,7 @@ async function clearAvatar() {
     profile.value = await apiFetch<any>('/v1/profile/avatar', { method: 'DELETE' })
     if (user.value) user.value.avatar_url = null
   } catch (caught: any) {
-    error.value = caught?.data?.detail || $t('state.generic')
+    error.value = apiErrorMessage(caught, $t)
   } finally {
     uploading.value = false
   }

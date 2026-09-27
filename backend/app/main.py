@@ -32,6 +32,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 settings = get_settings()
 
+# Refuse to serve rather than serve with forgeable sessions. Only the API
+# checks this; the migration and crawler containers never sign anything.
+if settings.environment == "production" and (problem := settings.secret_key_problem()):
+    raise RuntimeError(f"Refusing to start: {problem}. Set SECRET_KEY in the environment.")
+
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",

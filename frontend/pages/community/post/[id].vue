@@ -40,7 +40,7 @@ async function send(work: () => Promise<unknown>) {
     await refresh()
     return true
   } catch (failure: any) {
-    notice.value = failure?.data?.detail || $t('community.actionFailed')
+    notice.value = apiErrorMessage(failure, $t, 'community.actionFailed')
     return false
   } finally {
     busy.value = false
@@ -83,6 +83,8 @@ async function accept(answerId: number) {
 }
 
 async function report(targetType: string, targetId: number) {
+  // One stray tap used to file a report with nobody asked.
+  if (!window.confirm($t('community.reportConfirm'))) return
   const ok = await send(() =>
     apiFetch('/v1/community/reports', {
       method: 'POST',
@@ -90,6 +92,17 @@ async function report(targetType: string, targetId: number) {
     })
   )
   if (ok) notice.value = $t('community.reported')
+}
+
+async function removePost() {
+  if (!window.confirm($t('community.deleteConfirm'))) return
+  const ok = await send(() => apiFetch(`/v1/community/posts/${id.value}`, { method: 'DELETE' }))
+  if (ok) await navigateTo('/community')
+}
+
+async function removeAnswer(answerId: number) {
+  if (!window.confirm($t('community.deleteReplyConfirm'))) return
+  await send(() => apiFetch(`/v1/community/answers/${answerId}`, { method: 'DELETE' }))
 }
 
 const askedByMe = computed(() => Boolean(user.value) && post.value?.is_mine)
@@ -143,6 +156,9 @@ useSeoMeta({
           <button class="btn btn--ghost btn--small" @click="report('post', post.id)">
             {{ $t('community.report') }}
           </button>
+          <button v-if="askedByMe" class="btn btn--ghost btn--small" :disabled="busy" @click="removePost">
+            {{ $t('community.delete') }}
+          </button>
         </div>
       </header>
 
@@ -162,6 +178,7 @@ useSeoMeta({
             @vote="vote('answer', $event)"
             @accept="accept"
             @report="report('answer', $event)"
+            @remove="removeAnswer"
             @reply="replyTo"
           />
         </div>

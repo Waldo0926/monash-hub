@@ -96,7 +96,9 @@ def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, loca
         ("医保", "oshc"),
         ("学费", "fees"),
         ("转专业", "changing-your-enrolment"),
-        ("学分转换", "credit-and-enrolment"),
+        ("学分转换", "apply-for-credit"),
+        ("挂科", "failed-units"),
+        ("全日制", "study-load"),
     ],
 )
 def test_a_topic_reaches_its_official_page_in_either_language(client, seeded, query, slug):
@@ -260,3 +262,9 @@ def test_the_faq_group_lists_only_triggered_entries(client, seeded):
     body = client.get("/api/v1/search", params={"q": "学生签证续签"}).json()
     faq = next(g for g in body["groups"] if g["kind"] == "faq")
     assert "how-to-withdraw-from-a-unit" not in [f["slug"] for f in faq["results"]]
+
+
+def test_the_guides_group_lists_pages_about_the_query(client, seeded):
+    body = client.get("/api/v1/search", params={"q": "学术诚信"}).json()
+    guides = next(g for g in body["groups"] if g["kind"] == "official")
+    assert [p["slug"] for p in guides["results"]] == ["academic-integrity"]

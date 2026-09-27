@@ -17,16 +17,18 @@ Two rules run through every endpoint here:
 from __future__ import annotations
 
 import logging
+import random
 import re
 import unicodedata
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import current_user
-from app.core import avatars, verification
+from app.core import avatars, throttle, verification
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.email import EmailDeliveryError
@@ -52,6 +54,30 @@ NICKNAME_MAX = 48
 # used to impersonate another nickname.
 NICKNAME_ALLOWED = re.compile(r"^[\w.\-]+$", re.UNICODE)
 
+# Checked against when there is no account, so that "no such email" costs the
+# same bcrypt round as "wrong password". Without it the answer came back in a
+# millisecond for an unknown address and in a quarter of a second for a real
+# one, and the difference was the whole secret the identical message kept.
+_NO_ACCOUNT_HASH = hash_password("no-account-placeholder-Aa1!")
+
+# One request in this many also clears out old rate-limit and code rows. There
+# is no scheduler in this app, and these tables only need to be roughly tidy.
+PRUNE_ONE_IN = 200
+
+
+def _too_many(exc: throttle.Throttled | verification.RateLimited, message: str) -> HTTPException:
+    return HTTPException(
+        status.HTTP_429_TOO_MANY_REQUESTS,
+        message,
+        headers={"Retry-After": str(exc.retry_after_seconds)},
+    )
+
+
+def _maybe_prune(db: Session) -> None:
+    if random.randrange(PRUNE_ONE_IN) == 0:
+        throttle.prune(db)
+        verification.prune(db)
+
 
 class SendCodeRequest(BaseModel):
     email: EmailStr
@@ -67,7 +93,7 @@ class SignUpRequest(BaseModel):
 
 class SignInRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=128)
 
 
 class ResetPasswordRequest(BaseModel):
@@ -106,7 +132,9 @@ def _normalise_nickname(nickname: str) -> str:
 
 
 @router.post("/verification-code")
-def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_db)) -> dict:
+def send_verification_code(
+    payload: SendCodeRequest, request: Request, db: Session = Depends(get_db)
+) -> dict:
     """Send something to the address, whatever its state.
 
     The response is the same either way. A caller cannot learn from it whether
@@ -118,14 +146,15 @@ def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_d
     email = str(payload.email).strip().lower()
 
     exists = bool(db.scalar(select(func.count(User.id)).where(User.email == email)) or 0)
+    address = throttle.client_address(request)
+    _maybe_prune(db)
 
     try:
+        throttle.check(db, throttle.CODES_PER_ADDRESS, address)
         verification.issue(db, email, payload.purpose, account_exists=exists)
-    except verification.RateLimited as limited:
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS,
-            "Too many code requests. Wait a moment and try again.",
-            headers={"Retry-After": str(limited.retry_after_seconds)},
+    except (throttle.Throttled, verification.RateLimited) as limited:
+        raise _too_many(
+            limited, "Too many code requests. Wait a moment and try again."
         ) from limited
     except EmailDeliveryError as exc:
         # A provider outage is our problem, and saying so is not a leak -
@@ -135,6 +164,10 @@ def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_d
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "We could not send the email just now. Try again shortly.",
         ) from exc
+    # Counted after the send, so a request refused for the per-email limit
+    # does not also use up the address's allowance.
+    throttle.record(db, throttle.CODES_PER_ADDRESS, address)
+    db.commit()
 
     return {
         "expires_in_seconds": settings.verification_code_ttl_seconds,
@@ -174,18 +207,42 @@ def sign_up(payload: SignUpRequest, db: Session = Depends(get_db)) -> dict:
 
     user = User(email=email, nickname=nickname, password_hash=hash_password(payload.password))
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # Two sign-ups for the same nickname in the same instant: the check
+        # above passed for both, and the unique index caught the second.
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "That nickname is taken.") from exc
     db.refresh(user)
     return {"token": create_access_token(str(user.id), user.token_version), "user": _me(user)}
 
 
 @router.post("/signin")
-def sign_in(payload: SignInRequest, db: Session = Depends(get_db)) -> dict:
-    user = db.scalar(select(User).where(User.email == str(payload.email).strip().lower()))
-    if user is None or not verify_password(payload.password, user.password_hash):
+def sign_in(payload: SignInRequest, request: Request, db: Session = Depends(get_db)) -> dict:
+    email = str(payload.email).strip().lower()
+    address = throttle.client_address(request)
+    _maybe_prune(db)
+    try:
+        throttle.check(db, throttle.SIGNIN_PER_ACCOUNT, email)
+        throttle.check(db, throttle.SIGNIN_PER_ADDRESS, address)
+    except throttle.Throttled as limited:
+        raise _too_many(
+            limited,
+            "Too many sign-in attempts. Wait a few minutes, or reset your password.",
+        ) from limited
+
+    user = db.scalar(select(User).where(User.email == email))
+    # Always one bcrypt check, account or not - see _NO_ACCOUNT_HASH.
+    valid = verify_password(payload.password, user.password_hash if user else _NO_ACCOUNT_HASH)
+    if user is None or not valid:
+        throttle.record(db, throttle.SIGNIN_PER_ACCOUNT, email)
+        throttle.record(db, throttle.SIGNIN_PER_ADDRESS, address)
+        db.commit()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong email or password")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This account is suspended")
+    throttle.clear(db, throttle.SIGNIN_PER_ACCOUNT, email)
     user.last_login_at = func.now()
     db.commit()
     db.refresh(user)
@@ -203,12 +260,18 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     email = str(payload.email).strip().lower()
     user = db.scalar(select(User).where(User.email == email))
 
-    problem = password_problem(payload.password, [email, user.nickname if user else ""])
+    # Only the email may be checked before the code is. Checking the account's
+    # nickname here answered "do not build the password out of your nickname"
+    # to anybody who guessed it - which told them the address had an account,
+    # and what that account is called.
+    problem = password_problem(payload.password, [email])
     if problem:
         raise HTTPException(HTTP_422_UNPROCESSABLE, problem)
 
     try:
-        verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
+        verification.verify(
+            db, email, verification.PASSWORD_RESET, payload.verification_code, consume=False
+        )
     except verification.VerificationError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
@@ -216,6 +279,13 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     # so reaching here without a user means the account was deleted in between.
     if user is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "That code is not valid")
+
+    # The code is proven, so the nickname rule can be applied - and the code is
+    # left unused if it fails, so the person can pick another password with it.
+    problem = password_problem(payload.password, [email, user.nickname])
+    if problem:
+        raise HTTPException(HTTP_422_UNPROCESSABLE, problem)
+    verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
 
     user.password_hash = hash_password(payload.password)
     user.token_version += 1

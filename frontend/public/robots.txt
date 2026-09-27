@@ -2,6 +2,10 @@
 User-agent: *
 Allow: /
 Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /profile
+Disallow: /notifications
 Disallow: /search
 
 Sitemap: https://monashhub.secureview.tech/sitemap.xml

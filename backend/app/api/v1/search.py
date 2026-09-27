@@ -17,9 +17,11 @@ router = APIRouter(tags=["search"])
 
 @router.get("/search")
 def unified_search(
-    q: str = Query("", description="Free text: unit code, policy keyword or question"),
+    q: str = Query(
+        "", max_length=300, description="Free text: unit code, policy keyword or question"
+    ),
     year: int | None = None,
-    limit: int = Query(8, le=50),
+    limit: int = Query(8, ge=1, le=50),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -27,7 +29,13 @@ def unified_search(
 
     units, unit_total = service.search_units(db, q, year=resolved_year, limit=limit)
     courses, course_total = service.search_courses(db, q, year=resolved_year, limit=limit)
-    pages, page_total = service.search_official(db, q, limit=limit)
+    # Guides that are about the query first. Only when none are - and the
+    # query is more than one word, so a body match means something - do pages
+    # that merely mention it get listed: "accounting" otherwise listed five
+    # guides because each says "your Monash account".
+    pages, page_total = service.search_official(db, q, limit=limit, strong_only=True)
+    if not pages and len(q.split()) > 1:
+        pages, page_total = service.search_official(db, q, limit=limit)
     posts, post_total = service.search_community(db, q, limit=limit)
     faqs = service.search_faq(db, q, limit=3)
 
@@ -92,10 +100,10 @@ def unified_search(
 
 @router.get("/official/search")
 def official_search(
-    q: str = "",
+    q: str = Query("", max_length=300),
     category: str | None = None,
-    limit: int = Query(20, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:

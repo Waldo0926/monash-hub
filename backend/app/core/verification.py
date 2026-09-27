@@ -25,7 +25,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -158,12 +158,16 @@ def issue(db: Session, email: str, purpose: str, *, account_exists: bool) -> tup
     return settings.verification_code_ttl_seconds, settings.verification_resend_interval_seconds
 
 
-def verify(db: Session, email: str, purpose: str, code: str) -> None:
+def verify(db: Session, email: str, purpose: str, code: str, *, consume: bool = True) -> None:
     """Consume a code, or raise :class:`VerificationError`.
 
     Every failure raises the same exception with the same message. Telling the
     caller apart "expired" from "wrong" from "no code was ever sent" would let
     someone map which addresses have pending signups.
+
+    ``consume=False`` checks the code - and still counts a wrong guess against
+    it - without using it up, for a caller that has more to validate before the
+    code should be spent.
     """
     email = email.strip().lower()
     code = (code or "").strip()
@@ -187,20 +191,19 @@ def verify(db: Session, email: str, purpose: str, code: str) -> None:
         db.commit()
         raise VerificationError("That code is not valid")
 
-    row.consumed_at = now
+    if consume:
+        row.consumed_at = now
     db.commit()
 
 
 def prune(db: Session, older_than_days: int = 30) -> int:
     """Drop codes old enough that no rate-limit window still counts them."""
     cutoff = _now() - timedelta(days=older_than_days)
-    rows = db.scalars(
-        select(EmailVerificationCode).where(EmailVerificationCode.created_at < cutoff)
-    ).all()
-    for row in rows:
-        db.delete(row)
+    result = db.execute(
+        delete(EmailVerificationCode).where(EmailVerificationCode.created_at < cutoff)
+    )
     db.commit()
-    return len(rows)
+    return result.rowcount or 0
 
 
 def _dead_end_subject(purpose: str) -> str:

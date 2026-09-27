@@ -63,7 +63,7 @@ def _is_free_elective(title: str | None, description: str | None) -> bool:
 
 @router.get("")
 def list_courses(
-    q: str | None = None,
+    q: str | None = Query(None, max_length=300),
     campus: str | None = None,
     course_type: str | None = None,
     faculty: str | None = None,

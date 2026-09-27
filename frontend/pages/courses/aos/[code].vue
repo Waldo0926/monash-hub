@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * One major, minor or specialisation.
  *
@@ -23,9 +24,8 @@ watch(campus, () => {
   router.replace({ query: campus.value ? { campus: campus.value } : {} })
 })
 
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
 
 const elsewhereTotal = computed(() =>
   Object.values(aos.value?.units || {}).filter(
@@ -54,8 +54,7 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
         <label class="campus">
           <span>{{ $t('courses.viewAs') }}</span>
           <select v-model="campus" class="input">
-            <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-            <option value="Clayton">Clayton</option>
+            <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
         </label>

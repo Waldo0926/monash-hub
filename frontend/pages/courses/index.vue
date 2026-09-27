@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * The degree picker.
  *
@@ -39,9 +40,8 @@ function search() {
   q.value = draft.value.trim()
 }
 
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
 
 /** Undergraduate before postgraduate, then research - how a student looks. */
 const ORDER = [
@@ -121,8 +121,7 @@ useHead({ title: $t('courses.title') })
       <label class="campus">
         <span>{{ $t('tree.campus') }}</span>
         <select v-model="campus" class="input">
-          <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-          <option value="Clayton">Clayton</option>
+          <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
           <option value="">{{ $t('tree.campusAny') }}</option>
         </select>
       </label>

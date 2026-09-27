@@ -234,7 +234,7 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "条件", "要求", "申请", "去", "出国"),
         ("exchange", "study abroad", "abroad", "monash abroad", "交换", "海外交换",
          "出国交换", "交换生"),
-        "study-abroad",
+        "semester-exchange",
         priority=50,
     ),
 )

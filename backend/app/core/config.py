@@ -82,6 +82,20 @@ class Settings(BaseSettings):
     db_pool_timeout: int = 30
     db_pool_recycle: int = 1800
 
+    def secret_key_problem(self) -> str | None:
+        """Why this secret must not sign production sessions, if it must not.
+
+        Every session token is signed with it. The development default is in
+        this public repository, so a production API running on it would accept
+        a token anybody can mint for any account - including a moderator's.
+        """
+        key = self.secret_key or ""
+        if key.startswith(("dev-only", "change-me")):
+            return "SECRET_KEY is the placeholder from the repository"
+        if len(key) < 32:
+            return "SECRET_KEY is shorter than 32 characters"
+        return None
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

@@ -91,7 +91,7 @@ async function submit() {
     applySession(result.token, result.user)
     done.value = true
   } catch (caught: any) {
-    serverError.value = caught?.data?.detail || $t('state.generic')
+    serverError.value = apiErrorMessage(caught, $t)
   } finally {
     submitting.value = false
   }

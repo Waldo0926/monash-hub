@@ -17,6 +17,7 @@ import logging
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import current_user
@@ -41,10 +42,12 @@ class ProfileUpdate(BaseModel):
 def _counts(db: Session, user: User) -> dict:
     return {
         "posts": int(db.scalar(
-            select(func.count(CommunityPost.id)).where(CommunityPost.author_id == user.id)
+            select(func.count(CommunityPost.id)).where(
+                CommunityPost.author_id == user.id, CommunityPost.deleted_at.is_(None))
         ) or 0),
         "answers": int(db.scalar(
-            select(func.count(CommunityAnswer.id)).where(CommunityAnswer.author_id == user.id)
+            select(func.count(CommunityAnswer.id)).where(
+                CommunityAnswer.author_id == user.id, CommunityAnswer.deleted_at.is_(None))
         ) or 0),
         "bookmarks": int(db.scalar(
             select(func.count(CommunityBookmark.id)).where(CommunityBookmark.user_id == user.id)
@@ -82,10 +85,15 @@ def update_profile(
     The nickname is validated with the same rules registration uses, because a
     name that could not be registered should not be reachable by editing either.
     """
-    from app.api.v1.auth import _nickname_problem  # circular at module scope
+    from app.api.v1.auth import (  # circular at module scope
+        _nickname_problem,
+        _normalise_nickname,
+    )
 
     if payload.nickname is not None:
-        nickname = payload.nickname.strip()
+        # The same folding sign-up applies, or "ｗaldo" could be taken by
+        # renaming when it cannot be taken by registering.
+        nickname = _normalise_nickname(payload.nickname)
         if nickname != user.nickname:
             problem = _nickname_problem(nickname)
             if problem:
@@ -103,7 +111,11 @@ def update_profile(
         # An empty bio is a deliberate "remove it", not a missing field.
         user.bio = payload.bio.strip() or None
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "That nickname is taken.") from exc
     db.refresh(user)
     return _profile(db, user)
 
@@ -170,7 +182,7 @@ def my_activity(
 
     posts = db.scalars(
         select(CommunityPost)
-        .where(CommunityPost.author_id == user.id)
+        .where(CommunityPost.author_id == user.id, CommunityPost.deleted_at.is_(None))
         .options(loader)
         .order_by(CommunityPost.created_at.desc())
         .limit(limit)
@@ -185,7 +197,7 @@ def my_activity(
             CommunityAnswer.post_id.label("post_id"),
             func.max(CommunityAnswer.created_at).label("answered_at"),
         )
-        .where(CommunityAnswer.author_id == user.id)
+        .where(CommunityAnswer.author_id == user.id, CommunityAnswer.deleted_at.is_(None))
         .group_by(CommunityAnswer.post_id)
         .subquery()
     )

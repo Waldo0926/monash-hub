@@ -55,7 +55,8 @@ watch(user, load)
 
 function messageFor(item: any) {
   const key = item.kind === 'accepted' ? 'notifications.accepted' : 'notifications.answered'
-  return $t(key, { actor: item.actor || '—' })
+  // No name means the person wrote anonymously - say so rather than a dash.
+  return $t(key, { actor: item.actor || $t('community.anonymous') })
 }
 </script>
 
