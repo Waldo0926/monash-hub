@@ -158,6 +158,7 @@ def seed_translations() -> int:
         # not have to wait for the next translation pass to be right, and that
         # pass used to be the only place a new degree's name was produced - by
         # the model. A name that cannot be built is left to the pass, as before.
+        course_rows: dict[tuple[str, str], ContentTranslation] = {}
         for course in db.scalars(select(Course)).all():
             if course.title in degrees.ZH_TITLE_OVERRIDES:
                 chinese, provenance = degrees.ZH_TITLE_OVERRIDES[course.title], HUMAN
@@ -171,15 +172,20 @@ def seed_translations() -> int:
                 )
             if not chinese:
                 continue
-            row = db.scalar(
-                select(ContentTranslation).where(
-                    ContentTranslation.locale == "zh",
-                    ContentTranslation.target_type == COURSE,
-                    ContentTranslation.target_key == course.course_code,
-                    ContentTranslation.field == "content",
-                    ContentTranslation.provenance == provenance,
+            # A course code exists once per Handbook year, and the session does
+            # not autoflush: the second year's lookup used to miss the row the
+            # first had just added and insert it again.
+            row = course_rows.get((course.course_code, provenance))
+            if row is None:
+                row = db.scalar(
+                    select(ContentTranslation).where(
+                        ContentTranslation.locale == "zh",
+                        ContentTranslation.target_type == COURSE,
+                        ContentTranslation.target_key == course.course_code,
+                        ContentTranslation.field == "content",
+                        ContentTranslation.provenance == provenance,
+                    )
                 )
-            )
             if row is None:
                 row = ContentTranslation(
                     locale="zh",
@@ -189,6 +195,7 @@ def seed_translations() -> int:
                     provenance=provenance,
                 )
                 db.add(row)
+            course_rows[(course.course_code, provenance)] = row
             strings = dict((row.data or {}).get("strings") or {})
             strings[course.title] = chinese
             row.data = {"strings": strings}
