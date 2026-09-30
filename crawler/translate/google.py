@@ -43,7 +43,10 @@ TARGETS = {"zh": "zh-CN", "ja": "ja", "ko": "ko"}
 
 #: Seconds between requests. The endpoint starts answering 429 well before a
 #: steady two a second, so this is deliberately slower than it needs to be.
-MIN_INTERVAL = 0.6
+MIN_INTERVAL = 1.5
+#: Seconds to sit out a 429 before asking again. The endpoint throttles a client
+#: for minutes at a time; retrying after two seconds only extends it.
+COOLDOWN = 120.0
 #: Consecutive failed requests, after backoff, before the run gives up.
 MAX_CONSECUTIVE_FAILURES = 8
 _RETRIES = 4
@@ -88,6 +91,10 @@ class GoogleModel:
                 rendered = "".join(part[0] for part in payload[0] if part and part[0])
                 self._failures = 0
                 return rendered
+            except urllib.error.HTTPError as exc:
+                log.warning("google translate attempt %d failed: %s", attempt + 1, exc)
+                self._sleep(COOLDOWN * (attempt + 1) if exc.code == 429 else delay)
+                delay *= 2
             except (urllib.error.URLError, TimeoutError, ValueError, KeyError, IndexError) as exc:
                 log.warning("google translate attempt %d failed: %s", attempt + 1, exc)
                 self._sleep(delay)
