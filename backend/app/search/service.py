@@ -18,6 +18,7 @@ from app.models.handbook import Unit, UnitOffering
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.models.translation import (
     COURSE,
+    CURATED,
     HUMAN,
     PUBLISHED,
     ContentTranslation,
@@ -334,7 +335,13 @@ def _translated_title(model, target_type: str, target_key, source_title):
                 ContentTranslation.field == "content",
             ),
         )
-        .order_by(case((ContentTranslation.provenance == HUMAN, 1), else_=0).desc())
+        .order_by(
+            case(
+                (ContentTranslation.provenance == HUMAN, 2),
+                (ContentTranslation.provenance == CURATED, 1),
+                else_=0,
+            ).desc()
+        )
         .limit(1)
         .correlate(model)
         .scalar_subquery()

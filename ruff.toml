@@ -19,3 +19,5 @@ ignore = [
 # one-word change reflows the lines around it. The English keys have to match
 # the source character for character either way.
 "backend/app/knowledge/translations_seed.py" = ["E501"]
+# Same reasoning: a wording table, read one key at a time.
+"backend/app/knowledge/structure_zh.py" = ["E501"]

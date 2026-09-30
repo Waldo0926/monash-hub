@@ -15,7 +15,14 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.models.translation import GLOBAL, HUMAN, MACHINE, PUBLISHED, ContentTranslation
+from app.models.translation import (
+    CURATED,
+    GLOBAL,
+    HUMAN,
+    MACHINE,
+    PUBLISHED,
+    ContentTranslation,
+)
 
 # The string set applied to every Handbook unit, for the boilerplate the
 # Handbook repeats verbatim across thousands of them.
@@ -171,10 +178,9 @@ def load_many(
     # sentence somebody checked must not be replaced by one nobody did, whether
     # it was written for this page or for the thousand pages that share it.
     def order(row: ContentTranslation) -> tuple[int, int]:
-        return (
-            0 if row.provenance == MACHINE else 1,
-            0 if row.target_type == GLOBAL else 1,
-        )
+        # Machine, then curated wording, then a person's - each beats the last.
+        rank = {MACHINE: 0, CURATED: 1, HUMAN: 2}.get(row.provenance, 0)
+        return (rank, 0 if row.target_type == GLOBAL else 1)
 
     shared = [r for r in rows if r.target_type == GLOBAL]
 
@@ -206,7 +212,9 @@ def load_many(
 
 
 def _apply(translation: Translation, row: ContentTranslation) -> None:
-    if row.provenance == MACHINE:
+    # Curated wording is not a checked translation, so it does not set
+    # ``reviewed``; to the reader it is still machine work with better words.
+    if row.provenance in (MACHINE, CURATED):
         translation.machine = True
     elif row.provenance == HUMAN:
         translation.reviewed = True
@@ -220,7 +228,9 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
             translation.strings[source.strip()] = translated
-            if row.provenance == HUMAN:
+            # "Wins over a machine rendering of the whole field it sits in" is
+            # what this set means, and curated wording earns that too.
+            if row.provenance in (HUMAN, CURATED):
                 translation.human_strings.add(source.strip())
 
 

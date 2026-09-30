@@ -22,7 +22,7 @@ from sqlalchemy import select
 
 from app.core.db import SessionLocal
 from app.core.security import hash_password
-from app.knowledge.degrees import ZH_TITLE_OVERRIDES as ZH_DEGREE_TITLE_OVERRIDES
+from app.knowledge import degrees
 from app.knowledge.faq_seed import FAQ_SEEDS
 from app.knowledge.titles import ZH_TITLE_OVERRIDES as ZH_UNIT_TITLE_OVERRIDES
 from app.knowledge.translations_seed import TRANSLATION_SEEDS
@@ -32,6 +32,7 @@ from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.models.translation import (
     COURSE,
+    CURATED,
     HUMAN,
     MACHINE,
     OFFICIAL_PAGE,
@@ -118,7 +119,7 @@ def seed_translations() -> int:
                     ContentTranslation.target_type == item.target_type,
                     ContentTranslation.target_key == item.target_key,
                     ContentTranslation.field == item.field,
-                    ContentTranslation.provenance == HUMAN,
+                    ContentTranslation.provenance == item.provenance,
                 )
             )
             if row is None:
@@ -127,7 +128,7 @@ def seed_translations() -> int:
                     target_type=item.target_type,
                     target_key=item.target_key,
                     field=item.field,
-                    provenance=HUMAN,
+                    provenance=item.provenance,
                 )
                 db.add(row)
             row.text = item.text
@@ -151,17 +152,32 @@ def seed_translations() -> int:
         # source rather than by code.  The same award can have several campus
         # codes, and a later Handbook can assign it another one; matching the
         # source keeps the correction attached to the words that were reviewed.
-        courses = db.scalars(
-            select(Course).where(Course.title.in_(ZH_DEGREE_TITLE_OVERRIDES))
-        ).all()
-        for course in courses:
+        #
+        # Every other degree name that can be built from the reviewed award and
+        # discipline tables is published too, as *curated* wording: a name does
+        # not have to wait for the next translation pass to be right, and that
+        # pass used to be the only place a new degree's name was produced - by
+        # the model. A name that cannot be built is left to the pass, as before.
+        for course in db.scalars(select(Course)).all():
+            if course.title in degrees.ZH_TITLE_OVERRIDES:
+                chinese, provenance = degrees.ZH_TITLE_OVERRIDES[course.title], HUMAN
+                note = "学位名称人工校对：2026 Handbook 全目录审计"
+            else:
+                chinese = degrees.compose(course.title, "zh", lambda _text: None)
+                provenance = CURATED
+                note = (
+                    "学位名称：按已核对的学位类型与学科词表拼装（AI 起草，"
+                    "仅对照英文核对，未经中文母语者审阅）"
+                )
+            if not chinese:
+                continue
             row = db.scalar(
                 select(ContentTranslation).where(
                     ContentTranslation.locale == "zh",
                     ContentTranslation.target_type == COURSE,
                     ContentTranslation.target_key == course.course_code,
                     ContentTranslation.field == "content",
-                    ContentTranslation.provenance == HUMAN,
+                    ContentTranslation.provenance == provenance,
                 )
             )
             if row is None:
@@ -170,15 +186,15 @@ def seed_translations() -> int:
                     target_type=COURSE,
                     target_key=course.course_code,
                     field="content",
-                    provenance=HUMAN,
+                    provenance=provenance,
                 )
                 db.add(row)
             strings = dict((row.data or {}).get("strings") or {})
-            strings[course.title] = ZH_DEGREE_TITLE_OVERRIDES[course.title]
+            strings[course.title] = chinese
             row.data = {"strings": strings}
             row.status = PUBLISHED
             row.translator = "monash-hub"
-            row.note = "学位名称人工校对：2026 Handbook 全目录审计"
+            row.note = note
             # An exact string map naturally expires when the English changes:
             # the old key stops matching, so no hash warning is needed.
             row.source_hash = None

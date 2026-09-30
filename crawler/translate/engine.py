@@ -24,7 +24,7 @@ import re
 import threading
 from collections.abc import Iterable
 
-from app.knowledge import degrees, titles
+from app.knowledge import degrees, structure, titles
 from app.knowledge.glossary import (
     GENERAL,
     MASKS,
@@ -37,6 +37,7 @@ from app.knowledge.glossary import (
     terms_in,
     whole_value,
 )
+from app.knowledge.structure_zh import STRUCTURE_ZH
 
 log = logging.getLogger(__name__)
 
@@ -234,6 +235,16 @@ class Translator:
         cached = self._cache.get(source)
         if cached is not None:
             return cached or None
+
+        # A label or stock sentence somebody has already read against its
+        # English - see app/knowledge/structure_zh.py. It never reaches the
+        # model: the model's answer for "Breadth studies" was 面包研究, and a
+        # different wrong answer for the same words in the next sentence.
+        if self.locale == "zh":
+            reviewed = STRUCTURE_ZH.get(source) or structure.compose(source, "zh")
+            if reviewed:
+                self._cache[source] = reviewed
+                return reviewed
 
         if "\n" in source:
             return self._by_line(source)
