@@ -4,6 +4,34 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (Chinese translations: the structure of a degree)
+
+- The offline translator was rendering the words a degree page is built from
+  differently in every sentence: *Breadth studies* as 面包研究 (bakery studies),
+  *Robotics and mechatronics engineering* as 机器人和中程器工程 and, in other
+  sentences of the same page, 中子医学, 中医药学 and 中杂技, *Curating* as 惩罚,
+  a *stream* as 溪流 or 流, *Level 5 - Diploma*-style labels and "You will receive
+  credit for ..." as a loan (贷款). `backend/app/knowledge/structure_zh.py` now
+  holds one wording for each of the 2,600 distinct short labels and stock
+  sentences that appear in the structure of a course or area of study (and in
+  the Handbook's stock unit boilerplate); `structure.py` builds the next year's
+  `Part X. <title>`, AQF level and `N words` labels from the same tables;
+  `degrees.py` names 122 more disciplines fixed rather than left to the model
+  (and separates *Pharmaceutical Science* 药物科学 from *Pharmacy* 药学,
+  *Teaching* 教学 from *Education* 教育); the glossary pins mechatronics,
+  curating, cervical/lumbar spine, microcredential and breadth study, and pins
+  *stream* and *discipline* on the pages where they mean the academic sense.
+  中文：修复学位结构页的中文翻译。此前离线翻译器对同一个词在每个句子里给出不同
+  的错误答案，例如 Breadth studies 被译成“面包研究”，mechatronics 被译成“中程器、
+  中子医学、中医药学、中杂技”，Curating 被译成“惩罚”，stream 被译成“溪流”。现在
+  每个学位结构标签和 Handbook 通用句子都有固定译法。
+- New provenance `curated`: wording that was written down and checked against the
+  English but has not been read by anybody who reads Chinese. It beats the machine
+  and is beaten by a human row, and a page that uses only it is still labelled
+  machine translation - it is not called "checked".
+  中文：新增 `curated` 来源等级：对照英文核对过、但未经中文母语者审阅的译文，优先于
+  机器翻译、低于人工翻译，页面上仍标注为机器翻译，不会写成“已人工校对”。
+
 ### Added
 
 - Added `--units CODE [CODE ...]` to `crawler.translate.run --targets units`, to

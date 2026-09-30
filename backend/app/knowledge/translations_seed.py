@@ -32,7 +32,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.models.translation import FAQ_ENTRY, GLOBAL, OFFICIAL_PAGE, UNIT
+from app.knowledge.structure_zh import STRUCTURE_ZH
+from app.models.translation import CURATED, FAQ_ENTRY, GLOBAL, HUMAN, OFFICIAL_PAGE, UNIT
 
 ZH = "zh"
 
@@ -47,6 +48,10 @@ class TranslationSeed:
     strings: dict[str, str] = field(default_factory=dict)
     translator: str = "monash-hub"
     note: str | None = None
+    # "human" means a person who reads the language wrote or checked it. Wording
+    # that has only been checked against the English is "curated" - it beats the
+    # machine and the page does not call it checked.
+    provenance: str = HUMAN
 
 
 # --- Handbook boilerplate -------------------------------------------------
@@ -9041,6 +9046,18 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
             ZH, GLOBAL, "handbook", "strings",
             strings=HANDBOOK_BOILERPLATE,
             note="Handbook 模板化段落，逐句人工翻译",
+        ),
+        # A second row under the same global key, so that it can say what it is.
+        # The loader applies every global row for a locale; the field name only
+        # keeps the two from being one row.
+        TranslationSeed(
+            ZH, GLOBAL, "handbook", "structure",
+            strings=STRUCTURE_ZH,
+            note=(
+                "学位结构标签与 Handbook 通用句：AI 起草，仅对照英文逐条核对，"
+                "未经中文母语者审阅。见 app/knowledge/structure_zh.py"
+            ),
+            provenance=CURATED,
         ),
         TranslationSeed(
             ZH, OFFICIAL_PAGE, "gpa", "body",

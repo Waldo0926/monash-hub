@@ -120,7 +120,7 @@ ZH_TITLE_OVERRIDES: dict[str, str] = {
     "Master of Applied Econometrics and Master of Advanced Finance":
         "应用计量经济学硕士和高级金融硕士",
     "Master of Advanced Health Care Practice": "高级医疗实践硕士",
-    "Master of Arts Research Training": "文学研究训练硕士",
+    "Master of Arts Research Training": "文学硕士（研究培训）",
     "Master of Banking and Finance": "银行与金融硕士",
     "Master of Biomedical and Health Science": "生物医学与健康科学硕士",
     "Master of Business Information Systems": "商业信息系统硕士",
@@ -137,9 +137,9 @@ ZH_TITLE_OVERRIDES: dict[str, str] = {
         "商业管理硕士和项目管理硕士",
     "Master of Cardiovascular Perfusion": "心血管灌注硕士",
     "Master of Communications and Media Studies": "传播与媒体研究硕士",
-    "Master of Critical Care Paramedicine": "重症监护辅助医疗硕士",
+    "Master of Critical Care Paramedicine": "危重症院前急救医学硕士",
     "Master of Engineering Research (Monash - Southeast University)":
-        "工程研究硕士（Monash－东南大学）",
+        "工程研究硕士（Monash 与东南大学联合培养）",
     "Master of Environment and Sustainability": "环境与可持续发展硕士",
     "Master of Food Science and Agribusiness": "食品科学与农业商业硕士",
     "Master of Forensic Medicine": "法医学硕士",
@@ -167,7 +167,7 @@ ZH_TITLE_OVERRIDES: dict[str, str] = {
     "Master of Nutrition and Dietetics": "营养与饮食学硕士",
     "Master of Occupational and Environmental Health": "职业与环境健康硕士",
     "Master of Professional Accounting": "专业会计硕士",
-    "Master of Professional Counselling": "专业咨询硕士",
+    "Master of Professional Counselling": "专业心理咨询硕士",
     "Master of Professional Engineering": "专业工程硕士",
     "Master of Professional Psychology": "专业心理学硕士",
     "Master of Transport and Mobility Planning": "交通与出行规划硕士",
@@ -182,6 +182,20 @@ ZH_TITLE_OVERRIDES: dict[str, str] = {
         "(Double Masters with Shanghai Jiao Tong University)"
     ):
         "战略传播管理硕士（与上海交通大学合作双硕士）",
+
+    # Names whose brackets belong to the name rather than qualifying it, and a
+    # few where the word order has to be chosen by hand.
+    "Bachelor of CyberAI (Industry Co-Lab)": "CyberAI 学士（产业联合实验室）",
+    "Bachelor of Pharmacy (Honours) and Doctor of Pharmacy": "药学学士（荣誉学位）与药学博士",
+    "Doctor of Philosophy (Clinical Neuropsychology)": "哲学博士（临床神经心理学）",
+    "Doctor of Philosophy (Clinical Psychology)": "哲学博士（临床心理学）",
+    "Doctor of Philosophy (Education-focused creative work)": "哲学博士（以教育为焦点的创意作品）",
+    "Juris Doctor": "法律博士（Juris Doctor）",
+    "Master of Advanced Study (Engineering Research)": "高级研究硕士（工程研究）",
+    "Master of Arts (Research Training) (Monash - Southeast University)":
+        "文学硕士（研究培训）（Monash 与东南大学联合培养）",
+    "Master of Design by Research (Monash – Southeast University)":
+        "设计硕士（研究型）（Monash 与东南大学联合培养）",
 }
 
 # The award, which in Chinese goes last. Longest first when matching, so
@@ -221,13 +235,13 @@ DISCIPLINES: dict[str, dict[str, str]] = {
     "Surgery": {"zh": "外科学", "ja": "外科学", "ko": "외과학"},
     "Philosophy": {"zh": "哲学", "ja": "哲学", "ko": "철학"},
     "Education": {"zh": "教育学", "ja": "教育学", "ko": "교육학"},
-    "Teaching": {"zh": "教育", "ja": "教職", "ko": "교육"},
+    "Teaching": {"zh": "教学", "ja": "教職", "ko": "교육"},
     "Engineering": {"zh": "工程", "ja": "工学", "ko": "공학"},
     "Accounting": {"zh": "会计学", "ja": "会計学", "ko": "회계학"},
     "Nursing": {"zh": "护理学", "ja": "看護学", "ko": "간호학"},
     "Psychology": {"zh": "心理学", "ja": "心理学", "ko": "심리학"},
     "Pharmacy": {"zh": "药学", "ja": "薬学", "ko": "약학"},
-    "Pharmaceutical Science": {"zh": "药学", "ja": "薬科学", "ko": "약학"},
+    "Pharmaceutical Science": {"zh": "药物科学", "ja": "薬科学", "ko": "약학"},
     "Physiotherapy": {"zh": "物理治疗", "ja": "理学療法", "ko": "물리치료"},
     "Occupational Therapy": {"zh": "职业治疗", "ja": "作業療法", "ko": "작업치료"},
     "Speech Pathology": {"zh": "言语病理学", "ja": "言語病理学", "ko": "언어병리학"},
@@ -246,7 +260,7 @@ DISCIPLINES: dict[str, dict[str, str]] = {
     "Social Work": {"zh": "社会工作", "ja": "ソーシャルワーク", "ko": "사회복지"},
     "Actuarial Science": {"zh": "精算学", "ja": "保険数理学", "ko": "보험계리학"},
     "Addictive Behaviours": {"zh": "成瘾行为", "ja": "嗜癖行動", "ko": "중독 행동"},
-    "Biomedical Science": {"zh": "生物医学", "ja": "生物医科学", "ko": "생물의학"},
+    "Biomedical Science": {"zh": "生物医学科学", "ja": "生物医科学", "ko": "생물의학"},
     "Mathematics": {"zh": "数学", "ja": "数学", "ko": "수학"},
     "Biostatistics": {"zh": "生物统计学", "ja": "生物統計学", "ko": "생물통계학"},
     "Journalism": {"zh": "新闻学", "ja": "ジャーナリズム", "ko": "저널리즘"},
@@ -257,6 +271,128 @@ DISCIPLINES: dict[str, dict[str, str]] = {
     "Regulation and Compliance": {
         "zh": "监管与合规", "ja": "規制とコンプライアンス", "ko": "규제와 컴플라이언스",
     },
+}
+
+# The long tail of the 2026 and 2027 catalogues, fixed rather than left to the
+# translator. Chinese only: ja and ko fall through to the ordinary path, as they
+# did for every discipline not in ``DISCIPLINES``. Kept apart so that table can
+# keep its rule that every entry is written in every locale.
+ZH_DISCIPLINES: dict[str, str] = {
+    "Actuarial Analytics": "精算分析",
+    "Advanced Clinical Nursing": "高级临床护理学",
+    "Advanced Engineering": "高级工程",
+    "Advanced Materials and Manufacturing Engineering": "先进材料与制造工程",
+    "Advanced Nursing": "高级护理学",
+    "Allied Health": "专职医疗",
+    "Analytics": "数据分析",
+    "Applied Behaviour Analysis": "应用行为分析",
+    "Applied Data Science": "应用数据科学",
+    "Applied Data Science Advanced": "应用数据科学（高级）",
+    "Applied Econometrics": "应用计量经济学",
+    "Applied Engineering": "应用工程",
+    "Applied Linguistics": "应用语言学",
+    "Applied Marketing": "应用市场营销",
+    "Art History and Curating": "艺术史与策展",
+    "Art and Design": "艺术与设计",
+    "Artificial Intelligence": "人工智能",
+    "Australian Law": "澳大利亚法律",
+    "Banking and Finance": "银行与金融",
+    "Behaviour Change": "行为改变",
+    "Behaviour and Systemic Change": "行为与系统性变革",
+    "Bioethics": "生物伦理学",
+    "Bioinformatics": "生物信息学",
+    "Biotechnology": "生物技术",
+    "Business Administration": "工商管理",
+    "Business Analytics": "商业分析",
+    "Business Innovation": "商业创新",
+    "Civil Engineering": "土木工程",
+    "Climate, Society and Economy": "气候、社会与经济",
+    "Clinical Embryology": "临床胚胎学",
+    "Clinical Psychology": "临床心理学",
+    "Clinical Research": "临床研究",
+    "Clinical Simulation": "临床模拟",
+    "Clinical Trials": "临床试验",
+    "Computer Science": "计算机科学",
+    "Computer Science Advanced": "计算机科学（高级）",
+    "Counselling": "心理咨询",
+    "Cultural and Creative Industries": "文化与创意产业",
+    "Cybersecurity": "网络安全",
+    "Data Science": "数据科学",
+    "Digital Business": "数字商业",
+    "Digital Language Data and Communication": "数字语言数据与传播",
+    "Economic Analytics": "经济分析",
+    "Education Studies": "教育研究",
+    "Education in Early Childhood": "幼儿教育",
+    "Educational Design": "教育设计",
+    "Educational Leadership": "教育领导力",
+    "Educational Research": "教育研究",
+    "Educational and Developmental Psychology": "教育与发展心理学",
+    "Educational and Developmental Psychology Advanced": "教育与发展心理学（高级）",
+    "Engineering Science": "工程科学",
+    "English Language and Globalisation": "英语语言与全球化",
+    "Epidemiology": "流行病学",
+    "Financial Mathematics": "金融数学",
+    "Genome Analytics": "基因组分析",
+    "Global Business": "全球商业",
+    "Global Studies": "全球研究",
+    "Green Chemistry and Sustainable Technologies": "绿色化学与可持续技术",
+    "Health Data Analytics": "健康数据分析",
+    "Health Management": "卫生管理",
+    "Health Promotion": "健康促进",
+    "Higher Education": "高等教育",
+    "Higher Education Studies": "高等教育研究",
+    "Human Behaviour and Applied Research": "人类行为与应用研究",
+    "Human Nutrition": "人类营养学",
+    "Human Resource Management": "人力资源管理",
+    "Human Rights": "人权",
+    "Inclusive Education": "融合教育",
+    "Industrial Chemical Engineering": "工业化学工程",
+    "Industrial Design": "工业设计",
+    "Information Technology": "信息技术",
+    "Information Technology Systems": "信息技术系统",
+    "International Business": "国际商务",
+    "International Development Practice": "国际发展实践",
+    "International Relations": "国际关系",
+    "International Sustainable Tourism Management": "国际可持续旅游管理",
+    "Legal Studies": "法律研究",
+    "Liberal Arts": "博雅教育",
+    "Magnetic Resonance Imaging": "磁共振成像",
+    "Managerial Analytics": "管理分析",
+    "Mathematics and Physical Sciences Education": "数学与物理科学教育",
+    "Media Communication": "媒体传播",
+    "Medical Bioscience": "医学生物科学",
+    "Medical Science": "医学科学",
+    "Midwifery": "助产学",
+    "Nursing Practice": "护理实践",
+    "Occupational Therapy Practice": "职业治疗实践",
+    "Paramedic Practitioner": "院前急救执业者",
+    "Personal Injury Management": "人身伤害管理",
+    "Pharmaceutical Science Advanced": "药物科学（高级）",
+    "Pharmacy Practice": "药学实践",
+    "Politics, Philosophy and Economics": "政治、哲学与经济学",
+    "Project Management": "项目管理",
+    "Psychology Advanced": "心理学（高级）",
+    "Public Administration": "公共行政",
+    "Public Policy": "公共政策",
+    "Public Policy and Management": "公共政策与管理",
+    "Radiation Sciences": "放射科学",
+    "Radiation Therapy": "放射治疗",
+    "Reproductive Sciences": "生殖科学",
+    "Specialised Health Interpreting and Translation": "专业医疗口笔译",
+    "Specialised Legal Interpreting and Translation": "专业法律口笔译",
+    "Strategic Communications Management": "战略传播管理",
+    "Sustainability": "可持续发展",
+    "TESOL": "TESOL（对外英语教学）",
+    "Teaching in Early Childhood Education": "幼儿教育教学",
+    "Teaching in Early Childhood and Primary Education": "幼儿与小学教育教学",
+    "Teaching in Primary Education": "小学教育教学",
+    "Teaching in Primary and Secondary Education": "中小学教育教学",
+    "Teaching in Secondary Education": "中学教育教学",
+    "Technology and Regulation": "技术与监管",
+    "Tertiary Studies": "高等教育学习",
+    "Urban Design": "城市设计",
+    "Urban Planning and Design": "城市规划与设计",
+    "Urgent and Primary Care": "急症与基层医疗",
 }
 
 # Qualifiers that trail a degree name in brackets.
@@ -306,6 +442,82 @@ def _lookup(table: dict[str, dict[str, str]], written: str, locale: str) -> str 
     return None
 
 
+# Shapes the ordinary composer refuses because a bracket or a dash is part of
+# the name rather than a qualifier on it.  Each is closed-list: a value that is
+# not in the table returns ``None`` and the name goes to the ordinary path.
+_EDUCATION_TRACKS_ZH = {
+    "Early Childhood and Primary Education": "幼儿与小学教育",
+    "Primary Education": "小学教育",
+    "Primary and Secondary Education": "中小学教育",
+    "Primary and Secondary Health and Physical Education": "中小学健康与体育教育",
+    "Primary and Secondary Inclusive and Special Education": "中小学融合教育与特殊教育",
+    "Secondary Education": "中学教育",
+    "Secondary Health and Physical Education": "中学健康与体育教育",
+}
+_TEACHING_TRACKS_ZH = {
+    "Early Childhood Education": "幼儿教育",
+    "Early Childhood and Primary Education": "幼儿与小学教育",
+    "Primary Education": "小学教育",
+    "Primary and Secondary Education": "中小学教育",
+    "Secondary Education": "中学教育",
+}
+# Who a joint programme is run with.  "Monash - Southeast" is how the Handbook
+# abbreviates Southeast University in some years and not in others.
+_PARTNERS_ZH = {
+    "Bath": "巴斯大学", "Bayreuth": "拜罗伊特大学", "Beihang": "北京航空航天大学",
+    "Bologna": "博洛尼亚大学", "IITB": "印度理工学院孟买分校", "Leipzig": "莱比锡大学",
+    "Newcastle": "纽卡斯尔大学", "SJTU": "上海交通大学", "Southeast": "东南大学",
+    "Southeast University": "东南大学", "Warwick": "华威大学",
+}
+_DOUBLE_MASTERS_ZH = {
+    "Tata Institute of Social Sciences": "塔塔社会科学学院",
+    "Shanghai Jiao Tong University": "上海交通大学",
+    "University of Warwick": "华威大学",
+    "O.P. Jindal Global University": "O.P. Jindal 全球大学",
+}
+_JOINT = re.compile(r"\s*[-–—]\s*")
+
+
+def _special_zh(title: str, translate) -> str | None:
+    """Degree names whose brackets or dashes are part of the name (zh only)."""
+    # Bachelor of Education (Honours) in <track>, alone or as half of a double.
+    m = re.match(
+        r"^Bachelor of Education \(Honours\) in (?P<track>.+?)"
+        r"(?: and (?P<other>Bachelor of .+))?$",
+        title,
+    )
+    if m and m.group("track") in _EDUCATION_TRACKS_ZH:
+        head = f"教育学学士（荣誉学位，{_EDUCATION_TRACKS_ZH[m.group('track')]}）"
+        if not m.group("other"):
+            return head
+        other = compose(m.group("other"), "zh", translate)
+        return f"{head}与{other}" if other else None
+
+    m = re.match(r"^Master of Teaching in (?P<track>.+)$", title)
+    if m and m.group("track") in _TEACHING_TRACKS_ZH:
+        return f"教学硕士（{_TEACHING_TRACKS_ZH[m.group('track')]}）"
+
+    # "<award> (Monash - Southeast University)": a joint programme.
+    m = re.match(r"^(?P<base>.+?) \(Monash\s*[-–—]\s*(?P<partner>[^()]+)\)$", title)
+    if m and m.group("partner").strip() in _PARTNERS_ZH:
+        base = compose(m.group("base"), "zh", translate)
+        if base:
+            return f"{base}（Monash 与{_PARTNERS_ZH[m.group('partner').strip()]}联合培养）"
+
+    # "Master of X (Double Masters with Y)" / "(Double Masters International)".
+    m = re.match(r"^(?P<base>.+?) \(Double Masters (?P<rest>[^()]+)\)$", title)
+    if m:
+        base = compose(m.group("base"), "zh", translate)
+        rest = m.group("rest").strip()
+        if base and rest == "International":
+            return f"{base}（国际双硕士）"
+        if base and rest.startswith("with "):
+            partner = _DOUBLE_MASTERS_ZH.get(rest[5:].strip())
+            if partner:
+                return f"{base}（与{partner}双硕士）"
+    return None
+
+
 def compose(title: str, locale: str, translate) -> str | None:
     """The degree's name in ``locale``, or ``None`` to leave it to the caller.
 
@@ -320,6 +532,10 @@ def compose(title: str, locale: str, translate) -> str | None:
 
     if locale == "zh" and title in ZH_TITLE_OVERRIDES:
         return ZH_TITLE_OVERRIDES[title]
+    if locale == "zh":
+        special = _special_zh(title, translate)
+        if special:
+            return special
 
     # A double degree is two names joined by "and", and each half composes on
     # its own. The split is only taken when both halves are themselves degree
@@ -363,6 +579,10 @@ def compose(title: str, locale: str, translate) -> str | None:
         return None
 
     discipline = _lookup(DISCIPLINES, rest, locale)
+    if discipline is None and locale == "zh":
+        discipline = next(
+            (v for k, v in ZH_DISCIPLINES.items() if k.lower() == rest.lower()), None
+        )
     if discipline is None:
         rendered = translate(rest)
         # No translation, or the model handed back the English: composing would

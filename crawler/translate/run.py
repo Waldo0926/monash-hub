@@ -26,7 +26,7 @@ import logging
 import time
 
 from app.core.db import SessionLocal
-from app.knowledge.glossary import GENERAL, LOCALES, STRUCTURE
+from app.knowledge.glossary import GENERAL, HANDBOOK, LOCALES, STRUCTURE
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
 from app.models.knowledge import FaqEntry, OfficialPage
@@ -261,6 +261,8 @@ def translate_units(
     locale = translator.locale
     summary = {"translated": 0, "skipped": 0, "strings": 0}
     started = time.monotonic()
+    # Unit prose is Handbook prose, not guide prose: see HANDBOOK_TERMS.
+    translator.use_scope(HANDBOOK)
 
     with SessionLocal() as db:
         all_codes = list(db.scalars(select(Unit.unit_code).order_by(Unit.unit_code)))
@@ -292,6 +294,7 @@ def translate_units(
 
             if index % PROGRESS_EVERY == 0 or index == len(codes):
                 _progress(index, len(codes), started, summary, translator)
+    translator.use_scope(GENERAL)
     return summary
 
 

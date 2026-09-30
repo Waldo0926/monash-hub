@@ -2389,6 +2389,39 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "交換留学",
         "ko": "교환학생",
     },
+
+    # --- words the offline model reads in the wrong field ----------------------
+    #
+    # Each of these was measured on the live site, where the model gave a
+    # different wrong answer for the same word in every sentence:
+    # mechatronics came back as 中程器, 中子医学, 中医药学, 中杂技 and 中转; curating
+    # as 惩罚 and 诅咒; "cervical" as 子宫颈 (the cervix) in a sentence about the
+    # cervical spine, which is 颈椎; "microcredential" as 微证据 (micro-evidence).
+    "mechatronics": {"zh": "机电一体化", "ja": "メカトロニクス", "ko": "메카트로닉스"},
+    "mechatronic": {"zh": "机电一体化", "ja": "メカトロニクス", "ko": "메카트로닉스"},
+    "curating": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curate": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curatorial": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curator": {"zh": "策展人", "ja": "キュレーター", "ko": "큐레이터"},
+    "cervical cancer": {"zh": "宫颈癌", "ja": "子宮頸がん", "ko": "자궁경부암"},
+    "cervical screening": {"zh": "宫颈筛查", "ja": "子宮頸がん検診", "ko": "자궁경부 검진"},
+    "cervical spine": {"zh": "颈椎", "ja": "頸椎", "ko": "경추"},
+    "cervical": {"zh": "颈椎", "ja": "頸椎", "ko": "경추"},
+    "lumbar spine": {"zh": "腰椎", "ja": "腰椎", "ko": "요추"},
+    "lumbar": {"zh": "腰椎", "ja": "腰椎", "ko": "요추"},
+    "thoracic spine": {"zh": "胸椎", "ja": "胸椎", "ko": "흉추"},
+    "microcredential": {
+        "zh": "微证书（microcredential）", "ja": "マイクロクレデンシャル",
+        "ko": "마이크로크리덴셜",
+    },
+    "breadth study unit": {
+        "zh": "通识课程（breadth study）", "ja": "教養科目（breadth study）",
+        "ko": "교양 과목(breadth study)",
+    },
+    "breadth study": {
+        "zh": "通识课程（breadth study）", "ja": "教養科目（breadth study）",
+        "ko": "교양 과목(breadth study)",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -2873,15 +2906,32 @@ STRUCTURE_TERMS: dict[str, dict[str, str]] = {
         "ja": "副専攻",
         "ko": "부전공",
     },
+    # A Handbook "stream" is a track through a specialisation - the model's
+    # 溪流 (a brook) and 流 (a flow) were both on live pages. Structure pages only:
+    # in a unit overview the word is usually about data.
+    "stream": {"zh": "方向", "ja": "コース", "ko": "트랙"},
+}
+
+# Words that mean one thing in any Handbook page - unit overviews included - and
+# another on the guides, where they belong to policy. "Discipline" is the case:
+# 纪律 (conduct, punishment) on a live unit page, for "discipline-specific
+# methodologies", on 50 distinct strings; on a policy page it is usually
+# "disciplinary action", which the model gets right. So it is pinned for units
+# and degrees and left alone for the guides.
+HANDBOOK_TERMS: dict[str, dict[str, str]] = {
+    "discipline": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
+    "disciplinary": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
 }
 
 #: Scope names accepted by ``protect`` and ``terms_in``.
 GENERAL = "general"
 STRUCTURE = "structure"
+HANDBOOK = "handbook"
 
 _ALL_TERMS: dict[str, dict[str, dict[str, str]]] = {
     GENERAL: TERMS,
-    STRUCTURE: {**TERMS, **STRUCTURE_TERMS},
+    HANDBOOK: {**TERMS, **HANDBOOK_TERMS},
+    STRUCTURE: {**TERMS, **HANDBOOK_TERMS, **STRUCTURE_TERMS},
 }
 
 

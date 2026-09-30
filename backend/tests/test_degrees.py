@@ -35,7 +35,7 @@ def tr(subject: str) -> str | None:
         # Reported: the subject disappeared entirely.
         ("Bachelor of Science", "理学学士"),
         # The award, read as a person rather than a qualification.
-        ("Master of Teaching", "教育硕士"),
+        ("Master of Teaching", "教学硕士"),
         ("Master of Accounting", "会计学硕士"),
         ("Master of Public Health", "公共卫生硕士"),
         ("Master of Philosophy", "哲学硕士"),
@@ -76,9 +76,9 @@ def test_a_name_it_does_not_understand_is_left_alone():
     of being wrong. A subtitle after a dash, or a partner university in
     brackets, is not a shape this claims to read."""
     for name in (
-        "Doctor of Philosophy (Monash - Warwick)",
-        "Doctor of Philosophy (Clinical Psychology)",
-        "Master of Advanced Study (Engineering Research)",
+        "Doctor of Philosophy (Monash - Atlantis University)",
+        "Doctor of Philosophy (Lost Arts)",
+        "Master of Advanced Study (Underwater Basketry)",
     ):
         assert compose(name, "zh", tr) is None, name
 
