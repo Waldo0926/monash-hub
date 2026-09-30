@@ -201,10 +201,13 @@ class Translator:
     #: to avoid loading a model - still has one.
     scope: str = GENERAL
 
-    def __init__(self, locale: str, scope: str = GENERAL) -> None:
+    def __init__(self, locale: str, scope: str = GENERAL, engine: str = "argos") -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
+        if engine not in ("argos", "google"):
+            raise ValueError(f"unknown engine {engine!r}")
         self.locale = locale
+        self.engine = engine
         # One cache per scope. The same English sentence is allowed to have two
         # renderings - "complete the major" means one thing in a degree's
         # structure and another in a unit's overview - so they must not share
@@ -213,7 +216,12 @@ class Translator:
         self._renderings: dict[str, str] = {}
         self._lock = threading.Lock()
         self.use_scope(scope)
-        self._translate = _load_model(locale)
+        if engine == "google":
+            from crawler.translate import google
+
+            self._translate = google.load(locale)
+        else:
+            self._translate = _load_model(locale)
 
     def use_scope(self, scope: str) -> None:
         """Translate the strings that follow as ``scope`` (see the glossary)."""
