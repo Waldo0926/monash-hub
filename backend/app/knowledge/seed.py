@@ -245,8 +245,9 @@ def seed_translations() -> int:
         units = db.scalars(
             select(Unit).where(Unit.title.in_(ZH_UNIT_TITLE_OVERRIDES))
         ).all()
+        unit_rows: dict[str, ContentTranslation] = {}
         for unit in units:
-            row = db.scalar(
+            row = unit_rows.get(unit.unit_code) or db.scalar(
                 select(ContentTranslation).where(
                     ContentTranslation.locale == "zh",
                     ContentTranslation.target_type == UNIT,
@@ -264,6 +265,7 @@ def seed_translations() -> int:
                     provenance=HUMAN,
                 )
                 db.add(row)
+            unit_rows[unit.unit_code] = row
             strings = dict((row.data or {}).get("strings") or {})
             strings[unit.title] = ZH_UNIT_TITLE_OVERRIDES[unit.title]
             row.data = {"strings": strings}
