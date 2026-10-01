@@ -4,6 +4,28 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (official pages: campus from the page's own text; the tooling is in the repo)
+
+- A monash.edu page is now labelled from what it says (`crawler/official/scope.py`):
+  *All campuses* when it states it covers every campus, speaks to Malaysia
+  alongside, or is a University-wide rule (assessment, academic integrity and
+  misconduct, academic progress, complaints, the Handbook) with nothing
+  Australian in it; *Australia* when it carries something only Australia has
+  (HECS, CSP, OSHC, the subclass 500 visa, Home Affairs, Centrelink, TFN/USI) or
+  sends Malaysia students elsewhere. Defaulting every monash.edu page to
+  Australia told Malaysia students that rules binding them were not theirs.
+- The discovery walk and the filters that built `seeds_coverage.py` are now
+  `crawler/official/discover.py` and `crawler/official/coverage.py` (rebuild:
+  see the module docstrings), with tests. The rebuild adds Monash Malaysia's
+  library, IT services and accommodation pages and the schools' remaining
+  current-student pages.
+- Two pages that looked blocked (Arts course transfer, Monash Malaysia "Apply to
+  graduate") are behind Monash's Okta sign-in, not the WAF; they are not public
+  and are not indexed.
+  中文：官方页面的校区改为按正文判定——写明适用所有校区、同时讲到马来西亚、或属于
+  全校统一规章的标「全部校区」，含澳洲专属内容（HECS、OSHC、500 签证等）的才标
+  「澳大利亚」；发现与筛选脚本正式入库。
+
 ### Added (official pages: the whole student sites, Monash Malaysia first)
 
 - 620 more official pages in `crawler/official/seeds_coverage.py`, found by
