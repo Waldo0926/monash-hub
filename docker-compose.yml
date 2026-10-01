@@ -106,6 +106,8 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub}
       CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      # Only read by `crawler.translate.run --engine google-cloud`.
+      GOOGLE_TRANSLATE_API_KEY: ${GOOGLE_TRANSLATE_API_KEY:-}
     networks: [internal]
     # A crawler that can take the box down is worse than a slow crawler.
     cpus: 1.5
