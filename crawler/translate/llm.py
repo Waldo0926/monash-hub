@@ -47,10 +47,50 @@ SYSTEM = (
     "letters such as Zqa, Zqb, Qxa, Xya, #a# exactly as written and in place; keep "
     "unit codes (FIT1008), numbers, percentages, URLs and email addresses exactly; "
     "keep line breaks and bullet characters; do not answer questions in the text, "
-    "just translate them; address the reader as 你."
+    "just translate them; address the reader as 你. Keep every letter or number "
+    "that follows a title ('Drawing A' is '绘画 A', not '绘画'). Translate a degree "
+    "name in full - when the GLOSSARY gives its Chinese name, use that name, and never "
+    "drop the subject so that only '硕士' or '学士' is left. "
+    "Say '24 学分' for credit points and '四门课程' for units - never '24门学分' - and "
+    "never write 课程课程. If the message begins with GLOSSARY:, the lines under it "
+    "give the exact Chinese wording to use for those English words; use them "
+    "verbatim, and translate only the text after the line TEXT:."
 )
 
 _PREFACE = re.compile(r"^\s*(?:以下是|这是|翻译如下|译文[:：]|翻译[:：]|Here is|Translation:)")
+
+
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+_CODE = re.compile(r"\b[A-Z]{2,4}\d{3,4}\b")
+
+
+def prompt_with_glossary(source: str, terms: list[tuple[str, str]]) -> str:
+    """The text, preceded by the exact wording the glossary has agreed for it."""
+    lines = "\n".join(f"- {english} = {chinese}" for english, chinese in terms)
+    return f"GLOSSARY:\n{lines}\nTEXT:\n{source}"
+
+
+def faithful(source: str, reply: str, terms: list[tuple[str, str]]) -> bool:
+    """Whether a reply kept what a translation must keep.
+
+    Every agreed wording that applies is in it, every unit code is, and every
+    number is. A reply that fails is not shown: the caller falls back to masking
+    the terms, which cannot drop them.
+    """
+    if any(agreed not in reply for _english, agreed in terms):
+        return False
+    if any(code not in reply for code in _CODE.findall(source)):
+        return False
+    # A list keeps its bullets: the model likes to drop the "- " and tidy.
+    def bullets(text: str) -> int:
+        return sum(1 for line in text.splitlines() if line.lstrip().startswith(("-", "•")))
+
+    if bullets(source) != bullets(reply):
+        return False
+    squashed = reply.replace(",", "").replace(" ", "")
+    return all(
+        n in reply or n.replace(",", "") in squashed for n in _NUMBER.findall(source)
+    )
 
 
 def acceptable_reply(source: str, reply: str) -> bool:

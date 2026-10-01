@@ -38,6 +38,8 @@ from app.knowledge.glossary import (
     whole_value,
 )
 from app.knowledge.structure_zh import STRUCTURE_ZH
+from app.knowledge.titles import ZH_TITLE_OVERRIDES
+from app.knowledge.unit_title_baseline import ZH_TITLE_BASELINE
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +66,7 @@ _CODE = re.compile(r"^[A-Z][A-Z0-9]{0,4}$")
 # citation error message spliced into the middle. Each line is its own
 # translation problem, so each is translated alone and put back with the
 # separator it arrived with.
+_CODED_TITLE = re.compile(r"^([A-Z]{3}\d{4})\s+(\S.*)$")
 _LINES = re.compile(r"(\s*\n\s*)")
 
 # A label is not a sentence, and the dates pages are made of labels: "Trimester
@@ -200,6 +203,8 @@ class Translator:
     #: attribute so an instance built without ``__init__`` - the tests do that
     #: to avoid loading a model - still has one.
     scope: str = GENERAL
+    #: Likewise: tests build a Translator without ``__init__``.
+    engine: str = "argos"
 
     def __init__(self, locale: str, scope: str = GENERAL, engine: str = "argos") -> None:
         if locale not in SUPPORTED:
@@ -262,6 +267,18 @@ class Translator:
                 self._cache[source] = reviewed
                 return reviewed
 
+        # "MCD1270 Drawing A": a unit code and a unit title, which already has one
+        # agreed Chinese title. A chat model dropped the "A".
+        listed = _CODED_TITLE.match(source)
+        if listed and self.locale == "zh":
+            title = ZH_TITLE_OVERRIDES.get(listed.group(2)) or ZH_TITLE_BASELINE.get(
+                listed.group(2)
+            )
+            if title:
+                rendered = f"{listed.group(1)} {title}"
+                self._cache[source] = rendered
+                return rendered
+
         if "\n" in source:
             return self._by_line(source)
 
@@ -291,6 +308,19 @@ class Translator:
             return composed
 
         masked, terms = protect(source, self.locale, scope=self.scope)
+        if self.engine == "llm" and not is_only_placeholders(masked) and not _CODE.match(source):
+            # A chat model does better told the agreed wording than handed a
+            # placeholder: asked to translate "Zqa units", it writes 课程 for the
+            # unit *and* for the placeholder. So it gets the glossary in the
+            # prompt, and the answer is accepted only if every agreed wording
+            # (and every code and number) is in it. Anything else falls through
+            # to the masked path below, which cannot lose a term.
+            direct = self._llm_direct(source)
+            if direct:
+                result = _unsigned(_tidy(direct, self.locale).strip(), source)
+                if not _invented(result, source) and result != source:
+                    self._cache[source] = result
+                    return result
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
             # a campus name, an assessment type. Nothing for the model to do,
@@ -363,6 +393,19 @@ class Translator:
             return None
         self._cache[source] = result
         return result
+
+    def _llm_direct(self, source: str) -> str | None:
+        """One chat-model call with the glossary in the prompt, or ``None``."""
+        from crawler.translate import llm
+
+        terms = terms_in(source, self.locale, scope=self.scope)
+        terms += degrees.names_in(source, self.locale)
+        try:
+            reply = self._translate(llm.prompt_with_glossary(source, terms))
+        except Exception as exc:  # one bad string must not end a batch of 5,000
+            log.debug("direct llm translation failed (%s): %s", exc, source[:60])
+            return None
+        return reply if llm.faithful(source, reply, terms) else None
 
     def _ask(self, text: str) -> str:
         """Hand a string to the model in the punctuation it was trained on."""
@@ -680,6 +723,8 @@ def _tidy(text: str, locale: str) -> str:
     text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     text = re.sub(r"[ \t]{2,}", " ", text).strip()
+    # A term put back next to the word the model wrote for it: 课程课程.
+    text = re.sub(r"(学位课程|课程)\1+", r"\1", text)
     for transliterated, name in _HOUSE.get(locale, {}).items():
         text = text.replace(transliterated, name)
     return text
