@@ -675,6 +675,24 @@ def _load_model(locale: str):
     return run
 
 
+_POLISH = (
+    # *unit* is 课程; a model that has been told so still sometimes adds the
+    # word it would have chosen on its own.
+    (re.compile(r"课程单元"), "课程"),
+    # Credit points are 学分, not something counted in 门.
+    (re.compile(r"(\d)\s*[门个]\s*学分"), r"\1 学分"),
+    # One pronoun for the reader: structure_zh.py is written in 你.
+    (re.compile("您"), "你"),
+)
+
+
+def polish_zh(text: str) -> str:
+    """Small, certain corrections for the way a model writes Handbook Chinese."""
+    for pattern, replacement in _POLISH:
+        text = pattern.sub(replacement, text)
+    return text
+
+
 def _tidy(text: str, locale: str) -> str:
     """Make the output read like the language it is in.
 
@@ -734,6 +752,7 @@ def _tidy(text: str, locale: str) -> str:
     text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     text = re.sub(r"[ \t]{2,}", " ", text).strip()
+    text = polish_zh(text) if locale == "zh" else text
     # A term put back next to the word the model wrote for it: 课程课程.
     text = re.sub(r"(学位课程|课程)\1+", r"\1", text)
     for transliterated, name in _HOUSE.get(locale, {}).items():

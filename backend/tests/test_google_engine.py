@@ -10,6 +10,7 @@ import json
 import urllib.error
 
 import pytest
+from app.models.translation import ContentTranslation
 
 from crawler.translate.engine import Translator
 from crawler.translate.google import Blocked, GoogleModel
@@ -225,3 +226,21 @@ def test_a_translation_that_begins_with_zhe_shi_is_a_translation():
 
     assert acceptable_reply("This is a joint PhD program", "这是一个联合博士项目")
     assert not acceptable_reply("This is a joint PhD program", "以下是翻译：这是一个联合博士项目")
+
+
+def test_polish_fixes_what_a_model_gets_wrong_and_nothing_else():
+    from crawler.translate.engine import polish_zh
+
+    assert polish_zh("完成课程单元 48门学分，您必须") == "完成课程 48 学分，你必须"
+    assert polish_zh("6个学分") == "6 学分"
+    # A Moodle unit is a unit, and 6门课程 is a count of units.
+    assert polish_zh("Moodle 的一个单元，选修 6门课程") == "Moodle 的一个单元，选修 6门课程"
+
+
+def test_polish_rows_rewrites_stored_strings():
+    from crawler.translate.polish import polish_rows
+
+    row = ContentTranslation(locale="zh", target_type="course", target_key="X", field="content",
+                             provenance="machine", data={"strings": {"a": "完成24门学分", "b": "好"}})
+    assert polish_rows([row]) == {"rows": 1, "strings": 1}
+    assert row.data["strings"] == {"a": "完成24 学分", "b": "好"}
