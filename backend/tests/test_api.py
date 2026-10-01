@@ -417,6 +417,34 @@ def test_a_guide_says_which_campus_it_is_for(client, db):
     assert row["applies_to"] == "malaysia"
 
 
+def test_guides_narrow_to_one_campus(client, db):
+    """A Malaysia reader sees Malaysia pages and the every-campus ones, never
+    the Australian fees or visa page; the category counts follow the filter."""
+    source = get_or_create_source(db, "monash", "Monash University", "https://www.monash.edu")
+    for slug, applies_to in (("fees-au", "australia"), ("fees-my", "malaysia"),
+                             ("results-all", "all")):
+        page = upsert_seed_page(
+            db, source=source, slug=slug, url=f"https://www.monash.edu/{slug}",
+            title=f"Fees {slug}", category="fees-dates", tags=["fees"],
+            refresh_tier="medium", applies_to=applies_to,
+        )
+        record_fetch(db, page, clean_page(f"<h1>Fees {slug}</h1><p>How to pay fees.</p>",
+                                          url=page.canonical_url))
+    db.commit()
+
+    def slugs(**params):
+        body = client.get("/api/v1/guides", params=params).json()
+        return {g["slug"] for g in body["results"]}, body
+
+    mine, body = slugs(campus="malaysia")
+    assert mine == {"fees-my", "results-all"}
+    assert {c["key"]: c["count"] for c in body["categories"]}["fees-dates"] == 2
+    assert slugs(campus="australia")[0] == {"fees-au", "results-all"}
+    assert slugs()[0] == {"fees-au", "fees-my", "results-all"}
+    assert slugs(q="fees", campus="malaysia")[0] == {"fees-my", "results-all"}
+    assert client.get("/api/v1/guides", params={"campus": "mars"}).status_code == 422
+
+
 def test_a_page_with_no_campus_stated_is_treated_as_australian():
     """39 of the 40 pages in the seed list are on monash.edu, so that is the
     safe default: a page that arrives without a campus is far likelier to be
