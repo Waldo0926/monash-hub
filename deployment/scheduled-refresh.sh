@@ -37,8 +37,14 @@ case "${1:-}" in
     # translated again. Only changed or new pages are sent - the pass skips
     # any whose English hash it has already translated - so this is a minute
     # or two, and a person's translation still wins on read.
+    #
+    # The engine is whatever .env says (TRANSLATE_ENGINE, default the offline
+    # model). It matters: a page that changes is translated again here, and the
+    # offline model would put back what the chat model had just replaced.
+    engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
     docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
-      run --rm crawler python -m crawler.translate.run --locale zh --fields all --targets official
+      run --rm crawler python -m crawler.translate.run --locale zh --fields all --targets official \
+      --engine "${engine:-argos}" --workers 4
     ;;
 
   handbook)
