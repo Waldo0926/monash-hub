@@ -454,8 +454,13 @@ def test_a_page_with_no_campus_stated_is_treated_as_australian():
     assert {s.applies_to for s in SEEDS} <= {"australia", "malaysia", "all"}
     for seed in SEEDS:
         host = "malaysia" if "monash.edu.my" in seed.url else "australia"
+        allowed = {host, "all"}
+        # monash.edu also carries a few pages about Malaysia itself - the
+        # Malaysian graduation ceremonies - and says so in the address.
+        if "malaysia" in seed.url.split("monash.edu", 1)[-1].lower():
+            allowed.add("malaysia")
         # "all" is only ever claimed by a page that says so in its own text.
-        assert seed.applies_to in (host, "all"), seed.slug
+        assert seed.applies_to in allowed, seed.slug
 
 
 def test_a_unit_is_found_by_part_of_its_code(client, loaded):
