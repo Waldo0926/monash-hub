@@ -419,7 +419,7 @@ def search_courses(
 
 def search_official(
     db: Session, query: str, *, limit: int = 10, offset: int = 0,
-    category: str | None = None, strong_only: bool = False,
+    category: str | None = None, strong_only: bool = False, campus: str | None = None,
 ) -> tuple[list[OfficialPage], int]:
     """Official pages matching ``query``; strict first, loose if strict finds nothing.
 
@@ -430,11 +430,15 @@ def search_official(
     them as the official answer to a question about studying accounting.
     """
     kwargs = {"limit": limit, "offset": offset, "category": category,
-              "strong_only": strong_only}
+              "strong_only": strong_only, "campus": campus}
     found = _search_official(db, query, **kwargs)
     if found[1] == 0 and _is_multi_concept((query or "").strip()):
         return _search_official(db, query, strict=False, **kwargs)
     return found
+
+
+#: The campuses a reader can narrow official pages to (OfficialPage.applies_to).
+CAMPUSES = ("australia", "malaysia")
 
 
 # Title and summary carry weights A and B in the search vector (see the model);
@@ -449,7 +453,7 @@ TITLE_SIMILARITY = 0.3
 
 def _search_official(
     db: Session, query: str, *, limit: int = 10, offset: int = 0, category: str | None = None,
-    strict: bool = True, strong_only: bool = False,
+    strict: bool = True, strong_only: bool = False, campus: str | None = None,
 ) -> tuple[list[OfficialPage], int]:
     stmt = select(OfficialPage).where(OfficialPage.status == "ok")
     count_stmt = select(func.count(OfficialPage.id)).where(OfficialPage.status == "ok")
@@ -488,6 +492,12 @@ def _search_official(
     if category:
         stmt = stmt.where(OfficialPage.category == category)
         count_stmt = count_stmt.where(OfficialPage.category == category)
+    if campus in CAMPUSES:
+        # A page for every campus belongs to both lists; a page for the other
+        # campus belongs to neither reader's.
+        here = OfficialPage.applies_to.in_((campus, "all"))
+        stmt = stmt.where(here)
+        count_stmt = count_stmt.where(here)
     if term:
         zh_rank = (
             func.coalesce(func.similarity(OfficialPage.search_zh, term), 0)

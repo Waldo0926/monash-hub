@@ -219,6 +219,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "再評価",
         "ko": "보충 평가",
     },
+    # The grounds for intermission, a reduced load or leaving a course early
+    # on a student visa. Taken word by word it came out as 有同情心或令人信服的情况.
+    "compassionate or compelling circumstances": {
+        "zh": "恩恤或特殊情况（compassionate or compelling circumstances）",
+        "ja": "やむを得ない事情（compassionate or compelling circumstances）",
+        "ko": "인도적 또는 불가피한 사정(compassionate or compelling circumstances)",
+    },
     # The two kinds of hurdle Monash distinguishes, and what failing one is
     # called. "hurdle" alone is 及格门槛; these keep the English beside it
     # because the policy pages and Moodle only ever use the English names.

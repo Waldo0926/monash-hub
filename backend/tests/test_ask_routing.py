@@ -97,16 +97,18 @@ def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, loca
         ("被劝退", "unsatisfactory-progress"),
         ("医保", "oshc"),
         ("学费", "fees"),
-        ("转专业", "changing-your-enrolment"),
+        ("转专业", "study-options-internal-transfer"),
         ("学分转换", "apply-for-credit"),
         ("挂科", "failed-units"),
         ("全日制", "study-load"),
     ],
 )
 def test_a_topic_reaches_its_official_page_in_either_language(client, seeded, query, slug):
+    """Near the top, not necessarily first: with several hundred pages indexed
+    a Malaysia faculty FAQ on the same topic can rightly rank beside it."""
     body = ask(client, query, "zh")
     assert body["answer_type"] == "official_search"
-    assert page_slugs(body)[0] == slug
+    assert slug in page_slugs(body)[:3]
 
 
 @pytest.mark.parametrize(
@@ -125,7 +127,7 @@ def test_a_covered_question_gets_its_curated_answer(client, seeded, query, slug)
     assert body["faq_slug"] == slug
 
 
-@pytest.mark.parametrize("query", ["scholarship", "奖学金", "accounting", "会计", "图书馆"])
+@pytest.mark.parametrize("query", ["accounting", "会计", "图书馆", "健身房"])
 def test_no_curated_or_official_answer_is_invented(client, seeded, query):
     """Nothing indexed is about these. The card says so rather than listing
     pages that happen to use the word ("your Monash account")."""
@@ -269,7 +271,14 @@ def test_the_faq_group_lists_only_triggered_entries(client, seeded):
 def test_the_guides_group_lists_pages_about_the_query(client, seeded):
     body = client.get("/api/v1/search", params={"q": "学术诚信"}).json()
     guides = next(g for g in body["groups"] if g["kind"] == "official")
-    assert [p["slug"] for p in guides["results"]] == ["academic-integrity"]
+    assert guides["results"][0]["slug"] == "academic-integrity"
+
+
+@pytest.mark.parametrize("query", ["scholarship", "奖学金"])
+def test_scholarships_are_findable(client, seeded, query):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert any("scholarship" in slug for slug in page_slugs(body))
 
 
 @pytest.mark.parametrize("query", ["课程地图", "course map", "IT 2027 课程地图", "修读顺序"])

@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from crawler.official.seeds_coverage import COVERAGE
+
 
 @dataclass(frozen=True, slots=True)
 class Seed:
@@ -36,6 +38,8 @@ CATEGORIES = {
     "academic-rules": "Academic rules & policy",
     "international": "International students",
     "fees-dates": "Fees & key dates",
+    "graduation": "Graduation",
+    "support": "Student support & services",
     "exchange": "Exchange & study abroad",
     "malaysia": "Malaysia campus",
 }
@@ -394,6 +398,12 @@ SEEDS: tuple[Seed, ...] = (
          "/exam-rules",
          "Exam rules (Monash Malaysia)", "malaysia",
          ("malaysia", "exam", "考试规则"), applies_to="malaysia"),
+)
+
+# The long tail: every other content page on the student sites, Malaysia first.
+SEEDS = SEEDS + tuple(
+    Seed(slug, url, title, category, tags, tier=tier, applies_to=applies_to)
+    for slug, url, title, category, tags, tier, applies_to in COVERAGE
 )
 
 SEEDS_BY_SLUG = {seed.slug: seed for seed in SEEDS}

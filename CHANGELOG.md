@@ -4,6 +4,26 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (official pages: the whole student sites, Monash Malaysia first)
+
+- 620 more official pages in `crawler/official/seeds_coverage.py`, found by
+  walking www.monash.edu.my (student services, the schools' current-student
+  pages, study abroad) and www.monash.edu (student admin, study success,
+  support, study abroad, course and campus transfer) and kept where they carry
+  real content. Left out: landing pages, duplicates, contact/login pages,
+  application agents, and individual exchange programs and partner lists -
+  those are monash-abroad-tracker's job; the Hub links to Monash's program
+  search instead (Monash Global Campus programs in Prato are kept).
+- Campus is tracked per page: monash.edu.my pages and monash.edu pages about
+  Malaysia (its graduation ceremonies) are Malaysia; other monash.edu pages are
+  Australia. The guides list gains a campus filter and "show more"; two new
+  categories, Graduation and Student support & services.
+- The official translation pass runs in seed order, so Monash Malaysia's pages
+  are translated first.
+  中文：新增 620 个官方页面（马莫优先：学生服务、各学院、毕业、缴费、学生准证、
+  交换等；澳莫同步），按校区标注并可在官方指南页按校区筛选；交换只收政策与流程，
+  不收各交换院校项目页。
+
 ### Added (official pages: hurdles, supplementary assessment, progress and appeals)
 
 - 21 more official pages in the seed list, chosen for the rules that decide
