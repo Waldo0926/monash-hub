@@ -623,3 +623,33 @@ def _as_double(title: str) -> list[str] | None:
 
 def _bracket_for(locale: str, inner: str) -> str:
     return f"（{inner}）" if locale in ("zh", "ja") else f"({inner})"
+
+
+_NAME_IN_TEXT = re.compile(
+    r"\b(?:Bachelor|Master|Doctor|Graduate Certificate|Graduate Diploma|"
+    r"Postgraduate Certificate|Professional Certificate|Diploma)\s+(?:of|in)\s+"
+    r"(?:[A-Z][\w&',-]*)(?:\s+(?:(?:and|of|for|in|the)\s+)?[A-Z][\w&',-]*)*"
+)
+
+
+def names_in(text: str, locale: str = "zh") -> list[tuple[str, str]]:
+    """Degree names written in running text, with the name they are given here.
+
+    "...for the Master of Regulation and Compliance is aimed at..." names a degree,
+    and a chat model asked to translate the sentence will happily name another
+    (it did: 城市设计硕士). Finding the name and handing over its agreed form turns
+    that into something that can be checked. Only names that can be built from
+    the fixed tables are returned - nothing here asks a translator.
+    """
+    found: list[tuple[str, str]] = []
+    for match in _NAME_IN_TEXT.finditer(text):
+        words = match.group(0).rstrip(",").split()
+        # The longest run of words that is a degree wins: capitalised words that
+        # follow the name ("... Part A") are not part of it.
+        for end in range(len(words), 2, -1):
+            candidate = " ".join(words[:end]).rstrip(",")
+            rendered = compose(candidate, locale, lambda _text: None)
+            if rendered:
+                found.append((candidate, rendered))
+                break
+    return found
