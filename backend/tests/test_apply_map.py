@@ -45,3 +45,25 @@ def test_reviewed_wording_and_unknown_strings_are_left_alone():
     assert out["replaced"] == 0 and out["rows"] == 0
     assert r.data["strings"][reviewed] == "机翻"
     assert r.translator == "machine:argos+glossary"
+
+
+def test_failed_strings_can_be_added_to_one_shared_machine_row():
+    from crawler.translate.apply_map import add_global
+
+    class FakeDb:
+        def __init__(self):
+            self.added = []
+
+        def scalar(self, _stmt):
+            return None
+
+        def add(self, row):
+            self.added.append(row)
+
+    db = FakeDb()
+    count = add_global(db, {"Analyse the market (3 methods)": "分析市场（3 种方法）", "x": ""})
+    assert count == 1
+    row = db.added[0]
+    assert row.target_type == "global" and row.target_key == "handbook"
+    assert row.provenance == "machine" and row.field == "retried"
+    assert row.data["strings"] == {"Analyse the market (3 methods)": "分析市场（3 种方法）"}

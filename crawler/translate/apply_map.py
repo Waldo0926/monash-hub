@@ -24,7 +24,15 @@ import re
 
 from app.core.db import SessionLocal
 from app.knowledge.structure_zh import STRUCTURE_ZH
-from app.models.translation import AREA_OF_STUDY, COURSE, MACHINE, UNIT, ContentTranslation
+from app.models.translation import (
+    AREA_OF_STUDY,
+    COURSE,
+    GLOBAL,
+    MACHINE,
+    PUBLISHED,
+    UNIT,
+    ContentTranslation,
+)
 from sqlalchemy import select
 
 log = logging.getLogger("crawler.translate.apply_map")
@@ -78,10 +86,46 @@ def apply(rows, renderings: dict[str, str]) -> dict[str, int]:
     return summary
 
 
+def add_global(db, renderings: dict[str, str], locale: str = "zh") -> int:
+    """Put renderings in one machine row that every Handbook page reads.
+
+    For strings that failed in a pass and so are in no row: there is no unit to
+    attach them to without re-running the pass, and a string map is looked up by
+    its exact English anyway. The row says what it is.
+    """
+    row = db.scalar(
+        select(ContentTranslation).where(
+            ContentTranslation.locale == locale,
+            ContentTranslation.target_type == GLOBAL,
+            ContentTranslation.target_key == "handbook",
+            ContentTranslation.field == "retried",
+            ContentTranslation.provenance == MACHINE,
+        )
+    )
+    if row is None:
+        row = ContentTranslation(
+            locale=locale, target_type=GLOBAL, target_key="handbook", field="retried",
+            provenance=MACHINE, status=PUBLISHED,
+        )
+        db.add(row)
+    accepted = {k: v for k, v in renderings.items() if k not in STRUCTURE_ZH and acceptable(k, v)}
+    strings = dict((row.data or {}).get("strings") or {})
+    strings.update(accepted)
+    row.data = {"strings": strings}
+    row.translator = TRANSLATOR
+    row.note = "strings that failed in a bulk pass, translated again with a stricter prompt"
+    return len(accepted)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--file", required=True)
-    parser.add_argument("--targets", required=True, choices=sorted(TARGETS))
+    parser.add_argument("--targets", choices=sorted(TARGETS))
+    parser.add_argument(
+        "--as-global", action="store_true",
+        help="add the strings to one machine row every Handbook page reads, instead of "
+             "replacing them in rows that already hold them",
+    )
     parser.add_argument("--locale", default="zh")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -89,6 +133,15 @@ def main() -> None:
     with open(args.file, encoding="utf-8") as handle:
         renderings = json.load(handle)
     log.info("%d renderings in %s", len(renderings), args.file)
+
+    if not args.as_global and not args.targets:
+        parser.error("--targets is required unless --as-global")
+    if args.as_global:
+        with SessionLocal() as db:
+            added = add_global(db, renderings, args.locale)
+            db.commit()
+        log.info("added %d strings to the shared retried row", added)
+        return
 
     with SessionLocal() as db:
         rows = db.scalars(
