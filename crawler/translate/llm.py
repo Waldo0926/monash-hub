@@ -57,7 +57,7 @@ SYSTEM = (
     "verbatim, and translate only the text after the line TEXT:."
 )
 
-_PREFACE = re.compile(r"^\s*(?:以下是|这是|翻译如下|译文[:：]|翻译[:：]|Here is|Translation:)")
+_PREFACE = re.compile(r"^\s*(?:以下是|翻译如下|译文[:：]|翻译[:：]|Here is|Translation:)")
 
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)*")

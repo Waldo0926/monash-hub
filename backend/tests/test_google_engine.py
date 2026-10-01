@@ -218,3 +218,10 @@ def test_a_blocked_worker_stops_the_batch():
     engine.text = boom  # type: ignore[method-assign]
     with pytest.raises(Blocked):
         engine.many(["a", "b", "c"])
+
+
+def test_a_translation_that_begins_with_zhe_shi_is_a_translation():
+    from crawler.translate.llm import acceptable_reply
+
+    assert acceptable_reply("This is a joint PhD program", "这是一个联合博士项目")
+    assert not acceptable_reply("This is a joint PhD program", "以下是翻译：这是一个联合博士项目")
