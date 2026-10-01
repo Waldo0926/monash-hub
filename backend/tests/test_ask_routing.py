@@ -92,7 +92,9 @@ def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, loca
         ("学术诚信", "academic-integrity"),
         ("抄袭", "academic-integrity"),
         ("plagiarism", "academic-integrity"),
-        ("被劝退", "academic-progress"),
+        # The notice a student gets before an exclusion hearing - more specific
+        # than the academic progress overview it used to land on.
+        ("被劝退", "unsatisfactory-progress"),
         ("医保", "oshc"),
         ("学费", "fees"),
         ("转专业", "changing-your-enrolment"),
