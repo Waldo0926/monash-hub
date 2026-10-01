@@ -43,6 +43,7 @@ from app.models.translation import (
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from crawler.official.seeds import SEEDS
 from crawler.translate.engine import Translator, quieten
 
 log = logging.getLogger("crawler.translate")
@@ -312,6 +313,10 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
     summary = {"translated": 0, "skipped": 0, "strings": 0}
     with SessionLocal() as db:
         pages = list(db.scalars(select(OfficialPage).where(OfficialPage.status == "ok")))
+        # In seed-list order, which puts the pages most students need first: a
+        # long pass over a few hundred pages is useful long before it finishes.
+        order = {seed.slug: index for index, seed in enumerate(SEEDS)}
+        pages.sort(key=lambda page: order.get(page.slug, len(order)))
         for page in pages:
             marker = page.content_hash or ""
             if not refresh and marker and _up_to_date(

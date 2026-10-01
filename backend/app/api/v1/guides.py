@@ -20,20 +20,29 @@ router = APIRouter(tags=["guides"])
 def list_guides(
     q: str = Query("", max_length=300),
     category: str | None = None,
-    limit: int = Query(50, ge=1, le=200),
+    campus: str | None = Query(None, pattern="^(australia|malaysia)$"),
+    # Up to every page at once: the list is a few hundred curated rows, and
+    # "show more" grows the limit rather than paging.
+    limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
-    pages, total = service.search_official(db, q, limit=limit, offset=offset, category=category)
+    pages, total = service.search_official(
+        db, q, limit=limit, offset=offset, category=category, campus=campus
+    )
     # One query for the whole page of results, not one per row.
     page_translations = translations.load_many(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],
         source_hashes={p.slug: p.content_hash for p in pages},
     )
+    counted = select(OfficialPage.category, func.count(OfficialPage.id)).where(
+        OfficialPage.status == "ok"
+    )
+    if campus:
+        counted = counted.where(OfficialPage.applies_to.in_((campus, "all")))
     categories = db.execute(
-        select(OfficialPage.category, func.count(OfficialPage.id))
-        .where(OfficialPage.status == "ok")
+        counted
         .group_by(OfficialPage.category)
         .order_by(OfficialPage.category)
     ).all()

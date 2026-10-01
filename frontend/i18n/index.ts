@@ -487,6 +487,7 @@ const en: Messages = {
     'Indexed Monash pages, kept as searchable text with the source link and the date we last checked it. We do not rewrite official wording.',
   'guides.searchPlaceholder': 'special consideration, WAM, visa…',
   'guides.all': 'All',
+  'guides.more': 'Show more ({shown} of {total})',
   'guides.empty': 'No guide matched that',
   'guides.emptyHint':
     'The index covers high-frequency pages only, and grows from what people actually search for.',
@@ -503,6 +504,8 @@ const en: Messages = {
   'category.academic-rules': 'Academic rules & policy',
   'category.international': 'International students',
   'category.fees-dates': 'Fees & key dates',
+  'category.graduation': 'Graduation',
+  'category.support': 'Student support & services',
   'category.exchange': 'Exchange & study abroad',
   'category.malaysia': 'Malaysia campus',
 
@@ -1199,6 +1202,7 @@ const zh: Messages = {
     '已收录的 Monash 官方页面，保存为可搜索的正文，并附来源链接和最后核对时间。我们不改写官方措辞。',
   'guides.searchPlaceholder': 'special consideration、WAM、签证…',
   'guides.all': '全部',
+  'guides.more': '显示更多（已显示 {shown} / 共 {total}）',
   'guides.empty': '没有匹配的指南',
   'guides.emptyHint': '目前只收录高频页面，之后会根据大家真实搜索的内容继续扩充。',
   'guides.covers': '这个页面包含什么',
@@ -1214,6 +1218,8 @@ const zh: Messages = {
   'category.academic-rules': '学术规定与政策',
   'category.international': '国际学生',
   'category.fees-dates': '学费与重要日期',
+  'category.graduation': '毕业',
+  'category.support': '学生支持与服务',
   'category.exchange': '交换与海外学习',
   'category.malaysia': '马来西亚校区',
 
@@ -1906,6 +1912,7 @@ const ja: Messages = {
     '収録済みの Monash 公式ページを、検索できる本文として出典リンクと最終確認日つきで保存しています。公式の文言は書き換えていません。',
   'guides.searchPlaceholder': 'special consideration、WAM、ビザ…',
   'guides.all': 'すべて',
+  'guides.more': 'さらに表示（{shown} / {total}）',
   'guides.empty': '該当するガイドがありません',
   'guides.emptyHint':
     '現在は利用頻度の高いページのみ収録しており、実際の検索内容に応じて増やしていきます。',
@@ -1922,6 +1929,8 @@ const ja: Messages = {
   'category.academic-rules': '学務規程',
   'category.international': '留学生',
   'category.fees-dates': '学費と重要日程',
+  'category.graduation': '卒業',
+  'category.support': '学生支援・サービス',
   'category.exchange': '交換留学',
   'category.malaysia': 'マレーシアキャンパス',
 
@@ -2620,6 +2629,7 @@ const ko: Messages = {
     '수록된 Monash 공식 페이지를 검색 가능한 본문으로, 출처 링크와 최종 확인 날짜와 함께 보관합니다. 공식 표현을 고쳐 쓰지 않습니다.',
   'guides.searchPlaceholder': 'special consideration, WAM, 비자…',
   'guides.all': '전체',
+  'guides.more': '더 보기 ({shown} / {total})',
   'guides.empty': '해당하는 가이드가 없습니다',
   'guides.emptyHint': '현재는 자주 찾는 페이지만 수록하며, 실제 검색 내용에 따라 넓혀 갑니다.',
   'guides.covers': '이 페이지에 담긴 내용',
@@ -2635,6 +2645,8 @@ const ko: Messages = {
   'category.academic-rules': '학사 규정',
   'category.international': '유학생',
   'category.fees-dates': '학비 및 주요 일정',
+  'category.graduation': '졸업',
+  'category.support': '학생 지원 및 서비스',
   'category.exchange': '교환학생',
   'category.malaysia': '말레이시아 캠퍼스',
 
