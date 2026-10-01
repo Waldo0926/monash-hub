@@ -143,7 +143,7 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "邮件", "通知", "收到", "什么意思", "怎么办", "挂科", "等级"),
         ("unsatisfactory progress", "unsatisfactory academic progress",
          "academic progress", "risk level", "apc", "academic progress committee",
-         "学业预警", "学业进度", "学业警告", "学术预警", "劝退"),
+         "学业预警", "学业进度", "学业警告", "学术预警"),
         "unsatisfactory-progress",
         priority=60,
     ),

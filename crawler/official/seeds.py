@@ -159,7 +159,7 @@ SEEDS: tuple[Seed, ...] = (
     Seed("supplementary-assessment",
          "https://www.monash.edu/students/admin/assessments/supplementary",
          "Supplementary assessments", "assessment",
-         ("supplementary", "supp", "ns", "补考", "挂科"),
+         ("supplementary", "supp", "ns", "补考"),
          applies_to="all"),
     Seed("results-release", "https://www.monash.edu/students/admin/assessments/results/dates",
          "Your results - when and how", "assessment",
