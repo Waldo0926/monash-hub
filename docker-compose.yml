@@ -108,6 +108,10 @@ services:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       # Only read by `crawler.translate.run --engine google-cloud`.
       GOOGLE_TRANSLATE_API_KEY: ${GOOGLE_TRANSLATE_API_KEY:-}
+      # Only read by `--engine llm`; see crawler/translate/llm.py.
+      TRANSLATE_LLM_KEY: ${TRANSLATE_LLM_KEY:-}
+      TRANSLATE_LLM_URL: ${TRANSLATE_LLM_URL:-}
+      TRANSLATE_LLM_MODEL: ${TRANSLATE_LLM_MODEL:-}
     networks: [internal]
     # A crawler that can take the box down is worse than a slow crawler.
     cpus: 1.5
