@@ -244,3 +244,14 @@ def test_polish_rows_rewrites_stored_strings():
                              provenance="machine", data={"strings": {"a": "完成24门学分", "b": "好"}})
     assert polish_rows([row]) == {"rows": 1, "strings": 1}
     assert row.data["strings"] == {"a": "完成24 学分", "b": "好"}
+
+
+def test_polish_turns_discipline_the_academic_sense_into_xueke_and_leaves_conduct_alone():
+    from crawler.translate.engine import polish_zh
+
+    assert polish_zh("运用一系列纪律办法分析") == "运用一系列学科方法分析"
+    assert polish_zh("一个有纪律的过程对于项目至关重要") == "一个规范的流程对于项目至关重要"
+    assert polish_zh("培养精确推理的纪律习惯") == "培养精确推理的严谨习惯"
+    # conduct stays conduct
+    assert polish_zh("纪律委员会取消成绩") == "纪律委员会取消成绩"
+    assert polish_zh("正式纪律处分") == "正式纪律处分"

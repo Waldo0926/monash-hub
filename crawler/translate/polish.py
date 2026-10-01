@@ -11,7 +11,14 @@ import argparse
 import logging
 
 from app.core.db import SessionLocal
-from app.models.translation import AREA_OF_STUDY, COURSE, MACHINE, UNIT, ContentTranslation
+from app.models.translation import (
+    AREA_OF_STUDY,
+    COURSE,
+    MACHINE,
+    OFFICIAL_PAGE,
+    UNIT,
+    ContentTranslation,
+)
 from sqlalchemy import select
 
 from crawler.translate.engine import polish_zh
@@ -20,7 +27,8 @@ log = logging.getLogger("crawler.translate.polish")
 TARGETS = {
     "curriculum": (COURSE, AREA_OF_STUDY),
     "units": (UNIT,),
-    "all": (COURSE, AREA_OF_STUDY, UNIT),
+    "official": (OFFICIAL_PAGE,),
+    "all": (COURSE, AREA_OF_STUDY, UNIT, OFFICIAL_PAGE),
 }
 
 
@@ -30,6 +38,8 @@ def polish_rows(rows) -> dict[str, int]:
         strings = dict((row.data or {}).get("strings") or {})
         changed = 0
         for english, chinese in strings.items():
+            if not isinstance(chinese, str):
+                continue
             polished = polish_zh(chinese)
             if polished != chinese:
                 strings[english] = polished

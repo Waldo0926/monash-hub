@@ -683,6 +683,17 @@ _POLISH = (
     (re.compile(r"(\d)\s*[门个]\s*学分"), r"\1 学分"),
     # One pronoun for the reader: structure_zh.py is written in 你.
     (re.compile("您"), "你"),
+    # "discipline" is conduct to the model. In a Handbook it is an academic
+    # field ("disciplinary approaches") or a quality of work ("a disciplined
+    # process"); the conduct senses - 纪律委员会, 纪律处分 - are left alone.
+    (re.compile("纪律办法"), "学科方法"),
+    (re.compile("有纪律的过程"), "规范的流程"),
+    (re.compile("的纪律(?:性)?习惯"), "的严谨习惯"),
+    (re.compile("纪律(?:性)?习惯"), "严谨的习惯"),
+    (re.compile("纪律性方法"), "严谨的方法"),
+    (re.compile("纪律性的决策"), "审慎的决策"),
+    (re.compile("规范和纪律约束"), "规范和规训"),
+    (re.compile("荣誉学位一年以上的纪律评估"), "荣誉学位学科，评估跨越一年以上"),
 )
 
 
