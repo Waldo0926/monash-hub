@@ -68,3 +68,34 @@ def test_the_engine_uses_the_google_model_only_when_asked():
     assert Translator.__new__(Translator).scope == "general"
     with pytest.raises(ValueError):
         Translator("zh", engine="nope")
+
+
+def cloud(answers):
+    from crawler.translate.google import CloudModel
+
+    return CloudModel("zh", "KEY", opener=Opener(answers), sleep=lambda _s: None)
+
+
+def cloud_reply(text):
+    return io.BytesIO(json.dumps({"data": {"translations": [{"translatedText": text}]}}).encode())
+
+
+def test_cloud_returns_the_translated_text():
+    m = cloud([cloud_reply("你好")])
+    assert m("hello") == "你好"
+    assert m.characters == 5
+
+
+def test_a_rejected_key_or_exhausted_quota_stops_the_run_at_once():
+    err = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+    m = cloud([err])
+    with pytest.raises(Blocked):
+        m("hello")
+
+
+def test_cloud_without_a_key_refuses_to_start(monkeypatch):
+    from crawler.translate.google import KEY_ENV, load_cloud
+
+    monkeypatch.delenv(KEY_ENV, raising=False)
+    with pytest.raises(SystemExit):
+        load_cloud("zh")

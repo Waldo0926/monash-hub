@@ -403,9 +403,10 @@ def main() -> None:
         help="short: titles and enumerable values. all: adds overviews and outcomes",
     )
     parser.add_argument(
-        "--engine", default="argos", choices=["argos", "google"],
+        "--engine", default="argos", choices=["argos", "google", "google-cloud"],
         help="argos: offline model (default). google: the web endpoint, paced and "
-             "stopped on repeated failure - see crawler/translate/google.py",
+             "stopped on repeated failure. google-cloud: the paid Cloud Translation API, "
+             "key in GOOGLE_TRANSLATE_API_KEY - see crawler/translate/google.py",
     )
     parser.add_argument("--limit", type=int, default=0, help="stop after this many units")
     parser.add_argument(
@@ -430,8 +431,8 @@ def main() -> None:
         logging.getLogger(noisy).setLevel(logging.ERROR)
 
     global TRANSLATOR_NAME
-    if args.engine == "google":
-        TRANSLATOR_NAME = "machine:google+glossary"
+    if args.engine in ("google", "google-cloud"):
+        TRANSLATOR_NAME = f"machine:{args.engine}+glossary"
     translator = Translator(args.locale, engine=args.engine)
     # Again after the model is loaded: importing it registers more loggers, and
     # they arrive with a level of their own already set.
