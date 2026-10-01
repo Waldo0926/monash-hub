@@ -186,3 +186,35 @@ def test_a_coded_unit_line_uses_the_agreed_title_and_never_the_model():
     out = engine.text("MCD1270 Accounting in business")
     assert out == "MCD1270 商业会计"
     assert calls == []
+
+
+def test_many_translates_in_parallel_and_keeps_every_string():
+    import threading as _t
+
+    from crawler.translate.engine import Translator
+
+    engine = Translator.__new__(Translator)
+    engine.locale, engine._cache, engine._renderings = "zh", {}, {}
+    engine._lock = _t.Lock()
+    engine.workers = 4
+    engine.text = lambda s: f"译{s}"  # type: ignore[method-assign]
+    out = engine.many(["a", "b", " a ", None, "", "c"])
+    assert out == {"a": "译a", "b": "译b", "c": "译c"}
+
+
+def test_a_blocked_worker_stops_the_batch():
+    import threading as _t
+
+    from crawler.translate.engine import Translator
+
+    engine = Translator.__new__(Translator)
+    engine.locale, engine._cache, engine._renderings = "zh", {}, {}
+    engine._lock = _t.Lock()
+    engine.workers = 3
+
+    def boom(_s):
+        raise Blocked("stop")
+
+    engine.text = boom  # type: ignore[method-assign]
+    with pytest.raises(Blocked):
+        engine.many(["a", "b", "c"])
