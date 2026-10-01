@@ -30,6 +30,10 @@ class Seed:
     #: default is the site the URL is on, and all but a handful of these are on
     #: monash.edu. Only a page that says so itself is marked ``all``.
     applies_to: str = "australia"
+    #: For a page Monash shows only after sign-in: what it covers, in our words.
+    #: Such a page is never fetched. It is listed with this description and its
+    #: link, so a student can find it, and its text stays where Monash put it.
+    sign_in: str | None = None
 
 
 CATEGORIES = {
@@ -188,6 +192,27 @@ SEEDS: tuple[Seed, ...] = (
          "Special arrangements for exams", "assessment",
          ("special arrangements", "exam clash", "time zone", "考试冲突", "时差"),
          applies_to="all"),
+
+    # --- Behind Monash sign-in ---------------------------------------------
+    #
+    # Both redirect to Monash's Okta login; they are listed, not copied.
+    Seed("arts-course-transfer", "https://www.monash.edu/arts/current-students/course-transfer",
+         "Course transfer - Faculty of Arts", "enrolment",
+         ("course transfer", "transfer", "arts", "转专业", "转课程"),
+         tier="stable",
+         sign_in="The Faculty of Arts' guidance for current students who want to transfer "
+                 "into or out of an Arts course. Monash shows it only after you sign in with "
+                 "your Monash account. The University-wide rules - who can apply, how many "
+                 "preferences, and when - are on the public Course or campus transfer page."),
+    Seed("malaysia-apply-to-graduate",
+         "https://www.monash.edu.my/student-services/student-admin/graduations/apply-to-graduate",
+         "Apply to graduate (Monash Malaysia)", "graduation",
+         ("malaysia", "apply to graduate", "graduation", "申请毕业", "毕业", "马来西亚"),
+         tier="stable", applies_to="malaysia",
+         sign_in="Monash Malaysia's step-by-step page on applying to graduate. Monash shows "
+                 "it only after you sign in with your Monash account. Most of the same "
+                 "questions - when to apply, ceremonies, graduating in absentia - are "
+                 "answered on the public FAQs for graduations (Monash Malaysia)."),
 
     # --- Course maps ------------------------------------------------------
     #

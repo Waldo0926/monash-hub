@@ -54,7 +54,7 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           </p>
         </header>
 
-        <section v-if="guide.headings?.length" class="card section">
+        <section v-if="guide.headings?.length && !guide.requires_sign_in" class="card section">
           <h2>{{ $t('guides.covers') }}</h2>
           <ul class="outline">
             <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
@@ -64,7 +64,21 @@ useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guid
           </ul>
         </section>
 
-        <section class="card section">
+        <!-- A page behind Monash sign-in is listed, never copied: the words
+             here are ours, and the page itself needs a Monash login. -->
+        <section v-if="guide.requires_sign_in" class="card section signin" role="note">
+          <h2>{{ $t('guides.signIn.title') }}</h2>
+          <p class="small muted">{{ $t('guides.signIn.body') }}</p>
+          <TranslationNotice
+            v-if="guide.translation"
+            :translation="guide.translation"
+            :source-url="guide.url"
+            class="mb"
+          />
+          <p>{{ guide.summary }}</p>
+        </section>
+
+        <section v-else class="card section">
           <h2>{{ $t('guides.pageText') }}</h2>
           <p class="tiny muted">{{ $t('guides.pageTextNote') }}</p>
           <TranslationNotice

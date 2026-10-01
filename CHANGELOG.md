@@ -19,12 +19,16 @@ All notable changes to Monash Hub are documented here.
   see the module docstrings), with tests. The rebuild adds Monash Malaysia's
   library, IT services and accommodation pages and the schools' remaining
   current-student pages.
-- Two pages that looked blocked (Arts course transfer, Monash Malaysia "Apply to
-  graduate") are behind Monash's Okta sign-in, not the WAF; they are not public
-  and are not indexed.
+- Pages Monash keeps behind its Okta sign-in are now *listed, not copied*: a
+  seed with `sign_in=` is never fetched; it is stored with its title, a
+  description written here and its link, flagged `requires_sign_in`, and shown
+  with a "sign-in required" notice instead of page text. The first two: the
+  Faculty of Arts' course transfer page and Monash Malaysia's "Apply to
+  graduate" (both looked blocked by the WAF; both redirect to Okta).
   中文：官方页面的校区改为按正文判定——写明适用所有校区、同时讲到马来西亚、或属于
   全校统一规章的标「全部校区」，含澳洲专属内容（HECS、OSHC、500 签证等）的才标
-  「澳大利亚」；发现与筛选脚本正式入库。
+  「澳大利亚」；发现与筛选脚本正式入库；需要 Monash 登录的页面只列标题、简介和官方链接，
+  标注「需登录」，不转载正文。
 
 ### Added (official pages: the whole student sites, Monash Malaysia first)
 

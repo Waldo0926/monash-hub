@@ -20,6 +20,7 @@ from app.core.db import SessionLocal
 from app.knowledge.cleaner import clean_page
 from app.knowledge.repository import (
     get_or_create_source,
+    list_behind_sign_in,
     record_failure,
     record_fetch,
     upsert_seed_page,
@@ -61,7 +62,7 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
         for seed in seeds:
             key, name, base = _source_key(seed.url)
             source = get_or_create_source(db, key, name, base)
-            upsert_seed_page(
+            page = upsert_seed_page(
                 db,
                 source=source,
                 slug=seed.slug,
@@ -72,6 +73,8 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
                 refresh_tier=seed.tier,
                 applies_to=seed.applies_to,
             )
+            if seed.sign_in:
+                list_behind_sign_in(db, page, title=seed.title, description=seed.sign_in)
         if retire_others:
             retired = db.execute(
                 update(OfficialPage)
@@ -99,6 +102,9 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
         crawl_job(db, "official", targets=len(seeds), transport=transport) as job,
     ):
         for seed in seeds:
+            if seed.sign_in:
+                # Listed at registration; there is nothing public to fetch.
+                continue
             page = db.scalar(select(OfficialPage).where(OfficialPage.canonical_url == seed.url))
             if page is None:
                 log.warning("%s is not registered - run --register first", seed.slug)
