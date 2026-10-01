@@ -265,27 +265,36 @@ def translate_units(
     translator.use_scope(HANDBOOK)
 
     with SessionLocal() as db:
-        all_codes = list(db.scalars(select(Unit.unit_code).order_by(Unit.unit_code)))
+        # One code exists once per Handbook year. Translations are stored by code,
+        # so every year's English has to be translated into the same row: a
+        # sentence Monash rewrote for 2027 would otherwise stay English. The newest
+        # year is the one whose hash the row is stamped with.
+        all_codes = list(db.scalars(select(Unit.unit_code).distinct().order_by(Unit.unit_code)))
         codes = _select_codes(all_codes, units, limit)
 
         for index, code in enumerate(codes, start=1):
-            unit = db.scalar(
-                select(Unit).where(Unit.unit_code == code).options(
+            rows = db.scalars(
+                select(Unit).where(Unit.unit_code == code)
+                .order_by(Unit.academic_year.desc())
+                .options(
                     selectinload(Unit.offerings),
                     selectinload(Unit.assessments),
                     selectinload(Unit.activities),
                     selectinload(Unit.learning_outcomes),
                     selectinload(Unit.requisite_groups),
                 )
-            )
-            if unit is None:
+            ).all()
+            if not rows:
                 continue
+            unit = rows[0]
             scope = "fields=all" if long_prose else "fields=short"
             if not refresh and _up_to_date(db, locale, UNIT, code, unit.content_hash, scope):
                 summary["skipped"] += 1
                 continue
 
-            strings = translator.many(unit_strings(unit, long_prose=long_prose))
+            strings = translator.many(
+                text for row in rows for text in unit_strings(row, long_prose=long_prose)
+            )
             store(db, locale=locale, target_type=UNIT, target_key=code,
                   strings=strings, source_hash=unit.content_hash, scope=scope)
             db.commit()
