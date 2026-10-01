@@ -537,6 +537,38 @@ GPA_PAGE: dict[str, str] = {
 # faithful to but ours.
 
 FAQ_ZH: dict[str, tuple[str, str]] = {
+    "what-is-a-hurdle": (
+        "什么是 hurdle（及格门槛）？没过会怎样？",
+        "Hurdle（及格门槛）是你必须达到的考核要求——没达到，其他分数再高这门课也过不了。"
+        "Monash 正在取消分数及格门槛（threshold hurdle，即某项考核必须拿到最低分）："
+        "2025 年 3 月 1 日起新课程单元不得再设，到 2026 年 12 月 31 日所有课程单元都不再使用。"
+        "保留下来的是能力及格门槛（competency hurdle）。"
+        "如果你完成了某项能力及格门槛考核但没通过，学校必须至少给你一次额外考核"
+        "（additional assessment），要在该教学期结束前完成；额外考核不适用特殊考虑"
+        "（special consideration）。如果最终仍未达到门槛、而你的分数在 45 分或以上，"
+        "成绩会记为 NH（Hurdle Fail）45 分，并且不会因此获得补考。"
+        "每门课程单元有哪些 hurdle、可以尝试几次，写在该单元的 Handbook 页面和 Moodle 上。",
+    ),
+    "supplementary-assessment": (
+        "我能补考（supplementary assessment）吗？",
+        "如果你某门课程单元的总分在 45 到 49 分之间、成绩为 N 或 NH，而且成绩里显示 NS，"
+        "说明你已经自动获得了补考——不需要申请。不是每门课程单元都提供补考，以该单元的 Handbook 页面为准。"
+        "补考可以选择不参加，它是你通过这门课的最后机会：通过的话成绩变为 50 分（P），这也是能拿到的最高分；"
+        "没通过或没参加，就保留原来的分数。补考在成绩公布后 90 天内的指定日期进行，"
+        "只能通过申请 special arrangements 调整时间。如果你更想要更高的分数来提高 WAM，"
+        "也可以选择重修这门课，但需要重新选课并缴费。",
+    ),
+    "unsatisfactory-progress": (
+        "收到了学业进度不达标（unsatisfactory academic progress）的邮件，是什么意思？",
+        "Monash 在每个审查期结束后检查学业进度，并给出三个风险等级之一。"
+        "一级（Advice，建议）：你挂了课程单元，但没有触及任何学业进度不达标标准。"
+        "二级（Monitoring，监督）：你第一次触及某项标准，必须填写 My Progress and Support，"
+        "学院也可能对你的注册附加条件。"
+        "三级（Intervention，干预）：例如连续两个审查期触及标准，或同一门必修课程单元挂了两次——"
+        "你必须填写 My Academic Progress Response，还可能被要求参加学业进度委员会（APC）听证，"
+        "听证结果可能是让你退学（exclusion）。请按邮件要求在截止日期前完成："
+        "你的配合程度会在之后的审查中被考虑进去。",
+    ),
     "how-to-apply-special-consideration": (
         "怎么申请特殊考虑（special consideration）？",
         "特殊考虑针对的是你无法控制、且影响了某次考核的短期状况。"

@@ -98,6 +98,11 @@ def test_the_more_specific_entry_wins(query, right):
         ("can i defer my exam", "defer-a-final-assessment"),
         ("I am sick and missed my exam", "defer-a-final-assessment"),
         ("生病了没去考试", "defer-a-final-assessment"),
+        ("hurdle没过怎么办", "what-is-a-hurdle"),
+        ("failed a hurdle what happens", "what-is-a-hurdle"),
+        ("我能补考吗", "supplementary-assessment"),
+        ("supp exam", "supplementary-assessment"),
+        ("收到学业预警邮件", "unsatisfactory-progress"),
     ],
 )
 def test_a_question_the_faq_covers_gets_it(query, slug):

@@ -167,6 +167,26 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "除籍（exclusion）",
         "ko": "제적(exclusion)",
     },
+    "academic misconduct": {
+        "zh": "学术不端",
+        "ja": "学術不正行為",
+        "ko": "학업 부정행위",
+    },
+    "Academic Progress Committee": {
+        "zh": "学业进度委员会（APC）",
+        "ja": "学業進捗委員会（APC）",
+        "ko": "학업 진도 위원회(APC)",
+    },
+    "Exclusion Appeals Panel": {
+        "zh": "退学申诉委员会（EAP）",
+        "ja": "除籍不服審査委員会（EAP）",
+        "ko": "제적 이의 심사위원회(EAP)",
+    },
+    "Student Misconduct Panel": {
+        "zh": "学生违纪审理委员会",
+        "ja": "学生不正行為審査委員会",
+        "ko": "학생 부정행위 심사위원회",
+    },
     "academic integrity": {
         "zh": "学术诚信",
         "ja": "学術的誠実性",
@@ -198,6 +218,32 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "补考",
         "ja": "再評価",
         "ko": "보충 평가",
+    },
+    # The two kinds of hurdle Monash distinguishes, and what failing one is
+    # called. "hurdle" alone is 及格门槛; these keep the English beside it
+    # because the policy pages and Moodle only ever use the English names.
+    "threshold hurdle": {
+        "zh": "分数及格门槛（threshold hurdle）",
+        "ja": "最低点要件（threshold hurdle）",
+        "ko": "최저 점수 통과 요건(threshold hurdle)",
+    },
+    "competency hurdle": {
+        "zh": "能力及格门槛（competency hurdle）",
+        "ja": "能力到達要件（competency hurdle）",
+        "ko": "역량 통과 요건(competency hurdle)",
+    },
+    "hurdle fail": {
+        "zh": "未达及格门槛（Hurdle Fail）",
+        "ja": "必須要件不合格（Hurdle Fail）",
+        "ko": "필수 요건 불합격(Hurdle Fail)",
+    },
+    # A further attempt at a failed competency hurdle, within the teaching
+    # period. Not a supplementary assessment (补考), and the two have different
+    # rules - so not 补考 either.
+    "additional assessment": {
+        "zh": "额外考核（additional assessment）",
+        "ja": "追加評価（additional assessment）",
+        "ko": "추가 평가(additional assessment)",
     },
     "final assessment": {
         "zh": "期末考核",
@@ -2824,7 +2870,8 @@ CRITICAL: frozenset[str] = frozenset({
     "weighted average mark", "WAM", "grade point average", "GPA",
     "hurdle requirement", "hurdle", "pass mark", "academic progress",
     "unsatisfactory progress", "exclusion", "academic integrity", "plagiarism",
-    "collusion",
+    "collusion", "threshold hurdle", "competency hurdle", "hurdle fail",
+    "additional assessment", "academic misconduct",
     # a second chance, or not
     "special consideration", "deferred assessment", "supplementary assessment",
     "final assessment", "extension",

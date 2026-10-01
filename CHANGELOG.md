@@ -4,6 +4,25 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (official pages: hurdles, supplementary assessment, progress and appeals)
+
+- 21 more official pages in the seed list, chosen for the rules that decide
+  whether a student passes, progresses or graduates: hurdles (Monash's guidance
+  on competency and threshold hurdles - threshold hurdles are removed from every
+  unit by 31 December 2026, and a failed competency hurdle ends in NH 45),
+  supplementary assessments, eExam rules and arrangements, results release and
+  feedback, the assessment policy list, unsatisfactory-progress notices, APC
+  hearings and decisions, exclusion appeals, academic misconduct (process,
+  penalties, appeals), student complaints, the Handbook glossary, graduation
+  eligibility and course completion. Three curated FAQ entries answer "what is a
+  hurdle", "can I get a supplementary assessment" and "what does an
+  unsatisfactory progress email mean", each tied to its page. The glossary pins
+  threshold/competency hurdle, Hurdle Fail, additional assessment (额外考核, not
+  补考), academic misconduct, APC, EAP and the Student Misconduct Panel.
+  中文：新增 21 个官方页面（hurdle 及格门槛、补考、eExam 考试规则、成绩发布、学业
+  进度预警与听证、退学申诉、学术不端、投诉、毕业资格等）和 3 条 FAQ，并在术语表里
+  固定 hurdle 相关译法。
+
 ### Fixed (Chinese translations: the structure of a degree)
 
 - The offline translator was rendering the words a degree page is built from
