@@ -204,7 +204,7 @@ class Translator:
     def __init__(self, locale: str, scope: str = GENERAL, engine: str = "argos") -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
-        if engine not in ("argos", "google", "google-cloud"):
+        if engine not in ("argos", "google", "google-cloud", "llm"):
             raise ValueError(f"unknown engine {engine!r}")
         self.locale = locale
         self.engine = engine
@@ -220,6 +220,10 @@ class Translator:
             from crawler.translate import google
 
             self._translate = google.load(locale)
+        elif engine == "llm":
+            from crawler.translate import llm
+
+            self._translate = llm.load(locale)
         elif engine == "google-cloud":
             from crawler.translate import google
 

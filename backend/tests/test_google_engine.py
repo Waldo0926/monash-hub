@@ -99,3 +99,36 @@ def test_cloud_without_a_key_refuses_to_start(monkeypatch):
     monkeypatch.delenv(KEY_ENV, raising=False)
     with pytest.raises(SystemExit):
         load_cloud("zh")
+
+
+def llm(answers):
+    from crawler.translate.llm import LLMModel
+
+    return LLMModel("zh", url="http://x/v4", key="K", model="m",
+                    opener=Opener(answers), sleep=lambda _s: None)
+
+
+def chat(text):
+    return io.BytesIO(json.dumps({"choices": [{"message": {"content": text}}]}).encode())
+
+
+def test_the_chat_model_returns_its_reply():
+    assert llm([chat("你好")])("hello") == "你好"
+
+
+def test_a_reply_that_is_not_a_translation_is_a_failure_of_that_string():
+    for bad in ("", "以下是翻译：你好", "好" * 400):
+        with pytest.raises(RuntimeError):
+            llm([chat(bad)])("hello")
+
+
+def test_a_refused_key_stops_the_run():
+    err = urllib.error.HTTPError("u", 401, "Unauthorized", {}, None)
+    with pytest.raises(Blocked):
+        llm([err])("hello")
+
+
+def test_the_prompt_forbids_prefaces_and_keeps_placeholders():
+    from crawler.translate.llm import SYSTEM
+
+    assert "ONLY the translation" in SYSTEM and "Zqa" in SYSTEM
