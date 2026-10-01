@@ -23,6 +23,7 @@ import logging
 import re
 import threading
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 
 from app.knowledge import degrees, structure, titles
 from app.knowledge.glossary import (
@@ -205,14 +206,20 @@ class Translator:
     scope: str = GENERAL
     #: Likewise: tests build a Translator without ``__init__``.
     engine: str = "argos"
+    workers: int = 1
 
-    def __init__(self, locale: str, scope: str = GENERAL, engine: str = "argos") -> None:
+    def __init__(
+        self, locale: str, scope: str = GENERAL, engine: str = "argos", workers: int = 1
+    ) -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
         if engine not in ("argos", "google", "google-cloud", "llm"):
             raise ValueError(f"unknown engine {engine!r}")
         self.locale = locale
         self.engine = engine
+        # Parallel strings only make sense when the model is somebody else's
+        # server; the offline one is already using every core it is given.
+        self.workers = workers if engine != "argos" else 1
         # One cache per scope. The same English sentence is allowed to have two
         # renderings - "complete the major" means one thing in a degree's
         # structure and another in a unit's overview - so they must not share
@@ -609,17 +616,21 @@ class Translator:
 
     def many(self, sources: Iterable[str | None]) -> dict[str, str]:
         """Translate a batch, skipping what is already known. Source -> target."""
-        out: dict[str, str] = {}
+        keys: list[str] = []
+        seen: set[str] = set()
         for source in sources:
-            if not source:
-                continue
-            key = source.strip()
-            if not key or key in out:
-                continue
-            translated = self.text(key)
-            if translated:
-                out[key] = translated
-        return out
+            key = (source or "").strip()
+            if key and key not in seen:
+                seen.add(key)
+                keys.append(key)
+        if self.workers > 1 and len(keys) > 1:
+            # A remote model is latency, not CPU: several strings at once. A
+            # ``Blocked`` raised in a worker comes out of ``map`` below.
+            with ThreadPoolExecutor(max_workers=self.workers) as pool:
+                results = list(pool.map(self.text, keys))
+        else:
+            results = [self.text(key) for key in keys]
+        return {key: text for key, text in zip(keys, results, strict=True) if text}
 
 
 def quieten() -> None:

@@ -409,6 +409,10 @@ def main() -> None:
              "key in GOOGLE_TRANSLATE_API_KEY. llm: any OpenAI-compatible chat model "
              "(default Zhipu glm-4-flash, free) - see crawler/translate/llm.py",
     )
+    parser.add_argument(
+        "--workers", type=int, default=1,
+        help="strings translated at once (remote engines only; the offline one ignores it)",
+    )
     parser.add_argument("--limit", type=int, default=0, help="stop after this many units")
     parser.add_argument(
         "--units", nargs="+", default=None, metavar="CODE",
@@ -432,7 +436,7 @@ def main() -> None:
         logging.getLogger(noisy).setLevel(logging.ERROR)
 
     global TRANSLATOR_NAME
-    translator = Translator(args.locale, engine=args.engine)
+    translator = Translator(args.locale, engine=args.engine, workers=args.workers)
     if args.engine in ("google", "google-cloud"):
         TRANSLATOR_NAME = f"machine:{args.engine}+glossary"
     elif args.engine == "llm":
