@@ -86,6 +86,68 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         priority=60,
     ),
     FaqSeed(
+        "what-is-a-hurdle",
+        "What is a hurdle, and what happens if I fail one?",
+        "A hurdle is an assessment requirement you have to meet to pass the unit, whatever "
+        "your other marks add up to. Monash is phasing out threshold hurdles (a minimum mark "
+        "on a task): no new unit may use one from 1 March 2025, and by 31 December 2026 no "
+        "unit will. What remains are competency hurdles. If you complete and fail a "
+        "competency hurdle you must be offered at least one additional assessment, due by "
+        "the end of the teaching period; special consideration does not apply to it. If you "
+        "still have not met the hurdle and your mark is 45 or more, your result is NH "
+        "(Hurdle Fail) 45, and you will not be given a supplementary assessment for it. Your "
+        "unit's hurdles and the number of attempts are listed in its Handbook entry and on "
+        "Moodle.",
+        "assessment",
+        ("fail", "failed", "failing", "pass", "unit", "assessment", "task", "exam", "mark",
+         "marks", "45", "what happens", "attempt", "挂", "挂了", "挂科", "没过", "不及格",
+         "考核", "考试", "作业", "分数", "怎么办", "什么", "是什么"),
+        ("hurdle", "hurdles", "hurdle requirement", "hurdle requirements", "hurdle fail",
+         "threshold hurdle", "competency hurdle", "及格门槛", "门槛要求"),
+        "hurdles",
+        priority=95,
+    ),
+    FaqSeed(
+        "supplementary-assessment",
+        "Can I get a supplementary assessment?",
+        "If you finish a unit with a mark of 45 to 49, a grade of N or NH, and your results "
+        "show NS, you have already been given a supplementary assessment - there is nothing "
+        "to apply for. Not every unit offers one; its Handbook entry says. It is optional and "
+        "it is your last chance to pass the unit: pass it and your result becomes 50 (P), "
+        "which is the most you can get; fail it or skip it and you keep your original mark. "
+        "It is held on a set date within 90 days of results release, and special "
+        "arrangements are the only way to move it. Retaking the unit instead can earn a "
+        "higher mark for your WAM, but costs another enrolment.",
+        "assessment",
+        ("fail", "failed", "unit", "exam", "assessment", "45", "49", "ns", "can", "get",
+         "eligible", "挂科", "挂了", "不及格", "考试", "能", "可以", "有没有", "资格"),
+        ("supplementary", "supplementary assessment", "supplementary exam", "supp",
+         "supp exam", "补考"),
+        "supplementary-assessment",
+        priority=90,
+    ),
+    FaqSeed(
+        "unsatisfactory-progress",
+        "I got an email about unsatisfactory academic progress - what does it mean?",
+        "Monash reviews academic progress after each review period and assigns one of three "
+        "risk levels. Level one (Advice) means you failed a unit but did not meet any "
+        "unsatisfactory progress criterion. Level two (Monitoring) means you met a criterion "
+        "for the first time: you must complete My Progress and Support, and your faculty may "
+        "set conditions on your enrolment. Level three (Intervention) - for example meeting "
+        "a criterion two periods in a row, or failing a compulsory unit twice - means you "
+        "must complete My Academic Progress Response and may be called to an Academic "
+        "Progress Committee hearing, which can exclude you from your course. Do what the "
+        "email asks by its deadline: your engagement is taken into account later.",
+        "academic-rules",
+        ("email", "notice", "letter", "level", "risk", "mean", "means", "fail", "failed",
+         "邮件", "通知", "收到", "什么意思", "怎么办", "挂科", "等级"),
+        ("unsatisfactory progress", "unsatisfactory academic progress",
+         "academic progress", "risk level", "apc", "academic progress committee",
+         "学业预警", "学业进度", "学业警告", "学术预警", "劝退"),
+        "unsatisfactory-progress",
+        priority=60,
+    ),
+    FaqSeed(
         "what-is-wam",
         "What is WAM and how is it calculated?",
         "WAM is your weighted average mark: the average of your unit marks weighted by each "
