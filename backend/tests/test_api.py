@@ -459,7 +459,9 @@ def test_a_page_with_no_campus_stated_is_treated_as_australian():
         # Malaysian graduation ceremonies - and says so in the address.
         if "malaysia" in seed.url.split("monash.edu", 1)[-1].lower():
             allowed.add("malaysia")
-        # "all" is only ever claimed by a page that says so in its own text.
+        # "all" is for a page that covers every campus - it says so, speaks to
+        # Malaysia alongside, or is a University-wide rule. See
+        # crawler/official/scope.py.
         assert seed.applies_to in allowed, seed.slug
 
 
