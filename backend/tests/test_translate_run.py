@@ -90,3 +90,18 @@ def test_a_reviewed_label_is_not_overridden_by_a_stored_machine_string():
     engine = _translator([])
     engine.prime({label: "旧的机器译文"})
     assert engine.text(label) == reviewed
+
+
+def test_the_campus_in_a_title_is_never_the_models_to_translate():
+    from crawler.translate.run import _campus_title_ok, translate_title
+
+    calls: list[str] = []
+    engine = _translator(calls)
+    engine._translate = lambda text: calls.append(text) or "新国际学生常见问题"
+    title = "FAQs for new international students (Monash Malaysia)"
+    assert translate_title(engine, title, "zh") == "新国际学生常见问题（马来西亚校区）"
+    assert calls and not any("Malaysia" in call for call in calls)
+    # What the model once returned is recognised as needing another go.
+    assert not _campus_title_ok(title, "常见问题解答（新国际学生（Monash Malaysia（马来西亚校区））学生）", "zh")
+    assert _campus_title_ok(title, "新国际学生常见问题（马来西亚校区）", "zh")
+    assert _campus_title_ok("Results", "成绩", "zh")

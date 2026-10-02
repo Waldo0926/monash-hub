@@ -16,6 +16,12 @@ All notable changes to Monash Hub are documented here.
   calls itself: Monash Malaysia's student pass page titles itself "Before You
   Arrive", and "student pass" did not find it. The original title stays in the
   page's version history.
+- A guide title's "(Monash Malaysia)" is put back as 「（马来西亚校区）」 after the
+  rest is translated, never sent to the model: it returned 费用支付方式（Monash
+  Malaysia（马来西亚校区）） and, once, 常见问题解答（新国际学生（Monash Malaysia
+  （马来西亚校区））学生）. Stored titles translated that way are found and redone.
+- A Chinese query ranks by the Chinese title: 学生签证 puts 学生签证（Student Pass）
+  ahead of the PASS study-group page its English expansion also reaches.
 - Among the pages a query is about, one whose title contains the whole query
   comes first: "student pass" now leads with Student Pass (Monash Malaysia), not
   "After Your Studies", which only mentions it.

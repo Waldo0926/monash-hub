@@ -319,6 +319,13 @@ def test_a_page_titled_with_the_whole_query_comes_first(client, seeded):
     assert page_slugs(body)[0] == "malaysia-student-pass"
 
 
+def test_a_chinese_query_puts_the_page_with_it_in_its_chinese_title_first(client, seeded):
+    """学生签证（Student Pass） before "Peer Assisted Study Session (PASS)", which
+    the English expansion of 学生签证 to "student pass" also reaches."""
+    slugs = page_slugs(ask(client, "马莫学生签证", "zh"))
+    assert slugs[0] == "malaysia-student-pass"
+
+
 def test_a_campus_named_never_brings_the_other_campuss_pages(client, seeded):
     body = client.get("/api/v1/guides", params={"q": "马莫 缴费"}).json()
     assert body["results"]

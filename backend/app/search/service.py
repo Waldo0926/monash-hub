@@ -571,10 +571,16 @@ def _search_official(
         )
         # The whole query in the title: "student pass" is the Student Pass page
         # before "After Your Studies", which only talks about one.
-        title_phrase = (
-            case((func.lower(OfficialPage.title).contains(term.lower()), 1), else_=0)
-            if len(term) >= 3 else literal(0)
-        )
+        # A Chinese query is matched against the Chinese title: 学生签证 is in
+        # 学生签证（Student Pass）, and not in "Peer Assisted Study Session (PASS)",
+        # which an English expansion to "student pass" also reaches.
+        if translated_title is not None:
+            title_phrase = case((_contains(translated_title, term), 1), else_=0)
+        elif len(term) >= 3:
+            title_phrase = case(
+                (func.lower(OfficialPage.title).contains(term.lower()), 1), else_=0)
+        else:
+            title_phrase = literal(0)
         stmt = stmt.order_by(
             exact_translation.desc(),
             # A page the query is about beats a page that mentions it.
