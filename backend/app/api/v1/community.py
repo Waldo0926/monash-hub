@@ -203,7 +203,7 @@ def create_post(
         raise HTTPException(422, "Write a real title and a question with some detail.")
     unit_code = "".join((payload.unit_code or "").split()).upper() or None
     if unit_code and not UNIT_CODE.match(unit_code):
-        raise HTTPException(422, "That is not a unit code (for example FIT2004).")
+        raise HTTPException(422, "That is not a unit code (for example FIT2086).")
     post = CommunityPost(
         author_id=user.id,
         title=title,
