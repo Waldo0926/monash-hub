@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.knowledge.cleaner import content_hash
 from app.models.crawl import SourceChangeEvent
 from app.models.knowledge import OfficialPage, OfficialPageVersion, OfficialSource
 
@@ -49,6 +50,31 @@ def upsert_seed_page(
         page.status = "pending"
     db.flush()
     return page
+
+
+def list_behind_sign_in(db: Session, page: OfficialPage, *, title: str,
+                        description: str) -> None:
+    """List a page Monash keeps behind sign-in: our description, never its text.
+
+    The description is what search and translation see, so the page can be
+    found in either language; ``requires_sign_in`` is what tells the reader the
+    words are ours and the page itself needs a Monash login.
+    """
+    digest = content_hash(title, description)
+    page.requires_sign_in = True
+    page.title = title
+    page.summary = description
+    page.clean_text = description
+    page.blocks = []
+    page.headings = []
+    page.status = "ok"
+    page.fetch_error = None
+    now = datetime.now(UTC)
+    page.last_checked = now
+    if page.content_hash != digest:
+        page.content_hash = digest
+        page.last_changed = now
+    db.flush()
 
 
 def record_fetch(db: Session, page: OfficialPage, cleaned: dict) -> str:

@@ -141,6 +141,8 @@ def official_brief(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dict
         # the card as well as on the page: a student pass in Malaysia is not the
         # Australian subclass 500 visa, and OSHC does not exist there.
         "applies_to": page.applies_to,
+        # Listed, not copied: the summary is ours and the page needs a Monash login.
+        "requires_sign_in": bool(page.requires_sign_in),
         "tags": list(page.tags or []),
         "summary": tr.field("summary", page.summary),
         "translation": tr.meta(),

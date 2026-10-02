@@ -127,10 +127,15 @@ def test_a_covered_question_gets_its_curated_answer(client, seeded, query, slug)
     assert body["faq_slug"] == slug
 
 
-@pytest.mark.parametrize("query", ["accounting", "会计", "图书馆", "健身房"])
+@pytest.mark.parametrize("query", ["健身房", "gym membership", "篮球场", "滑板车"])
 def test_no_curated_or_official_answer_is_invented(client, seeded, query):
     """Nothing indexed is about these. The card says so rather than listing
-    pages that happen to use the word ("your Monash account")."""
+    pages that happen to use the word.
+
+    "accounting" used to be the example. With Monash Malaysia's IT account
+    pages indexed it no longer can be: Postgres' English stemmer files
+    *accounting* and *account* under one word, so to search they are the same
+    query."""
     body = ask(client, query)
     assert body["answer_type"] == "community_fallback"
 
@@ -274,11 +279,14 @@ def test_the_guides_group_lists_pages_about_the_query(client, seeded):
     assert guides["results"][0]["slug"] == "academic-integrity"
 
 
-@pytest.mark.parametrize("query", ["scholarship", "奖学金"])
-def test_scholarships_are_findable(client, seeded, query):
+@pytest.mark.parametrize(
+    "query,part", [("scholarship", "scholarship"), ("奖学金", "scholarship"),
+                   ("图书馆", "library"), ("library", "library")],
+)
+def test_newly_indexed_topics_are_findable(client, seeded, query, part):
     body = ask(client, query, "zh")
     assert body["answer_type"] == "official_search"
-    assert any("scholarship" in slug for slug in page_slugs(body))
+    assert any(part in slug for slug in page_slugs(body))
 
 
 @pytest.mark.parametrize("query", ["课程地图", "course map", "IT 2027 课程地图", "修读顺序"])

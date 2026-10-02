@@ -4,6 +4,41 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (official pages: campus from the page's own text; the tooling is in the repo)
+
+- A monash.edu page is now labelled from what it says (`crawler/official/scope.py`):
+  *All campuses* when it states it covers every campus, speaks to Malaysia
+  alongside, or is a University-wide rule (assessment, academic integrity and
+  misconduct, academic progress, complaints, the Handbook) with nothing
+  Australian in it; *Australia* when it carries something only Australia has
+  (HECS, CSP, OSHC, the subclass 500 visa, Home Affairs, Centrelink, TFN/USI) or
+  sends Malaysia students elsewhere. Defaulting every monash.edu page to
+  Australia told Malaysia students that rules binding them were not theirs.
+  Graduation (one process for every campus - Malaysia students can also
+  graduate at the Jakarta and Suzhou ceremonies) and results/WAM count as
+  University-wide; New Colombo Plan pages are Australian whatever host country
+  they list. Where the text misleads - Malaysia named only as a destination -
+  `coverage.SCOPE_OVERRIDES` records the decision and why. Result: 391 Malaysia,
+  52 all campuses, 258 Australia among the generated pages; in `seeds.py` the
+  Engineering, Business and Arts course maps (they include Malaysia's) become
+  all campuses, and Fees and Fee payment dates become Australia.
+- The discovery walk and the filters that built `seeds_coverage.py` are now
+  `crawler/official/discover.py` and `crawler/official/coverage.py` (rebuild:
+  see the module docstrings), with tests. A rebuild keeps every registered
+  page's slug. It adds Monash Malaysia's library, IT services and accommodation
+  pages and the schools' remaining current-student pages, and leaves out
+  staff-only pages.
+- Pages Monash keeps behind its Okta sign-in are now *listed, not copied*: a
+  seed with `sign_in=` is never fetched; it is stored with its title, a
+  description written here and its link, flagged `requires_sign_in`, and shown
+  with a "sign-in required" notice instead of page text. The first two: the
+  Faculty of Arts' course transfer page and Monash Malaysia's "Apply to
+  graduate" (both looked blocked by the WAF; both redirect to Okta).
+  中文：官方页面的校区改为按正文判定——写明适用所有校区、同时讲到马来西亚、或属于
+  全校统一规章的标「全部校区」，含澳洲专属内容（HECS、OSHC、500 签证等）的才标
+  「澳大利亚」；发现与筛选脚本正式入库；需要 Monash 登录的页面只列标题、简介和官方链接，
+  标注「需登录」，不转载正文。
+
 ### Added (official pages: the whole student sites, Monash Malaysia first)
 
 - 620 more official pages in `crawler/official/seeds_coverage.py`, found by

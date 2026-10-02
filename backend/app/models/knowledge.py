@@ -7,6 +7,7 @@ the product's whole trust story is that a reader can tell them apart.
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Computed,
     DateTime,
     ForeignKey,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
@@ -91,6 +93,10 @@ class OfficialPage(Base):
     #   ``malaysia``  - from monash.edu.my
     #   ``all``       - the page itself says it covers every campus
     applies_to: Mapped[str] = mapped_column(String(16), default="australia", index=True)
+    #: Monash shows this page only after sign-in. It is listed - title, a
+    #: description written here, the link - and its text is never fetched or
+    #: copied: what Monash keeps behind its login is not ours to republish.
+    requires_sign_in: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     # ``dynamic`` pages (dates, deadlines) are re-checked far more often than
     # ``stable`` policy text; see crawler/sync/refresh.py.

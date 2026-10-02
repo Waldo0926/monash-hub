@@ -309,6 +309,43 @@ def test_a_page_dropped_from_the_seed_list_is_retired(db, engine, monkeypatch):
     assert statuses[SEEDS[1].slug] != "retired"
 
 
+def test_a_page_behind_sign_in_is_listed_not_fetched(client, db, engine, monkeypatch):
+    """Monash keeps some pages behind Okta. They are found in search and say so,
+    with our own description - and the crawler never asks for them."""
+    from sqlalchemy.orm import sessionmaker
+
+    from crawler.official import run
+    from crawler.official.seeds import SEEDS_BY_SLUG
+
+    seed = SEEDS_BY_SLUG["malaysia-apply-to-graduate"]
+    monkeypatch.setattr(run, "SessionLocal", sessionmaker(bind=engine))
+    run.register((seed,))
+
+    class NoFetch:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def fetch(self, url):
+            raise AssertionError(f"fetched {url}")
+
+    monkeypatch.setattr(run, "OfficialFetcher", NoFetch)
+    run.crawl((seed,), min_interval=2.0, transport="auto")
+
+    detail = client.get(f"/api/v1/guides/{seed.slug}").json()
+    assert detail["requires_sign_in"] is True
+    assert detail["summary"] == seed.sign_in
+    assert detail["blocks"] == []
+    assert detail["applies_to"] == "malaysia"
+    listing = client.get("/api/v1/guides", params={"q": "apply to graduate"}).json()
+    assert seed.slug in {g["slug"] for g in listing["results"]}
+
+
 # --- closing an account --------------------------------------------------------
 
 def test_closing_an_account_removes_what_identifies_you(client, db, mailbox):

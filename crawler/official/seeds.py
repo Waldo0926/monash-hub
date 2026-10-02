@@ -30,6 +30,10 @@ class Seed:
     #: default is the site the URL is on, and all but a handful of these are on
     #: monash.edu. Only a page that says so itself is marked ``all``.
     applies_to: str = "australia"
+    #: For a page Monash shows only after sign-in: what it covers, in our words.
+    #: Such a page is never fetched. It is listed with this description and its
+    #: link, so a student can find it, and its text stays where Monash put it.
+    sign_in: str | None = None
 
 
 CATEGORIES = {
@@ -189,6 +193,27 @@ SEEDS: tuple[Seed, ...] = (
          ("special arrangements", "exam clash", "time zone", "考试冲突", "时差"),
          applies_to="all"),
 
+    # --- Behind Monash sign-in ---------------------------------------------
+    #
+    # Both redirect to Monash's Okta login; they are listed, not copied.
+    Seed("arts-course-transfer", "https://www.monash.edu/arts/current-students/course-transfer",
+         "Course transfer - Faculty of Arts", "enrolment",
+         ("course transfer", "transfer", "arts", "转专业", "转课程"),
+         tier="stable",
+         sign_in="The Faculty of Arts' guidance for current students who want to transfer "
+                 "into or out of an Arts course. Monash shows it only after you sign in with "
+                 "your Monash account. The University-wide rules - who can apply, how many "
+                 "preferences, and when - are on the public Course or campus transfer page."),
+    Seed("malaysia-apply-to-graduate",
+         "https://www.monash.edu.my/student-services/student-admin/graduations/apply-to-graduate",
+         "Apply to graduate (Monash Malaysia)", "graduation",
+         ("malaysia", "apply to graduate", "graduation", "申请毕业", "毕业", "马来西亚"),
+         tier="stable", applies_to="malaysia",
+         sign_in="Monash Malaysia's step-by-step page on applying to graduate. Monash shows "
+                 "it only after you sign in with your Monash account. Most of the same "
+                 "questions - when to apply, ceremonies, graduating in absentia - are "
+                 "answered on the public FAQs for graduations (Monash Malaysia)."),
+
     # --- Course maps ------------------------------------------------------
     #
     # Each faculty publishes, per commencement year, the order to take a
@@ -205,17 +230,20 @@ SEEDS: tuple[Seed, ...] = (
          "/course-information/course-maps",
          "Course maps - Engineering", "enrolment",
          ("course map", "course maps", "course progression", "engineering",
-          "课程地图", "修读顺序")),
+          "课程地图", "修读顺序"),
+         applies_to="all"),
     Seed("business-course-maps",
          "https://www.monash.edu/business/current-students/course-advice-and-planning"
          "/helpful-links/course-maps",
          "Course maps - Business and Economics", "enrolment",
          ("course map", "course maps", "course progression", "commerce", "business",
-          "课程地图", "修读顺序")),
+          "课程地图", "修读顺序"),
+         applies_to="all"),
     Seed("arts-course-maps",
          "https://www.monash.edu/arts/current-students/course-and-unit-information/course-maps",
          "Course maps - Arts", "enrolment",
-         ("course map", "course maps", "course progression", "arts", "课程地图", "修读顺序")),
+         ("course map", "course maps", "course progression", "arts", "课程地图", "修读顺序"),
+         applies_to="all"),
     Seed("education-course-maps", "https://www.monash.edu/education/students/courses/maps",
          "Course maps - Education", "enrolment",
          ("course map", "course maps", "course progression", "education", "课程地图", "修读顺序")),
@@ -323,10 +351,11 @@ SEEDS: tuple[Seed, ...] = (
          applies_to="all"),
     Seed("fees", "https://www.monash.edu/students/admin/fees",
          "Fees", "fees-dates", ("fees", "tuition", "学费"),
-         applies_to="all"),
+         # Australian fees and dates; Monash Malaysia publishes its own.
+         applies_to="australia"),
     Seed("fee-payment-dates", "https://www.monash.edu/students/admin/fees/payment/dates",
          "Fee payment dates", "fees-dates", ("fees", "payment", "缴费"), tier="dynamic",
-         applies_to="all"),
+         applies_to="australia"),
     Seed("graduations", "https://www.monash.edu/students/admin/graduations",
          "Graduations", "fees-dates", ("graduation", "毕业"),
          applies_to="all"),

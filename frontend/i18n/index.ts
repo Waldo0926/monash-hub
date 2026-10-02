@@ -496,6 +496,9 @@ const en: Messages = {
   'guides.pageTextNote':
     'Extracted from the official page for searching. Formatting, images and forms are not reproduced — open the original for anything you need to act on.',
   'guides.viewOfficial': 'View the official Monash page ↗',
+  'guides.signIn.label': 'Sign-in required',
+  'guides.signIn.title': 'Behind Monash sign-in',
+  'guides.signIn.body': 'Monash shows this page only after you sign in with your Monash account. Monash Hub lists it so you can find it, but does not copy its text - the description below is ours, not Monash\'s.',
   'guides.relatedQuestions': 'Related questions',
   'guides.communityEmpty': 'Nothing yet. Ask if the official page did not cover it.',
 
@@ -1210,6 +1213,9 @@ const zh: Messages = {
   'guides.pageTextNote':
     '为了便于搜索而从官方页面提取的正文。排版、图片和表单没有复制——需要实际办理时请打开原页面。',
   'guides.viewOfficial': '打开 Monash 官方页面 ↗',
+  'guides.signIn.label': '需登录',
+  'guides.signIn.title': '此页需要 Monash 账号登录',
+  'guides.signIn.body': 'Monash 只对登录用户显示这个页面。Monash Hub 只列出它方便你找到，不转载页面内容——下面的简介是我们写的，不是 Monash 的原文。',
   'guides.relatedQuestions': '相关问题',
   'guides.communityEmpty': '还没有内容。官方页面没讲清楚的，可以来社区问。',
 
@@ -1921,6 +1927,9 @@ const ja: Messages = {
   'guides.pageTextNote':
     '検索のために公式ページから抽出した本文です。書式・画像・フォームは再現していません。実際の手続きは元のページで行ってください。',
   'guides.viewOfficial': 'Monash 公式ページを開く ↗',
+  'guides.signIn.label': 'ログインが必要',
+  'guides.signIn.title': 'Monash へのログインが必要なページ',
+  'guides.signIn.body': 'このページは Monash アカウントでログインした後にのみ表示されます。Monash Hub は見つけやすいように掲載していますが、本文は転載していません。以下の説明は Monash Hub によるものです。',
   'guides.relatedQuestions': '関連する質問',
   'guides.communityEmpty': 'まだありません。公式ページで分からなければ聞いてみてください。',
 
@@ -2637,6 +2646,9 @@ const ko: Messages = {
   'guides.pageTextNote':
     '검색을 위해 공식 페이지에서 추출한 본문입니다. 서식, 이미지, 양식은 재현하지 않았으므로 실제 처리는 원문에서 진행하세요.',
   'guides.viewOfficial': 'Monash 공식 페이지 열기 ↗',
+  'guides.signIn.label': '로그인 필요',
+  'guides.signIn.title': 'Monash 로그인이 필요한 페이지',
+  'guides.signIn.body': '이 페이지는 Monash 계정으로 로그인해야만 볼 수 있습니다. Monash Hub는 찾기 쉽도록 목록에만 올리고 본문은 옮기지 않습니다. 아래 설명은 Monash Hub가 작성한 것입니다.',
   'guides.relatedQuestions': '관련 질문',
   'guides.communityEmpty': '아직 없습니다. 공식 페이지로 해결되지 않으면 질문해 보세요.',
 
