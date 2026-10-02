@@ -18,6 +18,7 @@ from app.api.serializers import (
 )
 from app.core.config import get_settings
 from app.core.db import get_db
+from app.handbook.years import resolve_year
 from app.knowledge import translations
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
@@ -254,7 +255,9 @@ def get_course(
     db: Session = Depends(get_db),
 ) -> dict:
     """One degree and the whole structure under it."""
-    academic_year = _year(year)
+    academic_year, not_in_year = resolve_year(
+        db, Course.course_code, Course.academic_year, code, year
+    )
     course = _load_course(db, code, academic_year)
     tr = translations.load(db, locale, COURSE, course.course_code,
                            source_hash=course.content_hash)
@@ -262,6 +265,7 @@ def get_course(
     units = _unit_facts(db, _codes_in(containers, "unit"), academic_year, campus, locale)
 
     payload = course_detail(course, tr)
+    payload["not_in_year"] = not_in_year
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = units
@@ -321,7 +325,9 @@ def get_area_of_study(
     db: Session = Depends(get_db),
 ) -> dict:
     """One major, minor or specialisation and the units in it."""
-    academic_year = _year(year)
+    academic_year, not_in_year = resolve_year(
+        db, AreaOfStudy.aos_code, AreaOfStudy.academic_year, code, year
+    )
     aos = db.scalar(
         select(AreaOfStudy).where(
             AreaOfStudy.aos_code == code.upper(), AreaOfStudy.academic_year == academic_year
@@ -333,6 +339,7 @@ def get_area_of_study(
     tr = translations.load(db, locale, AREA_OF_STUDY, aos.aos_code, source_hash=aos.content_hash)
     containers = _tree(db, aos_id=aos.id, tr=tr)
     payload = area_of_study_detail(aos, tr)
+    payload["not_in_year"] = not_in_year
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = _unit_facts(

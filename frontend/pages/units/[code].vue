@@ -66,6 +66,7 @@ useHead(() => ({
     <ErrorState v-if="error" :error="error" />
 
     <article v-else-if="unit" class="unit">
+      <YearNotice v-if="unit.not_in_year" :code="unit.unit_code" :year="unit.academic_year" :missing="unit.not_in_year" />
       <p v-if="unit.is_active === false" class="withdrawn small" role="status">
         {{ $t('handbook.withdrawn', { code: unit.unit_code, year: unit.academic_year }) }}
       </p>

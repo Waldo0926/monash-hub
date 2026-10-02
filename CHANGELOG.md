@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (a unit dropped from next year's Handbook no longer reads "not found")
+
+- With the site on the 2027 Handbook, every unit Monash renumbered or withdrew
+  for 2027 - FIT2004 and FIT1008 among them, still in 2026 and still being
+  taught - answered 404, and the prerequisite graph, which opens on FIT2004,
+  showed "加载失败 / not found" by default. Without `?year=`, a unit, degree or
+  area of study missing from the current Handbook is now read from the latest
+  Handbook that lists it (`backend/app/handbook/years.py`), and the response
+  carries `not_in_year`. The unit, degree, area-of-study and graph pages show
+  a notice in all four languages naming both years, so nobody plans 2027
+  around a 2026 page without knowing. An explicit `?year=` is still answered
+  exactly, and a code in no Handbook is still a 404.
+
 ### Changed (official pages: campus from the page's own text; the tooling is in the repo)
 
 - A monash.edu page is now labelled from what it says (`crawler/official/scope.py`):

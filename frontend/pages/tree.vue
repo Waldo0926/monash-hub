@@ -277,6 +277,7 @@ function hue(prefix: string): number {
             <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
             <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
           </div>
+          <YearNotice v-if="data?.not_in_year" :code="data.seed" :year="data.academic_year" :missing="data.not_in_year" />
           <p v-if="data?.truncated" class="truncated">{{ $t('tree.truncated') }}</p>
 
           <div
