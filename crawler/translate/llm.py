@@ -104,6 +104,20 @@ def acceptable_reply(source: str, reply: str) -> bool:
     return len(reply) <= 3 * len(source) + 40
 
 
+class ContentRefused(RuntimeError):
+    """The provider would not translate this text. A failure of the string only."""
+
+
+def _content_filtered(error: urllib.error.HTTPError) -> bool:
+    """Zhipu answers a refused prompt with 400, code 1301 and a ``contentFilter``
+    list; other OpenAI-compatible providers say ``content_filter``."""
+    try:
+        body = error.read().decode("utf-8", "replace")
+    except Exception:
+        return False
+    return any(marker in body for marker in ('"1301"', "contentFilter", "content_filter"))
+
+
 class LLMModel:
     """English in, Chinese out, through ``/chat/completions``."""
 
@@ -144,6 +158,14 @@ class LLMModel:
             except urllib.error.HTTPError as exc:
                 if exc.code in (401, 403):
                     raise Blocked(f"the key was refused ({exc.code}): {exc.reason}") from exc
+                if exc.code == 400 and _content_filtered(exc):
+                    # The provider's content filter refused this sentence - a
+                    # sexual-health page, a passage on politics. Asking again
+                    # gets the same answer, and it says nothing about the
+                    # service: the string stays in English and the run goes on.
+                    # Counting it as an outage stopped a whole pass once, with
+                    # fifteen pages left untranslated behind one health page.
+                    raise ContentRefused("the provider's content filter refused it") from exc
                 log.warning("llm translate attempt %d failed: %s", attempt + 1, exc)
                 self._sleep(delay)
                 delay *= 2
