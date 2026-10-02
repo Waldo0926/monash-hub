@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (deploys failed on a moved official page)
+
+- Monash moved "Travel health, safety and security" from
+  `study-abroad/overseas/...` to `study-abroad/outbound/...`, and the coverage
+  rebuild (#127) kept its slug. Registering seeds matched pages by URL only, so
+  it inserted a second row with the same slug and hit the unique constraint;
+  every deploy since #128 stopped there, leaving production on an older build.
+  A seed that matches no URL but an existing slug now moves that row to the new
+  address (keeping its translations) and is fetched from there on the next
+  refresh. Checked against production: it is the only seed whose address moved.
+
 ### Fixed (a unit dropped from next year's Handbook no longer reads "not found")
 
 - With the site on the 2027 Handbook, every unit Monash renumbered or withdrew

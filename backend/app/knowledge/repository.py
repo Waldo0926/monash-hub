@@ -39,6 +39,17 @@ def upsert_seed_page(
     """
     page = db.scalar(select(OfficialPage).where(OfficialPage.canonical_url == url))
     if page is None:
+        # Same slug, new address: Monash moved the page (study-abroad/overseas/...
+        # became study-abroad/outbound/...) and the coverage rebuild kept its slug.
+        # Inserting a second row broke the unique slug and failed every deploy, so
+        # the existing row - and its translations - follows the page instead, and
+        # is fetched from the new address on the next refresh.
+        page = db.scalar(select(OfficialPage).where(OfficialPage.slug == slug))
+        if page is not None:
+            page.canonical_url = url
+            page.source_id = source.id
+            page.last_checked = None
+    if page is None:
         page = OfficialPage(canonical_url=url, slug=slug, title=title, source_id=source.id)
         db.add(page)
     page.category = category
