@@ -248,6 +248,23 @@ class Translator:
         self.scope = scope
         self._cache: dict[str, str] = self._caches.setdefault(scope, {})
 
+    def prime(self, known: dict[str, str]) -> None:
+        """Seed the current scope with translations already stored for a target.
+
+        The cache lives for one run, so a pass that had to look at a unit again -
+        because another Handbook year added English to it - used to send every one
+        of its sentences back to the model. Stored strings are reused instead and
+        only sentences nobody has translated yet reach the engine. A label with a
+        reviewed rendering is left out, so a fix to structure_zh still wins.
+        """
+        for source, target in known.items():
+            key = (source or "").strip()
+            if not key or not target or key in self._cache:
+                continue
+            if self.locale == "zh" and (STRUCTURE_ZH.get(key) or structure.compose(key, "zh")):
+                continue
+            self._cache[key] = target
+
     @property
     def cached(self) -> int:
         return sum(len(cache) for cache in self._caches.values())
