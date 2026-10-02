@@ -37,6 +37,11 @@ ZH_TERMS: dict[str, tuple[str, ...]] = {
     "兼职": ("work", "part-time"),
     "工作时长": ("work hours", "working hours"),
     "留学生": ("international student",),
+    # What students call the two campuses. Inside a longer question these are
+    # taken out and used to narrow the search (service.campus_in_query); alone,
+    # they are a search for that campus.
+    "马莫": ("monash malaysia", "malaysia"),
+    "澳莫": ("monash australia", "australia"),
     "国际学生": ("international student",),
     "医保": ("oshc", "health cover", "health insurance"),
     "保险": ("insurance", "health cover"),
@@ -52,6 +57,9 @@ ZH_TERMS: dict[str, tuple[str, ...]] = {
     "转专业": ("change course", "course transfer", "change enrolment"),
     "换专业": ("change course", "course transfer", "change enrolment"),
     "转课程": ("change course",),
+    "转校区": ("campus transfer", "transfer campus", "change campus", "course or campus transfer"),
+    "换校区": ("campus transfer", "transfer campus", "change campus"),
+    "转校": ("campus transfer", "transfer to another", "course transfer"),
     "重新注册": ("re-enrol",),
     "学分转换": ("credit transfer", "credit", "advanced standing"),
     "学分减免": ("credit", "exemption", "advanced standing"),
@@ -103,8 +111,9 @@ ZH_TERMS: dict[str, tuple[str, ...]] = {
     "开除": ("exclusion", "excluded"),
     # --- fees and dates -----------------------------------------------------
     "学费": ("fees", "tuition"),
-    "缴费": ("fee payment", "pay fees"),
-    "交学费": ("fee payment", "pay fees"),
+    "缴费": ("fee payment", "pay fees", "payment methods"),
+    "交学费": ("fee payment", "pay fees", "payment methods"),
+    "交费": ("fee payment", "pay fees", "payment methods"),
     "奖学金": ("scholarship",),
     "重要日期": ("important dates", "key dates"),
     "开学": ("semester start", "orientation"),

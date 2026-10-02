@@ -289,6 +289,30 @@ def test_newly_indexed_topics_are_findable(client, seeded, query, part):
     assert any(part in slug for slug in page_slugs(body))
 
 
+@pytest.mark.parametrize(
+    "query,slug",
+    [
+        # A campus named in the question narrows it to that campus.
+        ("马莫怎么交学费", "malaysia-application-form-fee-payment-methods"),
+        ("how do I pay fees at Monash Malaysia", "malaysia-application-form-fee-payment-methods"),
+        # Some things only one campus has: a student pass is Malaysia's.
+        ("学生准证续签", "malaysia-student-pass"),
+        # Both campuses named: they come out of the query and narrow nothing.
+        ("转校区 马来西亚 澳洲", "study-options-internal-transfer"),
+    ],
+)
+def test_a_campus_in_the_question_finds_that_campuss_page(client, seeded, query, slug):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert slug in page_slugs(body)[:3]
+
+
+def test_a_campus_named_never_brings_the_other_campuss_pages(client, seeded):
+    body = client.get("/api/v1/guides", params={"q": "马莫 缴费"}).json()
+    assert body["results"]
+    assert {g["applies_to"] for g in body["results"]} <= {"malaysia", "all"}
+
+
 @pytest.mark.parametrize("query", ["课程地图", "course map", "IT 2027 课程地图", "修读顺序"])
 def test_course_maps_are_findable(client, seeded, query):
     body = ask(client, query, "zh")

@@ -6,6 +6,7 @@ student typing ``FIT2102`` wants that unit first and nothing else.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -429,12 +430,72 @@ def search_official(
     pages because each of them says "your Monash account", and the card listed
     them as the official answer to a question about studying accounting.
     """
-    kwargs = {"limit": limit, "offset": offset, "category": category,
-              "strong_only": strong_only, "campus": campus}
+    if campus is None:
+        # The campus is who is asking, not what about: "马莫怎么交学费" is a
+        # question about paying fees, from Malaysia. Left in, 马来西亚 found
+        # Malaysia's calendar pages for a question about campus transfer.
+        named, query = campus_in_query(query or "")
+        if named:
+            found = _search_with_fallback(
+                db, query, limit=limit, offset=offset, category=category,
+                strong_only=strong_only, campus=named)
+            if found[1]:
+                return found
+    return _search_with_fallback(db, query, limit=limit, offset=offset, category=category,
+                                 strong_only=strong_only, campus=campus)
+
+
+def _search_with_fallback(db: Session, query: str, **kwargs) -> tuple[list[OfficialPage], int]:
     found = _search_official(db, query, **kwargs)
     if found[1] == 0 and _is_multi_concept((query or "").strip()):
         return _search_official(db, query, strict=False, **kwargs)
     return found
+
+
+# How students name a campus. Monash Malaysia is 马莫 to its students, after the
+# way 澳莫 is Monash Australia; Sunway is the town it is in.
+_CAMPUS_WORDS = {
+    "malaysia": re.compile(
+        r"马莫|大马|马来西亚(?:校区)?|马校|吉隆坡|双威|monash\s+malaysia|\bmalaysia(?:n)?\b|"
+        r"\bmum\b|\bsunway\b", re.IGNORECASE),
+    "australia": re.compile(
+        r"澳莫|澳洲|澳大利亚|墨尔本|克莱顿|考菲尔德|\bclayton\b|\bcaulfield\b|\bmelbourne\b|"
+        r"\baustralia(?:n)?\b", re.IGNORECASE),
+}
+
+
+# Things only one campus has. They point the search at that campus and stay in
+# the query - they are what the question is about. A Malaysian student pass is
+# not an Australian visa, and 学生准证续签 was answered with the visa page.
+_CAMPUS_HINTS = {
+    "malaysia": re.compile(r"学生准证|student pass|\bemgs\b|jompay|令吉|马币|\bringgit\b",
+                           re.IGNORECASE),
+    "australia": re.compile(r"\boshc\b|hecs|fee-help|\bcsp\b|centrelink|subclass 500",
+                            re.IGNORECASE),
+}
+
+
+def campus_in_query(query: str) -> tuple[str | None, str]:
+    """``(campus, rest)``: the campus the question names, and the question without it.
+
+    One campus named narrows the search to that campus's pages and the ones for
+    every campus. Both named - "转校区 马来西亚 澳洲" - narrow nothing, but the
+    names still come out of the query. A query that is only a campus name is
+    left alone: "马莫" by itself is a search for Monash Malaysia.
+    """
+    term = (query or "").strip()
+    named = [campus for campus, words in _CAMPUS_WORDS.items() if words.search(term)]
+    hinted = [campus for campus, words in _CAMPUS_HINTS.items() if words.search(term)]
+    if not named:
+        return (hinted[0] if len(hinted) == 1 else None), term
+    rest = term
+    for words in _CAMPUS_WORDS.values():
+        rest = words.sub(" ", rest)
+    rest = re.sub(r"\s+", " ", rest).strip(" ,，、?？的")
+    if len(rest) < 2:
+        return None, term
+    named = list(dict.fromkeys(named + hinted))
+    return (named[0] if len(named) == 1 else None), rest
 
 
 #: The campuses a reader can narrow official pages to (OfficialPage.applies_to).

@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (search: a campus in the question)
+
+- Search now reads a campus in the question. 马莫, 大马, 马来西亚, 吉隆坡, Monash
+  Malaysia (and 澳莫, 澳洲, Clayton, Melbourne) are taken out of the query and
+  narrow it to that campus's pages and the all-campus ones, falling back to every
+  page only when that finds nothing; both campuses named narrow nothing. Words
+  only one campus has - 学生准证, Student Pass, EMGS, JomPAY / OSHC, HECS, CSP -
+  point the search at it without being removed. Before: 马莫怎么交学费 listed
+  Australian fee pages, 学生准证续签 led with the Australian visa page, and
+  转校区 马来西亚 澳洲 found Malaysia's calendars. Synonyms for 转校区, 换校区,
+  转校, 交费 and payment methods; 马莫 and 澳莫 alone search for the campus.
+  中文：搜索能识别「马莫」「澳莫」等校区说法，优先显示对应校区和全校通用的页面。
+
 ### Fixed (translation: a content-filter refusal no longer stops the pass)
 
 - Zhipu answers a sentence its content filter refuses with HTTP 400, code 1301.
