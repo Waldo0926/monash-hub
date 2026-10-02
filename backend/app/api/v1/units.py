@@ -10,6 +10,7 @@ from app.api.serializers import tree_node, unit_brief, unit_detail
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook import tree
+from app.handbook.years import resolve_year
 from app.knowledge import translations
 from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
 from app.models.translation import UNIT
@@ -103,6 +104,11 @@ def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict
     }
 
 
+def _resolve(db: Session, code: str, year: int | None) -> tuple[int, int | None]:
+    """See ``app.handbook.years``: an earlier Handbook when the current one dropped the unit."""
+    return resolve_year(db, Unit.unit_code, Unit.academic_year, code, year)
+
+
 def _load(db: Session, code: str, year: int) -> Unit:
     unit = db.scalar(
         select(Unit)
@@ -136,18 +142,21 @@ def get_unit(
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
-    unit = _load(db, code, _year(year))
+    academic_year, not_in_year = _resolve(db, code, year)
+    unit = _load(db, code, academic_year)
     tr = translations.load(db, locale, UNIT, unit.unit_code, source_hash=unit.content_hash)
-    return unit_detail(unit, tr)
+    return {**unit_detail(unit, tr), "not_in_year": not_in_year}
 
 
 @router.get("/{code}/assessment")
 def get_assessment(code: str, year: int | None = None, db: Session = Depends(get_db)) -> dict:
-    unit = _load(db, code, _year(year))
+    academic_year, not_in_year = _resolve(db, code, year)
+    unit = _load(db, code, academic_year)
     detail = unit_detail(unit)
     return {
         "unit_code": unit.unit_code,
         "academic_year": unit.academic_year,
+        "not_in_year": not_in_year,
         "has_exam": unit.has_exam,
         "assessment_summary": unit.assessment_summary,
         "assessments": detail["assessments"],
@@ -158,10 +167,12 @@ def get_assessment(code: str, year: int | None = None, db: Session = Depends(get
 
 @router.get("/{code}/requisites")
 def get_requisites(code: str, year: int | None = None, db: Session = Depends(get_db)) -> dict:
-    unit = _load(db, code, _year(year))
+    academic_year, not_in_year = _resolve(db, code, year)
+    unit = _load(db, code, academic_year)
     return {
         "unit_code": unit.unit_code,
         "academic_year": unit.academic_year,
+        "not_in_year": not_in_year,
         "requisites": unit_detail(unit)["requisites"],
         "source_url": unit.source_url,
     }
@@ -169,10 +180,12 @@ def get_requisites(code: str, year: int | None = None, db: Session = Depends(get
 
 @router.get("/{code}/offerings")
 def get_offerings(code: str, year: int | None = None, db: Session = Depends(get_db)) -> dict:
-    unit = _load(db, code, _year(year))
+    academic_year, not_in_year = _resolve(db, code, year)
+    unit = _load(db, code, academic_year)
     return {
         "unit_code": unit.unit_code,
         "academic_year": unit.academic_year,
+        "not_in_year": not_in_year,
         "offerings": unit_brief(unit)["offerings"],
         "source_url": unit.source_url,
     }
@@ -194,7 +207,7 @@ def get_tree(
     is the single most important thing to show a Malaysia student, and hiding
     it would draw a path that looks walkable. It marks each node instead.
     """
-    academic_year = _year(year)
+    academic_year, not_in_year = _resolve(db, code, year)
     seed = _load(db, code, academic_year)
     found = tree.walk(db, seed.unit_code, academic_year, direction, depth)
 
@@ -206,6 +219,8 @@ def get_tree(
     return {
         "seed": seed.unit_code,
         "academic_year": academic_year,
+        # The whole graph is read from the seed's year, so it stays one Handbook.
+        "not_in_year": not_in_year,
         "direction": direction,
         "depth": depth,
         "campus": campus,
