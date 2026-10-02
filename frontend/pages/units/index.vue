@@ -9,6 +9,9 @@ const { $t } = useNuxtApp()
 
 const query = ref((route.query.q as string) || '')
 const filters = reactive({
+  // Empty is the current Handbook. A year is kept in the URL so a link to the
+  // 2025 list stays the 2025 list, and the unit cards carry it on.
+  year: (route.query.year as string) || '',
   campus: (route.query.campus as string) || '',
   teaching_period: (route.query.teaching_period as string) || '',
   level: (route.query.level as string) || '',
@@ -17,7 +20,18 @@ const filters = reactive({
 })
 const drawerOpen = ref(false)
 
-const { data: facets } = await useApiFetch<any>('/v1/units/filters')
+const { data: facets } = await useApiFetch<any>(
+  () => `/v1/units/filters${filters.year ? `?year=${filters.year}` : ''}`,
+  { watch: [() => filters.year] }
+)
+
+const shownYear = computed({
+  get: () => Number(filters.year) || facets.value?.academic_year || null,
+  set: (y: number) => {
+    // The newest year is the default, so it leaves the URL clean.
+    filters.year = y === Math.max(...(facets.value?.years || [y])) ? '' : String(y)
+  }
+})
 
 const requestPath = computed(() => {
   const params = new URLSearchParams()
@@ -70,6 +84,8 @@ useSeoMeta({
     <div class="layout">
       <aside class="filters" :class="{ open: drawerOpen }">
         <h2 class="small">{{ $t('units.filters') }}</h2>
+
+        <YearPicker v-model="shownYear" :years="facets?.years || []" class="filter" />
 
         <label class="filter">
           <span class="tiny muted">{{ $t('units.campus') }}</span>

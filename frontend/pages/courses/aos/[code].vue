@@ -14,15 +14,25 @@ const { $t } = useNuxtApp()
 
 const code = computed(() => String(route.params.code).toUpperCase())
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
+const { year, withYear, setYear } = useHandbookYear()
 
 const { data: aos, error } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses/aos/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`,
-  { watch: [campus] }
+  () => withYear(`/v1/courses/aos/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`),
+  { watch: [campus, year] }
 )
 
 watch(campus, () => {
-  router.replace({ query: campus.value ? { campus: campus.value } : {} })
+  // Kept apart from the year: changing campus must not drop `?year=`.
+  const query = { ...route.query }
+  if (campus.value) query.campus = campus.value
+  else delete query.campus
+  router.replace({ query })
 })
+
+/** The newest year that lists it is the default, so choosing it clears `?year=`. */
+function pickYear(y: number) {
+  setYear(y === aos.value?.available_years?.[0] ? null : y)
+}
 
 const campusName = useCampusName()
 const campusLabel = computed(() => campusName(campus.value))
@@ -59,6 +69,12 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
         </label>
+        <YearPicker
+          v-if="(aos.available_years || []).length > 1"
+          :model-value="aos.academic_year"
+          :years="aos.available_years"
+          @update:model-value="pickYear"
+        />
         <p v-if="campus && elsewhereTotal" class="warn">
           {{ $t('courses.notHere', { n: elsewhereTotal, campus: campusLabel }) }}
         </p>

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 defineProps<{ unit: any }>()
 const { $t } = useNuxtApp()
+const { withYear } = useHandbookYear()
 </script>
 
 <template>
-  <NuxtLink :to="`/units/${unit.unit_code}`" class="unit card">
+  <NuxtLink :to="withYear(`/units/${unit.unit_code}`)" class="unit card">
     <div class="top">
       <span class="code mono">{{ unit.unit_code }}</span>
       <SourceBadge kind="handbook" />

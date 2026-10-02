@@ -18,7 +18,7 @@ from app.api.serializers import (
 )
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.handbook.years import resolve_year
+from app.handbook.years import available_years, loaded_years, resolve_year
 from app.knowledge import translations
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
@@ -114,6 +114,8 @@ def course_filters(year: int | None = None, db: Session = Depends(get_db)) -> di
     types = distinct(Course.course_type)
     faculties = distinct(Course.faculty)
     return {
+        "academic_year": academic_year,
+        "years": loaded_years(db, Course.academic_year),
         "campuses": sorted(c for c in campuses if c),
         "course_types": sorted(t for t in types if t),
         "faculties": sorted(f for f in faculties if f),
@@ -266,6 +268,7 @@ def get_course(
 
     payload = course_detail(course, tr)
     payload["not_in_year"] = not_in_year
+    payload["available_years"] = available_years(db, Course.course_code, Course.academic_year, code)
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = units
@@ -340,6 +343,9 @@ def get_area_of_study(
     containers = _tree(db, aos_id=aos.id, tr=tr)
     payload = area_of_study_detail(aos, tr)
     payload["not_in_year"] = not_in_year
+    payload["available_years"] = available_years(
+        db, AreaOfStudy.aos_code, AreaOfStudy.academic_year, code
+    )
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = _unit_facts(

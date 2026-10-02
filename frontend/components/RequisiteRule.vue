@@ -16,6 +16,7 @@ const props = defineProps<{
   depth?: number
 }>()
 const { $t, $term } = useNuxtApp() as any
+const { withYear } = useHandbookYear()
 
 const depth = computed(() => props.depth ?? 0)
 
@@ -38,7 +39,7 @@ const joiner = computed(() => {
     <template v-for="(operand, index) in operands" :key="index">
       <p v-if="index > 0 && rule.connector !== 'TEXT'" class="joiner"><span>{{ joiner }}</span></p>
 
-      <NuxtLink v-if="operand.kind === 'unit'" class="unit" :to="`/units/${operand.item.code}`">
+      <NuxtLink v-if="operand.kind === 'unit'" class="unit" :to="withYear(`/units/${operand.item.code}`)">
         <span class="mono">{{ operand.item.code }}</span>
         <span class="muted">{{ operand.item.name }}</span>
         <span v-if="operand.item.credit_points" class="tiny muted">

@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (choose the Handbook year, like handbook.monash.edu)
+
+- Students still studying commenced in 2025 or 2026, and a unit's rules,
+  offerings and assessment are the ones of the year they took it. The unit
+  and degree lists, unit, degree and area-of-study pages, and the prerequisite
+  graph now have a year picker (2025, 2026 and 2027 once 2025 is loaded). The
+  default stays the newest Handbook. A detail page only offers the years that
+  list the code, so the picker never leads to "not found".
+- The chosen year travels in `?year=` and every unit, degree and
+  area-of-study link on the page keeps it, so following a 2025 unit's
+  prerequisites stays in 2025. Changing campus no longer drops it.
+- API: unit, degree, area-of-study and graph responses carry
+  `available_years`; `/courses/filters` returns `years` and `academic_year`.
 ### Fixed (loading another Handbook year now gets its English translated)
 
 - A unit's translation was stamped with its newest year's English only, so a

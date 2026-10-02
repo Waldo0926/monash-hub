@@ -2,10 +2,11 @@
 defineProps<{ course: any }>()
 
 const { $t } = useNuxtApp()
+const { withYear } = useHandbookYear()
 </script>
 
 <template>
-  <NuxtLink class="course-card" :to="`/courses/${course.course_code}`">
+  <NuxtLink class="course-card" :to="withYear(`/courses/${course.course_code}`)">
     <span class="code">{{ course.course_code }}</span>
     <span class="name">{{ course.title }}</span>
     <span class="facts">

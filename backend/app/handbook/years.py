@@ -11,6 +11,10 @@ So an address without ``?year=`` falls back to the latest Handbook that does
 list the code, and says so: the caller gets the year it was missing from, and
 the page tells the reader the content is from an earlier Handbook. An explicit
 ``?year=`` is a precise question and still gets a plain 404.
+
+The pages also offer a year picker, like the Handbook's own (2025, 2026 and
+2027 are loaded): ``available_years`` is what a detail page offers, and
+``loaded_years`` what a list page offers.
 """
 from __future__ import annotations
 
@@ -18,6 +22,23 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute, Session
 
 from app.core.config import get_settings
+
+
+def available_years(
+    db: Session, code_column: InstrumentedAttribute, year_column: InstrumentedAttribute, code: str
+) -> list[int]:
+    """Every loaded Handbook year that lists the code, newest first - the page's year picker."""
+    return list(
+        db.scalars(
+            select(year_column).where(code_column == code.upper()).distinct()
+            .order_by(year_column.desc())
+        )
+    )
+
+
+def loaded_years(db: Session, year_column: InstrumentedAttribute) -> list[int]:
+    """Every Handbook year in the table, newest first - a list page's year picker."""
+    return list(db.scalars(select(year_column).distinct().order_by(year_column.desc())))
 
 
 def resolve_year(

@@ -30,10 +30,14 @@ const direction = ref(String(route.query.direction || 'upstream'))
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
 const depth = ref(Number(route.query.depth || 3))
 const draft = ref(code.value)
+// Null is the newest Handbook that lists the unit; a year reads that Handbook.
+// A ref like the other controls, written to the URL by the same watcher below.
+const year = ref<number | null>(Number(route.query.year) || null)
 
 const query = computed(() => {
   const params = new URLSearchParams({ direction: direction.value, depth: String(depth.value) })
   if (campus.value) params.set('campus', campus.value)
+  if (year.value) params.set('year', String(year.value))
   return params.toString()
 })
 
@@ -42,23 +46,41 @@ const query = computed(() => {
 // rail changes the address bar and nothing else. See useApiFetch.
 const { data, pending, error } = await useLocalisedApiFetch<any>(
   () => `/v1/units/${code.value}/tree?${query.value}`,
-  { watch: [code, direction, campus, depth] }
+  { watch: [code, direction, campus, depth, year] }
 )
 
-watch([code, direction, campus, depth], () => {
+watch([code, direction, campus, depth, year], () => {
   router.replace({
     query: {
       unit: code.value,
       direction: direction.value,
       depth: String(depth.value),
-      ...(campus.value ? { campus: campus.value } : {})
+      ...(campus.value ? { campus: campus.value } : {}),
+      ...(year.value ? { year: String(year.value) } : {})
     }
   })
 })
 
 function show() {
   const next = draft.value.trim().toUpperCase()
-  if (next) code.value = next
+  if (next && next !== code.value) {
+    // Another unit may not be in the year picked for this one: start from its default.
+    year.value = null
+    code.value = next
+  }
+}
+
+/**
+ * The years this unit can be drawn in. Kept from the last graph that loaded,
+ * so the picker stays put while the next one is fetched.
+ */
+const unitYears = ref<number[]>([])
+watch(data, (value) => {
+  if (value?.available_years) unitYears.value = value.available_years
+}, { immediate: true })
+
+function pickYear(y: number) {
+  year.value = y === unitYears.value[0] ? null : y
 }
 
 const layout = computed(() =>
@@ -252,6 +274,14 @@ function hue(prefix: string): number {
             <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
+
+          <YearPicker
+            v-if="unitYears.length > 1"
+            class="year"
+            :model-value="data?.academic_year ?? year"
+            :years="unitYears"
+            @update:model-value="pickYear"
+          />
         </section>
 
         <section v-if="campus && elsewhere" class="card notice">
@@ -371,7 +401,7 @@ function hue(prefix: string): number {
         <p v-if="detail.periods.length" class="meta">
           {{ $t('tree.periods') }}: {{ detail.periods.join(' · ') }}
         </p>
-        <NuxtLink v-if="detail.in_year" class="btn btn--ghost btn--small" :to="`/units/${detail.unit_code}`">
+        <NuxtLink v-if="detail.in_year" class="btn btn--ghost btn--small" :to="`/units/${detail.unit_code}${year ? `?year=${year}` : ''}`">
           {{ $t('tree.openUnit') }}
         </NuxtLink>
         <button
@@ -486,4 +516,6 @@ function hue(prefix: string): number {
   .canvas-wrap { order: -1; }
   .panel { order: -2; }
 }
+
+.year { margin-top: var(--s3); width: 100%; }
 </style>
