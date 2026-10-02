@@ -27,7 +27,8 @@ All notable changes to Monash Hub are documented here.
   see the module docstrings), with tests. A rebuild keeps every registered
   page's slug. It adds Monash Malaysia's library, IT services and accommodation
   pages and the schools' remaining current-student pages, and leaves out
-  staff-only pages.
+  staff-only pages and the Monash Online support page (it redirects to
+  online.monash.edu, behind a Cloudflare bot challenge that refuses every fetch).
 - Pages Monash keeps behind its Okta sign-in are now *listed, not copied*: a
   seed with `sign_in=` is never fetched; it is stored with its title, a
   description written here and its link, flagged `requires_sign_in`, and shown

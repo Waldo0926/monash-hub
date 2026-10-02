@@ -81,6 +81,9 @@ LEAVE_OUT = re.compile(
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
     r"monash-malaysia-agents|student-barometer|httpsisphelpdesk|/staff(?:[-/]|$)|"
+    # Redirects to online.monash.edu, which sits behind a Cloudflare bot
+    # challenge: every fetch is refused, and getting past it is not ours to do.
+    r"/support/monash-online|"
     # Partner programs belong to monash-abroad-tracker; Prato is Monash's own.
     r"program-search/(?!.*prato)|program-search$",
     re.IGNORECASE,
