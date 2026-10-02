@@ -17,6 +17,19 @@ All notable changes to Monash Hub are documented here.
   prerequisites stays in 2025. Changing campus no longer drops it.
 - API: unit, degree, area-of-study and graph responses carry
   `available_years`; `/courses/filters` returns `years` and `academic_year`.
+### Fixed (loading another Handbook year now gets its English translated)
+
+- A unit's translation was stamped with its newest year's English only, so a
+  unit already translated for 2026 and 2027 was skipped when the 2025 Handbook
+  was loaded, and every sentence 2025 worded differently would have stayed
+  English. A unit in several years is now stamped with a digest of all of
+  them (`years_marker`), so adding a year makes it due once.
+- Each pass first loads the translations already stored for a unit, degree or
+  area of study into the translator (`Translator.prime`), so only sentences
+  nobody has translated yet go to the model - re-visiting the 10,000 units
+  already done costs no Zhipu calls. Reviewed labels in `structure_zh` still
+  win over a stored machine string. This also ends the degrees' years taking
+  turns at looking out of date and being re-sent every run.
 
 ### Fixed (the course planner checks each unit against the Handbook of the year it is placed in)
 

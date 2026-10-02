@@ -1,4 +1,4 @@
-"""Which units a translation pass actually touches.
+"""Which units a translation pass actually touches, and what it sends to the model.
 
 No database or model here - just the selection logic that used to force every
 `--fields all` run to walk the whole catalogue even when only one Handbook
@@ -6,9 +6,12 @@ page, like FIT1008's mid-year republish, needed re-translating.
 """
 from __future__ import annotations
 
+import threading
+
 import pytest
 
-from crawler.translate.run import _select_codes
+from crawler.translate.engine import Translator
+from crawler.translate.run import _select_codes, years_marker
 
 CATALOGUE = ["FIT1008", "FIT1045", "FIT1055", "FIT2102"]
 
@@ -42,3 +45,48 @@ def test_units_filter_ignores_limit():
 def test_an_unknown_unit_code_fails_loudly():
     with pytest.raises(ValueError, match="FIT9999"):
         _select_codes(CATALOGUE, ["FIT1008", "FIT9999"], limit=0)
+
+
+# --- every Handbook year's English is translated -----------------------------
+
+
+
+def test_one_year_is_stamped_with_its_own_hash():
+    assert years_marker(["abc"]) == "abc"
+
+
+def test_adding_a_year_changes_the_stamp():
+    two = years_marker(["h2027", "h2026"])
+    three = years_marker(["h2027", "h2026", "h2025"])
+    assert len(two) == 64 and two != "h2027"
+    assert three != two
+
+
+def _translator(calls: list[str]) -> Translator:
+    engine = Translator.__new__(Translator)
+    engine.locale = "zh"
+    engine.workers = 1
+    engine._caches = {}
+    engine._renderings = {}
+    engine._lock = threading.Lock()
+    engine.use_scope("handbook")
+    engine._translate = lambda text: calls.append(text) or f"<{text}>"
+    return engine
+
+
+def test_primed_strings_are_not_sent_to_the_model_again():
+    calls: list[str] = []
+    engine = _translator(calls)
+    engine.prime({"Students learn to model data.": "学生学习数据建模。"})
+    out = engine.many(["Students learn to model data.", "A sentence new in 2025."])
+    assert out["Students learn to model data."] == "学生学习数据建模。"
+    assert calls == ["A sentence new in 2025."]
+
+
+def test_a_reviewed_label_is_not_overridden_by_a_stored_machine_string():
+    from app.knowledge.structure_zh import STRUCTURE_ZH
+
+    label, reviewed = next(iter(STRUCTURE_ZH.items()))
+    engine = _translator([])
+    engine.prime({label: "旧的机器译文"})
+    assert engine.text(label) == reviewed
