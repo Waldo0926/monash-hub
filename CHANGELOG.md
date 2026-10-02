@@ -19,6 +19,16 @@ All notable changes to Monash Hub are documented here.
   Handbooks, taught at Malaysia, 10 units upstream and 57 downstream) instead
   of FIT2004, which the 2027 Handbook dropped. The unit-code examples in the
   placeholders and error messages follow.
+### Fixed (deploys failed on a moved official page)
+
+- Monash moved "Travel health, safety and security" from
+  `study-abroad/overseas/...` to `study-abroad/outbound/...`, and the coverage
+  rebuild (#127) kept its slug. Registering seeds matched pages by URL only, so
+  it inserted a second row with the same slug and hit the unique constraint;
+  every deploy since #128 stopped there, leaving production on an older build.
+  A seed that matches no URL but an existing slug now moves that row to the new
+  address (keeping its translations) and is fetched from there on the next
+  refresh. Checked against production: it is the only seed whose address moved.
 
 ### Fixed (a unit dropped from next year's Handbook no longer reads "not found")
 
