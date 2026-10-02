@@ -56,11 +56,31 @@ EXTRA: dict[str, dict] = {
     "https://www.monash.edu.my/sass/current/undergraduate/monash-study-abroad-program": {},
 }
 
+#: Where reading the text gets it wrong, the decision and why. Most are pages
+#: that name Malaysia as a *destination* - a semester there, an information
+#: session held there - which says nothing about who the page is for.
+SCOPE_OVERRIDES: dict[str, tuple[str, str]] = {
+    "https://www.monash.edu/students/admin":
+        ("australia", "the Australian student admin hub; Malaysia has its own"),
+    "https://www.monash.edu/study-abroad/overseas/financial-information/monash-abroad-travel-grant/f":
+        ("australia", "Malaysia appears as a destination"),
+    "https://www.monash.edu/study-abroad/outbound/information-sessions":
+        ("australia", "Malaysia appears as a destination"),
+    "https://www.monash.edu/students/support/international/before-leaving/webinars":
+        ("australia", "sessions held in Malaysia for students coming to Australia"),
+    "https://www.monash.edu/students/support/international/before-leaving/home-country-sessions":
+        ("australia", "sessions held in Malaysia for students coming to Australia"),
+    "https://www.monash.edu/students/support/disability/services/testimonials":
+        ("australia", "a student's exchange to Malaysia, not a Malaysian service"),
+    "https://www.monash.edu/students/admin/graduations/after/documents/ahegs":
+        ("australia", "an Australian statement; the page does not say Malaysia issues it"),
+}
+
 MIN_LENGTH = 450
 LEAVE_OUT = re.compile(
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
-    r"monash-malaysia-agents|student-barometer|httpsisphelpdesk|"
+    r"monash-malaysia-agents|student-barometer|httpsisphelpdesk|/staff(?:[-/]|$)|"
     # Partner programs belong to monash-abroad-tracker; Prato is Monash's own.
     r"program-search/(?!.*prato)|program-search$",
     re.IGNORECASE,
@@ -201,10 +221,18 @@ def tags(title: str, url: str, cat: str) -> tuple[str, ...]:
     return tuple((english + chinese)[:10])
 
 
-def slugify(url: str, taken: set[str]) -> str:
+def slugify(url: str, taken: set[str], known: dict[str, str] | None = None) -> str:
+    # A page already registered keeps its slug: it is the key its translations
+    # and its links are stored under, and the seed list retires any slug it no
+    # longer contains.
+    if known and (slug := known.get(url)) and slug not in taken:
+        taken.add(slug)
+        return slug
     parts = [p for p in urlparse(url).path.strip("/").split("/")
              if p not in ("students", "admin", "support", "student-services", "student-admin",
                           "study-success", "current-students")]
+    if not parts:  # a hub such as /students/admin
+        parts = urlparse(url).path.strip("/").split("/")
     base = "-".join(parts[-2:]) if len(parts) > 1 else (parts[0] if parts else "home")
     base = re.sub(r"[^a-z0-9-]+", "-", base.lower()).strip("-")[:50].strip("-")
     if "monash.edu.my" in url and not base.startswith("malaysia"):
@@ -224,8 +252,10 @@ def tier(url: str) -> str:
     return "stable" if re.search(r"polic|procedure|glossary|rules", url) else "medium"
 
 
-def build(pages: list[dict], texts: dict[str, dict], existing: list) -> list[dict]:
-    """Seed rows from discovered pages; ``existing`` is the hand-picked list."""
+def build(pages: list[dict], texts: dict[str, dict], existing: list,
+          known: dict[str, str] | None = None) -> list[dict]:
+    """Seed rows from discovered pages; ``existing`` is the hand-picked list,
+    ``known`` maps the addresses already in seeds_coverage.py to their slugs."""
     listed_urls = {seed.url.rstrip("/") for seed in existing}
     listed_hashes = {t["hash"] for t in texts.values() if t.get("hand_picked") and t.get("hash")}
     taken = {seed.slug for seed in existing}
@@ -263,8 +293,10 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list) -> list[dic
             applies_to, reason = AUSTRALIA, "no stored text yet"
         if page.get("applies_to"):
             applies_to, reason = page["applies_to"], "set by hand"
+        if url in SCOPE_OVERRIDES:
+            applies_to, reason = SCOPE_OVERRIDES[url]
         rows.append({
-            "slug": slugify(url, taken), "url": url, "title": title, "category": cat,
+            "slug": slugify(url, taken, known), "url": url, "title": title, "category": cat,
             "tags": tags(title, url, cat), "tier": tier(url), "applies_to": applies_to,
             "reason": reason, "depth": page.get("depth", 9), "prio": page.get("prio", 0),
         })
@@ -351,7 +383,7 @@ def main() -> None:
     if args.texts:
         with open(args.texts, encoding="utf-8") as handle:
             texts = json.load(handle)
-    rows = build(pages, texts, hand_picked)
+    rows = build(pages, texts, hand_picked, {row[1]: row[0] for row in COVERAGE})
     with open(args.out, "w", encoding="utf-8") as handle:
         handle.write(render(rows))
     for row in rows:

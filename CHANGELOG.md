@@ -14,11 +14,20 @@ All notable changes to Monash Hub are documented here.
   (HECS, CSP, OSHC, the subclass 500 visa, Home Affairs, Centrelink, TFN/USI) or
   sends Malaysia students elsewhere. Defaulting every monash.edu page to
   Australia told Malaysia students that rules binding them were not theirs.
+  Graduation (one process for every campus - Malaysia students can also
+  graduate at the Jakarta and Suzhou ceremonies) and results/WAM count as
+  University-wide; New Colombo Plan pages are Australian whatever host country
+  they list. Where the text misleads - Malaysia named only as a destination -
+  `coverage.SCOPE_OVERRIDES` records the decision and why. Result: 391 Malaysia,
+  52 all campuses, 258 Australia among the generated pages; in `seeds.py` the
+  Engineering, Business and Arts course maps (they include Malaysia's) become
+  all campuses, and Fees and Fee payment dates become Australia.
 - The discovery walk and the filters that built `seeds_coverage.py` are now
   `crawler/official/discover.py` and `crawler/official/coverage.py` (rebuild:
-  see the module docstrings), with tests. The rebuild adds Monash Malaysia's
-  library, IT services and accommodation pages and the schools' remaining
-  current-student pages.
+  see the module docstrings), with tests. A rebuild keeps every registered
+  page's slug. It adds Monash Malaysia's library, IT services and accommodation
+  pages and the schools' remaining current-student pages, and leaves out
+  staff-only pages.
 - Pages Monash keeps behind its Okta sign-in are now *listed, not copied*: a
   seed with `sign_in=` is never fetched; it is stored with its title, a
   description written here and its link, flagged `requires_sign_in`, and shown

@@ -19,9 +19,9 @@ So for a page on www.monash.edu, in order:
 3. Its text says it covers every campus, or speaks to Malaysia as well -> ``all``.
    Unless that mention is the page sending Malaysia students elsewhere ("students
    at Monash Malaysia should refer to ..."), which makes it ``australia``.
-4. It is a University-wide rule - assessment, academic integrity and
-   misconduct, academic progress, complaints, the Handbook - with nothing
-   Australian in it -> ``all``. Monash's policies and procedures bind every
+4. It is a University-wide rule - assessment and results, academic integrity
+   and misconduct, academic progress, complaints, graduation, the Handbook -
+   with nothing Australian in it -> ``all``. Monash's policies and procedures bind every
    campus; that is what a University policy is.
 5. Otherwise ``australia``: the site it is on.
 
@@ -45,6 +45,7 @@ AUSTRALIA_ONLY = re.compile(
     r"Overseas Student Health Cover|\bOSHC\b|subclass 500|Home Affairs|Centrelink|"
     r"tax file number|\bTFN\b|Unique Student Identifier|\bUSI\b|Australia Awards|"
     r"Australian (?:citizen|permanent resident)s? only|Australian campuses only|"
+    r"New Colombo Plan|"
     r"Victorian? Government",
     re.IGNORECASE,
 )
@@ -66,7 +67,10 @@ ELSEWHERE = re.compile(
 UNIVERSITY_RULES = re.compile(
     r"/academic-integrity|/misconduct|/complaints|/academic-progress|"
     r"/unsatisfactory-progress|/admin/policies|/assessments/about|"
-    r"/extensions-special-consideration|/handbooks/|/learning-teaching/",
+    r"/extensions-special-consideration|/handbooks/|/learning-teaching/|"
+    # One graduation process for every campus: the dates page lists Kuala
+    # Lumpur's rounds beside Melbourne's. Results and WAM are one set of rules.
+    r"/admin/graduations(?:/|$)|/assessments/results",
     re.IGNORECASE,
 )
 
@@ -83,7 +87,8 @@ def scope(url: str, title: str | None, text: str | None) -> tuple[str, str]:
     text = text or ""
     if re.search(r"\bAustralia\b", title) and "Malaysia" not in title:
         return AUSTRALIA, "title names Australia"
-    if found := AUSTRALIA_ONLY.search(text):
+    named = f"{title} {path.replace('-', ' ')}"
+    if found := AUSTRALIA_ONLY.search(named) or AUSTRALIA_ONLY.search(text):
         return AUSTRALIA, f"Australia only: {found.group(0)!r}"
     if found := ELSEWHERE.search(text):
         return AUSTRALIA, f"sends Malaysia elsewhere: {found.group(0)[:60]!r}"

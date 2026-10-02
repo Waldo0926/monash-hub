@@ -36,6 +36,13 @@ MY = "https://www.monash.edu.my/student-services"
         ("https://www.monash.edu/students/study-success/academic-integrity",
          "Academic integrity", "Plagiarism and collusion are misconduct.", ALL),
         (f"{AU}/policies/student-conduct", "Student Code of Conduct", "Be respectful.", ALL),
+        # Only Australian citizens can hold one, wherever the host country is.
+        ("https://www.monash.edu/study-abroad/outbound/financial-information"
+         "/new-colombo-plan-scholarship/host-locations", "Host locations",
+         "Indonesia | Japan | Malaysia | Singapore", AUSTRALIA),
+        # One graduation process for every campus.
+        (f"{AU}/graduations", "Graduations", "Apply, attend, collect.", ALL),
+        (f"{AU}/graduations/before/when", "When to apply to graduate", "Apply early.", ALL),
         # Otherwise, the site it is on.
         (f"{AU}/timetables/allocate", "Allocate+", "Choose your classes.", AUSTRALIA),
     ],
