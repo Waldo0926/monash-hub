@@ -10,7 +10,16 @@ const { $t } = useNuxtApp()
 const { locale } = useLocale()
 const code = computed(() => String(route.params.code).toUpperCase())
 
-const { data: unit, error } = await useLocalisedApiFetch<any>(() => `/v1/units/${code.value}`)
+const { year, withYear, setYear } = useHandbookYear()
+const { data: unit, error } = await useLocalisedApiFetch<any>(
+  () => withYear(`/v1/units/${code.value}`),
+  { watch: [year] }
+)
+
+/** The newest year that lists the unit is the default, so choosing it clears `?year=`. */
+function pickYear(y: number) {
+  setYear(y === unit.value?.available_years?.[0] ? null : y)
+}
 const { data: discussions } = await useApiFetch<any>(
   () => `/v1/community/posts?unit_code=${code.value}&limit=5`
 )
@@ -88,7 +97,15 @@ useHead(() => ({
           <span v-if="unit.level" class="chip">{{ $term('level', unit.level) }}</span>
           <span v-if="unit.faculty" class="chip">{{ $term('faculty', unit.faculty) }}</span>
         </p>
-        <LastChecked :value="unit.last_checked" />
+        <div class="head-foot">
+          <LastChecked :value="unit.last_checked" />
+          <YearPicker
+            v-if="(unit.available_years || []).length > 1"
+            :model-value="unit.academic_year"
+            :years="unit.available_years"
+            @update:model-value="pickYear"
+          />
+        </div>
       </header>
 
       <div class="body">
@@ -289,6 +306,7 @@ useHead(() => ({
 }
 .mb { margin-bottom: var(--s5); }
 .head { padding: var(--s5); margin-bottom: var(--s5); }
+.head-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s3); }
 .head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
 .head h1 { margin-bottom: var(--s3); }
 .chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s2); }

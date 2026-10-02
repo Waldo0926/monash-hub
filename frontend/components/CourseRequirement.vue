@@ -19,6 +19,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ toggle: [id: number] }>()
 const { $t } = useNuxtApp()
+const { withYear } = useHandbookYear()
 
 const expanded = ref(props.open ?? props.depth === 0)
 function toggle() {
@@ -71,7 +72,7 @@ function away(code: string) {
 
       <ul v-if="node.items?.length" class="items">
         <li v-for="item in node.items" :key="item.code" :class="{ away: away(item.code) }">
-          <NuxtLink v-if="item.type === 'unit'" class="item" :to="`/units/${item.code}`">
+          <NuxtLink v-if="item.type === 'unit'" class="item" :to="withYear(`/units/${item.code}`)">
             <span class="code">{{ item.code }}</span>
             <span class="name">{{ fact(item.code).title || item.name }}</span>
             <span class="meta">
@@ -82,7 +83,7 @@ function away(code: string) {
               <span v-else-if="away(item.code)" class="tag tag--away">✕ {{ campus }}</span>
             </span>
           </NuxtLink>
-          <NuxtLink v-else class="item item--aos" :to="`/courses/aos/${item.code}`">
+          <NuxtLink v-else class="item item--aos" :to="withYear(`/courses/aos/${item.code}`)">
             <span class="code">{{ item.code }}</span>
             <span class="name">{{ item.name }}</span>
             <span class="meta">

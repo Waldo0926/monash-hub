@@ -102,3 +102,24 @@ def test_a_degree_and_an_area_of_study_fall_back_the_same_way(client, next_year)
     assert (course["academic_year"], course["not_in_year"]) == (2026, 2027)
     aos = client.get("/api/v1/courses/aos/DATASCI11").json()
     assert (aos["academic_year"], aos["not_in_year"]) == (2026, 2027)
+
+
+def test_a_page_lists_the_years_it_can_be_read_in(client, next_year):
+    assert client.get("/api/v1/units/FIT2014").json()["available_years"] == [2027, 2026]
+    assert client.get("/api/v1/units/FIT2004").json()["available_years"] == [2026]
+    tree = client.get("/api/v1/units/FIT2004/tree", params={"depth": 1}).json()
+    assert tree["available_years"] == [2026]
+    assert client.get("/api/v1/courses/C2001").json()["available_years"] == [2026]
+    assert client.get("/api/v1/courses/aos/DATASCI11").json()["available_years"] == [2026]
+
+
+def test_an_explicit_year_reads_that_handbook(client, next_year):
+    body = client.get("/api/v1/units/FIT2014", params={"year": 2026}).json()
+    assert (body["academic_year"], body["not_in_year"]) == (2026, None)
+
+
+def test_the_list_pages_offer_every_loaded_year(client, next_year):
+    assert client.get("/api/v1/units/filters").json()["years"] == [2027, 2026]
+    filters = client.get("/api/v1/courses/filters").json()
+    assert filters["years"] == [2026]
+    assert filters["academic_year"] == 2027

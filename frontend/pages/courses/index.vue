@@ -17,24 +17,36 @@ const { $t } = useNuxtApp()
 const q = ref(String(route.query.q || ''))
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
 const draft = ref(q.value)
+const { year, setYear } = useHandbookYear()
+const { data: facets } = await useApiFetch<any>('/v1/courses/filters')
 
 const query = computed(() => {
   const params = new URLSearchParams({ limit: '200' })
   if (q.value) params.set('q', q.value)
   if (campus.value) params.set('campus', campus.value)
+  if (year.value) params.set('year', String(year.value))
   return params.toString()
 })
 
 const { data, pending } = await useLocalisedApiFetch<any>(
   () => `/v1/courses?${query.value}`,
-  { watch: [q, campus] }
+  { watch: [q, campus, year] }
 )
 
 watch([q, campus], () => {
   router.replace({
-    query: { ...(q.value ? { q: q.value } : {}), ...(campus.value ? { campus: campus.value } : {}) }
+    query: {
+      ...(q.value ? { q: q.value } : {}),
+      ...(campus.value ? { campus: campus.value } : {}),
+      ...(year.value ? { year: String(year.value) } : {})
+    }
   })
 })
+
+/** The newest year is the default, so choosing it clears `?year=`. */
+function pickYear(y: number) {
+  setYear(y === facets.value?.years?.[0] ? null : y)
+}
 
 function search() {
   q.value = draft.value.trim()
@@ -125,6 +137,11 @@ useHead({ title: $t('courses.title') })
           <option value="">{{ $t('tree.campusAny') }}</option>
         </select>
       </label>
+      <YearPicker
+        :model-value="year ?? data?.academic_year"
+        :years="facets?.years || []"
+        @update:model-value="pickYear"
+      />
     </div>
 
     <p v-if="!pending" class="count">
