@@ -56,8 +56,11 @@ def upsert_seed_page(
     page.applies_to = applies_to
     page.tags = tags
     page.refresh_tier = refresh_tier
+    # The seed list's title, not the page's own: Monash Malaysia's student pass
+    # page calls itself "Before You Arrive", and nobody searching "student pass"
+    # found it. The page's own title is kept in its version history.
+    page.title = title
     if not page.content_hash:
-        page.title = title
         page.status = "pending"
     db.flush()
     return page
@@ -88,19 +91,26 @@ def list_behind_sign_in(db: Session, page: OfficialPage, *, title: str,
     db.flush()
 
 
-def record_fetch(db: Session, page: OfficialPage, cleaned: dict) -> str:
-    """Store a successful fetch. Returns ``new``, ``changed`` or ``unchanged``."""
+def record_fetch(db: Session, page: OfficialPage, cleaned: dict,
+                 *, title: str | None = None) -> str:
+    """Store a successful fetch. Returns ``new``, ``changed`` or ``unchanged``.
+
+    ``title`` is the seed list's title for the page; when given it is what the
+    page is called, whatever the fetched page calls itself.
+    """
     now = datetime.now(UTC)
     page.last_checked = now
     page.status = "ok"
     page.fetch_error = None
 
+    if title:
+        page.title = title
     if page.content_hash == cleaned["content_hash"]:
         db.flush()
         return "unchanged"
 
     previous_hash = page.content_hash
-    page.title = cleaned["title"] or page.title
+    page.title = title or cleaned["title"] or page.title
     page.clean_text = cleaned["clean_text"]
     page.blocks = cleaned["blocks"]
     page.summary = cleaned["summary"]

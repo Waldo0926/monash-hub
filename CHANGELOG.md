@@ -4,6 +4,30 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (Student Pass is 学生签证; pages keep the seed list's title)
+
+- Monash Malaysia's Student Pass is now 学生签证（Student Pass） everywhere - the
+  glossary, the hand-written guide and FAQ Chinese, the campus notice - and a
+  polish rule rewrites 学生准证 in stored machine translations. That is what
+  the students who hold one call it. 特别准证 (the Special Pass) is unchanged.
+  学生签证 now also finds Malaysia's Student Pass pages; a campus in the
+  question picks between the two countries' documents.
+- A page is called what the seed list calls it, not what the fetched page
+  calls itself: Monash Malaysia's student pass page titles itself "Before You
+  Arrive", and "student pass" did not find it. The original title stays in the
+  page's version history.
+- No two guides share a title any more. A heading that says nothing on its own
+  ("Eligibility" x5, "WHAT YOU SHOULD KNOW" x4, "IMPORTANT", "FAQs") gets its
+  section - "Eligibility - OS-HELP Loans", "What you should know - School of IT
+  (International Exchange, undergraduate)" - and a title two pages share gets
+  the same treatment (`coverage.disambiguate`). Research-supervisor profile
+  pages and one-off career events are left out: people and dates, not guidance.
+- The official translation pass translates only the strings a page has never
+  had - a renamed title - when its English is otherwise unchanged, instead of
+  skipping it or sending the whole page to the model again.
+  中文：Student Pass 的中文统一为「学生签证」；页面标题以我们定的为准（马莫
+  Student Pass 页不再叫 Before You Arrive），改名后只补译标题。
+
 ### Fixed (search: a campus in the question)
 
 - Search now reads a campus in the question. 马莫, 大马, 马来西亚, 吉隆坡, Monash

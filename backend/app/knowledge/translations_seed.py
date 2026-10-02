@@ -348,7 +348,7 @@ GUIDE_TITLES: dict[str, str] = {
     # "Before You Arrive" for the student pass page - so the Chinese says
     # what the page is instead of translating what the banner says.
     "malaysia-student-services": "学生服务",
-    "malaysia-student-pass": "学生准证（Student Pass）",
+    "malaysia-student-pass": "学生签证（Student Pass）",
     "malaysia-insurance": "保险",
     "malaysia-student-admin": "学生事务",
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
@@ -617,7 +617,7 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "student-visa-work-hours": (
         "（澳大利亚校区）持学生签证一周能打工多少小时？",
-        "这一条讲的是澳大利亚各校区。在马来西亚，居留身份是移民局通过 EMGS 签发的学生准证（Student Pass），适用条件与下面写的不是一回事，请以 monash.edu.my 为准。"
+        "这一条讲的是澳大利亚各校区。在马来西亚，居留身份是移民局通过 EMGS 签发的学生签证（Student Pass），适用条件与下面写的不是一回事，请以 monash.edu.my 为准。"
             "学生签证的工作权限由澳大利亚政府规定，不是 Monash 定的，近几年上限改过好几次。"
         "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定——"
         "在按某个小时数行事之前，"
@@ -630,7 +630,7 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "what-is-coe": (
         "（澳大利亚校区）CoE 是什么？什么时候需要换新的？",
-        "这一条讲的是澳大利亚各校区；马来西亚签发的是通过 EMGS 办理的学生准证（Student Pass）。"
+        "这一条讲的是澳大利亚各校区；马来西亚签发的是通过 EMGS 办理的学生签证（Student Pass）。"
             "CoE（入学确认书）是签发学生签证所依据的文件。一般来说，只要你的课程、"
         "校区或完成日期发生变化，"
         "就需要一份新的 CoE——包括申请休学或减少课业量的情况。请在现有 CoE 过期之前提出申请。",
@@ -2107,10 +2107,10 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "before returning to Malaysia. Please submit your passport to "
         "ISP (Building 2, Level 1) for the cancellation of your "
         "student pass.":
-            "1. 如果你人在马来西亚，并打算一直留到新学期开学，就必须确保学生准证（student "
-            "pass）始终在有效期内。若你的学生准证（student pass）已过期、或将在 14 "
+            "1. 如果你人在马来西亚，并打算一直留到新学期开学，就必须确保学生签证（student "
+            "pass）始终在有效期内。若你的学生签证（student pass）已过期、或将在 14 "
             "天内到期，可能需要申请特别准证（Special Pass）。2. 如果你人在马来西亚，并打算先回国、等拿到 eVAL "
-            "再返回马来西亚，请把护照交到 ISP（2 号楼 1 层）办理学生准证（student pass）注销。",
+            "再返回马来西亚，请把护照交到 ISP（2 号楼 1 层）办理学生签证（student pass）注销。",
         "1. If your student pass exceeds one year validity, you will "
         "need to cancel your student pass, exit Malaysia and apply for "
         "a new student pass that takes eight (8) weeks processing "
@@ -2124,11 +2124,11 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "for a new student pass due to a change of course is permitted "
         "up to a maximum of two times throughout your period of study "
         "in Malaysia.":
-            "1. 如果你的学生准证（student "
-            "pass）有效期超过一年，需要先注销准证、离境马来西亚，再重新申请新的学生准证（student pass），办理约需 8 "
-            "周。\n2. 如果你的学生准证（student "
-            "pass）有效期为一年：当前所读学位课程就读不满一年的，在新准证办理期间无需离境；就读超过一年的，则需要注销准证、离境马来西亚，再重新申请新的学生准证（student "
-            "pass），办理约需 8 周。\n3. 因更换学位课程而申请新学生准证（student "
+            "1. 如果你的学生签证（student "
+            "pass）有效期超过一年，需要先注销签证、离境马来西亚，再重新申请新的学生签证（student pass），办理约需 8 "
+            "周。\n2. 如果你的学生签证（student "
+            "pass）有效期为一年：当前所读学位课程就读不满一年的，在新签证办理期间无需离境；就读超过一年的，则需要注销签证、离境马来西亚，再重新申请新的学生签证（student "
+            "pass），办理约需 8 周。\n3. 因更换学位课程而申请新学生签证（student "
             "pass），在你于马来西亚就读期间最多只能办理两次。",
         "1. Letter of confirmation of enrolment by your home "
         "institution on your home institution's letterhead that has "
@@ -2146,21 +2146,21 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "may apply to you if you are in Malaysia and your pass has "
         "expired/ will be expiring in 14 days.":
             "1. 放行信（Release Letter）与出勤报告（出勤率不得低于 80%）；2. "
-            "最新有效准证的复印件，和／或出境章（若原准证已注销且你人在马来西亚境外）。3. "
-            "可选：如果你人在马来西亚，且准证已过期或将在 14 天内到期，可能需要申请特别准证（Special Pass）。",
+            "最新有效签证的复印件，和／或出境章（若原签证已注销且你人在马来西亚境外）。3. "
+            "可选：如果你人在马来西亚，且签证已过期或将在 14 天内到期，可能需要申请特别准证（Special Pass）。",
         "Additional documents and/or actions required":
             "需要补充的材料和／或需要办理的事项",
         "After the Immigration Department of Malaysia approves your "
         "student pass application, you will receive an email "
         "notification from ISP. You may download a softcopy of your "
         "Electronic Visa Approval Letter, which is also known as eVAL.":
-            "马来西亚移民局批准你的学生准证（student pass）申请之后，你会收到 ISP "
+            "马来西亚移民局批准你的学生签证（student pass）申请之后，你会收到 ISP "
             "发来的邮件通知，并可以下载电子签证批准函（eVAL）的电子版。",
         "As an international student coming to study at the University "
         "for a full-time course, you must accept your offer and apply "
         "for a student pass before coming to Malaysia to start your "
         "course.":
-            "作为来本校就读全日制学位课程的国际学生，你必须先接受录取并申请学生准证（student "
+            "作为来本校就读全日制学位课程的国际学生，你必须先接受录取并申请学生签证（student "
             "pass），然后才能来马来西亚开始学业。",
         "Before arriving Malaysia, you will need to ensure that you "
         "have prepared and completed the necessary pre-arrival steps "
@@ -2181,26 +2181,26 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "actions are required and to be provided during the submission "
         "of your student pass application if you are under these "
         "categories:":
-            "所需材料（电子版）：如果你属于下列情形，提交学生准证（student pass）申请时还需要补充材料和／或办理其他事项：",
+            "所需材料（电子版）：如果你属于下列情形，提交学生签证（student pass）申请时还需要补充材料和／或办理其他事项：",
         "Exchange and Study Abroad":
             "交换与海外学习",
         "For Undergraduates and Post Graduate Coursework students, you "
         "can start applying for your student pass as early as four "
         "months but no later than two months before the commencement "
         "of your course.":
-            "本科生和授课型研究生最早可在开课前四个月开始申请学生准证（student pass），但最迟不得晚于开课前两个月。",
+            "本科生和授课型研究生最早可在开课前四个月开始申请学生签证（student pass），但最迟不得晚于开课前两个月。",
         "For research students, please submit your request to amend "
         "your course commencement date in your offer letter if it is "
         "lesser than the minimum two months processing time.":
             "研究型学生如果距开课不足两个月的最短办理时间，请提交申请，修改录取通知书上的开课日期。",
         "Have you lodged an application for a Malaysian student pass "
         "before?":
-            "你此前申请过马来西亚学生准证（student pass）吗？",
+            "你此前申请过马来西亚学生签证（student pass）吗？",
         "IMPORTANT The estimated Student Pass Endorsement processing "
         "time by the Immigration Department of Malaysia is 6 weeks. "
         "You are advised not to make any travel plans until your "
         "passport has been returned with your student pass sticker.":
-            "重要提示：马来西亚移民局办理学生准证签注预计需要 6 周。在护照连同学生准证贴纸退回给你之前，建议不要做任何出行计划。",
+            "重要提示：马来西亚移民局办理学生签证签注预计需要 6 周。在护照连同学生签证贴纸退回给你之前，建议不要做任何出行计划。",
         "If your student pass has expired/will be expiring in 14 days "
         "from the date of your submission to ISP, you will be advised "
         "to apply for a Special Pass. A Special Pass ensures you have "
@@ -2212,7 +2212,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "payment at the Finance Helpdesk.Do you have more questions? "
         "Fret not, we have a collection of frequently asked questions "
         "here.":
-            "如果自你向 ISP 提交之日起，学生准证（student pass）已过期或将在 14 天内到期，ISP "
+            "如果自你向 ISP 提交之日起，学生签证（student pass）已过期或将在 14 天内到期，ISP "
             "会建议你申请特别准证（Special "
             "Pass）。特别准证的作用是在续期申请办理期间让你保持有效身份，是否签发由移民局酌情决定。如果 ISP "
             "建议你申请，请把下列材料提交到 ISP（2 号楼 1 层）：并在 Finance Helpdesk（财务服务台）缴纳 "
@@ -2240,7 +2240,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "请按下列步骤办理：\n1. 体检必须在 7 天内、到 EMGS 指定的诊所或医院完成。离 Monash "
             "马来西亚校区最近的诊所在 Subang Jaya。为方便起见，请确认该诊所自带 X "
             "光设备。请携带以下材料：**以上材料只需打印即可\n2. 请携带以下物品到 2 号楼 1 层的 ISP 柜台：\n3. "
-            "等待护照连同已签发的学生准证贴纸退回。此过程预计需要 6 个工作周，在拿到实体护照之前，建议不要做出行安排。\n4. "
+            "等待护照连同已签发的学生签证贴纸退回。此过程预计需要 6 个工作周，在拿到实体护照之前，建议不要做出行安排。\n4. "
             "护照可领取时，我们会发邮件通知你。\n5. 领到护照两周后会发放 i-Kad。可以领取时我们同样会发邮件通知你。i-Kad "
             "是国际学生的身份识别卡，可用于证明身份，但不能替代护照。直接申请者（Direct Applicants）需在 i-Kad "
             "到期前三个月办理一次性续期。",
@@ -2262,25 +2262,25 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "apply for a student pass duration of six (6) months , while "
         "students attending two (2) semesters must apply for a student "
         "pass duration of twelve (12) months .":
-            "参加交换或海外学习项目的学生必须直接向 EMGS 申请：读一个学期的，申请 6 个月有效期的学生准证（student "
-            "pass）；读两个学期的，申请 12 个月有效期的学生准证（student pass）。",
+            "参加交换或海外学习项目的学生必须直接向 EMGS 申请：读一个学期的，申请 6 个月有效期的学生签证（student "
+            "pass）；读两个学期的，申请 12 个月有效期的学生签证（student pass）。",
         "You are required to opt for DIRECT STUDENT PASS APPLICATION* "
         "where you have to apply directly to EMGS . Read this guide "
         "prior to applying for your student pass. *All direct "
         "applicants are advised to apply for a one-off student pass "
         "which covers the entire course duration.":
             "你需要选择 DIRECT STUDENT PASS APPLICATION（直接申请）*，即自行向 EMGS "
-            "提交申请。申请前请先阅读这份指南。*建议所有直接申请者申请一次性覆盖整个学位课程期限的学生准证（student pass）。",
+            "提交申请。申请前请先阅读这份指南。*建议所有直接申请者申请一次性覆盖整个学位课程期限的学生签证（student pass）。",
         "You are required to opt for NON-DIRECT STUDENT PASS "
         "APPLICATION where Monash will apply for your student pass. "
         "Fill out this form to start applying for your student pass.":
             "你需要选择 NON-DIRECT STUDENT PASS APPLICATION（非直接申请），即由 Monash "
-            "代你提交学生准证（student pass）申请。请填写这份表格开始办理。",
+            "代你提交学生签证（student pass）申请。请填写这份表格开始办理。",
         "You may check the status of your student pass application "
         "after 14 working days upon submitting the complete documents "
         "and payment to either EMGS (DA) or through the University "
         "(NDA).":
-            "在向 EMGS（直接申请）或学校（非直接申请）提交完整材料并付款后，满 14 个工作日即可查询学生准证（student "
+            "在向 EMGS（直接申请）或学校（非直接申请）提交完整材料并付款后，满 14 个工作日即可查询学生签证（student "
             "pass）申请进度。",
     },
     "malaysia-insurance": {
@@ -2302,7 +2302,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "国际旅行保险",
         "International students with a valid Student Pass studying at "
         "Monash University Malaysia.":
-            "在 Monash 马来西亚校区就读、且持有有效学生准证（Student Pass）的国际学生。",
+            "在 Monash 马来西亚校区就读、且持有有效学生签证（Student Pass）的国际学生。",
         "Kindly refer to the information page on medical insurance for "
         "international students website for more details.":
             "更多细节请查看国际学生医疗保险信息页。",

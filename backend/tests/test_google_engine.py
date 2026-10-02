@@ -260,6 +260,7 @@ def test_polish_fixes_what_a_model_gets_wrong_and_nothing_else():
 
     assert polish_zh("完成课程单元 48门学分，您必须") == "完成课程 48 学分，你必须"
     assert polish_zh("6个学分") == "6 学分"
+    assert polish_zh("续签学生准证前，先申请特别准证") == "续签学生签证前，先申请特别准证"
     # A Moodle unit is a unit, and 6门课程 is a count of units.
     assert polish_zh("Moodle 的一个单元，选修 6门课程") == "Moodle 的一个单元，选修 6门课程"
 

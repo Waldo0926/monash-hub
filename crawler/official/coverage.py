@@ -84,6 +84,9 @@ LEAVE_OUT = re.compile(
     # Redirects to online.monash.edu, which sits behind a Cloudflare bot
     # challenge: every fetch is refused, and getting past it is not ours to do.
     r"/support/monash-online|"
+    # One page per research supervisor, and single career events: people and
+    # dates, not guidance. The project and events overviews stay.
+    r"third-year-research-project/|/career-events/|"
     # Partner programs belong to monash-abroad-tracker; Prato is Monash's own.
     r"program-search/(?!.*prato)|program-search$",
     re.IGNORECASE,
@@ -108,7 +111,7 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"discount", ["学费折扣", "优惠"], ["discount"]),
     (r"loan|hecs|fee-help|sa-help", ["贷款"], ["loan"]),
     (r"scholarship|award", ["奖学金"], ["scholarship"]),
-    (r"visa|student pass|emgs|immigration", ["签证", "学生准证"], ["visa"]),
+    (r"visa|student pass|emgs|immigration", ["签证", "学生签证", "学生准证"], ["visa"]),
     (r"insurance|oshc|health cover", ["保险"], ["insurance"]),
     (r"enrol", ["选课", "注册"], ["enrolment"]),
     (r"re-enrol", ["重新注册"], ["re-enrol"]),
@@ -170,6 +173,99 @@ def clean_title(title: str | None, url: str) -> str:
     if _about_malaysia(url) and "Malaysia" not in title:
         title += " (Monash Malaysia)"
     return title
+
+
+# Titles that say nothing on their own. A list of guides with five pages called
+# "Eligibility" - for a travel grant, three New Colombo Plan programs and a loan -
+# cannot be read, so these, and any title two pages share, get their section.
+GENERIC_TITLES = {
+    "eligibility", "assessment criteria", "faq", "faqs", "frequently asked questions",
+    "important", "what you should know", "overview", "introduction", "testimonials",
+    "bursaries", "information session", "how to apply", "contact", "resources", "forms",
+}
+SCHOOLS = {
+    "business": "School of Business", "it": "School of IT", "science": "School of Science",
+    "engineering": "School of Engineering", "pharmacy": "School of Pharmacy",
+    "sass": "School of Arts and Social Sciences",
+    "medicine": "Jeffrey Cheah School of Medicine and Health Sciences",
+}
+_ACRONYMS = {"os", "help", "it", "faq", "faqs", "pg", "ug", "uhs", "isp", "emgs", "mum", "csds",
+             "murpa", "gip", "aas", "ssaf", "usi", "tfn", "csp", "wam", "gpa", "mai"}
+
+
+_SMALL = {"and", "of", "for", "to", "in", "the", "re"}
+
+
+def _humanise(segment: str) -> str:
+    # "course-maps2" is Monash's second page of that name, not "Maps2".
+    words = re.sub(r"[-_,]+", " ", re.sub(r"\d+$", "", segment)).split()
+    out = " ".join(
+        w.upper() if w.lower() in _ACRONYMS
+        else w.lower() if i and w.lower() in _SMALL
+        else w.capitalize()
+        for i, w in enumerate(words)
+    )
+    return out.replace("OS HELP", "OS-HELP").replace("re Enrol", "re-enrol")
+
+
+def section(url: str) -> str:
+    """What part of the site a page sits in: the school, or its parent page."""
+    path = [p for p in urlparse(url).path.strip("/").split("/") if p]
+    if (found := SCHOOLS.get(path[0].lower() if path else "")) and "monash.edu.my" in url:
+        return found
+    return _humanise(path[-2]) if len(path) >= 2 else ""
+
+
+def _sentence_case(title: str) -> str:
+    """'WHAT YOU SHOULD KNOW' -> 'What you should know'; mixed case is left alone."""
+    letters = [c for c in title if c.isalpha()]
+    if len(letters) > 4 and all(c.isupper() for c in letters):
+        return title[:1] + title[1:].lower()
+    return title
+
+
+def disambiguate(rows: list[dict], others: list[str]) -> None:
+    """Give a generic or shared title its section, in place."""
+    suffix = " (Monash Malaysia)"
+    def base(title: str) -> str:
+        return title[: -len(suffix)] if title.endswith(suffix) else title
+    # Shared means the whole title: "Timetables (Monash Malaysia)" is already
+    # told apart from "Timetables" by its campus.
+    counts: dict[str, int] = {}
+    for title in [*(r["title"] for r in rows), *others]:
+        counts[title.lower()] = counts.get(title.lower(), 0) + 1
+    for row in rows:
+        plain = base(row["title"])
+        tail = row["title"][len(plain):]
+        generic = plain.lower() in GENERIC_TITLES
+        if generic or counts.get(row["title"].lower(), 0) > 1:
+            # Only a generic heading is shouted; names and acronyms keep their case.
+            plain = _sentence_case(plain) if generic else plain
+            where = section(row["url"])
+            if where and where.lower() not in plain.lower():
+                plain = f"{plain} - {where}"
+        row["title"] = plain + tail
+
+    # Still shared - one school, several programs with a page each: name the
+    # program, and the level where the address gives it.
+    counts = {}
+    for row in rows:
+        counts[row["title"].lower()] = counts.get(row["title"].lower(), 0) + 1
+    for row in rows:
+        if counts[row["title"].lower()] < 2:
+            continue
+        plain = base(row["title"])
+        tail = row["title"][len(plain):]
+        path = [p for p in urlparse(row["url"]).path.strip("/").split("/") if p]
+        own = _humanise(path[-1])
+        if own.lower() in plain.lower() and len(path) >= 2:
+            own = _humanise(path[-2])
+        lowered = "/".join(path).lower()
+        level = ("postgraduate" if "postgrad" in lowered
+                 else "undergraduate" if "undergrad" in lowered else "")
+        if level and level not in own.lower():
+            own = f"{own}, {level}"
+        row["title"] = f"{plain} ({own}){tail}"
 
 
 def _about_malaysia(url: str) -> bool:
@@ -303,6 +399,8 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             "tags": tags(title, url, cat), "tier": tier(url), "applies_to": applies_to,
             "reason": reason, "depth": page.get("depth", 9), "prio": page.get("prio", 0),
         })
+
+    disambiguate(rows, [seed.title for seed in existing])
 
     def order(row: dict) -> tuple:
         return (0 if row["applies_to"] == MALAYSIA else 1, -row["prio"],

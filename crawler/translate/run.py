@@ -244,6 +244,20 @@ def years_marker(hashes: list[str | None]) -> str:
     return hashlib.sha256("|".join(present).encode()).hexdigest()
 
 
+def _stored_strings(db, locale: str, target_type: str, target_key: str) -> dict[str, str]:
+    """The machine row's string map for one target, or nothing."""
+    data = db.scalar(
+        select(ContentTranslation.data).where(
+            ContentTranslation.locale == locale,
+            ContentTranslation.target_type == target_type,
+            ContentTranslation.target_key == target_key,
+            ContentTranslation.field == "content",
+            ContentTranslation.provenance == MACHINE,
+        )
+    )
+    return (data or {}).get("strings") or {}
+
+
 def _up_to_date(
     db, locale: str, target_type: str, target_key: str, source_hash: str, scope: str = ""
 ) -> bool:
@@ -352,12 +366,19 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
         pages.sort(key=lambda page: order.get(page.slug, len(order)))
         for page in pages:
             marker = page.content_hash or ""
+            wanted = page_strings(page)
             if not refresh and marker and _up_to_date(
                 db, locale, OFFICIAL_PAGE, page.slug, marker
             ):
-                summary["skipped"] += 1
-                continue
-            strings = translator.many(page_strings(page))
+                # Up to date except for strings it has never seen - a title the
+                # seed list renamed - which are translated on their own rather
+                # than sending the whole unchanged page to the model again.
+                have = _stored_strings(db, locale, OFFICIAL_PAGE, page.slug)
+                wanted = [s for s in wanted if s not in have]
+                if not wanted:
+                    summary["skipped"] += 1
+                    continue
+            strings = translator.many(wanted)
             store(db, locale=locale, target_type=OFFICIAL_PAGE, target_key=page.slug,
                   strings=strings, source_hash=marker)
             db.commit()
