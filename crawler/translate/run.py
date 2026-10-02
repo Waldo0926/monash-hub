@@ -372,13 +372,18 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
             ):
                 # Up to date except for strings it has never seen - a title the
                 # seed list renamed - which are translated on their own rather
-                # than sending the whole unchanged page to the model again.
+                # than sending the whole unchanged page to the model again. A
+                # title whose campus the model translated itself counts as unseen.
                 have = _stored_strings(db, locale, OFFICIAL_PAGE, page.slug)
-                wanted = [s for s in wanted if s not in have]
+                wanted = [s for s in wanted if s not in have
+                          or (s == page.title and not _campus_title_ok(s, have[s], locale))]
                 if not wanted:
                     summary["skipped"] += 1
                     continue
-            strings = translator.many(wanted)
+            title = page.title if page.title in wanted else None
+            strings = translator.many([s for s in wanted if s != title])
+            if title and (done := translate_title(translator, title, locale)):
+                strings[title] = done
             store(db, locale=locale, target_type=OFFICIAL_PAGE, target_key=page.slug,
                   strings=strings, source_hash=marker)
             db.commit()
@@ -386,6 +391,31 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
             summary["strings"] += len(strings)
             log.info("%s: %d strings", page.slug, len(strings))
     return summary
+
+
+#: The campus a coverage title ends with, and how each language says it. It is
+#: put back by hand, never sent to the model: asked to translate "FAQs for new
+#: international students (Monash Malaysia)", it returned
+#: 常见问题解答（新国际学生（Monash Malaysia（马来西亚校区））学生）.
+CAMPUS_SUFFIX = " (Monash Malaysia)"
+CAMPUS_SUFFIX_ZH = {"zh": "（马来西亚校区）", "ja": "（マレーシア校）", "ko": "(말레이시아 캠퍼스)"}
+
+
+def translate_title(translator: Translator, title: str, locale: str) -> str | None:
+    """A page title, with any campus suffix kept out of the model's hands."""
+    if title.endswith(CAMPUS_SUFFIX) and locale in CAMPUS_SUFFIX_ZH:
+        base = title[: -len(CAMPUS_SUFFIX)]
+        done = translator.many([base]).get(base)
+        return f"{done}{CAMPUS_SUFFIX_ZH[locale]}" if done else None
+    return translator.many([title]).get(title)
+
+
+def _campus_title_ok(title: str, translated: str, locale: str) -> bool:
+    if not title.endswith(CAMPUS_SUFFIX) or locale not in CAMPUS_SUFFIX_ZH:
+        return True
+    suffix = CAMPUS_SUFFIX_ZH[locale]
+    return translated.endswith(suffix) and translated.count("Monash Malaysia") == 0 \
+        and translated.count(suffix) == 1
 
 
 def translate_curriculum(translator: Translator, *, refresh: bool) -> dict:
