@@ -16,6 +16,9 @@ All notable changes to Monash Hub are documented here.
   calls itself: Monash Malaysia's student pass page titles itself "Before You
   Arrive", and "student pass" did not find it. The original title stays in the
   page's version history.
+- Among the pages a query is about, one whose title contains the whole query
+  comes first: "student pass" now leads with Student Pass (Monash Malaysia), not
+  "After Your Studies", which only mentions it.
 - No two guides share a title any more. A heading that says nothing on its own
   ("Eligibility" x5, "WHAT YOU SHOULD KNOW" x4, "IMPORTANT", "FAQs") gets its
   section - "Eligibility - OS-HELP Loans", "What you should know - School of IT

@@ -303,6 +303,7 @@ def test_newly_indexed_topics_are_findable(client, seeded, query, part):
         ("学生准证续签", "malaysia-student-pass"),
         ("马莫学生签证续签", "malaysia-student-pass"),
         ("student pass", "malaysia-student-pass"),
+        ("Student Pass", "malaysia-student-pass"),
         # Both campuses named: they come out of the query and narrow nothing.
         ("转校区 马来西亚 澳洲", "study-options-internal-transfer"),
     ],
@@ -311,6 +312,11 @@ def test_a_campus_in_the_question_finds_that_campuss_page(client, seeded, query,
     body = ask(client, query, "zh")
     assert body["answer_type"] == "official_search"
     assert slug in page_slugs(body)[:3]
+
+
+def test_a_page_titled_with_the_whole_query_comes_first(client, seeded):
+    body = ask(client, "student pass", "en")
+    assert page_slugs(body)[0] == "malaysia-student-pass"
 
 
 def test_a_campus_named_never_brings_the_other_campuss_pages(client, seeded):

@@ -569,10 +569,17 @@ def _search_official(
             if translated_title is not None
             else literal(0)
         )
+        # The whole query in the title: "student pass" is the Student Pass page
+        # before "After Your Studies", which only talks about one.
+        title_phrase = (
+            case((func.lower(OfficialPage.title).contains(term.lower()), 1), else_=0)
+            if len(term) >= 3 else literal(0)
+        )
         stmt = stmt.order_by(
             exact_translation.desc(),
             # A page the query is about beats a page that mentions it.
             case((or_(*strong), 1), else_=0).desc(),
+            title_phrase.desc(),
             func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query).desc(),
             func.ts_rank(OfficialPage.search_vector, ts_query).desc(),
             zh_rank.desc(),
