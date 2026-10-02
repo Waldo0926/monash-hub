@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from crawler.official.coverage import build, category, clean_title
+from crawler.official.coverage import build, category, clean_title, disambiguate
 from crawler.official.scope import ALL, AUSTRALIA, MALAYSIA, scope
 
 AU = "https://www.monash.edu/students/admin"
@@ -110,3 +110,27 @@ def test_titles_and_categories():
     # An undergraduate page is not about graduating.
     assert category("https://www.monash.edu.my/sass/current/undergraduate/faq") == "enrolment"
     assert category("https://www.monash.edu/study-abroad/outbound/exchange") == "exchange"
+
+
+def test_a_title_that_says_nothing_gets_its_section():
+    rows = [
+        {"url": "https://www.monash.edu/study-abroad/outbound/financial/os-help-loans/eligibility",
+         "title": "Eligibility"},
+        {"url": "https://www.monash.edu/study-abroad/outbound/financial/new-colombo-plan"
+                "-scholarship/eligibility", "title": "Eligibility"},
+        {"url": "https://www.monash.edu.my/it/current-students/undergraduates",
+         "title": "IMPORTANT (Monash Malaysia)"},
+        {"url": f"{MY}/student-admin/timetables", "title": "Timetables (Monash Malaysia)"},
+        {"url": "https://www.monash.edu.my/student-services/people/CHIANG",
+         "title": "CHIANG, YONG SHI (Monash Malaysia)"},
+    ]
+    disambiguate(rows, ["Timetables"])
+    titles = [r["title"] for r in rows]
+    assert titles[0] == "Eligibility - OS-HELP Loans"
+    assert titles[1] == "Eligibility - New Colombo Plan Scholarship"
+    # A shouted generic heading is sentence-cased and given its school.
+    assert titles[2] == "Important - School of IT (Monash Malaysia)"
+    # The campus already tells it from Australia's "Timetables".
+    assert titles[3] == "Timetables (Monash Malaysia)"
+    # A name is not a generic heading: left exactly as it is.
+    assert titles[4] == "CHIANG, YONG SHI (Monash Malaysia)"

@@ -346,6 +346,25 @@ def test_a_page_behind_sign_in_is_listed_not_fetched(client, db, engine, monkeyp
     assert seed.slug in {g["slug"] for g in listing["results"]}
 
 
+def test_a_page_is_called_what_the_seed_list_calls_it(db):
+    """Monash Malaysia's student pass page titles itself "Before You Arrive";
+    the seed list's "Student Pass (Monash Malaysia)" is what a reader searches."""
+    from app.knowledge.cleaner import clean_page
+    from app.knowledge.repository import get_or_create_source, record_fetch, upsert_seed_page
+
+    source = get_or_create_source(db, "monash-my", "Monash Malaysia", "https://www.monash.edu.my")
+    url = "https://www.monash.edu.my/student-services/international-students/student-pass"
+    page = upsert_seed_page(db, source=source, slug="malaysia-student-pass", url=url,
+                            title="Student Pass (Monash Malaysia)", category="malaysia",
+                            tags=[], refresh_tier="medium", applies_to="malaysia")
+    cleaned = clean_page("<h1>Before You Arrive</h1><p>Apply through EMGS.</p>", url=url)
+    assert record_fetch(db, page, cleaned, title="Student Pass (Monash Malaysia)") == "new"
+    assert page.title == "Student Pass (Monash Malaysia)"
+    # Unchanged on the next crawl, and renamed later: the seed list still wins.
+    assert record_fetch(db, page, cleaned, title="Student Pass") == "unchanged"
+    assert page.title == "Student Pass"
+
+
 # --- closing an account --------------------------------------------------------
 
 def test_closing_an_account_removes_what_identifies_you(client, db, mailbox):

@@ -23,7 +23,9 @@ from __future__ import annotations
 
 ZH_TERMS: dict[str, tuple[str, ...]] = {
     # --- visas and international students -----------------------------------
-    "学生签证": ("student visa",),
+    # Both campuses' documents: Monash Malaysia students call their Student
+    # Pass 学生签证 too. A campus named in the question picks one.
+    "学生签证": ("student visa", "student pass"),
     "签证": ("visa",),
     # 续签 is only ever said of a visa, so every alternative carries the word:
     # a bare "extension" sent it to the assignment-extension page.

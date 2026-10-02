@@ -81,7 +81,11 @@ def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, loca
     body = ask(client, query, locale)
     assert body["answer_type"] == "official_search"
     slugs = page_slugs(body)
-    assert "student-visa" in slugs
+    # Either campus's document: Malaysia's Student Pass is 学生签证 too, and with
+    # no campus in the question both are fair answers. The Australian renewal
+    # page (visa-extend) is as much on point as the visa overview.
+    visa_pages = {"student-visa", "visa-extend", "malaysia-student-pass"}
+    assert visa_pages & set(slugs[:4])
     assert "add-or-withdraw-units" not in slugs
     assert "special-consideration" not in slugs
 
@@ -297,6 +301,8 @@ def test_newly_indexed_topics_are_findable(client, seeded, query, part):
         ("how do I pay fees at Monash Malaysia", "malaysia-application-form-fee-payment-methods"),
         # Some things only one campus has: a student pass is Malaysia's.
         ("学生准证续签", "malaysia-student-pass"),
+        ("马莫学生签证续签", "malaysia-student-pass"),
+        ("student pass", "malaysia-student-pass"),
         # Both campuses named: they come out of the query and narrow nothing.
         ("转校区 马来西亚 澳洲", "study-options-internal-transfer"),
     ],

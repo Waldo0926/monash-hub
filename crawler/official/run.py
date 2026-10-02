@@ -143,7 +143,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
                 log.error("%s: extraction too short, keeping last valid version", seed.slug)
                 continue
 
-            outcome = record_fetch(db, page, cleaned)
+            outcome = record_fetch(db, page, cleaned, title=seed.title)
             db.commit()
             summary[outcome] += 1
             record(db, job, target_type="official_page", target_key=seed.slug, url=seed.url,

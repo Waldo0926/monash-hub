@@ -700,6 +700,10 @@ _POLISH = (
     (re.compile(r"(\d)\s*[门个]\s*学分"), r"\1 学分"),
     # One pronoun for the reader: structure_zh.py is written in 你.
     (re.compile("您"), "你"),
+    # Malaysia's Student Pass is 学生签证 to the students who hold one; 学生准证
+    # is the official Chinese nobody on campus says. (特别准证, the Special Pass,
+    # is a different document and keeps its name.)
+    (re.compile("学生准证"), "学生签证"),
     # "discipline" is conduct to the model. In a Handbook it is an academic
     # field ("disciplinary approaches") or a quality of work ("a disciplined
     # process"); the conduct senses - 纪律委员会, 纪律处分 - are left alone.

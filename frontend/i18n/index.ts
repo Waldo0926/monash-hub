@@ -1028,7 +1028,7 @@ const zh: Messages = {
   'tree.truncated': '图已截断——调小层数可以看全。',
   'tree.figureLabel': '{code} 的先修关系图',
   'campus.australia.label': '澳大利亚',
-  'campus.australia.body': '本页取自 monash.edu，即 Monash 澳大利亚校区的学生网站。马来西亚校区的规定可能不同——在马来西亚，学生准证（Student Pass）由移民局通过 EMGS 签发，与澳大利亚的学生签证不是一回事。马来西亚校区请以 monash.edu.my 为准。',
+  'campus.australia.body': '本页取自 monash.edu，即 Monash 澳大利亚校区的学生网站。马来西亚校区的规定可能不同——在马来西亚，学生签证（Student Pass）由移民局通过 EMGS 签发，与澳大利亚的学生签证不是一回事。马来西亚校区请以 monash.edu.my 为准。',
   'campus.malaysia.label': '马来西亚',
   'campus.malaysia.body': '本页取自 monash.edu.my，即 Monash 马来西亚校区的学生网站。',
   'campus.all.label': '全部校区',
