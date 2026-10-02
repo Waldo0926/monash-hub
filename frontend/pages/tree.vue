@@ -21,7 +21,11 @@ const route = useRoute()
 const router = useRouter()
 const { $t } = useNuxtApp()
 
-const code = ref(String(route.query.unit || 'FIT2004').toUpperCase())
+// The graph opens on a unit in both the 2026 and 2027 Handbooks, taught at
+// Malaysia, with prerequisites to walk back through and plenty it unlocks. It
+// used to be FIT2004, which the 2027 Handbook dropped, so the page opened on an error.
+const DEFAULT_UNIT = 'FIT2086'
+const code = ref(String(route.query.unit || DEFAULT_UNIT).toUpperCase())
 const direction = ref(String(route.query.direction || 'upstream'))
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
 const depth = ref(Number(route.query.depth || 3))

@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (the course planner checks each unit against the Handbook of the year it is placed in)
+
+- The planner checked a whole plan against the current Handbook. Once the site
+  moved to 2027, a plan with FIT1058 and FIT1043 in 2026 second semester -
+  exactly what Monash taught in 2026 - reported FIT1058 as "not in this
+  Handbook year" (it is gone from 2027) and FIT1043 as not taught that
+  semester (2027 runs it in first semester only). Each unit is now read from
+  the Handbook of its calendar year; a year with none loaded uses the latest
+  one before it (2028 reads 2027) or the earliest loaded. The response lists
+  which Handbook each year was checked against, and "not in the Handbook" now
+  names the year.
+- The prerequisite graph opens on FIT2086 (in both the 2026 and 2027
+  Handbooks, taught at Malaysia, 10 units upstream and 57 downstream) instead
+  of FIT2004, which the 2027 Handbook dropped. The unit-code examples in the
+  placeholders and error messages follow.
 ### Fixed (deploys failed on a moved official page)
 
 - Monash moved "Travel health, safety and security" from

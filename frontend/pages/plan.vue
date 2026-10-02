@@ -86,11 +86,10 @@ async function check() {
   try {
     report.value = await apiFetch<any>('/v1/plan/check', {
       method: 'POST',
-      // No Handbook year: the plan's calendar years say *when* a unit is
-      // taken, not which Handbook describes it. Sending the start year asked
-      // for the 2025 Handbook for a plan starting in 2025 - which is not
-      // loaded - and every unit came back "not offered that year". The API
-      // checks against the current Handbook.
+      // No Handbook year: the API checks each unit against the Handbook of
+      // the calendar year it is placed in, or the nearest loaded one when that
+      // year's is not (a plan starting in 2025 reads 2026). Sending a start
+      // year here used to force one Handbook onto the whole plan.
       body: {
         campus: plan.value.campus,
         entries: plan.value.entries
@@ -162,7 +161,7 @@ function issueText(issue: any): string {
   const d = issue.detail || {}
   switch (issue.kind) {
     case 'not_in_year':
-      return $t('plan.issue.notInYear')
+      return $t('plan.issue.notInYear', { year: d.handbook_year ?? '' })
     case 'not_offered_at_campus':
       return $t('plan.issue.notHere', {
         campus: d.campus,
