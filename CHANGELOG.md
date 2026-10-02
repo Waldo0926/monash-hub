@@ -4,6 +4,16 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (translation: a content-filter refusal no longer stops the pass)
+
+- Zhipu answers a sentence its content filter refuses with HTTP 400, code 1301.
+  The LLM engine treated that like an outage - four retries, then a count
+  toward "eight failures in a row, stop the run" - so a handful of sentences
+  on one sexual-health page ended the official-pages pass twice and left the
+  fifteen pages after it untranslated. A refusal now fails that sentence once
+  (it stays in English) and the run goes on; other 400s are still retried.
+  中文：智谱内容审核拒绝某句时，只让这一句保留英文，不再连带中止整轮翻译。
+
 ### Added (choose the Handbook year, like handbook.monash.edu)
 
 - Students still studying commenced in 2025 or 2026, and a unit's rules,

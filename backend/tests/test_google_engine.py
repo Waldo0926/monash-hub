@@ -129,6 +129,33 @@ def test_a_refused_key_stops_the_run():
         llm([err])("hello")
 
 
+def refused():
+    body = json.dumps({"contentFilter": [{"level": 2, "role": "assistant"}],
+                       "error": {"code": "1301", "message": "敏感内容"}}).encode()
+    return urllib.error.HTTPError("u", 400, "Bad Request", {}, io.BytesIO(body))
+
+
+def test_a_content_filter_refusal_fails_the_string_once_and_never_stops_the_run():
+    """Zhipu refuses some sexual-health and political sentences. Each refusal is
+    that string's failure: no retries, and however many arrive in a row the run
+    carries on - they once stopped a pass with fifteen pages left."""
+    from crawler.translate.llm import ContentRefused, LLMModel
+
+    opener = Opener([refused() for _ in range(20)] + [chat("你好")])
+    model = LLMModel("zh", url="http://x/v4", key="K", model="m", opener=opener,
+                     sleep=lambda _s: None)
+    for _ in range(20):
+        with pytest.raises(ContentRefused):
+            model("a sentence")
+    assert opener.calls == 20  # one request each, no retries
+    assert model("hello") == "你好"
+
+
+def test_a_plain_bad_request_is_still_retried():
+    plain = urllib.error.HTTPError("u", 400, "Bad Request", {}, io.BytesIO(b'{"error":"x"}'))
+    assert llm([plain, chat("你好")])("hello") == "你好"
+
+
 def test_the_prompt_forbids_prefaces_and_keeps_placeholders():
     from crawler.translate.llm import SYSTEM
 
