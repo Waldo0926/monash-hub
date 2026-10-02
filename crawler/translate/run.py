@@ -22,6 +22,7 @@ since it was last translated is skipped.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import logging
 import time
 
@@ -203,13 +204,44 @@ def store(db, *, locale: str, target_type: str, target_key: str,
     widest = scope
     if (row.note or "") == "fields=all" or scope == "fields=all":
         widest = "fields=all"
-    # The source hash is the unit's own, unchanged: `load_many` compares it
-    # against the current one to decide whether to warn that the English has
-    # moved on. Anything appended here would make every translation look stale.
+    # The source hash is what the caller passed: a unit's own hash, or for a
+    # unit in several Handbook years the digest from `years_marker`. `load_many`
+    # only warns "may be out of date" for whole-field translations (`text`), so
+    # a string-map row like this one is never flagged by it.
     row.source_hash = source_hash
     row.status = PUBLISHED
     row.translator = TRANSLATOR_NAME
     row.note = widest or None
+
+
+def _stored_strings(db, locale: str, target_type: str, target_key: str) -> dict[str, str]:
+    """The machine string map already stored for one target, to prime the translator."""
+    data = db.scalar(
+        select(ContentTranslation.data).where(
+            ContentTranslation.locale == locale,
+            ContentTranslation.target_type == target_type,
+            ContentTranslation.target_key == target_key,
+            ContentTranslation.field == "content",
+            ContentTranslation.provenance == MACHINE,
+        )
+    )
+    return dict((data or {}).get("strings") or {})
+
+
+def years_marker(hashes: list[str | None]) -> str:
+    """What a unit's translation is stamped with: its English in every Handbook year.
+
+    One year: that year's content hash, as before. Several: a digest of all of
+    them, newest first. Stamping only the newest year meant a code already done
+    for 2026 and 2027 was skipped when the 2025 Handbook was loaded, and every
+    sentence 2025 worded differently stayed English. A string-map row is never
+    flagged stale on read (only a whole-field translation is), so a digest here
+    changes nothing a reader sees.
+    """
+    present = [h or "" for h in hashes]
+    if len(present) == 1:
+        return present[0]
+    return hashlib.sha256("|".join(present).encode()).hexdigest()
 
 
 def _up_to_date(
@@ -287,17 +319,18 @@ def translate_units(
             ).all()
             if not rows:
                 continue
-            unit = rows[0]
+            marker = years_marker([row.content_hash for row in rows])
             scope = "fields=all" if long_prose else "fields=short"
-            if not refresh and _up_to_date(db, locale, UNIT, code, unit.content_hash, scope):
+            if not refresh and _up_to_date(db, locale, UNIT, code, marker, scope):
                 summary["skipped"] += 1
                 continue
 
+            translator.prime(_stored_strings(db, locale, UNIT, code))
             strings = translator.many(
                 text for row in rows for text in unit_strings(row, long_prose=long_prose)
             )
             store(db, locale=locale, target_type=UNIT, target_key=code,
-                  strings=strings, source_hash=unit.content_hash, scope=scope)
+                  strings=strings, source_hash=marker, scope=scope)
             db.commit()
             summary["translated"] += 1
             summary["strings"] += len(strings)
@@ -368,6 +401,10 @@ def translate_curriculum(translator: Translator, *, refresh: bool) -> dict:
                         .order_by(CurriculumContainer.id)
                     )
                 )
+                # Each Handbook year is its own row here and they share one stored
+                # map, so the years take turns looking out of date. Priming keeps
+                # that from costing a model call per sentence every run.
+                translator.prime(_stored_strings(db, locale, target_type, key))
                 strings = translator.many(collect(row, containers))
                 store(db, locale=locale, target_type=target_type, target_key=key,
                       strings=strings, source_hash=marker)
