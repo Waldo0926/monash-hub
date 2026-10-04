@@ -6,9 +6,13 @@ All notable changes to Monash Hub are documented here.
 
 ### Fixed (Chinese degree structure that was still English)
 
-- The rules and notes of B2026 (and the double degrees that include it) were
-  shown in English in the 2027 Handbook: 33 stock paragraphs had no wording.
-  They are now in the reviewed structure table.
+- Every degree and area of study in the 2026 and 2027 Handbooks was checked
+  against the live Chinese pages. 174 rule paragraphs, notes and part titles
+  (B2026 and its double degrees, Peninsula business degrees, accounting
+  accreditation notes, computer science parts, nursing and health units,
+  earth science options and the shared "Core units" / "Capstone units" style
+  headings) had no wording and showed in English. They are now in the
+  reviewed structure table.
 - A unit listed in a degree or area of study whose item had no translation of
   its own now uses the translated title of the unit itself, so a new Handbook
   year no longer lists every unit in English beside a Chinese unit page.
