@@ -37,12 +37,16 @@
   --ink: #0c1b2a;
   --ink-700: #00507f;
 
-  /* A deep navy that sits with the ink above. It still reads as a footer, but
-     feels like part of Monash Hub instead of a separate black slab. */
-  --footer-bg: #0b2236;
-  --footer-text: #d3e1ee;
-  --footer-heading: #ffffff;
-  --footer-accent: #6cb8e6;
+  /* The footer is a light surface with a rule above it, like every other
+     surface on the site. It was deep navy, the only dark block anywhere, and on
+     a short page it was as tall as the content and outweighed it. */
+  --footer-bg: var(--surface-2);
+  --footer-border: var(--border);
+  --footer-text: var(--muted);
+  --footer-heading: var(--text);
+  --footer-link: var(--text);
+  --footer-link-hover: var(--brand);
+  --footer-accent: var(--brand);
 
   /* Surfaces. The greys lean slightly toward the brand blue rather than
      Tailwind's slate scale, which is where they used to come from. */

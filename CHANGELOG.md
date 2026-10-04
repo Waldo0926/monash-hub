@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (light footer)
+
+- The footer is a light grey surface with a rule above it instead of a deep
+  navy block. It was the only dark surface on the site, and on a short page it
+  was as tall as the content and outweighed it. Text, headings and links use
+  the page's own ink and muted colours, links turn brand blue on hover, and the
+  WeChat line keeps its accent bar in brand blue. The disclaimer is unchanged.
+  The logo's `onDeep` tone, which only the dark footer used, is gone.
+
 ### Added (`/ask` names the guide page of an FAQ answer)
 
 - An `official_faq` answer now carries `page_slug`, the official page the FAQ
