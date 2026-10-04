@@ -144,6 +144,12 @@ def test_official_search_finds_the_seed_page(client, loaded):
     assert body["results"][0]["last_checked"] is not None
 
 
+def test_guide_list_by_slugs_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/guides?slugs=nope,special-consideration").json()
+    assert [g["slug"] for g in body["results"]] == ["special-consideration"]
+    assert body["total"] == 1
+
+
 def test_guides_paginate(client, loaded):
     # The sitemap walks this endpoint a page at a time, so offset has to work.
     first = client.get("/api/v1/guides", params={"limit": 1, "offset": 0}).json()
