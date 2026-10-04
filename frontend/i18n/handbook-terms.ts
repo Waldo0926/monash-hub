@@ -161,7 +161,7 @@ const zhAssessmentType: Dictionary = {
   'Artefact': '作品成果',
   'Portfolio': '作品集',
   'Performance': '表演',
-  'Work integrated': '工作整合式',
+  'Work integrated': '工作实践',
   'Assignment': '作业'
 }
 
