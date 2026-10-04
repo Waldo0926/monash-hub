@@ -81,6 +81,12 @@ def test_unit_search_by_code_and_keyword(client, loaded):
     assert "BFF2140" in {r["unit_code"] for r in by_word["results"]}
 
 
+def test_unit_list_by_codes_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/units?codes=bff2140,FIT2102,XYZ9999,FIT2102").json()
+    assert [u["unit_code"] for u in body["results"]] == ["BFF2140", "FIT2102"]
+    assert body["total"] == 2
+
+
 def test_unit_filter_by_exam(client, loaded):
     body = client.get("/api/v1/units", params={"has_exam": "false"}).json()
     codes = {r["unit_code"] for r in body["results"]}

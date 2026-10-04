@@ -15,8 +15,9 @@
  *
  * `tone` picks how it sits on its background:
  *
- * - `onDark` for the blue header, where the tile is a lift of white and the
- *   blue underneath it is the header's own.
+ * - `onDark` on a brand-blue surface, where the tile is a lift of white and
+ *   the blue underneath it is the surface's own. (The header used to be one;
+ *   it is white now and uses `onLight`.)
  * - `onLight` anywhere the page is white.
  * - `onDeep` on the deep-navy footer. It draws the same solid brand tile as
  *   `onLight`, and it exists under its own name because "onLight" on a dark

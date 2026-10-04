@@ -47,16 +47,16 @@ function onChange(event: Event) {
 .select {
   min-height: 36px;
   padding: 0 var(--s2);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text-inverse);
+  color: var(--text);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
 }
-/* The popup list is drawn by the platform, so its options need readable
-   colours of their own rather than inheriting the dark header. */
+/* The popup list is drawn by the platform, so its options get readable
+   colours of their own rather than inheriting whatever the header uses. */
 .select option { background: var(--surface); color: var(--text); }
-.select:hover { border-color: rgba(255, 255, 255, 0.6); }
+.select:hover { border-color: var(--text); }
 </style>
