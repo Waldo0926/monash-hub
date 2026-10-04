@@ -91,6 +91,7 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
           :units="aos.units"
           :campus="campus"
           :depth="0"
+          :year="aos.academic_year"
         />
       </section>
 

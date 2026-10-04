@@ -16,6 +16,8 @@ const props = defineProps<{
   campus: string
   depth: number
   open?: boolean
+  /** The Handbook year this structure is from, named in the "not listed" tag. */
+  year: number
 }>()
 const emit = defineEmits<{ toggle: [id: number] }>()
 const { $t } = useNuxtApp()
@@ -79,7 +81,7 @@ function away(code: string) {
               <span v-if="fact(item.code).periods?.length" class="periods">
                 {{ fact(item.code).periods.join('·') }}
               </span>
-              <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notThisYear') }}</span>
+              <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notInYear', { year }) }}</span>
               <span v-else-if="away(item.code)" class="tag tag--away">✕ {{ campus }}</span>
             </span>
           </NuxtLink>
@@ -107,6 +109,7 @@ function away(code: string) {
         :units="units"
         :campus="campus"
         :depth="depth + 1"
+        :year="year"
       />
 
       <p v-if="node.footnote" class="note note--foot">{{ node.footnote }}</p>

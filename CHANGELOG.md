@@ -12,6 +12,12 @@ All notable changes to Monash Hub are documented here.
   title now comes from the same code in the nearest other Handbook year (newer
   first on a tie), with that year's reviewed Chinese. Nothing else is borrowed:
   credit points, offerings and campus availability still say "not offered".
+- "Not in this year" / 本年度未开设 named no year, and while 2026 is running a
+  reader of the 2027 Handbook could take it to mean the unit is gone now. The tag
+  on degree and area-of-study lines and the missing-unit wording in the unit tree
+  now name the Handbook year ("Not in the 2027 Handbook" / 2027 Handbook 未列出),
+  and say "not listed" rather than "not offered": the Handbook not listing a unit
+  can also mean it was renumbered.
 
 ### Fixed (Chinese degree structure that was still English)
 
