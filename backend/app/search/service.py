@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 
-from sqlalchemy import and_, case, func, literal, literal_column, or_, select, text
+from sqlalchemy import Integer, and_, case, cast, func, literal, literal_column, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
@@ -512,6 +513,18 @@ HEADLINE_WEIGHTS = literal_column("ARRAY[0, 0, 1, 1]::float4[]")
 TITLE_SIMILARITY = 0.3
 
 
+_YEAR_IN_TITLE = r"((?:19|20)[0-9]{2})"
+
+
+def _past_year_title():
+    """1 for a page whose title names a year before this one ("Principal dates 2023"), else 0."""
+    year = func.substring(OfficialPage.title, _YEAR_IN_TITLE)
+    return case(
+        (and_(year.isnot(None), cast(year, Integer) < date.today().year), 1),
+        else_=0,
+    )
+
+
 def _search_official(
     db: Session, query: str, *, limit: int = 10, offset: int = 0, category: str | None = None,
     strict: bool = True, strong_only: bool = False, campus: str | None = None,
@@ -585,7 +598,16 @@ def _search_official(
             exact_translation.desc(),
             # A page the query is about beats a page that mentions it.
             case((or_(*strong), 1), else_=0).desc(),
+            # Then this year's pages before ones a past year names in their title:
+            # 考试时间表 led with "Principal dates for Monash University Malaysia (2022)".
+            _past_year_title().asc(),
             title_phrase.desc(),
+            # Then the pages someone tagged with what was asked. Among the "about it"
+            # pages a curated tag is the surest signal: 转专业 is a tag on the internal
+            # course transfer pages, and without this a pharmacy page whose summary
+            # happened to say "course" came first; 心理咨询 put one counsellor's
+            # profile above the counselling service.
+            case((tag_hit, 1), else_=0).desc(),
             func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query).desc(),
             func.ts_rank(OfficialPage.search_vector, ts_query).desc(),
             zh_rank.desc(),

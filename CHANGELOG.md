@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (official-page search order: tags and past years)
+
+- Among the pages a query is *about*, the order was decided by text rank, so a
+  page that merely said the words in its summary could beat the page curated
+  for them: 转专业 led with "Current Students - Pharmacy" instead of "Internal
+  Course Transfer", 心理咨询 with one counsellor's profile instead of the
+  counselling service. A page whose curated tag the query names now comes next
+  after the title match. Pages whose title names a past year ("Principal dates
+  (2022)") go after current ones, so 考试时间表 no longer opens on the 2022
+  calendar. Checked read-only against the live index on 30 common queries:
+  挂科, 抄袭, 学生准证, 医保, 退课 and 选课 also lead with the page for them now;
+  none got worse.
+
 ### Added (faculty teach-out notices for closing units)
 
 - The Faculty of IT's table of closing, renamed and changing units and the
