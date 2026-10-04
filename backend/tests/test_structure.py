@@ -224,3 +224,9 @@ def test_assessment_names_use_the_string_table_but_numbered_labels_are_left_to_t
     assert _assessment_name("Analytical exercise", tr) == "分析练习"
     assert _assessment_name("1 - Written", tr) == "1 - Written"
     assert _assessment_name(None, tr) is None
+
+
+def test_names_found_untranslated_on_the_degree_pages_have_wording():
+    for english in ("Artificial intelligence", "Strategic marketing", "Business environment",
+                    "Arts study abroad"):
+        assert STRUCTURE_ZH[english], english

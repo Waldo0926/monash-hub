@@ -51,6 +51,7 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
     <ErrorState v-if="error" :error="error" />
     <template v-else-if="aos">
       <YearNotice v-if="aos.not_in_year" :code="aos.aos_code" :year="aos.academic_year" :missing="aos.not_in_year" />
+      <IntakeYearNotice :year="aos.academic_year" :closed="Object.values(aos.units || {}).some((u: any) => !u.in_year)" />
       <header class="head">
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ aos.title }}</h1>
