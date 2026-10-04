@@ -16,6 +16,8 @@ const props = defineProps<{
   campus: string
   depth: number
   open?: boolean
+  /** The Handbook year this structure is from, named in the "not listed" tag. */
+  year: number
 }>()
 const emit = defineEmits<{ toggle: [id: number] }>()
 const { $t } = useNuxtApp()
@@ -72,18 +74,29 @@ function away(code: string) {
 
       <ul v-if="node.items?.length" class="items">
         <li v-for="item in node.items" :key="item.code" :class="{ away: away(item.code) }">
-          <NuxtLink v-if="item.type === 'unit'" class="item" :to="withYear(`/units/${item.code}`)">
+          <!-- A unit the year does not list is opened without ?year=: a year in the
+               address is strict, and the unit page falls back to the latest year
+               that has it and says so. -->
+          <NuxtLink
+            v-if="item.type === 'unit'"
+            class="item"
+            :to="fact(item.code).in_year ? withYear(`/units/${item.code}`) : `/units/${item.code}`"
+          >
             <span class="code">{{ item.code }}</span>
             <span class="name">{{ fact(item.code).title || item.name }}</span>
             <span class="meta">
               <span v-if="fact(item.code).periods?.length" class="periods">
                 {{ fact(item.code).periods.join('·') }}
               </span>
-              <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notThisYear') }}</span>
+              <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notInYear', { year }) }}</span>
               <span v-else-if="away(item.code)" class="tag tag--away">✕ {{ campus }}</span>
             </span>
           </NuxtLink>
-          <NuxtLink v-else class="item item--aos" :to="withYear(`/courses/aos/${item.code}`)">
+          <span v-if="item.type === 'unit' && !fact(item.code).in_year && fact(item.code).years?.length" class="years">
+            {{ $t('courses.openIn') }}
+            <NuxtLink v-for="y in fact(item.code).years" :key="y" :to="`/units/${item.code}?year=${y}`">{{ y }}</NuxtLink>
+          </span>
+          <NuxtLink v-if="item.type !== 'unit'" class="item item--aos" :to="withYear(`/courses/aos/${item.code}`)">
             <span class="code">{{ item.code }}</span>
             <span class="name">{{ item.name }}</span>
             <span class="meta">
@@ -107,6 +120,7 @@ function away(code: string) {
         :units="units"
         :campus="campus"
         :depth="depth + 1"
+        :year="year"
       />
 
       <p v-if="node.footnote" class="note note--foot">{{ node.footnote }}</p>
@@ -159,6 +173,9 @@ function away(code: string) {
 .tag { background: var(--surface-2); border-radius: var(--radius-pill); padding: 1px var(--s2); }
 .item--aos .tag { background: var(--badge-community-bg); color: var(--badge-community); }
 .tag--away { background: var(--warning-bg); color: var(--warning); }
+.years { display: flex; gap: var(--s2); align-items: center; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.years a { padding: 1px var(--s2); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); color: var(--text); }
+.years a:hover { border-color: var(--text); text-decoration: none; }
 .tag--gone { background: var(--danger-bg); color: var(--danger); }
 .tree {
   color: var(--muted); text-decoration: none; padding: 0 var(--s2);

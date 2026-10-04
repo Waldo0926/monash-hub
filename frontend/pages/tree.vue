@@ -33,6 +33,9 @@ const draft = ref(code.value)
 // Null is the newest Handbook that lists the unit; a year reads that Handbook.
 // A ref like the other controls, written to the URL by the same watcher below.
 const year = ref<number | null>(Number(route.query.year) || null)
+// The Handbook year the graph on screen was read from, named wherever a node is
+// reported missing: "this year" is whichever year the reader has in mind.
+const shownYear = computed(() => data.value?.academic_year ?? year.value ?? '')
 
 const query = computed(() => {
   const params = new URLSearchParams({ direction: direction.value, depth: String(depth.value) })
@@ -297,7 +300,7 @@ function hue(prefix: string): number {
             <svg class="line line--dash" viewBox="0 0 40 8"><path d="M0 4 H40" /></svg>{{ $t('tree.keyCoreq') }}
           </p>
           <p class="key"><span class="swatch swatch--away" />{{ $t('tree.keyAway', { campus: campusLabel || '—' }) }}</p>
-          <p class="key"><span class="swatch swatch--gone" />{{ $t('tree.keyGone') }}</p>
+          <p class="key"><span class="swatch swatch--gone" />{{ $t('tree.keyGone', { year: shownYear }) }}</p>
         </section>
       </aside>
 
@@ -376,7 +379,7 @@ function hue(prefix: string): number {
                 <text class="code" x="16" y="22">{{ node.unit_code }}</text>
                 <text class="period" :x="CARD_W - 12" y="22">{{ node.periods.join('·') }}</text>
                 <text class="name" x="16" y="40">
-                  {{ clip(node.title || $t('tree.notPublished')) }}
+                  {{ clip(node.title || $t('tree.notPublished', { year: shownYear })) }}
                 </text>
                 <text
                   v-if="campus && node.in_year && !node.offered_at_campus"
@@ -393,10 +396,10 @@ function hue(prefix: string): number {
       <aside v-if="detail" class="panel card">
         <button class="close" type="button" :aria-label="$t('tree.close')" @click="selected = null">×</button>
         <h2>{{ detail.unit_code }}</h2>
-        <p class="panel-title">{{ detail.title || $t('tree.notPublished') }}</p>
-        <p v-if="!detail.in_year" class="warn">{{ $t('tree.goneBody') }}</p>
+        <p class="panel-title">{{ detail.title || $t('tree.notPublished', { year: shownYear }) }}</p>
+        <p v-if="!detail.in_year" class="warn">{{ $t('tree.goneBody', { year: shownYear }) }}</p>
         <p v-else-if="campus && !detail.offered_at_campus" class="warn">
-          {{ $t('tree.awayBody', { campus: campusLabel }) }}
+          {{ $t('tree.awayBody', { campus: campusLabel, year: shownYear }) }}
         </p>
         <p v-if="detail.periods.length" class="meta">
           {{ $t('tree.periods') }}: {{ detail.periods.join(' · ') }}

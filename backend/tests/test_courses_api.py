@@ -191,3 +191,23 @@ def test_the_flag_reaches_the_planner(client, degrees):
     assert part_e["free_elective"] is True
     part_a = next(c for c in body["containers"] if "Foundation" in (c["title"] or ""))
     assert part_a["free_elective"] is False
+
+
+def test_a_unit_missing_from_the_year_keeps_its_name_from_another_year(client, degrees):
+    """The degree still lists FIT1049; only the 2025 Handbook has it, with a title.
+
+    It stays "not in this year", but the line is no longer the bare English the
+    degree page printed - that is what left ~139 lines of a degree untranslated
+    after the Handbook moved on.
+    """
+    unit = Unit(
+        unit_code="FIT1049", academic_year=2025, title="Introduction to IT", credit_points=6,
+        source_url="https://handbook.monash.edu/2025/units/FIT1049", content_hash="h-1049",
+    )
+    degrees.add(unit)
+    degrees.commit()
+    fact = client.get("/api/v1/courses/C2001").json()["units"]["FIT1049"]
+    assert fact["in_year"] is False
+    assert fact["title"] == "Introduction to IT"
+    # The page offers to open it in the years that do have it.
+    assert fact["years"] == [2025]

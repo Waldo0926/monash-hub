@@ -4,6 +4,25 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (degree lines for units the year no longer lists keep their name)
+
+- A degree that still names a unit the Handbook has dropped (or not yet added)
+  showed that line in the English the degree page printed, e.g. ENG1005 and
+  BEX3730 under a 2027 degree. The line stays tagged "not in this year", but its
+  title now comes from the same code in the nearest other Handbook year (newer
+  first on a tie), with that year's reviewed Chinese. Nothing else is borrowed:
+  credit points, offerings and campus availability still say "not offered".
+- "Not in this year" / 本年度未开设 named no year, and while 2026 is running a
+  reader of the 2027 Handbook could take it to mean the unit is gone now. The tag
+  on degree and area-of-study lines and the missing-unit wording in the unit tree
+  now name the Handbook year ("Not in the 2027 Handbook" / 2027 Handbook 未列出),
+  and say "not listed" rather than "not offered": the Handbook not listing a unit
+  can also mean it was renumbered.
+- A degree line for a unit the year does not list now offers the years that do:
+  "Open in 2026 · 2025" beside it, each opening the unit in that Handbook. The
+  line itself opens the latest year that has the unit (a year in the address is
+  strict and would 404).
+
 ### Fixed (Chinese degree structure that was still English)
 
 - Every degree and area of study in the 2026 and 2027 Handbooks was checked

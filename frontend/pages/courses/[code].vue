@@ -119,6 +119,7 @@ useSeoMeta({
           :units="course.units"
           :campus="campus"
           :depth="0"
+          :year="course.academic_year"
           :open="isOpen(node.id, 0)"
           @toggle="toggle"
         />
