@@ -167,3 +167,60 @@ def test_a_person_still_beats_curated_wording():
                             key=lambda r: rank[r.provenance]):
         _apply(translation, candidate)
     assert translation.string("Minor") == "辅修"
+
+
+def test_a_unit_item_without_its_own_translation_takes_the_unit_title():
+    from app.api.v1.courses import _name_units
+
+    containers = [{
+        "items": [
+            {"code": "ACW1020", "type": "unit", "name": "Accounting in business",
+             "name_translated": False},
+            {"code": "BFW1001", "type": "unit", "name": "金融学基础", "name_translated": True},
+            {"code": "A1", "type": "major", "name": "Accountancy", "name_translated": False},
+        ],
+        "containers": [],
+    }]
+    units = {"ACW1020": {"title": "商业会计"}, "BFW1001": {"title": "别的"}}
+    _name_units(containers, units)
+    names = [i["name"] for i in containers[0]["items"]]
+    assert names == ["商业会计", "金融学基础", "Accountancy"]
+
+
+def test_the_b2026_rule_paragraphs_have_reviewed_wording():
+    assert STRUCTURE_ZH["You must complete the following units."] == "你必须完成以下课程。"
+    key = next(k for k in STRUCTURE_ZH if k.startswith("In choosing your units, you must ensure"))
+    assert "第 3 级" in STRUCTURE_ZH[key]
+
+
+def test_a_reply_that_echoes_the_prompt_is_not_a_translation():
+    from crawler.translate.llm import acceptable_reply
+
+    assert not acceptable_reply("Next", "GLOSSARY:\n\nTEXT:\nNext")
+    assert acceptable_reply("Next", "下一页")
+
+
+def test_a_stored_prompt_echo_is_not_shown_to_the_reader():
+    from app.knowledge.translations import Translation, _apply
+    from app.models.translation import MACHINE, ContentTranslation
+
+    row = ContentTranslation(
+        locale="zh", target_type="official_page", target_key="hurdles", field="body",
+        provenance=MACHINE, data={"strings": {"Next": "GLOSSARY:\n\nTEXT:\nNext", "Back": "返回"}},
+    )
+    translation = Translation("zh")
+    _apply(translation, row)
+    assert translation.string("Next") == "Next"
+    assert translation.string("Back") == "返回"
+
+
+def test_assessment_names_use_the_string_table_but_numbered_labels_are_left_to_the_page():
+    from app.api.serializers import _assessment_name
+    from app.knowledge.translations import Translation
+
+    tr = Translation("zh")
+    tr.strings["Analytical exercise"] = "分析练习"
+    tr.strings["1 - Written"] = "1 - 书面考核"
+    assert _assessment_name("Analytical exercise", tr) == "分析练习"
+    assert _assessment_name("1 - Written", tr) == "1 - Written"
+    assert _assessment_name(None, tr) is None

@@ -291,6 +291,9 @@ UNIT_TITLES: dict[str, tuple[str, str]] = {
 # about to be replaced is work thrown away.
 
 GUIDE_TITLES: dict[str, str] = {
+    'academic-progress-glossary': '学业进度术语表',
+    'government-support-sa-help': 'SA-HELP 贷款',
+    'connect-m-pass': 'M-Pass（电子学生证）',
     "enrolments": "选课与注册",
     "changing-your-enrolment": "更改你的选课",
     "add-or-withdraw-units": "加选或退选课程",
@@ -9049,6 +9052,191 @@ GUIDE_AUDIT_OVERRIDES["principal-dates"].update({
         "July", "August", "September", "October", "November", "December",
     ), start=1)
 })
+
+
+# Sentences found untranslated on the live guides in the October 2026 audit.
+# Applied with setdefault, so anything reviewed earlier keeps its wording.
+GUIDE_GAP_FIXES: dict[str, dict[str, str]] = {
+    'hurdles': {'Next': '下一页'},
+    'academic-progress-get-support': {
+        'help you prepare your response to an academic progress email (including advising you on the evidence to provide in support of your written response)':
+            '帮助你准备对学业进度邮件的回复（包括就支持书面回复所需提供的证据给你建议）',
+    },
+    'dates-timetables-review': {
+        'Monash Study app':
+            'Monash Study 应用',
+    },
+    'allocate-glossary': {
+        'Below are some examples of unit locations for Caulfield (CA), Parkville (PA), Peninsula (PE), and Malaysia (MA):':
+            '以下是 Caulfield（CA）、Parkville（PA）、Peninsula（PE）和马来西亚校区（MA）课程地点的一些示例：',
+    },
+    'government-support-commonwealth-supported-place': {
+        "From 1 January 2021, you won't be eligible for Commonwealth assistance for your units, if your study load for the previous 12 months was more than:":
+            '自 2021 年 1 月 1 日起，如果你过去 12 个月的学习负荷超过以下标准，你修读的课程将不再有资格获得联邦政府资助：',
+    },
+    'malaysia-enrol-and-re-enrol-enrol-first-time': {
+        'If you find errors contact Monash Malaysia Connect before the census date for that teaching period to avoid any academic and financial penalties.':
+            '如果你发现错误，请在该教学期的 census date（学籍统计日）之前联系 Monash Malaysia Connect，以避免学业和费用方面的处罚。',
+    },
+    'malaysia-frequent-asked-questions-faq-course-enrollm': {
+        'You can enrol into a maximum of only 8 units of non-Arts electives.':
+            '非文学院的选修课程最多只能选 8 门。',
+    },
+    'malaysia-enrolment-faqs': {
+        "The most appropriate person is your school's Program Director and/or Academic mentor. These individuals are best able to provide detailed guidance on the options available - dependent upon the specific course being undertaken, and time of year.":
+            '最合适的人选是你所在学院的项目主任和/或学业导师。他们最了解可选的方案，能根据你所修读的具体学位和所处的时间节点给出详细指导。',
+    },
+    'malaysia-undergraduate-honours-application-informati': {
+        '**Reminder: For those intending to pursue an Honours degree in Psychology, please contact the Psychology Education Management Office at malaysia.psychadmin@monash.edu for further information.':
+            '**提醒：如果你打算攻读心理学荣誉学位，请联系心理学教务管理办公室（malaysia.psychadmin@monash.edu）了解详情。',
+    },
+    'malaysia-course-and-unit-information-mentor-mentee-p': {
+        'New students of October intake 2026':
+            '2026 年 10 月入学的新生',
+        'Academic mentors will be assigned during Week 0 according to your study discipline. Join the Part 2: Getting Started with the School of Science session during the School of Science Orientation to meet your assigned mentor, learn more about the Mentor-Mentee Program, and begin building meaningful connections with the School of Science community.':
+            '学业导师会在第 0 周根据你的学习学科分配。请参加理学院迎新活动中的“第 2 部分：理学院入门”环节，见见分配给你的导师，进一步了解导师计划，并开始与理学院的师生建立有意义的联系。',
+        'Date: 22 October 2026 (Thursday)':
+            '日期：2026 年 10 月 22 日（星期四）',
+        'Venue: LT 5001 (Building 5, Basement)':
+            '地点：LT 5001（5 号楼地下一层）',
+    },
+    'malaysia-current-your-first-semester-pg': {
+        'All students will normally enrol in the following 4 units in their first semester: The following is only a guide of recommended units, student can enrol in alternative units if the student has plan their course map.':
+            '所有学生通常会在第一个学期选修以下 4 门课程。以下只是推荐课程的参考，如果你已规划好自己的课程路线，也可以选修其他课程。',
+    },
+    'malaysia-current-students2-peer-assisted-study-sessi': {
+        'Following are a few notes from participants:':
+            '以下是几位参加者的心得：',
+    },
+    'malaysia-undergraduate-student-forms': {
+        '1.5 + 1.5 Degree Pathway: A2011 Bachelor of Digital Media and Communication (Malaysia) → A2002 Bachelor of Media Communication (Australia)':
+            '1.5 + 1.5 学位路径：A2011 数字媒体与传播学士学位（马来西亚校区）→ A2002 媒体传播学士学位（澳大利亚）',
+        'Upon commencing A2002 at Monash University, Australia, students are required to select a specialisation. The units shown for A2002 are therefore indicative and may vary depending on the specialisation selected.':
+            '在澳大利亚 Monash 大学开始修读 A2002 时，学生需要选择专业方向。因此 A2002 所示的课程仅供参考，可能会因所选专业方向而有所不同。',
+        'CM1 Media specialisation with Screen gateways LINK':
+            'CM1 媒体专业方向（Screen 入门课程）LINK',
+        'CM2 Media specialisation with Public Relations gateways LINK':
+            'CM2 媒体专业方向（公共关系入门课程）LINK',
+        'CM3 Screen specialisation with Media gateways LINK':
+            'CM3 Screen 专业方向（媒体入门课程）LINK',
+        'CM4 Screen specialisation with Public Relations gateways  LINK':
+            'CM4 Screen 专业方向（公共关系入门课程）LINK',
+        'CM5 Public Relations specialisation with Media gateways  LINK':
+            'CM5 公共关系专业方向（媒体入门课程）LINK',
+        'CM6 Public Relations specialisation with Screen gateways  LINK':
+            'CM6 公共关系专业方向（Screen 入门课程）LINK',
+        'Students can choose from the following specialisations:':
+            '学生可以从以下专业方向中选择：',
+        'Reminder: You must decide on your specialisation before commencing your studies in A2011. This is important to ensure that the units you enrol in can be carried forward and aligned with the A2002 course progression when you transfer to Monash Australia.':
+            '提醒：你必须在开始修读 A2011 之前确定专业方向。这很重要，可以确保你所选的课程在转入澳大利亚 Monash 大学时能够顺利承接，并与 A2002 的课程进度保持一致。',
+    },
+    'malaysia-enrol-and-re-enrol-summer-and-winter-semest': {
+        'If you are a Monash Australia student interested to enrol for the above units at Monash University Malaysia, please contact your Faculty directly for course advice and planning.':
+            '如果你是澳大利亚 Monash 的学生，想在马来西亚 Monash 大学修读上述课程，请直接联系你所在的学院，获取选课建议和规划。',
+    },
+    'change-transfer-university': {
+        'Restricted transfer period temporarily increased':
+            '限制转学期临时延长',
+        'From Friday 2 October 2026, the restricted transfer period for overseas students has increased from six months to 12 months of their main course. This temporary change applies until Wednesday 30 June 2027.':
+            '自 2026 年 10 月 2 日（星期五）起，国际学生的限制转学期已从主修学位的前六个月延长至前 12 个月。这一临时调整适用至 2027 年 6 月 30 日（星期三）。',
+        'From Thursday 1 July 2027, the restricted transfer period will return to six months.':
+            '自 2027 年 7 月 1 日（星期四）起，限制转学期将恢复为六个月。',
+        'If you need to transfer to another university or college within the first 12 months of your main course of study, you’ll need to apply for release from the University. You won’t be able to accept an offer at another institution unless your release has been approved.':
+            '如果你需要在主修学位的前 12 个月内转到另一所大学或学院，必须向学校申请解除限制（release）。在解除申请获批之前，你不能接受其他院校的录取。',
+        'transferring after 12 months of studying your main course at Monash, or':
+            '在 Monash 完成主修学位的前 12 个月之后转学，或者',
+    },
+    'government-support-unit-pass-rate': {
+        'Due to legislation, Monash is unable to refund any full fees paid in teaching periods with a census date before 1 January 2024, or apply outstanding fees to a HELP loan.':
+            '根据法律规定，对于 census date（学籍统计日）早于 2024 年 1 月 1 日的教学期，Monash 无法退还已缴纳的全额学费，也无法把未结清的费用转入 HELP 贷款。',
+        'If their special circumstances application was not submitted (with correct documents) and approved before the census date of their next teaching period, they were transferred to a full fee place, and paid full fee upfront for that teaching period (without a HECS HELP or FEE HELP loan).':
+            '如果他们的特殊情况申请没有在下一个教学期的 census date（学籍统计日）之前提交（并附上正确的文件）并获批，就会被转为全额付费名额，并需要在该教学期预先缴纳全额学费（不能使用 HECS HELP 或 FEE HELP 贷款）。',
+    },
+    'independent-study-abroad-acicis': {
+        'Below is a list of programs available to students. Follow the links for more information on the ACICIS website:':
+            '以下是可供学生选择的项目列表。点击链接可在 ACICIS 网站查看更多信息：',
+    },
+    'other-programs-global-consortia-programs': {
+        'Below is a list of programs available to students. Follow the links for more information on the ACICIS website:':
+            '以下是可供学生选择的项目列表。点击链接可在 ACICIS 网站查看更多信息：',
+    },
+    'malaysia-department-of-psychology-intercampus-exchan': {
+        'It is important to understand your course structure and units you are supposed to enrol during the exchange semester (refer to Monash handbook for the unit information).':
+            '你需要了解自己的学位结构，以及在交换学期应当选修的课程（课程信息请参见 Monash Handbook）。',
+        'Here are some guidelines for choosing suitable units for your course:':
+            '以下是为你的学位选择合适课程的一些指引：',
+    },
+    'outbound-global-study-tours': {
+        'Below are the next steps to expect following your application submission.':
+            '提交申请后，接下来的步骤如下。',
+    },
+    'overseas-pre-departure': {
+        'Here are tips on how to be an excellent global ambassador:':
+            '以下是成为优秀全球大使的一些建议：',
+        'Below are some hints to help you combat culture shock if it creeps up on you:':
+            '如果你出现文化冲击，以下提示可以帮你应对：',
+    },
+    'study-in-malaysia-global-intercampus-program': {
+        'Below are the next steps to expect following submission of your application.':
+            '提交申请后，接下来的步骤如下。',
+    },
+    'other-costs-amenities': {
+        'Here are some examples of SSAF-funded activities for 2026:':
+            '以下是 2026 年由 SSAF（学生服务与设施费）资助的部分活动：',
+    },
+    'malaysia-re-enrol': {
+        'Re-enrolment is a process whereby students select and enrol in units for the following academic year. Students who do not complete their studies in 2026 must re-enrol using the Web Enrolment System (WES)':
+            '重新注册是学生为下一学年选择并注册课程的过程。2026 年没有完成学业的学生，必须通过网上选课系统（Web Enrolment System，WES）重新注册。',
+        'The re-enrolment period for 2027 will start from Monday, 12 October to 27 November 2026. You will receive our emails in October/November to remind you to re-enrol. You need to enrol for the entire year (unless applying for intermission).':
+            '2027 年的重新注册期为 2026 年 10 月 12 日（星期一）至 11 月 27 日。我们会在 10 月和 11 月发邮件提醒你重新注册。你需要注册整个学年的课程（申请休学的情况除外）。',
+        'On-time re-enrolment: 12 October - 27 November 2026':
+            '按时重新注册：2026 年 10 月 12 日至 11 月 27 日',
+        'Late re-enrolment via WES: 28 November - 11 December 2026':
+            '通过 WES 逾期重新注册：2026 年 11 月 28 日至 12 月 11 日',
+        'You can still re-enrol but a RM200 late fee will apply. If you do not re-enrol by 11 December 2026 you may lose your place in your course.':
+            '你仍然可以重新注册，但需要缴纳 RM200 的逾期费。如果你没有在 2026 年 12 月 11 日之前重新注册，可能会失去在该学位中的名额。',
+        "After late re-enrolment closes: Friday 11 December 2026 (subject to school's approval)":
+            '逾期重新注册截止之后：2026 年 12 月 11 日（星期五）（需经学院批准）',
+        'If your re-enrolment takes place prior to the release of results it is assumed when you enter your 2027 unit selection that you have met all the prerequisites for your units or course.':
+            '如果你在成绩公布之前重新注册，则默认你在提交 2027 年的选课时，已经满足所选课程或学位的所有先修要求。',
+    },
+    'malaysia-general-webdrives': {
+        'Below is a useful guide for your reference.':
+            '以下指南供你参考。',
+    },
+    'malaysia-its-our-services': {
+        'Below is a useful guide for your reference.':
+            '以下指南供你参考。',
+    },
+    'medical-lets-talk-about-sex': {
+        'penetrative sex: when an object, sex toy or penis is inserted into the vagina or anus':
+            '插入式性行为：指物体、性玩具或阴茎被插入阴道或肛门',
+        'oral sex: sexual pleasure using the mouth, genitals or anus':
+            '口交：用嘴、生殖器或肛门获得性快感',
+        'Specific: Everyone must enthusiastically consent to every single act that is taking place. For example, you might be okay with going to the bedroom to kiss, but that doesn’t mean you consent to having oral sex.':
+            '具体：每个人都必须对正在发生的每一个行为明确且积极地表示同意。例如，你也许愿意去卧室亲吻，但这并不代表你同意口交。',
+        'outercourse: engaging in sexual activities that don’t involve penetration of the vagina or anus':
+            '非插入式性行为：不涉及阴道或肛门插入的性行为',
+    },
+    'malaysia-self-help-resources-scheduling-time': {
+        'Here are some practical things that you can do to help stop procrastinating and become more productive.':
+            '以下是一些实用的做法，可以帮你改掉拖延，提高效率。',
+    },
+    'connect-forms': {
+        'Special consideration Unable to complete an assessment due to exceptional circumstances beyond your control':
+            '特殊考虑（special consideration）：因你无法控制的特殊情况而无法完成某项考核',
+        'Make a stage 3 formal complaint If you couldn’t resolve your issue through a stage 1 or 2 informal complaint':
+            '提出第三阶段正式投诉：如果你无法通过第一或第二阶段的非正式投诉解决问题',
+    },
+    'services-resources': {
+        'Below are some links to University resources and websites that may be of interest to you.':
+            '以下是一些你可能感兴趣的大学资源和网站链接。',
+    },
+}
+
+for _guide_slug, _gap_strings in GUIDE_GAP_FIXES.items():
+    for _english, _chinese in _gap_strings.items():
+        GUIDE_BODIES.setdefault(_guide_slug, {}).setdefault(_english, _chinese)
 
 
 for _guide_slug, _reviewed_strings in GUIDE_AUDIT_OVERRIDES.items():

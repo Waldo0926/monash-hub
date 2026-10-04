@@ -10,6 +10,7 @@ gets English, and that is the intended outcome rather than a degraded one.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from sqlalchemy import or_, select
@@ -211,6 +212,16 @@ def load_many(
     return result
 
 
+# The translator's own prompt scaffolding. A stored "translation" that still
+# carries it ("GLOSSARY:\n\nTEXT:\nNext") is the model echoing its instructions,
+# so the reader gets the English instead.
+_SCAFFOLD = re.compile(r"(?:^|\n)\s*(?:GLOSSARY|TEXT):")
+
+
+def _is_scaffold(source: str, translated: str) -> bool:
+    return bool(_SCAFFOLD.search(translated)) and not _SCAFFOLD.search(source)
+
+
 def _apply(translation: Translation, row: ContentTranslation) -> None:
     # Curated wording is not a checked translation, so it does not set
     # ``reviewed``; to the reader it is still machine work with better words.
@@ -227,6 +238,8 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
             translation.human_fields.discard(row.field)
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
+            if _is_scaffold(source, translated):
+                continue
             translation.strings[source.strip()] = translated
             # "Wins over a machine rendering of the whole field it sits in" is
             # what this set means, and curated wording earns that too.
