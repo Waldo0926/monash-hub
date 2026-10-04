@@ -378,6 +378,9 @@ def _faq_answer(db: Session, entry, locale: str | None) -> dict[str, Any]:
     return {
         "answer_type": "official_faq",
         "faq_slug": entry.slug,
+        # The official page the answer comes from. Its guide page shows this FAQ
+        # with the full page, so a client outside the site can link the reader there.
+        "page_slug": page.slug if page else None,
         "title": tr.field("question", entry.question) or entry.question,
         "blocks": [{"type": "text", "title": None,
                     "text": tr.field("answer", entry.answer) or entry.answer}],

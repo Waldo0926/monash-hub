@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (`/ask` names the guide page of an FAQ answer)
+
+- An `official_faq` answer now carries `page_slug`, the official page the FAQ
+  comes from. That page's guide (`/guides/{slug}`) shows the FAQ with the
+  whole page, so a client outside the site, such as the WeChat bot, can send
+  the reader there instead of only to the English original. `null` when the
+  FAQ has no indexed page.
+
 ### Fixed (official-page search order: tags and past years)
 
 - Among the pages a query is *about*, the order was decided by text rank, so a

@@ -211,6 +211,14 @@ def test_a_unit_named_in_a_policy_question_does_not_hide_the_policy(client, seed
     assert {"type": "link", "to": "/units/FIT2102", "label": "FIT2102"} in body["blocks"]
 
 
+def test_an_faq_answer_names_its_official_page(client, seeded):
+    body = ask(client, "怎么退课", "zh")
+    assert body["answer_type"] == "official_faq"
+    seed = next(f for f in FAQ_SEEDS if f.slug == body["faq_slug"])
+    assert body["page_slug"] == seed.page_slug
+    assert client.get(f"/api/v1/guides/{body['page_slug']}").status_code == 200
+
+
 def test_a_code_that_does_not_exist_says_so(client, seeded):
     body = ask(client, "FIT9999 有考试吗")
     assert body["answer_type"] == "unit_not_found"
