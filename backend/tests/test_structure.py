@@ -191,3 +191,24 @@ def test_the_b2026_rule_paragraphs_have_reviewed_wording():
     assert STRUCTURE_ZH["You must complete the following units."] == "你必须完成以下课程。"
     key = next(k for k in STRUCTURE_ZH if k.startswith("In choosing your units, you must ensure"))
     assert "第 3 级" in STRUCTURE_ZH[key]
+
+
+def test_a_reply_that_echoes_the_prompt_is_not_a_translation():
+    from crawler.translate.llm import acceptable_reply
+
+    assert not acceptable_reply("Next", "GLOSSARY:\n\nTEXT:\nNext")
+    assert acceptable_reply("Next", "下一页")
+
+
+def test_a_stored_prompt_echo_is_not_shown_to_the_reader():
+    from app.knowledge.translations import Translation, _apply
+    from app.models.translation import MACHINE, ContentTranslation
+
+    row = ContentTranslation(
+        locale="zh", target_type="official_page", target_key="hurdles", field="body",
+        provenance=MACHINE, data={"strings": {"Next": "GLOSSARY:\n\nTEXT:\nNext", "Back": "返回"}},
+    )
+    translation = Translation("zh")
+    _apply(translation, row)
+    assert translation.string("Next") == "Next"
+    assert translation.string("Back") == "返回"

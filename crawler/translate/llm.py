@@ -59,6 +59,11 @@ SYSTEM = (
 
 _PREFACE = re.compile(r"^\s*(?:以下是|翻译如下|译文[:：]|翻译[:：]|Here is|Translation:)")
 
+# The prompt's own scaffolding. A one-word source such as "Next" sometimes comes
+# back as the whole prompt, "GLOSSARY:\n\nTEXT:\nNext", and that is not a
+# translation of anything.
+_SCAFFOLD = re.compile(r"(?:^|\n)\s*(?:GLOSSARY|TEXT):")
+
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 _CODE = re.compile(r"\b[A-Z]{2,4}\d{3,4}\b")
@@ -98,6 +103,8 @@ def acceptable_reply(source: str, reply: str) -> bool:
     if not reply or not reply.strip():
         return False
     if _PREFACE.match(reply):
+        return False
+    if _SCAFFOLD.search(reply) and not _SCAFFOLD.search(source):
         return False
     # Chinese is shorter than English; a reply many times longer than the source
     # is the model talking, not translating.
