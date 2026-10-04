@@ -225,6 +225,20 @@ SEEDS: tuple[Seed, ...] = (
          "Course maps - Information Technology", "enrolment",
          ("course map", "course maps", "course progression", "information technology",
           "computer science", "课程地图", "修读顺序")),
+    # The faculty's own table of closing, renamed and changed units and the
+    # approved replacement for each (backend/app/knowledge/teach_out.py reads it).
+    # Marked for the site it is on, not "all": the page speaks for the Faculty of
+    # IT but does not say which campuses, and the notice tells the reader to
+    # confirm that with their faculty. Dynamic tier because it is updated as
+    # teach-out plans are confirmed ("To be confirmed" rows become units).
+    Seed("it-undergraduate-re-enrolment",
+         "https://www.monash.edu/it/current-students/courses/re-enrolment/undergraduate",
+         "Re-enrolment and unit changes - Information Technology (undergraduate)",
+         "enrolment",
+         ("re-enrolment", "teach out", "teach-out", "replacement units", "unit changes",
+          "2027 course version", "information technology", "computer science",
+          "停开", "替代课程", "课程变更"),
+         tier="dynamic"),
     Seed("engineering-course-maps",
          "https://www.monash.edu/engineering/current-students/enrolment-and-re-enrolment"
          "/course-information/course-maps",

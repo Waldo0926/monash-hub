@@ -21,6 +21,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ toggle: [id: number] }>()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 const { withYear } = useHandbookYear()
 
 const expanded = ref(props.open ?? props.depth === 0)
@@ -88,6 +89,7 @@ function away(code: string) {
               <span v-if="fact(item.code).periods?.length" class="periods">
                 {{ fact(item.code).periods.join('·') }}
               </span>
+              <span v-if="fact(item.code).teach_out?.length" class="tag tag--teach" :title="fact(item.code).teach_out[0].plan">{{ teachOutLabel(fact(item.code).teach_out[0].change, locale === 'zh') }}</span>
               <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notInYear', { year }) }}</span>
               <span v-else-if="away(item.code)" class="tag tag--away">✕ {{ campus }}</span>
             </span>
@@ -176,6 +178,7 @@ function away(code: string) {
 .years { display: flex; gap: var(--s2); align-items: center; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 .years a { padding: 1px var(--s2); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); color: var(--text); }
 .years a:hover { border-color: var(--text); text-decoration: none; }
+.tag--teach { background: var(--warning-bg); color: var(--warning); }
 .tag--gone { background: var(--danger-bg); color: var(--danger); }
 .tree {
   color: var(--muted); text-decoration: none; padding: 0 var(--s2);
