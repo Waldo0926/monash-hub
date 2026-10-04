@@ -18,20 +18,15 @@
  * - `onDark` on a brand-blue surface, where the tile is a lift of white and
  *   the blue underneath it is the surface's own. (The header used to be one;
  *   it is white now and uses `onLight`.)
- * - `onLight` anywhere the page is white.
- * - `onDeep` on the deep-navy footer. It draws the same solid brand tile as
- *   `onLight`, and it exists under its own name because "onLight" on a dark
- *   background reads as a mistake to the next person editing this.
+ * - `onLight` anywhere the page is light, the header and footer included.
  *
- * The footer wants the tile, not the bare glyph: white strokes on deep navy
- * are legible but carry no brand colour at all, and the footer is half the
- * site's dark surface. The solid brand blue puts it back and keeps the mark a
- * recognisable tile rather than a loose white symbol beside the text.
+ * There was an `onDeep` for the deep-navy footer. The footer is light now, so
+ * it went with it.
  */
 withDefaults(
   defineProps<{
     size?: number
-    tone?: 'onDark' | 'onLight' | 'onDeep'
+    tone?: 'onDark' | 'onLight'
     /** Draw the rounded tile behind the mark. Off gives just the glyph. */
     tile?: boolean
   }>(),
@@ -66,10 +61,7 @@ withDefaults(
 .logo--onDark .mark { stroke: #fff; }
 .logo--onDark .nodes { fill: #fff; }
 
-.logo--onLight .tile,
-.logo--onDeep .tile { fill: var(--brand); }
-.logo--onLight .mark,
-.logo--onDeep .mark { stroke: #fff; }
-.logo--onLight .nodes,
-.logo--onDeep .nodes { fill: #fff; }
+.logo--onLight .tile { fill: var(--brand); }
+.logo--onLight .mark { stroke: #fff; }
+.logo--onLight .nodes { fill: #fff; }
 </style>

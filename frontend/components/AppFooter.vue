@@ -19,7 +19,7 @@ const featuresHeading = computed(() => {
     <div class="container inner">
       <div class="about">
         <p class="brand">
-          <AppLogo :size="32" tone="onDeep" />
+          <AppLogo :size="32" tone="onLight" />
           <span>
             <strong>Monash Hub</strong>
             <span class="tiny muted block">{{ $t('footer.about') }}</span>
@@ -98,6 +98,7 @@ const featuresHeading = computed(() => {
   margin-top: var(--s8);
   padding: var(--s6) 0 var(--s7);
   background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
 }
 .inner {
@@ -134,7 +135,6 @@ const featuresHeading = computed(() => {
 .copyright {
   margin: 0;
   color: var(--footer-text);
-  opacity: 0.85;
 }
 
 .col { display: grid; align-content: start; gap: var(--s2); }
@@ -178,8 +178,8 @@ const featuresHeading = computed(() => {
 }
 .footer :deep(h2),
 .footer :deep(.foot-heading) { color: var(--footer-heading); }
-.footer :deep(a) { color: #dbeafe; }
-.footer :deep(a:hover) { color: #fff; }
+.footer :deep(a) { color: var(--footer-link); }
+.footer :deep(a:hover) { color: var(--footer-link-hover); }
 .footer :deep(.muted),
 .disclaimer { color: var(--footer-text); }
 .footer :deep(.brand-name) { color: var(--footer-heading); }
