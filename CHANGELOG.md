@@ -18,6 +18,10 @@ All notable changes to Monash Hub are documented here.
   now name the Handbook year ("Not in the 2027 Handbook" / 2027 Handbook 未列出),
   and say "not listed" rather than "not offered": the Handbook not listing a unit
   can also mean it was renumbered.
+- A degree line for a unit the year does not list now offers the years that do:
+  "Open in 2026 · 2025" beside it, each opening the unit in that Handbook. The
+  line itself opens the latest year that has the unit (a year in the address is
+  strict and would 404).
 
 ### Fixed (Chinese degree structure that was still English)
 

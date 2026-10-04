@@ -256,6 +256,7 @@ const en: Messages = {
   'courses.areasOfStudy': 'Majors, minors and specialisations',
   'courses.unnamedGroup': 'Requirement',
   'courses.notInYear': 'Not in the {year} Handbook',
+  'courses.openIn': 'Open in',
   'courses.openTree': 'Open the prerequisite tree',
   'tree.title': 'Unit tree',
   'tree.lede':
@@ -991,6 +992,7 @@ const zh: Messages = {
   'courses.areasOfStudy': '主修、辅修与专精方向',
   'courses.unnamedGroup': '要求',
   'courses.notInYear': '{year} Handbook 未列出',
+  'courses.openIn': '查看',
   'courses.openTree': '打开先修图',
   'tree.title': '先修图',
   'tree.lede':
@@ -1700,6 +1702,7 @@ const ja: Messages = {
   'courses.areasOfStudy': '専攻・副専攻・専門分野',
   'courses.unnamedGroup': '要件',
   'courses.notInYear': '{year} 年版 Handbook に記載なし',
+  'courses.openIn': '開く',
   'courses.openTree': '履修条件マップを開く',
   'tree.title': '履修条件マップ',
   'tree.lede':
@@ -2422,6 +2425,7 @@ const ko: Messages = {
   'courses.areasOfStudy': '전공·부전공·세부전공',
   'courses.unnamedGroup': '요건',
   'courses.notInYear': '{year} Handbook에 없음',
+  'courses.openIn': '열기',
   'courses.openTree': '선수과목 지도 열기',
   'tree.title': '선수과목 지도',
   'tree.lede':

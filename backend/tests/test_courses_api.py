@@ -209,3 +209,5 @@ def test_a_unit_missing_from_the_year_keeps_its_name_from_another_year(client, d
     fact = client.get("/api/v1/courses/C2001").json()["units"]["FIT1049"]
     assert fact["in_year"] is False
     assert fact["title"] == "Introduction to IT"
+    # The page offers to open it in the years that do have it.
+    assert fact["years"] == [2025]
