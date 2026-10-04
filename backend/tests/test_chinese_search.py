@@ -287,3 +287,39 @@ def test_a_chinese_query_does_not_break_the_empty_case(db):
     _unit(db)
     found, total = service.search_units(db, "", year=2026)
     assert total == 1 and len(found) == 1
+
+
+def _about(db, slug, title, *, summary=None, tags=()):
+    source = db.query(OfficialSource).filter_by(key="monash-students").one_or_none()
+    if source is None:
+        source = OfficialSource(key="monash-students", name="Monash", base_url="https://x.invalid")
+        db.add(source)
+        db.flush()
+    page = OfficialPage(
+        source_id=source.id, slug=slug, canonical_url=f"https://x.invalid/{slug}", title=title,
+        summary=summary, category="enrolment", status="ok", tags=list(tags),
+    )
+    db.add(page)
+    db.commit()
+    return page
+
+
+def test_a_curated_tag_outranks_a_page_that_only_mentions_the_words(db):
+    """转专业 led with a pharmacy page whose summary happened to say "change course"; the page
+    someone tagged 转专业 is the answer."""
+    _about(db, "pharmacy", "Change course advice - Pharmacy current students",
+           summary="Change course, change course and change enrolment information.")
+    _about(db, "ict", "Internal course transfer", tags=["转专业", "course transfer"])
+
+    found, _ = service.search_official(db, "转专业", strong_only=True)
+    assert [p.slug for p in found][:2] == ["ict", "pharmacy"]
+
+
+def test_a_page_titled_with_a_past_year_goes_after_current_ones(db):
+    """考试时间表 led with "Principal dates (2022)"."""
+    _about(db, "dates-2022", "Exam timetable and exam dates (2022)",
+           summary="Exam timetable, exam dates and final assessment dates for 2022.")
+    _about(db, "final-dates", "Final assessment dates", summary="When final assessments are held.")
+
+    found, _ = service.search_official(db, "考试时间表", strong_only=True)
+    assert [p.slug for p in found] == ["final-dates", "dates-2022"]
