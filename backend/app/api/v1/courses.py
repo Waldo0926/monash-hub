@@ -194,6 +194,21 @@ def _tree(
     return roots
 
 
+def _nearest_other_year(db: Session, codes: list[str], year: int) -> dict[str, Unit]:
+    if not codes:
+        return {}
+    rows = db.scalars(
+        select(Unit).where(Unit.unit_code.in_(codes), Unit.academic_year != year)
+    ).all()
+    best: dict[str, Unit] = {}
+    for unit in rows:
+        held = best.get(unit.unit_code)
+        key = (abs(unit.academic_year - year), -unit.academic_year)
+        if held is None or key < (abs(held.academic_year - year), -held.academic_year):
+            best[unit.unit_code] = unit
+    return best
+
+
 def _unit_facts(
     db: Session, codes: list[str], year: int, campus: str | None, locale: str | None
 ) -> dict[str, dict]:
@@ -216,11 +231,24 @@ def _unit_facts(
         source_hashes={c: u.content_hash for c, u in found.items()},
     )
 
+    # A degree still listing a unit the Handbook has since dropped (or not yet
+    # added) is told so - ``in_year`` is False and the page tags it - but it
+    # keeps its name. The structure row carries only the English the degree page
+    # printed; the same code in another year has the reviewed title. Take it from
+    # the nearest year, newer first on a tie, and use it for nothing else.
+    elsewhere = _nearest_other_year(db, [c for c in codes if c not in found], year)
+    elsewhere_tr = translations.load_many(
+        db, locale, UNIT, list(elsewhere),
+        source_hashes={c: u.content_hash for c, u in elsewhere.items()},
+    )
+
     facts: dict[str, dict] = {}
     for code in codes:
         unit = found.get(code)
         if unit is None:
             facts[code] = {"in_year": False, "offered_at_campus": False, "periods": []}
+            if code in elsewhere:
+                facts[code]["title"] = elsewhere_tr[code].field("title", elsewhere[code].title)
             continue
         offered = [o for o in unit.offerings if o.offered]
         here = [o for o in offered if not campus or o.campus == campus]

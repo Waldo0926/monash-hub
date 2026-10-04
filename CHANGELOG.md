@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (degree lines for units the year no longer lists keep their name)
+
+- A degree that still names a unit the Handbook has dropped (or not yet added)
+  showed that line in the English the degree page printed, e.g. ENG1005 and
+  BEX3730 under a 2027 degree. The line stays tagged "not in this year", but its
+  title now comes from the same code in the nearest other Handbook year (newer
+  first on a tie), with that year's reviewed Chinese. Nothing else is borrowed:
+  credit points, offerings and campus availability still say "not offered".
+
 ### Changed (home page redesign: key dates, one voice, no template look)
 
 - The home page leads with a **Key dates** card for the student's campus
