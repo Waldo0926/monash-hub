@@ -11,7 +11,7 @@ from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook import tree
 from app.handbook.years import available_years, resolve_year
-from app.knowledge import translations
+from app.knowledge import teach_out, translations
 from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
 from app.models.translation import UNIT
 from app.search import service
@@ -171,6 +171,7 @@ def get_unit(
         **unit_detail(unit, tr),
         "not_in_year": not_in_year,
         "available_years": available_years(db, Unit.unit_code, Unit.academic_year, code),
+        "teach_out": teach_out.lookup(db, [unit.unit_code]).get(unit.unit_code),
     }
 
 

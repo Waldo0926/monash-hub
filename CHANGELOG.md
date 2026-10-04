@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (faculty teach-out notices for closing units)
+
+- The Faculty of IT's table of closing, renamed and changing units and the
+  approved replacement for each (monash.edu/it ... /re-enrolment/undergraduate)
+  is now an indexed official page, re-checked on the dynamic tier. A unit in it
+  shows the faculty's notice at the top of its page, word for word with the
+  page and when it was last checked, and a tag on its line in a degree ("Final
+  offering S2 2027", "No longer offered", "Renamed"). Nothing is worked out by
+  the site: no row, no notice, and the notice tells the reader to confirm with
+  their faculty that it applies to their campus and intake year.
+  `app/knowledge/teach_out.py` reads the tables from the stored page, so another
+  faculty is one more page listed in `SOURCES` and in the seed list.
+
 ### Fixed (English left on degree pages; which Handbook to read)
 
 - Degree and area-of-study pages listed double-degree parts ("Bachelor of

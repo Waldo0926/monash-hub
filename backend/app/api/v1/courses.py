@@ -19,7 +19,7 @@ from app.api.serializers import (
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook.years import available_years, loaded_years, resolve_year
-from app.knowledge import translations
+from app.knowledge import teach_out, translations
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
@@ -252,6 +252,8 @@ def _unit_facts(
         source_hashes={c: u.content_hash for c, u in elsewhere.items()},
     )
 
+    notices = teach_out.lookup(db, codes)
+
     facts: dict[str, dict] = {}
     for code in codes:
         unit = found.get(code)
@@ -276,6 +278,9 @@ def _unit_facts(
             "offered_at_campus": bool(here) if campus else True,
             "periods": periods,
         }
+    for code, notice in notices.items():
+        if code in facts:
+            facts[code]["teach_out"] = notice["entries"]
     return facts
 
 
