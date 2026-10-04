@@ -167,3 +167,27 @@ def test_a_person_still_beats_curated_wording():
                             key=lambda r: rank[r.provenance]):
         _apply(translation, candidate)
     assert translation.string("Minor") == "辅修"
+
+
+def test_a_unit_item_without_its_own_translation_takes_the_unit_title():
+    from app.api.v1.courses import _name_units
+
+    containers = [{
+        "items": [
+            {"code": "ACW1020", "type": "unit", "name": "Accounting in business",
+             "name_translated": False},
+            {"code": "BFW1001", "type": "unit", "name": "金融学基础", "name_translated": True},
+            {"code": "A1", "type": "major", "name": "Accountancy", "name_translated": False},
+        ],
+        "containers": [],
+    }]
+    units = {"ACW1020": {"title": "商业会计"}, "BFW1001": {"title": "别的"}}
+    _name_units(containers, units)
+    names = [i["name"] for i in containers[0]["items"]]
+    assert names == ["商业会计", "金融学基础", "Accountancy"]
+
+
+def test_the_b2026_rule_paragraphs_have_reviewed_wording():
+    assert STRUCTURE_ZH["You must complete the following units."] == "你必须完成以下课程。"
+    key = next(k for k in STRUCTURE_ZH if k.startswith("In choosing your units, you must ensure"))
+    assert "第 3 级" in STRUCTURE_ZH[key]
