@@ -4,6 +4,31 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (home page redesign: key dates, one voice, no template look)
+
+- The home page leads with a **Key dates** card for the student's campus
+  (Malaysia / Australia switch, remembered in a cookie): census and withdrawal
+  deadlines, end of teaching, swot vac, exams, results and public holidays,
+  soonest first, each with its source page and when it was last checked.
+  `GET /v1/key-dates` reads the census, final-assessment and principal-dates
+  tables already in the index; nothing new is crawled. A Sunday holiday and its
+  Monday replacement are one item. Anything that does not parse is left out.
+- "Units in the index" (which showed the first eight codes alphabetically, all
+  ACB accounting) is now **Units across the faculties**: one example unit per
+  faculty, a different list for Malaysia and Australia because Business is
+  ACW/MKW at Malaysia and ACC/MKC at Clayton, each with every campus it runs
+  at. `GET /v1/units?codes=` and `GET /v1/guides?slugs=` return hand-picked
+  lists in the order given.
+- The three entry cards and five tool tiles are one ruled **Start here**
+  index of all eight tools, each with a line saying what it does. The footer
+  (project, credits, disclaimer, official sources, Monash and Malaysia systems,
+  WeChat note) is unchanged apart from colour.
+- Palette: the Tailwind slate/blue defaults are gone. One blue (the Monash
+  blue) for links and the mark, ink for primary buttons, greys leaning toward
+  the brand. Header is white with a hairline instead of a solid blue bar.
+- Type: Source Serif 4 / Noto Serif SC for page and section headings, IBM Plex
+  Sans for text, IBM Plex Mono for unit codes and dates.
+
 ### Changed (Student Pass is 学生签证; pages keep the seed list's title)
 
 - Monash Malaysia's Student Pass is now 学生签证（Student Pass） everywhere - the

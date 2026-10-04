@@ -21,6 +21,9 @@ def list_guides(
     q: str = Query("", max_length=300),
     category: str | None = None,
     campus: str | None = Query(None, pattern="^(australia|malaysia)$"),
+    slugs: str | None = Query(
+        None, max_length=600, description="Comma-separated slugs, returned in that order"
+    ),
     # Up to every page at once: the list is a few hundred curated rows, and
     # "show more" grows the limit rather than paging.
     limit: int = Query(50, ge=1, le=500),
@@ -28,9 +31,25 @@ def list_guides(
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
-    pages, total = service.search_official(
-        db, q, limit=limit, offset=offset, category=category, campus=campus
-    )
+    if slugs:
+        # A hand-picked list (the home page names the guides for exam season).
+        # Exactly these, in the order given; a slug that is not indexed is
+        # skipped rather than failing the whole list.
+        wanted = list(dict.fromkeys(x.strip() for x in slugs.split(",") if x.strip()))[:20]
+        found = {
+            p.slug: p
+            for p in db.scalars(
+                select(OfficialPage).where(
+                    OfficialPage.slug.in_(wanted), OfficialPage.status == "ok"
+                )
+            )
+        }
+        pages = [found[x] for x in wanted if x in found]
+        total = len(pages)
+    else:
+        pages, total = service.search_official(
+            db, q, limit=limit, offset=offset, category=category, campus=campus
+        )
     # One query for the whole page of results, not one per row.
     page_translations = translations.load_many(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],

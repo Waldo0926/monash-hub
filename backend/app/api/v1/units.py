@@ -33,24 +33,35 @@ def list_units(
     prefix: str | None = Query(None, description="Subject prefix, e.g. FIT"),
     has_exam: bool | None = None,
     sort: str = Query("relevance", pattern="^(relevance|code|title)$"),
+    codes: str | None = Query(
+        None, max_length=300, description="Comma-separated unit codes, returned in that order"
+    ),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
-    units, total = service.search_units(
-        db,
-        q,
-        year=_year(year),
-        limit=limit,
-        offset=offset,
-        campus=campus,
-        teaching_period=teaching_period,
-        level=level,
-        prefix=prefix,
-        has_exam=has_exam,
-        sort=sort,
-    )
+    if codes:
+        # A hand-picked list (the home page shows one unit per faculty). Asked
+        # through search it would come back in relevance order and could pick
+        # up units that merely mention a code; this returns exactly these, in
+        # the order given, and silently drops any the year does not list.
+        units = _units_by_code(db, codes, _year(year))
+        total = len(units)
+    else:
+        units, total = service.search_units(
+            db,
+            q,
+            year=_year(year),
+            limit=limit,
+            offset=offset,
+            campus=campus,
+            teaching_period=teaching_period,
+            level=level,
+            prefix=prefix,
+            has_exam=has_exam,
+            sort=sort,
+        )
     # One query for the whole page of results, not one per card.
     unit_translations = translations.load_many(
         db, locale, UNIT, [u.unit_code for u in units],
@@ -63,6 +74,17 @@ def list_units(
         "academic_year": _year(year),
         "results": [unit_brief(u, unit_translations[u.unit_code]) for u in units],
     }
+
+
+def _units_by_code(db: Session, codes: str, year: int) -> list[Unit]:
+    wanted = list(dict.fromkeys(c.strip().upper() for c in codes.split(",") if c.strip()))[:20]
+    rows = db.scalars(
+        select(Unit)
+        .where(Unit.academic_year == year, Unit.is_active.is_(True), Unit.unit_code.in_(wanted))
+        .options(selectinload(Unit.offerings), selectinload(Unit.assessments))
+    ).all()
+    by_code = {u.unit_code: u for u in rows}
+    return [by_code[c] for c in wanted if c in by_code]
 
 
 @router.get("/filters")

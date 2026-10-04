@@ -21,31 +21,44 @@
      --brand is the university's own blue, sampled from monash.edu.my rather
      than guessed. --navy stays for the places that were already using it. */
   --brand: #006dae;
-  --brand-700: #00588b;
+  --brand-700: #00507f;
   --navy: #17365d;
   --navy-700: #102845;
-  --blue: #2563eb;
-  --blue-700: #1d4ed8;
-  --blue-50: #eff6ff;
+  /* The "blue" family is the brand blue, not a second blue. It used to be
+     Tailwind's #2563eb beside the Monash #006dae in the header: two blues on
+     one screen, and the stock framework palette is the first thing that makes
+     a site look generated. Links and tints still use these names. */
+  --blue: #006dae;
+  --blue-700: #00507f;
+  --blue-50: #edf4fa;
 
-  /* A deep navy derived from the header blue. It still reads as a footer, but
+  /* Ink, not the brand blue, for primary buttons: one strong colour on the
+     page reads as considered, and the brand blue stays for links and the mark. */
+  --ink: #0c1b2a;
+  --ink-700: #00507f;
+
+  /* A deep navy that sits with the ink above. It still reads as a footer, but
      feels like part of Monash Hub instead of a separate black slab. */
-  --footer-bg: #063b63;
-  --footer-text: #dbeafe;
+  --footer-bg: #0b2236;
+  --footer-text: #d3e1ee;
   --footer-heading: #ffffff;
-  --footer-accent: #7dd3fc;
+  --footer-accent: #6cb8e6;
 
-  /* Surfaces */
-  --bg: #f8fafc;
+  /* Surfaces. The greys lean slightly toward the brand blue rather than
+     Tailwind's slate scale, which is where they used to come from. */
+  --bg: #fcfcfd;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --surface-2: #f3f6f9;
+  --border: #e3e8ee;
+  --border-strong: #c9d2dc;
 
   /* Text */
-  --text: #0f172a;
-  --muted: #64748b;
+  --text: #0c1b2a;
+  --muted: #56667a;
+  --muted-2: #7a8897;
   --text-inverse: #ffffff;
+  /* Time-sensitive: a deadline that is next, a date that is close. */
+  --soon: #b4530a;
 
   /* Semantic */
   --success: #047857;
@@ -76,15 +89,21 @@
   --s7: 48px;
   --s8: 64px;
 
-  --radius: 12px;
+  --radius: 10px;
   --radius-sm: 8px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px -12px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 1px 2px rgba(12, 27, 42, 0.04);
+  --shadow: 0 1px 2px rgba(12, 27, 42, 0.05), 0 12px 32px -18px rgba(12, 27, 42, 0.18);
 
-  --font: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  /* Three roles. The serif carries page titles and section headings only; it is
+     what stops the site reading as a default sans template. Source Serif and
+     Noto Serif SC are the same family (Source Han Serif) drawn for Latin and
+     CJK, so a mixed Chinese-English heading stays one voice. Unit codes and
+     dates use the mono, where digits line up. */
+  --font-display: 'Source Serif 4', 'Noto Serif SC', 'Songti SC', Georgia, serif;
+  --font: 'IBM Plex Sans', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
   /* Reading measure.
      `ch` is the width of the "0" glyph, so a measure in ch counts Latin

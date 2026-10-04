@@ -28,7 +28,7 @@ function search(value: string) {
   <header class="header">
     <div class="inner">
       <NuxtLink to="/" class="brand">
-        <AppLogo :size="34" tone="onDark" />
+        <AppLogo :size="30" tone="onLight" />
         <span class="brand-text">Monash Hub</span>
       </NuxtLink>
 
@@ -78,8 +78,12 @@ function search(value: string) {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--brand);
-  color: var(--text-inverse);
+  /* White with a hairline, not a solid brand-blue bar. The blue slab was the
+     loudest thing on every page and pushed the content down a level; the mark
+     carries the brand colour now. */
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 /* Full width rather than the page container: the brand belongs against the left
    edge and the account against the right, while the middle of the header is
@@ -93,7 +97,7 @@ function search(value: string) {
 }
 .brand {
   display: flex; align-items: center; gap: var(--s2);
-  color: var(--text-inverse); font-weight: 700; flex: none;
+  color: var(--text); font-weight: 600; flex: none;
   letter-spacing: -0.01em;
 }
 .brand:hover { text-decoration: none; }
@@ -116,16 +120,16 @@ function search(value: string) {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.8rem;
+  color: var(--muted);
+  font-size: 0.84rem;
   line-height: 1.15;
   text-align: center;
   white-space: nowrap;
   padding: 7px 3px;
   border-bottom: 2px solid transparent;
 }
-.nav-link:hover { color: #fff; text-decoration: none; }
-.nav .router-link-active { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.75); }
+.nav-link:hover { color: var(--text); text-decoration: none; }
+.nav .router-link-active { color: var(--text); border-bottom-color: var(--text); }
 
 /* Search can give up a little width before the navigation does. This keeps long
    destinations such as WAM/GPA calculator visually separate from Community. */
@@ -139,10 +143,10 @@ function search(value: string) {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  color: var(--text-inverse);
+  color: var(--text);
   font-size: 1rem;
 }
-.bell:hover { background: rgba(255, 255, 255, 0.12); text-decoration: none; }
+.bell:hover { background: var(--surface-2); text-decoration: none; }
 .dot {
   position: absolute;
   top: 0;

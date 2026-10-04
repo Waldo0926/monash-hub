@@ -81,6 +81,12 @@ def test_unit_search_by_code_and_keyword(client, loaded):
     assert "BFF2140" in {r["unit_code"] for r in by_word["results"]}
 
 
+def test_unit_list_by_codes_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/units?codes=bff2140,FIT2102,XYZ9999,FIT2102").json()
+    assert [u["unit_code"] for u in body["results"]] == ["BFF2140", "FIT2102"]
+    assert body["total"] == 2
+
+
 def test_unit_filter_by_exam(client, loaded):
     body = client.get("/api/v1/units", params={"has_exam": "false"}).json()
     codes = {r["unit_code"] for r in body["results"]}
@@ -136,6 +142,12 @@ def test_official_search_finds_the_seed_page(client, loaded):
     assert body["total"] >= 1
     assert body["results"][0]["slug"] == "special-consideration"
     assert body["results"][0]["last_checked"] is not None
+
+
+def test_guide_list_by_slugs_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/guides?slugs=nope,special-consideration").json()
+    assert [g["slug"] for g in body["results"]] == ["special-consideration"]
+    assert body["total"] == 1
 
 
 def test_guides_paginate(client, loaded):
