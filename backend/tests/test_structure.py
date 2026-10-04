@@ -212,3 +212,15 @@ def test_a_stored_prompt_echo_is_not_shown_to_the_reader():
     _apply(translation, row)
     assert translation.string("Next") == "Next"
     assert translation.string("Back") == "返回"
+
+
+def test_assessment_names_use_the_string_table_but_numbered_labels_are_left_to_the_page():
+    from app.api.serializers import _assessment_name
+    from app.knowledge.translations import Translation
+
+    tr = Translation("zh")
+    tr.strings["Analytical exercise"] = "分析练习"
+    tr.strings["1 - Written"] = "1 - 书面考核"
+    assert _assessment_name("Analytical exercise", tr) == "分析练习"
+    assert _assessment_name("1 - Written", tr) == "1 - Written"
+    assert _assessment_name(None, tr) is None

@@ -13,6 +13,15 @@ All notable changes to Monash Hub are documented here.
   earth science options and the shared "Core units" / "Capstone units" style
   headings) had no wording and showed in English. They are now in the
   reviewed structure table.
+- Guides: 56 sentences and 3 titles that were still English are translated
+  (Malaysia re-enrolment, restricted transfer period, double degree pathway
+  and others).
+- A translation that is the model echoing its own prompt
+  (`GLOSSARY: ... TEXT: Next`) is no longer shown: the translator rejects it,
+  and the reader side ignores any already stored.
+- Unit pages: activity durations read `24 小时` instead of `24 hours`; the
+  assessment types Work integrated and Assignment have wording; assessment
+  names and descriptions use the unit's translated strings where there are any.
 - A unit listed in a degree or area of study whose item had no translation of
   its own now uses the translated title of the unit itself, so a new Handbook
   year no longer lists every unit in English beside a Chinese unit page.
