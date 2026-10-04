@@ -41,6 +41,7 @@ export type TermKind =
   | 'requisiteType'
   | 'connector'
   | 'activityType'
+  | 'duration'
 
 type Dictionary = Record<string, string>
 
@@ -159,7 +160,9 @@ const zhAssessmentType: Dictionary = {
   'Demonstration': '操作演示',
   'Artefact': '作品成果',
   'Portfolio': '作品集',
-  'Performance': '表演'
+  'Performance': '表演',
+  'Work integrated': '工作实践',
+  'Assignment': '作业'
 }
 
 const zhHurdle: Dictionary = {
@@ -278,9 +281,11 @@ const ZH: Record<TermKind, Dictionary> = {
   hurdle: zhHurdle,
   requisiteType: zhRequisiteType,
   connector: zhConnector,
-  activityType: zhActivityType
+  activityType: zhActivityType,
+  duration: {}
 }
 
+const HOURS_RE = /^(\d+(?:\.\d+)?)\s*hours?$/i
 const LEVEL_RE = /^Level\s+(\d+)$/i
 /** "Second semester to First semester", "Summer semester A to First semester". */
 const RANGE_SEPARATOR = ' to '
@@ -307,6 +312,12 @@ export function handbookTerm(
   if (kind === 'level') {
     const level = LEVEL_RE.exec(raw)
     return level ? `第 ${level[1]} 级` : raw
+  }
+
+  if (kind === 'duration') {
+    // "24 hours" is the Handbook's own phrase for a weekly or total time.
+    const hours = HOURS_RE.exec(raw)
+    return hours ? `${hours[1]} 小时` : raw
   }
 
   if (kind === 'mode') {

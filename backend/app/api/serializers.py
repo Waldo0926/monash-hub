@@ -12,6 +12,7 @@ you are reading is the source, verbatim.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from app.knowledge.translations import Translation, translate_blocks, translated_headings
@@ -91,6 +92,17 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     }
 
 
+# "1 - Written": the Handbook's generated label. The page formats these itself
+# from the type column ("第 1 项 · 书面考核"), so they go out as written.
+_NUMBERED_NAME = re.compile(r"^\d+\s*[-–]\s*\S")
+
+
+def _assessment_name(name: str | None, tr: Translation) -> str | None:
+    if name is None or _NUMBERED_NAME.match(name.strip()):
+        return name
+    return tr.string(name)
+
+
 def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         **unit_brief(unit, tr),
@@ -111,11 +123,11 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         "assessments": [
             {
                 "number": a.number,
-                "name": a.name,
+                "name": _assessment_name(a.name, tr),
                 "type": a.assessment_type,
                 "weight": a.weight,
                 "hurdle": a.hurdle,
-                "description": a.description,
+                "description": tr.field("assessment_description", a.description),
                 "learning_outcomes": a.learning_outcomes,
             }
             for a in unit.assessments

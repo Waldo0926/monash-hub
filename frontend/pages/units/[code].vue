@@ -216,7 +216,7 @@ useHead(() => ({
                 <tbody>
                   <tr v-for="(activity, i) in unit.activities" :key="i">
                     <td>{{ $term('activityType', activity.activity_type) }}</td>
-                    <td>{{ activity.name || '—' }}</td>
+                    <td>{{ $term('duration', activity.name) || '—' }}</td>
                   </tr>
                 </tbody>
               </table>

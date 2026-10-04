@@ -176,6 +176,7 @@ def _tree(
                 {
                     "code": item.item_code,
                     "name": tr.string(item.item_name),
+                    "name_translated": tr.string(item.item_name) != item.item_name,
                     "type": item.item_type,
                     "credit_points": item.credit_points,
                     "connector": item.connector,
@@ -276,6 +277,25 @@ def _codes_in(containers: list[dict], kind: str) -> list[str]:
     return list(dict.fromkeys(found))
 
 
+def _name_units(containers: list[dict], units: dict[str, dict]) -> None:
+    """Show a unit item under its translated title when the item itself has none.
+
+    An item's name is a string of the degree's own translation, so a Handbook
+    year whose structure has not been through the translator yet lists every
+    unit in English beside a unit page that has a Chinese title. The unit's
+    title is the same words, so it is used when the item's own lookup missed.
+    When the reader is on English both are the source and nothing changes.
+    """
+    for node in containers:
+        for item in node["items"]:
+            if item["type"] != "unit" or item["name_translated"]:
+                continue
+            title = (units.get(item["code"]) or {}).get("title")
+            if title:
+                item["name"] = title
+        _name_units(node["containers"], units)
+
+
 @router.get("/{code}")
 def get_course(
     code: str,
@@ -300,6 +320,7 @@ def get_course(
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = units
+    _name_units(containers, units)
     # Each area of study carries its own translation row, so the list of
     # specialisations needs its own load - the course's translation says
     # nothing about what its majors are called.
@@ -379,4 +400,5 @@ def get_area_of_study(
     payload["units"] = _unit_facts(
         db, _codes_in(containers, "unit"), academic_year, campus, locale
     )
+    _name_units(containers, payload["units"])
     return payload
