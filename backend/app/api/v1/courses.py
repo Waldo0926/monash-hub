@@ -306,6 +306,63 @@ def _name_units(containers: list[dict], units: dict[str, dict]) -> None:
         _name_units(node["containers"], units)
 
 
+def _items(containers: list[dict]):
+    for node in containers:
+        yield from node["items"]
+        yield from _items(node["containers"])
+
+
+def _nearest(rows, year: int, code_of, year_of) -> dict:
+    best: dict = {}
+    for row in rows:
+        held = best.get(code_of(row))
+        key = (abs(year_of(row) - year), -year_of(row))
+        if held is None or key < (abs(year_of(held) - year), -year_of(held)):
+            best[code_of(row)] = row
+    return best
+
+
+def _name_degrees_and_areas(
+    db: Session, containers: list[dict], year: int, locale: str | None
+) -> None:
+    """Show a degree, major, minor, specialisation or honours item under the title
+    its own page has in the reader's language.
+
+    A double degree lists "Bachelor of Business" and a degree lists its majors by
+    the English the structure printed. Each of those is a page with a reviewed
+    title of its own - the same one the picker and the page heading use - so the
+    line borrows it instead of keeping a second, untranslated copy. The item's own
+    translation, when it has one, is left alone; so is an item whose page is not
+    loaded or has no translation, which stays in English rather than being guessed.
+    """
+    todo = [i for i in _items(containers) if i["type"] != "unit" and not i["name_translated"]]
+    if not todo:
+        return
+    degree_codes = sorted({i["code"] for i in todo if i["type"] == "course"})
+    area_codes = sorted({i["code"] for i in todo if i["type"] != "course"})
+    found: dict[tuple[str, str], tuple[str, str | None]] = {}
+    for kind, model, column, codes, target in (
+        ("course", Course, Course.course_code, degree_codes, COURSE),
+        ("area", AreaOfStudy, AreaOfStudy.aos_code, area_codes, AREA_OF_STUDY),
+    ):
+        if not codes:
+            continue
+        rows = db.scalars(select(model).where(column.in_(codes))).all()
+        code_of = (lambda r: r.course_code) if kind == "course" else (lambda r: r.aos_code)
+        best = _nearest(rows, year, code_of, lambda r: r.academic_year)
+        tr = translations.load_many(
+            db, locale, target, list(best),
+            source_hashes={c: r.content_hash for c, r in best.items()},
+        )
+        for code, row in best.items():
+            found[(kind, code)] = (row.title, tr[code].field("title", row.title))
+    for item in todo:
+        source, title = found.get(("course" if item["type"] == "course" else "area", item["code"]),
+                                  (None, None))
+        if title and title != source:
+            item["name"] = title
+
+
 @router.get("/{code}")
 def get_course(
     code: str,
@@ -331,6 +388,7 @@ def get_course(
     payload["containers"] = containers
     payload["units"] = units
     _name_units(containers, units)
+    _name_degrees_and_areas(db, containers, academic_year, locale)
     # Each area of study carries its own translation row, so the list of
     # specialisations needs its own load - the course's translation says
     # nothing about what its majors are called.
@@ -411,4 +469,5 @@ def get_area_of_study(
         db, _codes_in(containers, "unit"), academic_year, campus, locale
     )
     _name_units(containers, payload["units"])
+    _name_degrees_and_areas(db, containers, academic_year, locale)
     return payload

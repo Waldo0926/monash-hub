@@ -4,6 +4,23 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (English left on degree pages; which Handbook to read)
+
+- Degree and area-of-study pages listed double-degree parts ("Bachelor of
+  Business"), majors, minors, specialisations and honours under the English the
+  structure printed, although each has a page with a reviewed Chinese title
+  (~245 distinct names in the live catalogue). A line now borrows the title of
+  its own page; one whose page is not loaded stays in English rather than
+  guessed. 13 area-of-study titles and 16 dropped units that no loaded year has
+  (Artificial intelligence, Strategic marketing, Business environment, Arts study
+  abroad and others) were added to the reviewed structure table.
+- Degree pages, area-of-study pages and the unit tree carry a note: the {year}
+  Handbook is for students starting in {year}; earlier intakes follow the
+  Handbook of their own year (use the year picker). Where a unit is not listed it
+  adds that replacements apply once a unit closes, that the faculty is expected to
+  email which unit replaces which, and that faculty staff can be asked. The site
+  names no replacement itself.
+
 ### Fixed (degree lines for units the year no longer lists keep their name)
 
 - A degree that still names a unit the Handbook has dropped (or not yet added)

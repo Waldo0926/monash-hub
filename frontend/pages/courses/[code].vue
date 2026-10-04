@@ -70,6 +70,7 @@ useSeoMeta({
     <ErrorState v-if="error" :error="error" />
     <template v-else-if="course">
       <YearNotice v-if="course.not_in_year" :code="course.course_code" :year="course.academic_year" :missing="course.not_in_year" />
+      <IntakeYearNotice :year="course.academic_year" :closed="Object.values(course.units || {}).some((u: any) => !u.in_year)" />
       <p v-if="course.is_active === false" class="withdrawn small" role="status">
         {{ $t('handbook.withdrawn', { code: course.course_code, year: course.academic_year }) }}
       </p>

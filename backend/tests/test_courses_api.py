@@ -211,3 +211,23 @@ def test_a_unit_missing_from_the_year_keeps_its_name_from_another_year(client, d
     assert fact["title"] == "Introduction to IT"
     # The page offers to open it in the years that do have it.
     assert fact["years"] == [2025]
+
+
+def test_a_specialisation_line_uses_the_title_its_own_page_has_in_chinese(client, degrees):
+    """Part C names DATASCI11 by the English the structure printed; the area of
+    study's page has a reviewed Chinese title, and the line must show it."""
+    from app.models.translation import AREA_OF_STUDY, HUMAN, ContentTranslation
+
+    degrees.add(ContentTranslation(
+        locale="zh", target_type=AREA_OF_STUDY, target_key="DATASCI11", field="title",
+        text="数据科学", provenance=HUMAN,
+    ))
+    degrees.commit()
+    zh = client.get("/api/v1/courses/C2001", params={"locale": "zh"}).json()
+    part_c = next(c for c in zh["containers"] if "Specialist" in (c["title"] or "")
+                  or "专" in (c["title"] or ""))
+    named = {i["code"]: i["name"] for i in part_c["items"]}
+    assert named["DATASCI11"] == "数据科学"
+    en = client.get("/api/v1/courses/C2001").json()
+    part_c_en = next(c for c in en["containers"] if "Specialist" in (c["title"] or ""))
+    assert {i["code"]: i["name"] for i in part_c_en["items"]}["DATASCI11"] != "数据科学"
