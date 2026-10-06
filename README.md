@@ -4,9 +4,9 @@
 <p align="center">Making Monash information easier to find and understand</p>
 
 <p align="center">
-  <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff" alt="Live site" /></a>
-  <img src="https://img.shields.io/badge/status-in%20production-2ea44f" alt="Status: in production" />
-  <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black" alt="Unofficial" />
+  <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff?style=for-the-badge" alt="Live site" /></a>
+  <img src="https://img.shields.io/badge/status-in%20production-2ea44f?style=for-the-badge" alt="Status: in production" />
+  <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black?style=for-the-badge" alt="Unofficial" />
 </p>
 
 <p align="center"><a href="https://monashhub.secureview.tech">Visit Monash Hub</a></p>
