@@ -4,6 +4,25 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (what gets deployed is what CI tested)
+
+- The deploy workflow passed nothing to the VPS, and the script reset the
+  checkout to `origin/main`, so a push that landed between CI finishing and
+  the SSH session opening went live untested. The workflow now passes the CI
+  run's `head_sha`; `deploy.sh` checks that commit out (it also reads it from
+  `SSH_ORIGINAL_COMMAND`, for the forced-command setup), refuses a commit
+  that is not on `origin/main`, and re-executes the copy of itself that came
+  with the commit rather than reading the rest of a file it just replaced.
+- The images that were running are tagged `:previous` before the build, and
+  if the new API never reports healthy they are put back before the script
+  fails. The database keeps the release's migrations; the backup taken at the
+  start is for the rest.
+- The MTH2051 and FIT1055 refresh-and-assert steps, and the launch of the
+  2026 requisite audit, are out of `deploy.sh` and `deploy.yml` and into
+  `deployment/verify-handbook-parser.sh`. They were one-off repairs that made
+  every deploy depend on the Handbook answering and on two units looking a
+  particular way; the parser's unit tests cover both bugs.
+
 ### Changed (the crawler says who it is, and the unofficial engine is gone)
 
 - The official-page fetcher sent a Chrome User-Agent and never read
