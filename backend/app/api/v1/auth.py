@@ -292,7 +292,10 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     problem = password_problem(payload.password, [email, user.nickname])
     if problem:
         raise HTTPException(HTTP_422_UNPROCESSABLE, problem)
-    verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
+    try:
+        verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
+    except verification.VerificationError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
     user.password_hash = hash_password(payload.password)
     user.token_version += 1

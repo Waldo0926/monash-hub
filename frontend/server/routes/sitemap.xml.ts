@@ -10,6 +10,13 @@
  * calls - and a crawler that fetches the sitemap on every visit would
  * otherwise put that load on the API each time.
  */
+/** A slug or code is API data; `&` in one would make the whole file invalid. */
+function escapeXml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' } as Record<string, string>
+  )[c]!)
+}
+
 export default defineCachedEventHandler(async event => {
   const config = useRuntimeConfig()
   const site = config.public.siteUrl.replace(/\/$/, '')
@@ -47,14 +54,17 @@ export default defineCachedEventHandler(async event => {
       for (const post of posts.results || []) urls.push(`/community/post/${post.id}`)
       if (offset + PAGE >= (posts.total || 0)) break
     }
-  } catch {
-    // A sitemap with the static routes beats a 500 if the API is briefly down.
+  } catch (caught) {
+    // Not cached, and not served either: a half-walked list cached for an
+    // hour tells a crawler most of the site has gone. 503 is "come back".
+    console.error('sitemap: API walk failed', caught)
+    throw createError({ statusCode: 503, statusMessage: 'Sitemap temporarily unavailable' })
   }
 
   setHeader(event, 'content-type', 'application/xml; charset=utf-8')
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...new Set(urls)].map(path => `  <url><loc>${site}${path}</loc></url>`).join('\n')}
+${[...new Set(urls)].map(path => `  <url><loc>${escapeXml(site + path)}</loc></url>`).join('\n')}
 </urlset>
 `
 }, { maxAge: 60 * 60, name: 'sitemap', getKey: () => 'all' })

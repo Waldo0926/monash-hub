@@ -26,6 +26,7 @@ const { data: course, error } = await useLocalisedApiFetch<any>(
   () => withYear(`/v1/courses/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`),
   { watch: [campus, year] }
 )
+useErrorStatus(error)
 
 watch(campus, () => {
   // Kept apart from the year: changing campus must not drop `?year=`.

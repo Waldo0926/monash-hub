@@ -109,7 +109,7 @@ const grouped = computed(() => {
   })
 })
 
-useHead({ title: $t('courses.title') })
+useSeoMeta({ title: () => $t('courses.title') })
 </script>
 
 <template>

@@ -16,6 +16,7 @@ addresses are registered.
 """
 from __future__ import annotations
 
+import ipaddress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -23,6 +24,7 @@ from fastapi import Request
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.models.user import AuthThrottle
 
 SIGNIN_FAILURE = "signin_failure"
@@ -65,11 +67,35 @@ def client_address(request: Request) -> str:
     ``X-Real-IP`` is set by nginx from the connection itself and overwrites
     anything a client sent. ``X-Forwarded-For`` is appended to, so its first
     entry is whatever the client chose to write there.
+
+    The header is only believed when the connection comes from a trusted
+    proxy (``TRUSTED_PROXIES``, a comma-separated list of addresses or CIDR
+    ranges). Anything reaching the API some other way is limited by its own
+    address, so it cannot pick a fresh one per request. Unset, every peer is
+    trusted, which is right only when nothing but nginx can reach the port.
     """
+    peer = (request.client.host if request.client else "unknown")[:64]
     real = (request.headers.get("x-real-ip") or "").strip()
-    if real:
+    if real and _from_trusted_proxy(peer):
         return real[:64]
-    return (request.client.host if request.client else "unknown")[:64]
+    return peer
+
+
+def _from_trusted_proxy(peer: str) -> bool:
+    trusted = [part.strip() for part in get_settings().trusted_proxies.split(",") if part.strip()]
+    if not trusted:
+        return True
+    try:
+        address = ipaddress.ip_address(peer)
+    except ValueError:
+        return False
+    for entry in trusted:
+        try:
+            if address in ipaddress.ip_network(entry, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
 
 
 def _now() -> datetime:
@@ -77,7 +103,14 @@ def _now() -> datetime:
 
 
 def check(db: Session, limit: Limit, key: str) -> None:
-    """Raise :class:`Throttled` if ``key`` has used up ``limit``."""
+    """Raise :class:`Throttled` if ``key`` has used up ``limit``.
+
+    Takes a transaction-level advisory lock on the key first, so requests for
+    the same account or address queue behind each other until the caller
+    commits. Without it N guesses arriving together all count the same
+    events and all get through at the limit.
+    """
+    db.execute(select(func.pg_advisory_xact_lock(func.hashtext(f"{limit.kind}:{key}"))))
     since = _now() - timedelta(seconds=limit.window_seconds)
     count, oldest = db.execute(
         select(func.count(AuthThrottle.id), func.min(AuthThrottle.created_at)).where(
