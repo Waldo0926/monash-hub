@@ -339,3 +339,25 @@ def test_stray_decision_tree_list_is_dropped_even_without_selectric_classes():
 
     assert "Choose a topic" not in result["clean_text"]
     assert "No banners found" not in result["clean_text"]
+
+
+def test_links_are_absolute_and_only_ever_web_addresses():
+    html = """
+    <html><head><title>Links</title></head><body><main>
+    <h1>Links</h1>
+    <p>See the <a href="/students/enrolment">enrolment page</a>, the
+    <a href="https://my.monash.edu/wes">WES</a>, something
+    <a href="JavaScript:alert(1)">clever</a>, a <a href="data:text/html,hi">data link</a>
+    and <a href="mailto:help@example.invalid">an address</a>. This paragraph is long
+    enough to be treated as the body of the page rather than its chrome, and it
+    keeps going so that the content selector is satisfied by it.</p>
+    </main></body></html>
+    """
+    result = clean_page(html, url="https://www.monash.edu/students/admin/guide")
+    spans = [s for b in result["blocks"] if b["type"] == "paragraph" for s in b["spans"]]
+    urls = {s["text"]: s.get("url") for s in spans}
+    assert urls["enrolment page"] == "https://www.monash.edu/students/enrolment"
+    assert urls["WES"] == "https://my.monash.edu/wes"
+    assert urls["clever"] is None
+    assert urls["data link"] is None
+    assert urls["an address"] is None
