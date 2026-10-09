@@ -19,14 +19,18 @@ const { unread, refresh: refreshBadge } = useNotifications()
 const items = ref<any[]>([])
 const loading = ref(false)
 const loaded = ref(false)
+const error = ref('')
 
 async function load() {
   if (!user.value) return
   loading.value = true
+  error.value = ''
   try {
     const result = await apiFetch<any>(`/v1/notifications?limit=${props.limit}`)
     items.value = result.results
     unread.value = result.unread
+  } catch (caught) {
+    error.value = apiErrorMessage(caught, $t)
   } finally {
     loading.value = false
     loaded.value = true
@@ -34,15 +38,24 @@ async function load() {
 }
 
 async function markAllRead() {
-  await apiFetch('/v1/notifications/read', { method: 'POST', body: {} })
-  items.value = items.value.map(item => ({ ...item, is_read: true }))
-  await refreshBadge()
+  error.value = ''
+  try {
+    await apiFetch('/v1/notifications/read', { method: 'POST', body: {} })
+    items.value = items.value.map(item => ({ ...item, is_read: true }))
+    await refreshBadge()
+  } catch (caught) {
+    error.value = apiErrorMessage(caught, $t)
+  }
 }
 
 async function open(item: any) {
   if (!item.is_read) {
-    await apiFetch('/v1/notifications/read', { method: 'POST', body: { ids: [item.id] } })
-    await refreshBadge()
+    try {
+      await apiFetch('/v1/notifications/read', { method: 'POST', body: { ids: [item.id] } })
+      await refreshBadge()
+    } catch {
+      // Still go to the post; it will be marked read next time.
+    }
   }
   navigateTo(`/community/post/${item.post_id}`)
 }
@@ -73,6 +86,8 @@ function messageFor(item: any) {
     </div>
 
     <Skeleton v-if="loading && !loaded" :lines="3" />
+
+    <p v-else-if="error" class="tiny bad-text" role="alert">{{ error }}</p>
 
     <ul v-else-if="items.length" class="list">
       <li v-for="item in items" :key="item.id" :class="{ unread: !item.is_read }">

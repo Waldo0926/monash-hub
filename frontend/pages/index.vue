@@ -56,7 +56,9 @@ const EXAMPLES: Record<string, { code: string; area: { en: string; zh: string } 
 }
 const examples = computed(() => EXAMPLES[campus.value]!)
 
-const { data: units } = await useLocalisedApiFetch<any>(
+// The three home-page fetches are independent, so they run together; one
+// after another they added up on every server render.
+const unitsFetch = useLocalisedApiFetch<any>(
   () => `/v1/units?codes=${examples.value.map(e => e.code).join(',')}`,
   { watch: [campus] }
 )
@@ -72,11 +74,14 @@ const GUIDE_SLUGS = {
     'dates-timetables-start-times', 'results-release', 'extensions-special-consideration-spec-con-extensio'
   ]
 }
-const { data: guides } = await useLocalisedApiFetch<any>(
+const guidesFetch = useLocalisedApiFetch<any>(
   () => `/v1/guides?slugs=${GUIDE_SLUGS[campus.value].join(',')}`,
   { watch: [campus] }
 )
-const { data: posts } = await useApiFetch<any>('/v1/community/posts?limit=4')
+const postsFetch = useApiFetch<any>('/v1/community/posts?limit=4')
+const [{ data: units }, { data: guides }, { data: posts }] = await Promise.all([
+  unitsFetch, guidesFetch, postsFetch
+])
 
 const unitRows = computed(() => {
   const byCode = new Map<string, any>((units.value?.results ?? []).map((u: any) => [u.unit_code, u]))

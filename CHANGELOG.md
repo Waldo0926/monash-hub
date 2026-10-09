@@ -4,6 +4,37 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (the frontend checks itself)
+
+- `npm run typecheck` exists and runs in CI, with `vue-tsc`, `typescript` and
+  `@types/node` as dev dependencies. It found fifteen errors: `error.generic`
+  defined twice in every locale (the second definition won, so the error page
+  and the action failures shared one sentence; the page's is `error.pageBroken`
+  now), `avatar_url` missing from `SessionUser`, a return type in `apiFetch`,
+  an index that could be undefined in the tree layout, and `process` without
+  Node types. `npm test` runs Vitest over the pure utilities, starting with
+  the password policy and the API error mapping.
+- Three async handlers had `try/finally` and no `catch`, so a failed unit
+  search, plan check or question left the reader with nothing and the console
+  with an unhandled rejection. They say what went wrong now, as the profile
+  page already did, and the notification panel does too.
+- Storage is read through one `readToken()` that survives a browser with site
+  data blocked, where every page that fetched used to throw. The token key is
+  defined once.
+- A unit, guide, degree, area of study or post the API does not have renders
+  the same error card, but the response is now a 404 (and a 503 when the API
+  is down) instead of a 200 with a canonical link, so search engines stop
+  indexing pages for things that do not exist.
+- An imported or stored plan is taken field by field: years are clamped to
+  ten, periods must be a list of strings, entries must have a code, a year and
+  a period. `years: 1e9` in a hand-edited export used to freeze the tab.
+- The sitemap escapes what it puts in XML, and answers 503 rather than caching
+  a half-walked list for an hour when the API fails part way.
+- Smaller: unit codes typed on the marks page are URL-encoded; the plan and
+  degrees page titles follow the language switch; the error page sits inside
+  the layout; the home page's three fetches run together; ten translation
+  keys nothing read are gone; a no-op `definePageMeta` is gone.
+
 ### Changed (light footer)
 
 - The footer is a light grey surface with a rule above it instead of a deep
