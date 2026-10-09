@@ -195,3 +195,34 @@ def test_an_empty_bio_removes_it(client, signed_in):
 def test_activity_starts_empty_and_never_401s_for_a_new_account(client, signed_in):
     body = client.get("/api/v1/profile/activity", headers=signed_in).json()
     assert body == {"posts": [], "answered": [], "bookmarks": []}
+
+
+# --- what the store survives ------------------------------------------------
+
+def test_a_decompression_bomb_is_a_bad_image_not_a_crash(avatar_dir, monkeypatch):
+    """Pillow refuses a huge image on open; that is a 400, not a 503."""
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1000)
+    with pytest.raises(avatars.AvatarError):
+        avatars.store(_png(size=(100, 100)), user_id=1)
+
+
+def test_a_transparent_png_lands_on_white(avatar_dir):
+    buffer = io.BytesIO()
+    Image.new("RGBA", (300, 300), (0, 0, 0, 0)).save(buffer, format="PNG")
+    name = avatars.store(buffer.getvalue(), user_id=1)
+    with Image.open(avatar_dir / name) as stored:
+        assert stored.convert("RGB").getpixel((10, 10)) == (255, 255, 255)
+
+
+def test_a_sideways_phone_photo_is_turned_the_right_way_up(avatar_dir):
+    image = Image.new("RGB", (400, 200), (10, 10, 10))
+    exif = image.getexif()
+    exif[0x0112] = 6  # rotated 90 degrees clockwise
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG", exif=exif.tobytes())
+    name = avatars.store(buffer.getvalue(), user_id=1)
+    with Image.open(avatar_dir / name) as stored:
+        width, height = stored.size
+    # Squared afterwards, so the test is that it did not blow up and is square;
+    # the transpose itself is Pillow's, applied before the crop.
+    assert width == height

@@ -35,6 +35,56 @@ All notable changes to Monash Hub are documented here.
   the layout; the home page's three fetches run together; ten translation
   keys nothing read are gone; a no-op `definePageMeta` is gone.
 
+### Fixed (the forum's state machine at its edges, and what a guess costs)
+
+- A hidden post's replies were still readable through the answers endpoint,
+  which only checked the replies' own visibility. Accepting a nested reply
+  marked the post solved without marking anything accepted, and is now
+  refused; accepting a second answer clears the first wherever it sits. A
+  reply its author deleted left the answer count once, and left it again when
+  a moderator hid it. A moderator deleting someone else's post stamped it as
+  author-deleted, so it could never be unhidden; a moderator's takedown is now
+  a hide. Replies had no depth limit, and the thread loader and serialiser
+  recurse, so a long enough chain was a thread nobody could open: past five
+  levels a reply goes under the deepest ancestor with room. Marking an empty
+  list of notifications read marked all of them.
+- Password reset checks the code once before the nickname rule and once to
+  spend it, and both counted as attempts, so the right code on the last
+  allowed attempt passed the first check and was refused, uncaught, by the
+  second. The attempt is now taken by one UPDATE that also enforces the cap,
+  a check that only looks does not spend it, and the second call is caught.
+  A verification email the provider failed to send no longer counts against
+  the resend interval, so "try again shortly" is not answered with 429.
+- Sign-in, code and report limits now take a transaction-level advisory lock
+  on the key, so guesses arriving together queue instead of all passing the
+  same count. `X-Real-IP` is believed only from `TRUSTED_PROXIES` when that
+  is set.
+- Avatars: a decompression bomb is refused as a bad image rather than a 503,
+  the pixel cap is 16 million, phone photos follow their EXIF rotation, and
+  transparency lands on white instead of black.
+- Official-page links are resolved against the page they came from and kept
+  only when they are web addresses, so a relative link no longer points at
+  the Hub's own domain and `JavaScript:` in any spelling is dropped.
+
+### Changed (docs say what the code does; reads are rate limited too)
+
+- The README's privacy wording matched an earlier version of the code. A plan
+  is still stored only in the browser, but each check sends it to the API to
+  be compared with the Handbook; marks stay on the device, but the unit codes
+  are looked up through the API. All four READMEs now say exactly that. The
+  Chinese, Japanese and Korean READMEs carry the same badge strip as the
+  English one, with a live CI badge, and the Japanese and Korean ones gained
+  the technology stack, source boundary and licence sections the English one
+  already had.
+- `docs/ROADMAP-STATUS.md` said the course planner and anything involving a
+  language model were explicitly not now, while both have shipped (the model
+  only translates and never answers a reader). `docs/CRAWLING.md` still described the 20-unit,
+  40-page seed. Both match the repository again.
+- nginx: `/api/v1/community/posts`, `/api/v1/auth/` and the avatar upload are
+  more specific than `/api/`, and the write zone does not count GET, so reads
+  of those paths were not limited at all. They now carry the per-address API
+  zone as well.
+
 ### Changed (light footer)
 
 - The footer is a light grey surface with a rule above it instead of a deep
