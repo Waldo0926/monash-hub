@@ -2,6 +2,14 @@
 
 <h1 align="center">Monash Hub</h1>
 <p align="center">帮助学生更轻松地查找和理解 Monash 信息</p>
+
+<p align="center">
+  <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff?style=for-the-badge" alt="线上站点" /></a>
+  <a href="https://github.com/Waldo0926/monash-hub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Waldo0926/monash-hub/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/status-in%20production-2ea44f?style=for-the-badge" alt="状态：正式运行" />
+  <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black?style=for-the-badge" alt="非官方" />
+</p>
+
 <p align="center"><a href="https://monashhub.secureview.tech">进入 Monash Hub 网站</a></p>
 <p align="center"><a href="./README.md">English</a> | <strong>简体中文</strong> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
 
@@ -9,7 +17,7 @@
 
 ## Monash Hub 是什么？
 
-Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生社区都集中在一个地方——Monash 学习生活，一站查清。它尤其帮助非英语母语学生更轻松地搜索、理解和核实与 Monash 学习和校园生活相关的信息。
+Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生社区都集中在一个地方，Monash 学习生活一站查清。它尤其帮助非英语母语学生更轻松地搜索、理解和核实与 Monash 学习和校园生活相关的信息。
 
 你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
 
@@ -50,18 +58,18 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 
 ### 规划你的学位
 
-- **学位**：一个学位由什么构成——每一组要求各占多少学分，以及其中哪些课你所在的校区其实不开
+- **学位**：一个学位由什么构成，每一组要求各占多少学分，以及其中哪些课你所在的校区其实不开
 - **选课规划**：把课排进各个学期，每一门都替你核对本校区开不开、那个学期开不开、它要求的课有没有排在更早的位置
 - **先修图**：沿着一门课往回看它需要先修哪些课，或者往前看它能解锁哪些课；本校区不开的课不会被隐藏，而是标出来
 
-规划只存在你自己的浏览器里，不会上传，也不会跟着你到别的设备——要转移请用「导出」。
+规划只保存在你自己的浏览器里，不会存进账号。每次核对时会把规划发给接口和 Handbook 比对，核对完不会保留。规划不会跟着你到别的设备，要转移请用「导出」。
 
 ### 算 WAM / GPA
 
 - 输入课程代码，学分和课程级别直接从 Handbook 带出来，级别权重不用自己记
 - 马来西亚校区用的是 CGPA，那是另一套刻度，可以切换
 - 也可以上传 WES 成绩截图或粘贴文本，自动识别成表格
-- 分数只在你的浏览器里计算，不会发到服务器，也不会存进账号
+- 分数只在你的浏览器里计算，不会存进账号。只有你输入的课程代码会发给接口查学分和级别，分数本身不离开你的设备
 
 ### 参与学生社区
 
@@ -123,6 +131,6 @@ Copyright © 2026 Shuoxun Wen. All rights reserved.
 
 GitHub 对公开仓库提供的查看、Clone 或 Fork 等功能，不代表版权所有者额外授予了软件使用许可。
 
-第三方名称、商标及来源内容——包括 Monash University 的名称、标识和来源材料——其权利仍归各自权利人所有，本仓库不会对这些第三方内容重新授权。
+第三方名称、商标及来源内容，包括 Monash University 的名称、标识和来源材料，其权利仍归各自权利人所有，本仓库不会对这些第三方内容重新授权。
 
 详细的所有权边界请查看 [COPYRIGHT.md](COPYRIGHT.md) 和 [NOTICE.md](NOTICE.md)。

@@ -35,6 +35,25 @@ All notable changes to Monash Hub are documented here.
   only when they are web addresses, so a relative link no longer points at
   the Hub's own domain and `JavaScript:` in any spelling is dropped.
 
+### Changed (docs say what the code does; reads are rate limited too)
+
+- The README's privacy wording matched an earlier version of the code. A plan
+  is still stored only in the browser, but each check sends it to the API to
+  be compared with the Handbook; marks stay on the device, but the unit codes
+  are looked up through the API. All four READMEs now say exactly that. The
+  Chinese, Japanese and Korean READMEs carry the same badge strip as the
+  English one, with a live CI badge, and the Japanese and Korean ones gained
+  the technology stack, source boundary and licence sections the English one
+  already had.
+- `docs/ROADMAP-STATUS.md` said the course planner and anything involving a
+  language model were explicitly not now, while both have shipped (the model
+  only translates and never answers a reader). `docs/CRAWLING.md` still described the 20-unit,
+  40-page seed. Both match the repository again.
+- nginx: `/api/v1/community/posts`, `/api/v1/auth/` and the avatar upload are
+  more specific than `/api/`, and the write zone does not count GET, so reads
+  of those paths were not limited at all. They now carry the per-address API
+  zone as well.
+
 ### Changed (light footer)
 
 - The footer is a light grey surface with a rule above it instead of a deep

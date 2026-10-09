@@ -5,6 +5,7 @@
 
 <p align="center">
   <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff?style=for-the-badge" alt="Live site" /></a>
+  <a href="https://github.com/Waldo0926/monash-hub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Waldo0926/monash-hub/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" /></a>
   <img src="https://img.shields.io/badge/status-in%20production-2ea44f?style=for-the-badge" alt="Status: in production" />
   <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black?style=for-the-badge" alt="Unofficial" />
 </p>
@@ -16,7 +17,7 @@
 
 ## What is Monash Hub?
 
-Monash Hub brings Monash student essentials — courses, degrees, study planning, WAM/GPA tools, official guides and a student community — into one place. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
+Monash Hub brings Monash student essentials into one place: courses, degrees, study planning, WAM/GPA tools, official guides and a student community. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
 
 Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
@@ -57,18 +58,18 @@ The production request path is Nginx → Nuxt SSR for the web interface and Ngin
 
 ### Plan your degree
 
-- **Degrees**: what a degree is made of — how many credit points each group of requirements is worth, and which of its units your campus does not actually teach
-- **Course map**: put units into semesters and have each one checked for you — whether your campus offers it, whether that teaching period offers it, and whether what it requires is sitting earlier in the plan
+- **Degrees**: what a degree is made of, how many credit points each group of requirements is worth, and which of its units your campus does not actually teach
+- **Course map**: put units into semesters and have each one checked for you: whether your campus offers it, whether that teaching period offers it, and whether what it requires is sitting earlier in the plan
 - **Unit tree**: follow a unit back to what it needs, or forward to what it unlocks; units your campus does not teach are marked rather than hidden
 
-A plan lives only in your own browser. It is not uploaded and does not follow you to another device — use Export to move it.
+A plan is stored only in your own browser and is never saved to an account. Each check sends the plan to the API so it can be compared with the Handbook, and nothing is kept once the answer comes back. A plan does not follow you to another device, so use Export to move it.
 
 ### Work out your WAM / GPA
 
 - Type a unit code and the credit points and level come from the Handbook; you do not have to remember the level weighting
-- Malaysia uses CGPA, which is a different scale — switch between them
+- Malaysia uses CGPA, which is a different scale, so you can switch between them
 - You can also upload a screenshot of your WES results or paste the text, and have it read into the table
-- Marks are worked out in your browser. They are not sent to a server and not stored on your account
+- Marks are worked out in your browser and never stored on your account. Only the unit codes you type are sent to the API, to look up credit points and level; the marks themselves stay on your device
 
 ### Join the student community
 
@@ -120,6 +121,6 @@ The source code in this repository is made publicly visible for portfolio presen
 
 GitHub features such as viewing, cloning or forking a public repository do not constitute an additional software licence from the copyright holder.
 
-Third-party names, trademarks and source material — including Monash University names, marks and source content — remain the property of their respective rights holders and are not relicensed by this repository.
+Third-party names, trademarks and source material, including Monash University names, marks and source content, remain the property of their respective rights holders and are not relicensed by this repository.
 
 See [COPYRIGHT.md](COPYRIGHT.md) and [NOTICE.md](NOTICE.md) for the detailed ownership boundary.
