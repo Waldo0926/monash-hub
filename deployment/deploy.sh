@@ -2,10 +2,17 @@
 #
 # Deploy Monash Hub on the VPS.
 #
-#   /opt/monash-hub/repo/deployment/deploy.sh
+#   /opt/monash-hub/repo/deployment/deploy.sh            # latest origin/main
+#   /opt/monash-hub/repo/deployment/deploy.sh <sha>      # that commit of main
 #
-# Pulls main, rebuilds, migrates, restarts. Safe to re-run. It never touches
-# any other compose project on the host.
+# Checks out the commit, rebuilds, migrates, restarts, and puts the previous
+# images back if the new API never reports healthy. Safe to re-run. It never
+# touches any other compose project on the host.
+#
+# GitHub Actions passes the commit its CI run tested. Under the SSH forced
+# command in docs/AUTOMATED-DEPLOYMENT.md the argument arrives in
+# SSH_ORIGINAL_COMMAND rather than in $1, so both are read. Only a commit on
+# origin/main is accepted: a dispatch from another branch deploys nothing.
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
@@ -18,6 +25,28 @@ if [[ ! -f .env ]]; then
   echo "error: $PROJECT_DIR/.env is missing. Copy .env.example and fill it in." >&2
   exit 1
 fi
+
+# --- which commit ---------------------------------------------------------------
+# Bash reads a script as it runs, so the checkout below must not happen under
+# the feet of this process: the first invocation only moves the checkout and
+# then re-executes the script that came with it, with --at marking that.
+if [[ "${1:-}" != "--at" ]]; then
+  sha_from_ssh="$(sed -nE 's/.*\b([0-9a-f]{40})\b.*/\1/p' <<<"${SSH_ORIGINAL_COMMAND:-}")"
+  DEPLOY_SHA="${DEPLOY_SHA:-${1:-$sha_from_ssh}}"
+
+  echo "==> Fetching origin"
+  git fetch --prune origin
+  if [[ -z "$DEPLOY_SHA" ]]; then
+    DEPLOY_SHA="$(git rev-parse origin/main)"
+  elif ! git merge-base --is-ancestor "$DEPLOY_SHA" origin/main; then
+    echo "error: $DEPLOY_SHA is not on origin/main; only reviewed commits are deployed" >&2
+    exit 1
+  fi
+  git checkout -q --detach "$DEPLOY_SHA"
+  echo "    now at $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
+  exec "$PROJECT_DIR/deployment/deploy.sh" --at "$DEPLOY_SHA"
+fi
+DEPLOY_SHA="$2"
 
 echo "==> Backing up the database before anything else"
 mkdir -p "$BACKUP_DIR"
@@ -38,11 +67,33 @@ else
   echo "    postgres is not running yet - first deploy, nothing to back up"
 fi
 
-echo "==> Fetching main"
-git fetch --prune origin
-git checkout main
-git reset --hard origin/main
-echo "    now at $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
+echo "==> Keeping the running images as the fallback"
+# Compose names a built image <project>-<service>. The tag that is running
+# now becomes :previous, so a release whose API never comes up can be undone
+# without a rebuild. The database is already backed up above; a migration is
+# not undone here, only the containers.
+for service in api web crawler migrate; do
+  if docker image inspect "monash-hub-$service:latest" >/dev/null 2>&1; then
+    docker tag "monash-hub-$service:latest" "monash-hub-$service:previous"
+  fi
+done
+
+rollback() {
+  echo "==> Putting the previous images back" >&2
+  local restored=0
+  for service in api web; do
+    if docker image inspect "monash-hub-$service:previous" >/dev/null 2>&1; then
+      docker tag "monash-hub-$service:previous" "monash-hub-$service:latest"
+      restored=1
+    fi
+  done
+  if [[ $restored -eq 1 ]]; then
+    "${COMPOSE[@]}" up -d --no-build api web
+    echo "    previous images are running again; the database keeps this release's migrations" >&2
+  else
+    echo "    no previous images to go back to (first deploy)" >&2
+  fi
+}
 
 echo "==> Building images"
 # --profile tools is not optional here: crawler and migrate live behind it, and
@@ -89,69 +140,16 @@ for attempt in $(seq 1 30); do
   if [[ $attempt -eq 30 ]]; then
     echo "error: API did not become healthy. Recent logs:" >&2
     "${COMPOSE[@]}" logs --tail 50 api >&2
+    rollback
     exit 1
   fi
   sleep 2
 done
 
-# MTH2051 is the production regression that exposed the parser gap. Repair it
-# synchronously and assert the live API graph contains an expected prerequisite
-# before a deployment is allowed to succeed. This is intentionally separate
-# from the hours-long all-unit audit below: a green deployment now proves the
-# reported bug is fixed in production, not merely fixed in source code.
-echo "==> Refreshing and verifying MTH2051 prerequisite data"
-# A Handbook outage must not fail the deploy - the services are already up by
-# now. The check below still fails it if the stored data is wrong.
-"${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --units MTH2051 --year 2026 --min-interval 1 --fail-on-errors \
-  || echo "warning: could not refresh MTH2051 from the Handbook; checking the stored data" >&2
-mth2051_tree="$(curl -fsS \
-  "http://127.0.0.1:${api_port}/api/v1/units/MTH2051/tree?direction=upstream&depth=1&campus=Malaysia")"
-if ! grep -q '"MTH2010"' <<<"$mth2051_tree"; then
-  echo "error: MTH2051 refresh completed but its live prerequisite graph still lacks MTH2010" >&2
-  echo "$mth2051_tree" >&2
-  exit 1
-fi
-echo "    MTH2051 prerequisite graph verified"
+# One-off data repairs do not live here. A deploy must not depend on the
+# Handbook answering, nor on two particular units looking a particular way:
+# both happened, and the 2027 rollover would have failed every deploy. See
+# deployment/verify-handbook-parser.sh for the repairs that used to run here.
 
-# FIT1055 is the production regression that exposed the enrolment_rules
-# metadata leak: academic_item/cl_id/type siblings of the rule's description
-# were flattened into rule text, which reintroduced FIT1055's own code as a
-# reference inside its own prohibitions. Repair it synchronously and assert
-# the live API no longer lists the unit as prohibiting itself.
-echo "==> Refreshing and verifying FIT1055 prerequisite data"
-# A Handbook outage must not fail the deploy - the services are already up by
-# now. The check below still fails it if the stored data is wrong.
-"${COMPOSE[@]}" run --rm crawler \
-  python -m crawler.handbook.run --units FIT1055 --year 2026 --min-interval 1 --fail-on-errors \
-  || echo "warning: could not refresh FIT1055 from the Handbook; checking the stored data" >&2
-fit1055_requisites="$(curl -fsS \
-  "http://127.0.0.1:${api_port}/api/v1/units/FIT1055/requisites")"
-# "unit_code": "FIT1055" always appears in this payload; only a requisite
-# item's own "code" field naming FIT1055 is the self-reference bug.
-if grep -Eq '"code": *"FIT1055"' <<<"$fit1055_requisites"; then
-  echo "error: FIT1055 refresh completed but it still lists itself as a requisite/prohibition" >&2
-  echo "$fit1055_requisites" >&2
-  exit 1
-fi
-echo "    FIT1055 prerequisite graph verified"
-
-# Existing database rows also need the new parser applied globally. The full
-# 2026 pass is rate-limited and therefore runs in the background. The helper is
-# locked, versioned, resumable, and writes its done marker only after a clean
-# discovery/fetch/parse pass.
-requisite_version="20260917-enrolment-rule-metadata-v3"
-requisite_done="/opt/monash-hub/state/handbook-requisites-$requisite_version.done"
-log_dir="/opt/monash-hub/logs"
-mkdir -p "$log_dir"
-if [[ ! -f "$requisite_done" ]]; then
-  requisite_log="$log_dir/handbook-requisites-$requisite_version.log"
-  nohup bash "$PROJECT_DIR/deployment/refresh-handbook-requisites.sh" \
-    >"$requisite_log" 2>&1 < /dev/null &
-  echo "==> Started full 2026 Handbook requisite audit (pid $!, log: $requisite_log)"
-else
-  echo "==> Full 2026 Handbook requisite audit $requisite_version already complete"
-fi
-
-echo "==> Done"
+echo "==> Done: $(git rev-parse --short HEAD) is live"
 curl -fsS "http://127.0.0.1:${api_port}/api/health"; echo

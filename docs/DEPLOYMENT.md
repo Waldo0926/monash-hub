@@ -179,7 +179,14 @@ Do not edit application files directly on the production host. A deployment shou
 
 ## Rollback
 
-Use a previously reviewed commit and restore the matching database backup if a migration requires it. Keep backups outside Git and protect them as production data.
+`deploy.sh` puts the previous `api` and `web` images back on its own when the new API never reports healthy. For anything it did not catch, deploy a previously reviewed commit by its SHA:
+
+```bash
+cd /opt/monash-hub/repo
+./deployment/deploy.sh <sha-on-main>
+```
+
+and restore the matching database backup from `/opt/monash-hub/backups` if a migration requires it. Keep backups outside Git and protect them as production data.
 
 ## Verification
 

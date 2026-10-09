@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # One-time repair pass for the 2026 Handbook requisite parser change.
 #
-# MTH2051 and FIT1055 are refreshed and verified synchronously by deploy.sh.
+# MTH2051 and FIT1055 are refreshed and verified synchronously by
+# deployment/verify-handbook-parser.sh, which also starts this helper.
 # This helper is the slower all-unit audit: a rate-limited crawl of every
 # Handbook unit takes several hours. A lock prevents overlapping passes, and
 # marker files make the first pass force a reparse while later retries skip

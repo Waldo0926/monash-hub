@@ -13,9 +13,12 @@ runs the existing idempotent deployment script:
 ```
 
 That script remains the single source of truth for production deployment: it
-backs up PostgreSQL, resets the checkout to `origin/main`, rebuilds the compose
-images, applies migrations and curated seeds, restarts only the `monash-hub`
-compose project, and waits for the API health check.
+backs up PostgreSQL, checks out the commit it was given (the one CI tested;
+`origin/main` when run by hand with no argument), keeps the running images
+tagged `:previous`, rebuilds the compose images, applies migrations and curated
+seeds, restarts only the `monash-hub` compose project, and waits for the API
+health check. If the API never reports healthy, the previous `api` and `web`
+images are put back before the script exits non-zero.
 
 ## Required GitHub Actions secrets
 
@@ -101,10 +104,19 @@ The deploy workflow is triggered only when all of the following are true:
 3. the branch was `main`; and
 4. CI concluded successfully.
 
+The workflow passes the CI run's `head_sha` to the script, so what goes live
+is the commit that was tested even if `main` has moved on by then. A manual
+`workflow_dispatch` passes the commit it was run from, and the script refuses
+any commit that is not on `origin/main`.
+
 Deployments are serialized with a `production-deploy` concurrency group so two
 production rebuilds cannot run at the same time. After the VPS script finishes,
 the workflow also checks `https://monashhub.secureview.tech/api/health` from the
 GitHub runner.
+
+One-off data repairs (the MTH2051 and FIT1055 checks that used to gate every
+deploy) live in `deployment/verify-handbook-parser.sh` and are run by hand
+after a parser change.
 
 The `production` GitHub Environment is used for deployment history. Optional
 environment protection rules can be added later if production should require a
