@@ -213,7 +213,7 @@ class Translator:
     ) -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
-        if engine not in ("argos", "google", "google-cloud", "llm"):
+        if engine not in ("argos", "google-cloud", "llm"):
             raise ValueError(f"unknown engine {engine!r}")
         self.locale = locale
         self.engine = engine
@@ -228,11 +228,7 @@ class Translator:
         self._renderings: dict[str, str] = {}
         self._lock = threading.Lock()
         self.use_scope(scope)
-        if engine == "google":
-            from crawler.translate import google
-
-            self._translate = google.load(locale)
-        elif engine == "llm":
+        if engine == "llm":
             from crawler.translate import llm
 
             self._translate = llm.load(locale)
