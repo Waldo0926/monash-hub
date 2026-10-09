@@ -25,6 +25,11 @@ def crawl_job(db: Session, job_type: str, *, targets: int, transport: str | None
     try:
         yield job
     except BaseException as exc:
+        # The failure may be the database's own (a flush that was refused),
+        # in which case the session is waiting for a rollback and the commit
+        # below would raise PendingRollbackError over the real error, leaving
+        # the job marked running forever.
+        db.rollback()
         job.status = "failed"
         job.notes = f"{type(exc).__name__}: {exc}"[:2000]
         job.finished_at = datetime.now(UTC)

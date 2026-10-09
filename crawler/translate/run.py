@@ -244,20 +244,6 @@ def years_marker(hashes: list[str | None]) -> str:
     return hashlib.sha256("|".join(present).encode()).hexdigest()
 
 
-def _stored_strings(db, locale: str, target_type: str, target_key: str) -> dict[str, str]:
-    """The machine row's string map for one target, or nothing."""
-    data = db.scalar(
-        select(ContentTranslation.data).where(
-            ContentTranslation.locale == locale,
-            ContentTranslation.target_type == target_type,
-            ContentTranslation.target_key == target_key,
-            ContentTranslation.field == "content",
-            ContentTranslation.provenance == MACHINE,
-        )
-    )
-    return (data or {}).get("strings") or {}
-
-
 def _up_to_date(
     db, locale: str, target_type: str, target_key: str, source_hash: str, scope: str = ""
 ) -> bool:
@@ -505,9 +491,9 @@ def main() -> None:
         help="short: titles and enumerable values. all: adds overviews and outcomes",
     )
     parser.add_argument(
-        "--engine", default="argos", choices=["argos", "google", "google-cloud", "llm"],
-        help="argos: offline model (default). google: the web endpoint, paced and "
-             "stopped on repeated failure. google-cloud: the paid Cloud Translation API, "
+        "--engine", default="argos", choices=["argos", "google-cloud", "llm"],
+        help="argos: offline model (default). "
+             "google-cloud: the paid Cloud Translation API, "
              "key in GOOGLE_TRANSLATE_API_KEY. llm: any OpenAI-compatible chat model "
              "(default Zhipu glm-4-flash, free) - see crawler/translate/llm.py",
     )
@@ -539,7 +525,7 @@ def main() -> None:
 
     global TRANSLATOR_NAME
     translator = Translator(args.locale, engine=args.engine, workers=args.workers)
-    if args.engine in ("google", "google-cloud"):
+    if args.engine == "google-cloud":
         TRANSLATOR_NAME = f"machine:{args.engine}+glossary"
     elif args.engine == "llm":
         TRANSLATOR_NAME = f"machine:llm:{translator._translate.model}+glossary"

@@ -4,6 +4,28 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (the crawler says who it is, and the unofficial engine is gone)
+
+- The official-page fetcher sent a Chrome User-Agent and never read
+  `robots.txt`. It now sends the same `MonashHubBot` name the Handbook fetcher
+  always did, on the HTTP client and in the browser engine alike, reads each
+  host's `robots.txt` once and does not fetch what it disallows (recorded in
+  `crawl_history` as such). A 429 no longer flips the transport: it means
+  slower, so the fetcher waits for `Retry-After` and tries the same way. An
+  explicit `--transport httpx` is kept whatever the server says; only `auto`
+  moves to the browser, and only on a 403.
+- `--engine google`, the unofficial `translate_a/single` web endpoint with no
+  key and no terms, is removed. `google-cloud` (keyed, billed) and `llm`
+  remain. `Blocked` and the failure cap live in `crawler/translate/errors.py`
+  rather than being imported from the Google module by the LLM one.
+- A crawl whose failure was the database's own (a refused flush) could not
+  mark its job failed: the handler committed without rolling back and raised
+  `PendingRollbackError` over the real error. The job wrapper rolls back
+  first, and the unit crawl skips a unit the schema refuses the way the
+  course crawl already did, instead of ending the run.
+- `.dockerignore` excludes `.env` files, so a local one cannot be copied into
+  an image. A duplicate `_stored_strings` in the translation runner is gone.
+
 ### Changed (the frontend checks itself)
 
 - `npm run typecheck` exists and runs in CI, with `vue-tsc`, `typescript` and

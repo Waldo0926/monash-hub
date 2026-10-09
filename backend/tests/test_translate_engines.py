@@ -1,7 +1,8 @@
-"""The Google backend's failure behaviour - the part that has to be right.
+"""The remote translation engines' failure behaviour, the part that has to be right.
 
-No network: the opener is a stub. What matters is that a blocked endpoint stops
-the run instead of being recorded, string after string, as "cannot translate".
+No network: the opener is a stub. What matters is that a refused key or a
+provider that has stopped answering stops the run instead of being recorded,
+string after string, as "cannot translate".
 """
 from __future__ import annotations
 
@@ -13,11 +14,7 @@ import pytest
 from app.models.translation import ContentTranslation
 
 from crawler.translate.engine import Translator
-from crawler.translate.google import Blocked, GoogleModel
-
-
-def reply(text):
-    return io.BytesIO(json.dumps([[[text, "src", None, None]], None, "en"]).encode())
+from crawler.translate.errors import Blocked
 
 
 class Opener:
@@ -33,42 +30,17 @@ class Opener:
         return answer
 
 
-def model(answers):
-    return GoogleModel("zh", opener=Opener(answers), sleep=lambda _s: None, clock=lambda: 0.0)
-
-
-def test_a_reply_is_joined_from_its_segments():
-    body = io.BytesIO(json.dumps([[["你好，", "Hello, ", 0], ["世界", "world", 0]]]).encode())
-    assert model([body])("Hello, world") == "你好，世界"
-
-
-def test_a_transient_failure_is_retried():
-    m = model([urllib.error.URLError("reset"), reply("好")])
-    assert m("fine") == "好"
-
-
-def test_one_bad_string_does_not_stop_the_run():
-    bad = [urllib.error.URLError("x")] * 4
-    m = model(bad)
-    with pytest.raises(RuntimeError):
-        m("one")
-
-
-def test_a_blocked_endpoint_stops_the_run_and_is_not_swallowed():
-    m = model([urllib.error.URLError("429")] * 4 * 8)
-    for _ in range(7):
-        with pytest.raises(RuntimeError):
-            m("x")
-    with pytest.raises(Blocked):
-        m("x")
+def test_blocked_gets_past_the_per_string_catch():
     # The engine catches Exception per string; Blocked must get through that.
     assert not issubclass(Blocked, Exception)
 
 
-def test_the_engine_uses_the_google_model_only_when_asked():
+def test_the_engine_knows_its_engines():
     assert Translator.__new__(Translator).scope == "general"
     with pytest.raises(ValueError):
         Translator("zh", engine="nope")
+    with pytest.raises(ValueError):
+        Translator("zh", engine="google")
 
 
 def cloud(answers):
