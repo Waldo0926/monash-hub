@@ -4,6 +4,9 @@
 **/.nuxt
 **/.output
 **/__pycache__
+**/.env
+**/.env.*
+!.env.example
 **/*.pyc
 .git
 docs

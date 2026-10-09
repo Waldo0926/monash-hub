@@ -11,13 +11,11 @@ from dataclasses import dataclass
 
 import httpx
 
-from crawler.throttling.limiter import Throttle
+from crawler.throttling.limiter import USER_AGENT, Throttle
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = (
-    "MonashHubBot/0.1 (+https://monashhub.secureview.tech; student information index)"
-)
+__all__ = ["USER_AGENT", "FetchResult", "HandbookFetcher"]
 
 
 @dataclass(slots=True)

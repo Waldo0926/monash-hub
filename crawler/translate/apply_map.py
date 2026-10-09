@@ -1,8 +1,8 @@
 """Apply a file of English -> Chinese renderings to the stored machine rows.
 
-For when the translating is done somewhere the database is not: Google answers
-429 to the server's address, so the degree pages were translated on a laptop
-(``--engine google``) and the result brought back as one JSON object,
+For when the translating is done somewhere the database is not, such as a
+paid engine run from the machine that holds its key, with the result brought
+back as one JSON object,
 
     {"<exact English string>": "<中文>", ...}
 

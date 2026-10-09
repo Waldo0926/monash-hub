@@ -32,7 +32,7 @@ import time
 import urllib.error
 import urllib.request
 
-from crawler.translate.google import MAX_CONSECUTIVE_FAILURES, Blocked
+from crawler.translate.errors import MAX_CONSECUTIVE_FAILURES, Blocked
 
 log = logging.getLogger(__name__)
 

@@ -58,10 +58,46 @@ function read(): PlanState {
   try {
     const raw = window.localStorage.getItem(KEY)
     if (!raw) return blank()
-    const parsed = JSON.parse(raw)
-    return { ...blank(), ...parsed, entries: Array.isArray(parsed.entries) ? parsed.entries : [] }
+    return sanitise(JSON.parse(raw)) ?? blank()
   } catch {
     return blank()
+  }
+}
+
+export const MAX_YEARS = 10
+
+/**
+ * A plan from a file or from storage is only taken field by field, and only
+ * where it makes sense. `years: 1e9` from a hand-edited export used to ask
+ * for a billion rows and freeze the tab; a `periods` that was not a list
+ * crashed the first `.includes`.
+ */
+export function sanitise(parsed: unknown): PlanState | null {
+  if (!parsed || typeof parsed !== 'object') return null
+  const raw = parsed as Record<string, unknown>
+  if (!Array.isArray(raw.entries)) return null
+  const base = blank()
+  const year = Number(raw.startYear)
+  const years = Number(raw.years)
+  const entries: PlanEntry[] = []
+  for (const entry of raw.entries) {
+    if (!entry || typeof entry !== 'object') continue
+    const e = entry as Record<string, unknown>
+    const code = String(e.unit_code ?? '').trim().toUpperCase()
+    const entryYear = Number(e.year)
+    const period = String(e.teaching_period ?? '').trim()
+    if (!code || !Number.isInteger(entryYear) || !period) continue
+    entries.push({ unit_code: code.slice(0, 16), year: entryYear, teaching_period: period.slice(0, 120) })
+  }
+  return {
+    startYear: Number.isInteger(year) && year >= 1990 && year <= 2100 ? year : base.startYear,
+    years: Number.isInteger(years) ? Math.min(MAX_YEARS, Math.max(1, years)) : base.years,
+    campus: typeof raw.campus === 'string' ? raw.campus.slice(0, 64) : base.campus,
+    courseCode: typeof raw.courseCode === 'string' ? raw.courseCode.slice(0, 16) : base.courseCode,
+    periods: Array.isArray(raw.periods) && raw.periods.every((p) => typeof p === 'string')
+      ? (raw.periods as string[]).slice(0, 12)
+      : base.periods,
+    entries
   }
 }
 
@@ -127,7 +163,7 @@ export function usePlan() {
   }
 
   function addYear() {
-    plan.value.years += 1
+    plan.value.years = Math.min(MAX_YEARS, plan.value.years + 1)
   }
 
   function removeYear(year: number) {
@@ -143,9 +179,9 @@ export function usePlan() {
   /** Returns an error key, or null. An unreadable file must not wipe the plan. */
   function imported(text: string): string | null {
     try {
-      const parsed = JSON.parse(text)
-      if (!parsed || !Array.isArray(parsed.entries)) return 'plan.importShape'
-      plan.value = { ...blank(), ...parsed, entries: parsed.entries }
+      const cleaned = sanitise(JSON.parse(text))
+      if (!cleaned) return 'plan.importShape'
+      plan.value = cleaned
       return null
     } catch {
       return 'plan.importParse'

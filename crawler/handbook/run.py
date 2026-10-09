@@ -28,6 +28,7 @@ from app.handbook.parser import ParseError, parse_unit_page, unit_url
 from app.handbook.repository import upsert_unit
 from app.models.handbook import Unit
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from crawler.handbook.discover import discover_unit_codes
 from crawler.handbook.fetch import HandbookFetcher
@@ -101,8 +102,19 @@ def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]
                 log.error("%s: parse failed, keeping last valid record (%s)", code, exc)
                 continue
 
-            unit, outcome = upsert_unit(db, parsed)
-            db.commit()
+            try:
+                unit, outcome = upsert_unit(db, parsed)
+                db.commit()
+            except SQLAlchemyError as exc:
+                # One unit that will not fit the schema is that unit's problem,
+                # not the run's (run_courses.py learned this at page 87).
+                db.rollback()
+                summary["failed"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="failed", http_status=result.status, transport=result.transport,
+                       duration_ms=elapsed, message=f"database error: {exc}"[:2000])
+                log.error("%s: could not be stored, skipping (%s)", code, type(exc).__name__)
+                continue
             summary[outcome] += 1
             record(db, job, target_type="handbook_unit", target_key=code, url=url,
                    outcome=outcome, http_status=200, content_hash=parsed["content_hash"],

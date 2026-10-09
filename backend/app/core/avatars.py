@@ -29,7 +29,7 @@ import io
 import secrets
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.core.config import get_settings
 
@@ -40,7 +40,7 @@ SIZE = 256
 MAX_BYTES = 4 * 1024 * 1024
 # Pillow's own bomb guard is generous. A 40 megapixel source is already far more
 # than a 256px square needs.
-MAX_PIXELS = 40_000_000
+MAX_PIXELS = 16_000_000
 QUALITY = 82
 
 
@@ -72,10 +72,20 @@ def store(data: bytes, user_id: int) -> str:
             # Some formats only reveal breakage on load, which is the point of
             # doing it here rather than trusting the header.
             probe.load()
-            image = probe.convert("RGB")
+            # Phone photos carry their rotation as a tag rather than in the
+            # pixels, and come out sideways without this.
+            image = ImageOps.exif_transpose(probe) or probe
+            if image.mode in ("RGBA", "LA", "P"):
+                # Transparent corners turned black; flatten onto white instead.
+                image = image.convert("RGBA")
+                flat = Image.new("RGB", image.size, (255, 255, 255))
+                flat.paste(image, mask=image.getchannel("A"))
+                image = flat
+            else:
+                image = image.convert("RGB")
     except AvatarError:
         raise
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError) as exc:
         # Includes SVG, which Pillow cannot open - and which is a script.
         raise AvatarError("That file is not an image we can read.") from exc
 
