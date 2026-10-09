@@ -38,6 +38,7 @@ import hashlib
 import re
 import unicodedata
 from typing import Any
+from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 
@@ -132,7 +133,28 @@ def _clean(text: str) -> str:
 
 def _is_linkable(href: str) -> bool:
     """Anchors to nowhere are noise; ``#/`` in particular is a Monash JS hook."""
-    return bool(href) and not href.startswith(("#", "javascript:"))
+    return bool(href) and not href.startswith("#")
+
+
+def _absolute_links(value: Any, base: str) -> Any:
+    """Resolve every span's link against the page it came from, http(s) only.
+
+    The pages link to each other relatively, and a relative link shown on the
+    Hub pointed at the Hub's own domain. Anything that is not a web address
+    once resolved (``javascript:`` in any spelling, ``data:``, ``mailto:``)
+    is dropped rather than handed to a browser.
+    """
+    if isinstance(value, list):
+        return [_absolute_links(item, base) for item in value]
+    if isinstance(value, dict):
+        out = {k: _absolute_links(v, base) for k, v in value.items() if k != "url"}
+        url = value.get("url")
+        if isinstance(url, str):
+            resolved = urljoin(base, url.strip())
+            if urlsplit(resolved).scheme in ("http", "https"):
+                out["url"] = resolved
+        return out
+    return value
 
 
 def _rich(node: Tag) -> list[dict[str, Any]]:
@@ -511,7 +533,7 @@ def clean_page(html: str, *, url: str) -> dict:
 
     # Before the outline and the search text are derived from them, so all
     # three agree about what is on the page.
-    blocks = _drop_junk(_extract_blocks(body))
+    blocks = _absolute_links(_drop_junk(_extract_blocks(body)), url)
     headings = [
         {"level": b["level"], "text": b["text"], "id": b["id"]}
         for b in blocks

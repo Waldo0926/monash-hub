@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # a relative URL.
     site_url: str = "https://monashhub.secureview.tech"
 
+    # Peers whose X-Real-IP header the rate limiter believes, as addresses or
+    # CIDR ranges separated by commas. Empty trusts every peer, for a port only
+    # nginx can reach. See core/throttle.py.
+    trusted_proxies: str = ""
+
     # --- Email verification -------------------------------------------------
     # Registration and password reset are both gated on a code sent to the
     # address, so the account can actually be recovered later.

@@ -34,6 +34,9 @@ from app.search import service
 
 router = APIRouter(prefix="/community", tags=["community"])
 
+# A top-level answer is depth 1. Five is deeper than any thread on Ed goes.
+MAX_REPLY_DEPTH = 5
+
 CATEGORIES = [
     {"key": "units", "label": "Units & Study"},
     {"key": "course-planning", "label": "Course Planning"},
@@ -233,6 +236,8 @@ def get_post(
         .options(
             selectinload(CommunityPost.answers)
             .selectinload(CommunityAnswer.children)
+            .selectinload(CommunityAnswer.children)
+            .selectinload(CommunityAnswer.children)
             .selectinload(CommunityAnswer.children),
             selectinload(CommunityPost.post_tags).selectinload(PostTag.tag),
         )
@@ -262,6 +267,9 @@ def list_answers(
     db: Session = Depends(get_db),
     user: User | None = Depends(current_user_optional),
 ) -> dict:
+    # The post's own visibility applies to its replies: a thread a moderator
+    # hid, or its author took down, was still readable here.
+    _visible_post(db, post_id)
     answers = db.scalars(
         select(CommunityAnswer)
         .where(
@@ -300,6 +308,7 @@ def create_answer(
         if (parent is None or parent.post_id != post.id or parent.is_hidden
                 or parent.deleted_at is not None):
             raise HTTPException(404, "The reply you are replying to is not in this thread")
+        parent = _parent_within_depth(parent)
 
     answer = CommunityAnswer(
         post_id=post.id,
@@ -321,6 +330,22 @@ def create_answer(
     return answer_brief(answer, viewer_id=user.id)
 
 
+def _parent_within_depth(parent: CommunityAnswer) -> CommunityAnswer:
+    """The reply to hang a new one under, so a thread never exceeds MAX_REPLY_DEPTH.
+
+    The serialiser and the thread loader recurse through replies, so an
+    unbounded chain would eventually be a thread nobody can open. Past the
+    limit a reply goes under the deepest ancestor that still has room, which
+    is how a flattened conversation reads anyway.
+    """
+    chain = [parent]
+    while chain[-1].parent_id is not None:
+        chain.append(chain[-1].parent)
+    if len(chain) < MAX_REPLY_DEPTH:
+        return parent
+    return chain[len(chain) - (MAX_REPLY_DEPTH - 1)]
+
+
 @router.post("/answers/{answer_id}/accept")
 def accept_answer(
     answer_id: int,
@@ -333,8 +358,18 @@ def accept_answer(
     post = _visible_post(db, answer.post_id)
     if post.author_id != user.id and not user.is_admin:
         raise HTTPException(403, "Only the person who asked can mark an answer as helpful")
-    for other in post.answers:
-        other.is_accepted = other.id == answer.id
+    # Only a top-level answer can be the answer. post.answers holds just those,
+    # so accepting a nested reply used to mark the post solved without marking
+    # anything accepted.
+    if answer.parent_id is not None:
+        raise HTTPException(400, "Only a top-level answer can be marked as helpful")
+    db.execute(
+        update(CommunityAnswer)
+        .where(CommunityAnswer.post_id == post.id, CommunityAnswer.id != answer.id)
+        .values(is_accepted=False)
+        .execution_options(synchronize_session="fetch")
+    )
+    answer.is_accepted = True
     post.is_solved = True
     notifications.notify_accepted(db, post=post, answer=answer, actor=user)
     db.commit()
@@ -532,7 +567,8 @@ def resolve_report(
         model = CommunityPost if report.target_type == "post" else CommunityAnswer
         target = db.get(model, report.target_id)
         if target is not None and not target.is_hidden:
-            if isinstance(target, CommunityAnswer):
+            # A reply its author deleted already left the count.
+            if isinstance(target, CommunityAnswer) and target.deleted_at is None:
                 _count_answer(db, target.post_id, -1)
             target.is_hidden = True
         _close_reports(db, report.target_type, report.target_id, "resolved")
@@ -571,7 +607,8 @@ def moderate(
         if action == "unhide" and target.deleted_at is not None:
             raise HTTPException(409, "Its author deleted this; it cannot be restored")
         hide = action == "hide"
-        if isinstance(target, CommunityAnswer) and target.is_hidden != hide:
+        if (isinstance(target, CommunityAnswer) and target.is_hidden != hide
+                and target.deleted_at is None):
             _count_answer(db, target.post_id, -1 if hide else 1)
         target.is_hidden = hide
         if hide:
@@ -609,7 +646,10 @@ def delete_post(
     if post.author_id != user.id and not user.is_admin:
         raise HTTPException(403, "Only its author can delete this")
     post.is_hidden = True
-    post.deleted_at = func.now()
+    # deleted_at means "its author took this down", which is what makes it
+    # unrestorable. A moderator taking it down is a hide, and can be undone.
+    if post.author_id == user.id:
+        post.deleted_at = func.now()
     db.commit()
     return {"id": post.id, "deleted": True}
 
@@ -626,7 +666,11 @@ def delete_answer(
         raise HTTPException(404, "Answer not found")
     if answer.author_id != user.id and not user.is_admin:
         raise HTTPException(403, "Only its author can delete this")
-    answer.deleted_at = func.now()
+    if answer.author_id == user.id:
+        answer.deleted_at = func.now()
+    else:
+        answer.is_hidden = True
+        _close_reports(db, "answer", answer.id, "resolved")
     if answer.is_accepted:
         answer.is_accepted = False
         db.execute(

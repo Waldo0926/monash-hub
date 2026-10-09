@@ -97,7 +97,8 @@ def mark_read(db: Session, user_id: int, notification_ids: list[int] | None) -> 
         .where(Notification.user_id == user_id, Notification.is_read.is_(False))
         .values(is_read=True)
     )
-    if notification_ids:
+    # None means all of them; an empty list means none of them.
+    if notification_ids is not None:
         statement = statement.where(Notification.id.in_(notification_ids))
     result = db.execute(statement)
     db.commit()
