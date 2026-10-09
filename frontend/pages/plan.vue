@@ -25,6 +25,7 @@ const picking = ref<{ year: number; period: string } | null>(null)
 const query = ref('')
 const results = ref<any[]>([])
 const searching = ref(false)
+const searchError = ref('')
 
 async function search() {
   const term = query.value.trim()
@@ -33,11 +34,16 @@ async function search() {
     return
   }
   searching.value = true
+  searchError.value = ''
   try {
     const params = new URLSearchParams({ q: term, limit: '12' })
     if (plan.value.campus) params.set('campus', plan.value.campus)
     const body = await apiFetch<any>(`/v1/units?${params.toString()}`)
     results.value = body.results || []
+  } catch (caught) {
+    // Fired from a timer, so nothing upstream would catch it.
+    results.value = []
+    searchError.value = apiErrorMessage(caught, $t)
   } finally {
     searching.value = false
   }
@@ -75,6 +81,7 @@ function place(unitCode: string) {
 
 const report = ref<any>(null)
 const checking = ref(false)
+const checkError = ref('')
 let checkTimer: ReturnType<typeof setTimeout> | undefined
 
 async function check() {
@@ -83,6 +90,7 @@ async function check() {
     return
   }
   checking.value = true
+  checkError.value = ''
   try {
     report.value = await apiFetch<any>('/v1/plan/check', {
       method: 'POST',
@@ -95,6 +103,10 @@ async function check() {
         entries: plan.value.entries
       }
     })
+  } catch (caught) {
+    // The report on screen is from before this change; say so rather than
+    // let it pass for a verdict on the plan as it is now.
+    checkError.value = apiErrorMessage(caught, $t)
   } finally {
     checking.value = false
   }
@@ -396,7 +408,7 @@ function shortPeriod(period: string): string {
   return label === key ? period : label
 }
 
-useHead({ title: $t('plan.title') })
+useSeoMeta({ title: () => $t('plan.title') })
 </script>
 
 <template>
@@ -536,6 +548,7 @@ useHead({ title: $t('plan.title') })
                   </button>
                 </li>
               </ul>
+              <p v-if="searchError" class="tiny bad-text" role="alert">{{ searchError }}</p>
               <p v-else-if="query.length >= 2 && !searching" class="muted">
                 {{ $t('plan.noMatches') }}
               </p>
@@ -562,6 +575,7 @@ useHead({ title: $t('plan.title') })
             {{ $t('courses.creditPoints') }}
           </p>
           <p v-if="checking" class="muted">{{ $t('plan.checking') }}</p>
+          <p v-else-if="checkError" class="tiny bad-text" role="alert">{{ checkError }}</p>
           <p v-else-if="!plan.entries.length" class="muted">{{ $t('plan.empty') }}</p>
           <p v-else-if="!errorCount && !warningCount" class="ok">{{ $t('plan.allClear') }}</p>
           <template v-else>

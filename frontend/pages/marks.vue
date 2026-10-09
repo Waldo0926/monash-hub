@@ -77,7 +77,8 @@ async function lookup(codes: string[]) {
   if (!wanted.length) return
   lookupNote.value = ''
   try {
-    const result = await apiFetch<any>(`/v1/marks/units?codes=${wanted.join(',')}`)
+    const params = new URLSearchParams({ codes: wanted.join(',') })
+    const result = await apiFetch<any>(`/v1/marks/units?${params.toString()}`)
     const byCode = new Map(result.results.map((u: any) => [u.unit_code, u]))
     for (const entry of entries.value) {
       const found = byCode.get(entry.unitCode.trim().toUpperCase()) as any

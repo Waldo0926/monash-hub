@@ -16,8 +16,6 @@
 const { $t } = useNuxtApp()
 const { user, restore, signOut } = useAuth()
 
-definePageMeta({ middleware: undefined })
-
 const profile = ref<any>(null)
 const activity = ref<any>({ posts: [], answered: [], bookmarks: [] })
 const loading = ref(true)

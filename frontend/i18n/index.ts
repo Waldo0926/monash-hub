@@ -83,7 +83,6 @@ const en: Messages = {
   'nav.units': 'Units',
   'nav.guides': 'Guides',
   'nav.community': 'Community',
-  'nav.exchange': 'Exchange',
   'nav.mamo': 'MUM Guide',
   // --- unit tree ----------------------------------------------------------
   'nav.tree': 'Unit tree',
@@ -344,7 +343,6 @@ const en: Messages = {
   'footer.builtMaintainedBy': 'Built and maintained by',
   'footer.wechat':
     'More on the 马莫百科 WeChat account, updated as things change — questions are welcome by direct message there.',
-  'home.communityEmpty': 'No discussions yet',
   'home.communityEmptyHint': 'Official pages answer what the rules are. This is where students answer what it was actually like — someone has to ask first.',
 
   // --- badges -------------------------------------------------------------
@@ -355,7 +353,6 @@ const en: Messages = {
   'badge.sponsored': 'Sponsored',
   'source.lastChecked': 'Last checked',
   'source.mayHaveChanged': 'source may have changed since',
-  'source.label': 'Source',
 
   // --- home ---------------------------------------------------------------
   'home.title': 'Monash Hub — Handbook, official guides and student community',
@@ -366,12 +363,6 @@ const en: Messages = {
     'Unit data from the 2026 Handbook, the official Monash pages students actually need, and a public place to ask everything the official pages do not cover.',
   'home.trending': 'Trending',
   'home.moreTools': 'More tools',
-  'home.entryUnits': 'Units',
-  'home.entryUnitsHint': 'Assessment, requisites, offerings, workload',
-  'home.entryGuides': 'Official guides',
-  'home.entryGuidesHint': 'Special consideration, WAM, visas, census dates',
-  'home.entryCommunity': 'Community',
-  'home.entryCommunityHint': 'Ask questions, share what it was actually like',
   'home.unitsInIndex': 'Units in the index',
   'home.allUnits': 'All units →',
   'home.officialGuides': 'Official guides',
@@ -446,7 +437,6 @@ const en: Messages = {
   'unit.examUnknown': 'The Handbook publishes no assessment items for this unit yet.',
   'unit.noRequisites':
     'The Handbook lists no prerequisite, corequisite or prohibition for this unit.',
-  'unit.joinedBy': 'Joined by {connector}.',
   'unit.noWorkload': 'No workload detail published.',
   'unit.askAbout': 'Ask about {code}',
   'unit.askHint':
@@ -773,7 +763,7 @@ const en: Messages = {
   'error.pageMissing': 'That page does not exist',
   'error.pageMissingHint':
     'The link may be out of date, or the unit or guide is not in the index yet.',
-  'error.generic': 'Something went wrong',
+  'error.pageBroken': 'Something went wrong',
   'error.genericHint': 'This is our problem, not your connection. Try again in a moment.',
   'error.goHome': 'Go home',
 
@@ -833,7 +823,6 @@ const zh: Messages = {
   'nav.units': '课程',
   'nav.guides': '官方指南',
   'nav.community': '社区',
-  'nav.exchange': '交换',
   'nav.mamo': '马莫百科',
   // --- 先修图 -------------------------------------------------------------
   'nav.tree': '先修图',
@@ -1084,7 +1073,6 @@ const zh: Messages = {
   'footer.builtMaintainedBy': '搭建与维护：',
   'footer.wechat':
     '更多资讯请关注「马莫百科」微信公众号，后续将持续更新；有问题欢迎在公众号后台私信。',
-  'home.communityEmpty': '还没有讨论',
   'home.communityEmptyHint': '官方页面告诉你规定是什么，这里是学生说真实体验是什么样——总要有人先开口。',
 
   'badge.handbook': '官方 Handbook',
@@ -1094,7 +1082,6 @@ const zh: Messages = {
   'badge.sponsored': '推广',
   'source.lastChecked': '最后核对',
   'source.mayHaveChanged': '来源可能已有变动',
-  'source.label': '来源',
 
   'home.title': 'Monash Hub — Handbook、官方指南与学生社区',
   'home.metaDescription':
@@ -1104,12 +1091,6 @@ const zh: Messages = {
     '2026 Handbook 的课程数据、学生真正会用到的 Monash 官方页面，以及一个可以公开提问的地方——官方页面没写的，来这里问。',
   'home.trending': '热门搜索',
   'home.moreTools': '更多功能',
-  'home.entryUnits': '查课程',
-  'home.entryUnitsHint': '考核、先修、开课、工作量',
-  'home.entryGuides': '查政策',
-  'home.entryGuidesHint': '特殊考虑、WAM、签证、截止日',
-  'home.entryCommunity': '社区',
-  'home.entryCommunityHint': '提问、分享真实体验',
   'home.unitsInIndex': '已收录的课程',
   'home.allUnits': '全部课程 →',
   'home.officialGuides': '官方指南',
@@ -1179,7 +1160,6 @@ const zh: Messages = {
   'unit.examNo': 'Handbook 列出的考核项里没有期末考试（examination）。这不等于保证一定没有考试。',
   'unit.examUnknown': 'Handbook 还没有公布这门课的考核项。',
   'unit.noRequisites': 'Handbook 未为这门课列出先修、同修或禁修要求。',
-  'unit.joinedBy': '以上各项以「{connector}」的关系相连。',
   'unit.noWorkload': '未公布工作量说明。',
   'unit.askAbout': '关于 {code} 提问',
   'unit.askHint': '答案直接来自上面的 Handbook 字段——没有 AI，不做猜测，每条都能点回来源。',
@@ -1486,7 +1466,7 @@ const zh: Messages = {
   'state.generic': '加载这个页面时出错了。',
   'error.pageMissing': '这个页面不存在',
   'error.pageMissingHint': '链接可能已经失效，或者这门课/这个指南还没有被收录。',
-  'error.generic': '出错了',
+  'error.pageBroken': '出错了',
   'error.genericHint': '这是我们的问题，不是你的网络。过一会儿再试。',
   'error.goHome': '回首页',
 
@@ -1545,7 +1525,6 @@ const ja: Messages = {
   'nav.units': 'ユニット',
   'nav.guides': '公式ガイド',
   'nav.community': 'コミュニティ',
-  'nav.exchange': '交換留学',
   'nav.mamo': '馬莫百科',
   // --- 履修条件マップ -----------------------------------------------------
   'nav.tree': '履修条件マップ',
@@ -1799,7 +1778,6 @@ const ja: Messages = {
   'footer.builtMaintainedBy': '構築・運営：',
   'footer.wechat':
     '「马莫百科」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
-  'home.communityEmpty': 'まだ投稿がありません',
   'home.communityEmptyHint': '公式ページは規程が何かを答えます。ここは学生が実際どうだったかを答える場所です。誰かが最初に聞く必要があります。',
 
   'badge.handbook': '公式 Handbook',
@@ -1809,7 +1787,6 @@ const ja: Messages = {
   'badge.sponsored': '広告',
   'source.lastChecked': '最終確認',
   'source.mayHaveChanged': 'その後に変更された可能性があります',
-  'source.label': '出典',
 
   'home.title': 'Monash Hub — Handbook・公式ガイド・学生コミュニティ',
   'home.metaDescription':
@@ -1819,12 +1796,6 @@ const ja: Messages = {
     '2026 年 Handbook のユニット情報、学生が実際に必要とする Monash 公式ページ、そして公式ページに載っていないことを聞ける公開の場所。',
   'home.trending': '人気の検索',
   'home.moreTools': 'その他の機能',
-  'home.entryUnits': 'ユニット',
-  'home.entryUnitsHint': '評価・履修条件・開講・学習時間',
-  'home.entryGuides': '公式ガイド',
-  'home.entryGuidesHint': '特別配慮・WAM・ビザ・締切日',
-  'home.entryCommunity': 'コミュニティ',
-  'home.entryCommunityHint': '質問する、実際の体験を共有する',
   'home.unitsInIndex': '収録済みのユニット',
   'home.allUnits': 'すべてのユニット →',
   'home.officialGuides': '公式ガイド',
@@ -1896,7 +1867,6 @@ const ja: Messages = {
     'Handbook の評価項目に期末 examination の記載はありません。試験が無いことの保証ではありません。',
   'unit.examUnknown': 'Handbook はこのユニットの評価項目をまだ公開していません。',
   'unit.noRequisites': 'Handbook にこのユニットの履修条件・同時履修・履修制限の記載はありません。',
-  'unit.joinedBy': '{connector} で結ばれています。',
   'unit.noWorkload': '学習時間の記載はありません。',
   'unit.askAbout': '{code} について質問する',
   'unit.askHint':
@@ -2214,7 +2184,7 @@ const ja: Messages = {
   'error.pageMissing': 'このページは存在しません',
   'error.pageMissingHint':
     'リンクが古いか、そのユニットまたはガイドがまだ収録されていない可能性があります。',
-  'error.generic': '問題が発生しました',
+  'error.pageBroken': '問題が発生しました',
   'error.genericHint': 'こちら側の問題です。少し待ってからお試しください。',
   'error.goHome': 'ホームへ',
 
@@ -2273,7 +2243,6 @@ const ko: Messages = {
   'nav.units': '과목',
   'nav.guides': '공식 가이드',
   'nav.community': '커뮤니티',
-  'nav.exchange': '교환학생',
   'nav.mamo': '마모 백과',
   // --- 선수과목 지도 ------------------------------------------------------
   'nav.tree': '선수과목 지도',
@@ -2527,7 +2496,6 @@ const ko: Messages = {
   'footer.builtMaintainedBy': '구축 및 유지보수:',
   'footer.wechat':
     '「马莫百科」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
-  'home.communityEmpty': '아직 글이 없습니다',
   'home.communityEmptyHint': '공식 페이지는 규정이 무엇인지 답합니다. 여기는 학생이 실제로 어땠는지 답하는 곳입니다. 누군가는 먼저 물어야 합니다.',
 
   'badge.handbook': '공식 Handbook',
@@ -2537,7 +2505,6 @@ const ko: Messages = {
   'badge.sponsored': '광고',
   'source.lastChecked': '최종 확인',
   'source.mayHaveChanged': '이후 변경되었을 수 있습니다',
-  'source.label': '출처',
 
   'home.title': 'Monash Hub — Handbook, 공식 가이드, 학생 커뮤니티',
   'home.metaDescription':
@@ -2547,12 +2514,6 @@ const ko: Messages = {
     '2026 Handbook의 과목 정보, 학생에게 실제로 필요한 Monash 공식 페이지, 그리고 공식 페이지에 없는 것을 물어볼 수 있는 공개된 공간.',
   'home.trending': '인기 검색어',
   'home.moreTools': '더 많은 기능',
-  'home.entryUnits': '과목',
-  'home.entryUnitsHint': '평가, 선수과목, 개설, 학습량',
-  'home.entryGuides': '공식 가이드',
-  'home.entryGuidesHint': '특별 고려, WAM, 비자, 마감일',
-  'home.entryCommunity': '커뮤니티',
-  'home.entryCommunityHint': '질문하고 실제 경험을 나누세요',
   'home.unitsInIndex': '수록된 과목',
   'home.allUnits': '모든 과목 →',
   'home.officialGuides': '공식 가이드',
@@ -2624,7 +2585,6 @@ const ko: Messages = {
     'Handbook의 평가 항목에 기말 examination이 기재되어 있지 않습니다. 시험이 없다는 보장은 아닙니다.',
   'unit.examUnknown': 'Handbook이 아직 이 과목의 평가 항목을 공개하지 않았습니다.',
   'unit.noRequisites': 'Handbook에 이 과목의 선수·동시수강·수강제한 요건이 없습니다.',
-  'unit.joinedBy': '{connector}로 연결됩니다.',
   'unit.noWorkload': '학습량 정보가 없습니다.',
   'unit.askAbout': '{code}에 대해 질문하기',
   'unit.askHint':
@@ -2940,7 +2900,7 @@ const ko: Messages = {
   'error.pageMissing': '존재하지 않는 페이지입니다',
   'error.pageMissingHint':
     '링크가 오래되었거나, 해당 과목 또는 가이드가 아직 수록되지 않았을 수 있습니다.',
-  'error.generic': '문제가 발생했습니다',
+  'error.pageBroken': '문제가 발생했습니다',
   'error.genericHint': '저희 쪽 문제입니다. 잠시 후 다시 시도해 주세요.',
   'error.goHome': '홈으로',
 

@@ -15,6 +15,7 @@ const { $t } = useNuxtApp()
 const slug = computed(() => String(route.params.slug))
 
 const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
+useErrorStatus(error)
 
 useSeoMeta({
   title: () => (guide.value ? `${guide.value.title} — Monash Hub` : 'Guide — Monash Hub'),
@@ -24,7 +25,9 @@ useSeoMeta({
     guide.value?.summary ||
     (guide.value ? `${guide.value.title}: the official Monash guide, with its source link and when it was last checked.` : undefined)
 })
-useHead(() => ({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/guides/${slug.value}` }] }))
+useHead(() => ({
+  link: guide.value ? [{ rel: 'canonical', href: `${config.public.siteUrl}/guides/${slug.value}` }] : []
+}))
 </script>
 
 <template>

@@ -6,6 +6,7 @@ onMounted(restore)
 
 const id = computed(() => Number(route.params.id))
 const { data: post, error, refresh } = await useApiFetch<any>(() => `/v1/community/posts/${id.value}`)
+useErrorStatus(error)
 
 // The server renders this page as a signed-out reader sees it, because the
 // token is in localStorage and the server cannot read it. Once the session is

@@ -15,6 +15,7 @@ const { data: unit, error } = await useLocalisedApiFetch<any>(
   () => withYear(`/v1/units/${code.value}`),
   { watch: [year] }
 )
+useErrorStatus(error)
 
 /** The newest year that lists the unit is the default, so choosing it clears `?year=`. */
 function pickYear(y: number) {
@@ -27,17 +28,21 @@ const { data: discussions } = await useApiFetch<any>(
 const question = ref('')
 const answer = ref<any>(null)
 const asking = ref(false)
+const askError = ref('')
 
 async function ask(text?: string) {
   const q = (text ?? question.value).trim()
   if (!q) return
   question.value = q
   asking.value = true
+  askError.value = ''
   try {
     answer.value = await apiFetch<any>(`/v1/ask?locale=${locale.value}`, {
       method: 'POST',
       body: { query: q }
     })
+  } catch (caught) {
+    askError.value = apiErrorMessage(caught, $t)
   } finally {
     asking.value = false
   }
@@ -66,7 +71,9 @@ useSeoMeta({
   ogTitle: () => (unit.value ? `${unit.value.unit_code} · ${unit.value.title}` : undefined)
 })
 useHead(() => ({
-  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/${code.value}` }]
+  // No canonical for a page that is not there: it would tell the crawler this
+  // is the real address of nothing.
+  link: unit.value ? [{ rel: 'canonical', href: `${config.public.siteUrl}/units/${code.value}` }] : []
 }))
 </script>
 
@@ -239,6 +246,7 @@ useHead(() => ({
               <button v-for="s in suggestions" :key="s" class="chip-btn" @click="ask(s)">{{ s }}</button>
             </p>
             <Skeleton v-if="asking" :lines="3" />
+            <p v-else-if="askError" class="tiny bad-text" role="alert">{{ askError }}</p>
             <AnswerBlocks
               v-else-if="answer"
               :answer="answer"
