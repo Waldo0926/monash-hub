@@ -17,6 +17,22 @@ Two sources, both public, both small:
 We do not crawl the whole site, follow arbitrary links, or download images,
 video, PDFs or any other binary.
 
+## Who is asking
+
+Every request, over `httpx` or the browser, carries the same user agent, set in
+`crawler/throttling/limiter.py`:
+
+```text
+MonashHubBot/0.1 (+https://monashhub.secureview.tech; student information index)
+```
+
+Before the first official page of a host, the fetcher reads that host's
+`robots.txt` once and checks each URL against it under the name `MonashHubBot`.
+A disallowed page is not requested and is recorded as such. If `robots.txt`
+cannot be read at all, or answers with a server error, the host is treated as
+closed for that run. A 4xx on `robots.txt` means the host has no rules, which is
+the usual convention.
+
 ## Backfilling a whole year
 
 ```bash
@@ -79,7 +95,8 @@ A `403` is therefore not evidence that anything is broken.
 | --- | --- |
 | Network error / timeout | Retry with backoff, then record `failed`, keep the last good row |
 | HTTP 404 | Recorded immediately, not retried. A missing page is an answer |
-| HTTP 403 / 429 | Latch to the browser transport, back off, retry |
+| HTTP 403 | Latch to the browser transport, back off, retry |
+| HTTP 429 | Stay on the same transport, wait as long as `Retry-After` says (up to 10 minutes), retry |
 | Parse error | Keep the last valid record, log it loudly, record `failed` |
 | Extraction under 200 characters | Treated as a template change, not as deleted content. Keep the last valid version |
 
