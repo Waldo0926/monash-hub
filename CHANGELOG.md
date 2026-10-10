@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Docs (crawling policy matches the fetcher)
+
+- `docs/CRAWLING.md` now says who the crawler is (`MonashHubBot`), how
+  `robots.txt` is read, and that a 429 waits for `Retry-After` on the same
+  transport instead of switching to the browser. The four READMEs say the same
+  in one line under the privacy boundary.
+
 ### Changed (what gets deployed is what CI tested)
 
 - The deploy workflow passed nothing to the VPS, and the script reset the

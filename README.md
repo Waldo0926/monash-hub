@@ -101,7 +101,7 @@ An index of the articles from the 马莫百科 WeChat account: searchable, group
 
 ## Source and privacy boundary
 
-The repository contains application source code, schema/migrations, deployment templates, tests and small synthetic parser fixtures. Production credentials, database dumps, user exports and raw crawl output do not belong in Git. The crawler links back to official sources rather than mirroring binary content.
+The repository contains application source code, schema/migrations, deployment templates, tests and small synthetic parser fixtures. Production credentials, database dumps, user exports and raw crawl output do not belong in Git. The crawler links back to official sources rather than mirroring binary content. It sends one request at a time, a few seconds apart, under its own name (`MonashHubBot`), and checks `robots.txt` before reading an official Monash page. See [crawling](docs/CRAWLING.md).
 
 See [Public release checklist](docs/PUBLIC-RELEASE.md) for the repository's privacy, secret and third-party-content boundary.
 
