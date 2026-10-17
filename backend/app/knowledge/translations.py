@@ -222,6 +222,20 @@ def _is_scaffold(source: str, translated: str) -> bool:
     return bool(_SCAFFOLD.search(translated)) and not _SCAFFOLD.search(source)
 
 
+# Requirement group headings were first written "B 部分。核心课程", and the
+# crawler stored that wording in every course's own translation rows. The
+# separator is now a colon, so a stored heading is read with the new one
+# instead of waiting for every course to be translated again.
+_PART_HEAD = re.compile(r"^((?:[A-Z]|第 \d+) 部分)。(?=\S)")
+_PART_SECOND = re.compile(r"(与 [A-Z] 部分)。(?=\S)")
+
+
+def _part_colon(translated: str) -> str:
+    if not _PART_HEAD.match(translated):
+        return translated
+    return _PART_SECOND.sub(r"\1：", _PART_HEAD.sub(r"\1：", translated))
+
+
 def _apply(translation: Translation, row: ContentTranslation) -> None:
     # Curated wording is not a checked translation, so it does not set
     # ``reviewed``; to the reader it is still machine work with better words.
@@ -240,7 +254,7 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
         if isinstance(source, str) and isinstance(translated, str):
             if _is_scaffold(source, translated):
                 continue
-            translation.strings[source.strip()] = translated
+            translation.strings[source.strip()] = _part_colon(translated)
             # "Wins over a machine rendering of the whole field it sits in" is
             # what this set means, and curated wording earns that too.
             if row.provenance in (HUMAN, CURATED):

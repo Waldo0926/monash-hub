@@ -4,6 +4,12 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (some part headings still had a full stop)
+
+- Course translations the crawler stored before the change still read
+  "B 部分。核心课程", so some degrees showed both separators. Stored strings
+  that start with a part heading are now read with the colon.
+
 ### Changed (plainer interface copy)
 
 - Page intros, empty states, notices and error text in all four locales are

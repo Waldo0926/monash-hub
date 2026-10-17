@@ -37,6 +37,35 @@ def test_an_untranslated_string_stays_in_english(db):
     assert tr.string("Withdrawn fail") == "Withdrawn fail"
 
 
+def test_a_stored_part_heading_is_read_with_a_colon(db):
+    _store(
+        db, target_type=OFFICIAL_PAGE, target_key="c2001", field="body",
+        data={"strings": {
+            "Part B. Core studies": "B 部分。核心课程",
+            "Part 2. Discipline studies": "第 2 部分。学科课程",
+            "Results": "成绩公布。",
+        }},
+    )
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "c2001")
+    assert tr.string("Part B. Core studies") == "B 部分：核心课程"
+    assert tr.string("Part 2. Discipline studies") == "第 2 部分：学科课程"
+    assert tr.string("Results") == "成绩公布。"
+
+
+@pytest.mark.parametrize(
+    ("stored", "shown"),
+    [
+        ("B 部分。核心课程", "B 部分：核心课程"),
+        ("A 部分。核心课程与 B 部分。通识课程", "A 部分：核心课程与 B 部分：通识课程"),
+        ("C 部分：应用课程", "C 部分：应用课程"),
+        ("请完成第 2 部分。", "请完成第 2 部分。"),
+        ("这是学位的一部分。", "这是学位的一部分。"),
+    ],
+)
+def test_only_a_leading_part_heading_changes(stored, shown):
+    assert translations._part_colon(stored) == shown
+
+
 def test_a_page_overrides_the_shared_boilerplate(db):
     _store(
         db, target_type=GLOBAL, target_key="handbook", field="strings",
