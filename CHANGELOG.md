@@ -12,6 +12,16 @@ All notable changes to Monash Hub are documented here.
   postgraduate types, so ten types make two even rows. Each count sits in a
   pill on the right. Phones keep the single sideways-scrolling row.
 
+### Changed (tools on the first screen of the home page)
+
+- The eight tools (units, guides, unit tree, course map, degrees, WAM/GPA,
+  community, 马莫百科) move from further down the page to under the search
+  box, as two columns of tiles with an icon and one line each. A first
+  visit sees what the site does without scrolling past the key dates.
+- On a phone they are a four-across grid of icons under the search box.
+- The old "Start here" section further down is removed, so they are not
+  listed twice. The one-line descriptions now exist in all four languages.
+
 ### Added (Ask button on every page)
 
 - An Ask button in the bottom right corner opens a chat panel. Questions
