@@ -23,7 +23,7 @@ WRONG = re.compile(
 
 
 def test_the_bakery_is_gone():
-    assert STRUCTURE_ZH["Part B. Breadth studies"] == "B 部分。通识课程（Breadth studies）"
+    assert STRUCTURE_ZH["Part B. Breadth studies"] == "B 部分：通识课程（Breadth studies）"
     assert STRUCTURE_ZH["First year engineering breadth studies"].endswith("（Breadth studies）")
 
 
@@ -60,12 +60,12 @@ def test_credit_is_not_a_loan():
 @pytest.mark.parametrize(
     ("english", "chinese"),
     [
-        ("Part A. Core studies", "A 部分。核心课程"),
-        ("Part B. Breadth studies", "B 部分。通识课程（Breadth studies）"),
-        ("Part 2. Discipline studies", "第 2 部分。学科课程"),
-        ("Part C. Applied studies - Malaysia", "C 部分。应用课程 - 马来西亚校区"),
+        ("Part A. Core studies", "A 部分：核心课程"),
+        ("Part B. Breadth studies", "B 部分：通识课程（Breadth studies）"),
+        ("Part 2. Discipline studies", "第 2 部分：学科课程"),
+        ("Part C. Applied studies - Malaysia", "C 部分：应用课程 - 马来西亚校区"),
         ("Part A. Specialist studies (24 or 36 credit points)",
-         "A 部分。专业方向课程（24 或 36 学分）"),
+         "A 部分：专业方向课程（24 或 36 学分）"),
         ("Level 8 - Bachelor Honours Degree", "第 8 级 - 荣誉学士学位"),
         ("Level 7 - Bachelor Degree / Level 9 - Master's Degree (Extended)",
          "第 7 级 - 学士学位 / 第 9 级 - 硕士学位（延伸型）"),
@@ -109,7 +109,7 @@ def _engine(stub):
 def test_a_reviewed_string_never_reaches_the_model():
     calls = []
     engine = _engine(lambda text: calls.append(text) or "面包研究")
-    assert engine.text("Part B. Breadth studies") == "B 部分。通识课程（Breadth studies）"
+    assert engine.text("Part B. Breadth studies") == "B 部分：通识课程（Breadth studies）"
     assert engine.text("Robotics and mechatronics engineering") == "机器人与机电一体化工程"
     assert calls == []
 
@@ -119,7 +119,7 @@ def test_a_composed_label_never_reaches_the_model():
     engine = _engine(lambda text: calls.append(text) or "错")
     # Not in the table by name, but a known title in a known shape.
     assert engine.text("Part D. Free elective studies (12 or 24 credit points)") == (
-        "D 部分。自由选修课程（12 或 24 学分）"
+        "D 部分：自由选修课程（12 或 24 学分）"
     )
     assert calls == []
 
@@ -142,7 +142,7 @@ def test_curated_wording_is_not_presented_as_a_checked_translation():
         translation,
         ContentTranslation(
             locale="zh", target_type="global", target_key="handbook", field="structure",
-            provenance=CURATED, data={"strings": {"Part B. Breadth studies": "B 部分。通识课程"}},
+            provenance=CURATED, data={"strings": {"Part B. Breadth studies": "B 部分：通识课程"}},
         ),
     )
     assert translation.machine is True
