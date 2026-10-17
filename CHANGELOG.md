@@ -4,6 +4,22 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (WAM/GPA calculator layout)
+
+- The calculator now looks like the course map: units on the left, grouped
+  by level with each level's weight and average, and a summary panel on the
+  right with the WAM in a ring, the GPA or CGPA, a grade mix bar and the
+  "what do I need" box. Each grade shows as a coloured tag, and clicking it
+  sets a grade by hand (WN, SFR and so on).
+- One add line at the bottom replaces the four empty rows. It looks the unit
+  up in the Handbook first, so the row lands in the right level straight away.
+- "Paste from WES" and "Read a screenshot" are under one Import button. The
+  campus scale is a two-button switch. Removing a unit or clearing the list can
+  be undone.
+- On a phone each unit is a small card, and a bar above the tab bar shows the
+  WAM, GPA and credit points while the summary is off screen.
+- The calculation and the saved data are unchanged. Empty rows saved by the
+  old page are dropped when it loads.
 ### Changed (header controls)
 
 - The search box in the header is one soft pill with the search button
