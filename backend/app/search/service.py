@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date
+from itertools import islice, product
 from typing import Any
 
 from sqlalchemy import Integer, and_, case, cast, func, literal, literal_column, or_, select, text
@@ -34,17 +35,17 @@ from app.models.translation import (
 from app.models.translation import (
     UNIT as UNIT_TRANSLATION,
 )
-from app.search import faq_match
+from app.search import english, faq_match, synonyms
 from app.search.chinese import (
     chinese_for,
     concept_runs,
     concepts,
     expand,
-    expanded_query,
     has_cjk,
     latin_part,
 )
 from app.search.keywords import extract_unit_codes
+from app.search.normalise import fold
 
 
 @dataclass
@@ -59,21 +60,32 @@ class SearchGroup:
 # FIT5215 to them, and matching only from the start of the code answered
 # "nothing indexed for this yet" for a unit that is indexed. A fragment is short,
 # has no spaces and is letters and digits - which is what a code is made of, and
-# what a sentence is not.
+# what a sentence is not. It also has a digit: without one, "it" was a fragment
+# of every FIT code and "sc" of every SCI and ASC one.
 def _is_code_fragment(term: str) -> bool:
-    return term.isalnum() and term.isascii() and 2 <= len(term) <= 8
+    return (term.isalnum() and term.isascii() and 2 <= len(term) <= 8
+            and any(ch.isdigit() for ch in term))
 
 
-def _websearch(text_: str):
-    return func.websearch_to_tsquery("english", text_)
+def _is_code_prefix(term: str) -> bool:
+    """Whether ``term`` can be how a unit code starts: "FIT", "fit20"."""
+    return term.isalnum() and term.isascii() and 3 <= len(term) <= 8
 
 
-def _any_of(alternatives) -> Any:
+def _websearch(text_: str, config: str = "english"):
+    return func.websearch_to_tsquery(config, text_)
+
+
+def _any_of(alternatives, config: str = "english") -> Any:
     query = None
     for alternative in alternatives:
-        part = _websearch(alternative)
+        part = _websearch(alternative, config)
         query = part if query is None else query.op("||")(part)
     return query
+
+
+def _with_variants(text_: str) -> list[str]:
+    return [text_, *english.variants(text_)]
 
 
 def _ts_query(term: str, *, strict: bool = True):
@@ -89,17 +101,20 @@ def _ts_query(term: str, *, strict: bool = True):
     Callers fall back to loose only when strict finds nothing, so a question
     phrased in words no page uses still gets somewhere.
 
+    English is ORed with its rewrites from ``app/search/english.py``: "drop a
+    unit" is also "withdraw a unit".
+
     The raw term is always ORed in as well: a Chinese-only query contributes
     nothing to an English tsvector, but an English one is left exactly as it
     was.
     """
     groups = concepts(term)
     if not groups:
-        return _websearch(expanded_query(term))
+        return _any_of(_with_variants(term))
     latin = latin_part(term)
     parts = [_any_of(alternatives) for alternatives in groups]
     if latin:
-        parts.append(_websearch(latin))
+        parts.append(_any_of(_with_variants(latin)))
     combined = parts[0]
     for part in parts[1:]:
         combined = combined.op("&&" if strict else "||")(part)
@@ -112,13 +127,181 @@ def _is_multi_concept(term: str) -> bool:
     return len(groups) + (1 if groups and latin_part(term) else 0) > 1
 
 
+# Words a page title never needs to contain for the page to answer the
+# question. The FAQ filler list plus the verbs of a request: "how to apply sc"
+# is answered by "Extensions and special consideration".
+_REQUEST_WORDS = frozenset({
+    "apply", "applying", "application", "find", "check", "see", "view", "look",
+})
+_WORD = re.compile(r"[a-z0-9][a-z0-9+#'-]*")
+
+# Phrasings past this add query time and no new titles.
+MAX_PHRASINGS = 8
+
+
+def _content_words(text_: str) -> list[str]:
+    return [
+        word for word in _WORD.findall(text_.lower())
+        if word not in faq_match.EN_FILLER and word not in _REQUEST_WORDS
+    ]
+
+
+def _english_fallback(term: str) -> str | None:
+    """``term`` without its filler, when that is a different query.
+
+    websearch_to_tsquery drops English stop words, but not "still", "need" or
+    "monash", so "can I still work on my visa" wanted "still" on the page.
+    """
+    if has_cjk(term):
+        return None
+    words = _content_words(term)
+    # Only a query that lost a word: "_IT2102" is not "IT2102" with filler gone.
+    return " ".join(words) if words and len(words) < len(_WORD.findall(term.lower())) else None
+
+
+def _phrasings(term: str) -> list[str]:
+    """``term`` in the words a Monash title would use, filler taken out.
+
+    For English that is the query and its rewrites; for Chinese, the English
+    each concept stands for, combined. These are matched word for word (the
+    ``simple`` text config, no stemming): a page *called* "Databases" is a
+    better answer to 数据库 than one whose title merely stems the same way,
+    and "accounting" is not "IT Account".
+    """
+    groups = concepts(term)
+    if groups:
+        latin = latin_part(term)
+        combined = (" ".join(parts) for parts in islice(product(*groups), MAX_PHRASINGS))
+        raw = [f"{text_} {latin}".strip() for text_ in combined]
+    else:
+        raw = _with_variants(term)
+    phrasings = (" ".join(_content_words(text_)) for text_ in raw)
+    return list(dict.fromkeys(p for p in phrasings if p))[:MAX_PHRASINGS]
+
+
+def _literal_query(term: str, *, prefix: bool = True, first_only: bool = False):
+    """Any phrasing of ``term``, every word of it, each word as a prefix.
+
+    With ``prefix=False`` each word has to be a whole word, or its plural.
+    ``first_only`` keeps the phrasing closest to what was typed.
+
+    A prefix and not a stem: "visa" still finds "visas" and "defer" finds
+    "deferred", but "accounting" is not found in "IT Account" the way the
+    English stemmer finds it. Built from letters and digits only, so nothing
+    a reader types reaches ``to_tsquery`` as syntax.
+    """
+    clauses = []
+    phrasings = _phrasings(term)
+    for phrasing in phrasings[:1] if first_only else phrasings:
+        words = re.findall(r"[a-z0-9]+", phrasing)
+        if words:
+            if prefix:
+                parts = [f"{word}:*" for word in words]
+            else:
+                # Still let a plural through: "visa" is in "student visas".
+                parts = [f"({word} | {word}s)" for word in words]
+            clauses.append("(" + " & ".join(parts) + ")")
+    return func.to_tsquery("simple", " | ".join(clauses)) if clauses else None
+
+
+def _literal_match(column, query):
+    return func.to_tsvector("simple", func.coalesce(column, "")).op("@@")(query)
+
+
+def _literal(column, query):
+    """1 when ``column`` has every word of one phrasing, unstemmed, else 0."""
+    if query is None:
+        return literal(0)
+    return case((_literal_match(column, query), 1), else_=0)
+
+
+def _title_is(column, term: str):
+    """1 when the whole title is ``term``'s first phrasing: "Fees" for 学费.
+
+    Only the first. The later alternatives are there for recall, and an exact
+    title on one of them put two faculty pages called "Course transfer" above
+    the university's "Course or campus transfer" for 转专业.
+    """
+    phrasings = _phrasings(term)
+    if not phrasings:
+        return literal(0)
+    return case((func.lower(column).in_([phrasings[0], f"{phrasings[0]}s"]), 1), else_=0)
+
+
+def _subject_only(term: str) -> bool:
+    """Whether ``term`` names only subjects or degrees: 操作系统, 计算机科学学士.
+
+    The official pages are about running a degree, not its content, and a
+    stemmed match on them is mostly accidental - 编程入门 found "Mentor-Mentee
+    Program" and 操作系统 found the eExam device specifications.
+    """
+    zh = [run for run, _ in concept_runs(term)]
+    en = [phrase for phrase, _ in english.phrase_runs(term)]
+    return bool(zh or en) and all(run in synonyms.ZH_FIELD_TERMS for run in zh) and not any(
+        english.is_admin(phrase) for phrase in en)
+
+
+def _unexplained(term: str) -> tuple[list[str], list[str]]:
+    """What the synonym tables and the filler lists cannot account for.
+
+    ``(cjk, latin)``: the Chinese runs and English words left once every
+    known concept, phrase, campus name and question word is taken out.
+    """
+    _, rest = campus_in_query(term)
+    text_ = rest.lower()
+    for run, _ in concept_runs(text_):
+        text_ = text_.replace(run, " ", 1)
+    text_ = " ".join(text_.split())
+    for _, (start, end) in sorted(english.phrase_runs(text_), key=lambda r: -r[1][0]):
+        text_ = text_[:start] + " " + text_[end:]
+    latin = [w for w in _content_words(text_)
+             if not extract_unit_codes(w) and w not in _GENERIC_WORDS]
+    cjk_text = re.sub(r"[ -~]+", " ", text_)
+    for phrase in faq_match.ZH_FILLER_PHRASES:
+        cjk_text = cjk_text.replace(phrase, " ")
+    cjk = [run for run in cjk_text.split() if has_cjk(run)]
+    return cjk, latin
+
+
+# Words every Monash question uses. "drop a unit" is about withdrawing, not
+# about units called anything.
+_GENERIC_WORDS = frozenset({
+    "unit", "units", "subject", "subjects", "class", "classes", "course", "courses",
+    "semester", "take", "monash", "malaysia", "australia",
+})
+
+_DEGREE_EN = re.compile(
+    r"(?<![a-z])(bachelors?|masters?|degrees?|undergrad(uate)?|postgrad(uate)?|phd|diploma|mba)"
+    r"(?![a-z])")
+_DEGREE_ZH = ("学士", "硕士", "本科", "研究生", "博士", "双学位", "文凭", "学位")
+
+
+def _about_units(term: str) -> bool:
+    """Whether a unit's title or overview can answer ``term``.
+
+    Not when it names a degree - "bachelor of computer science" is a degree,
+    and its words are in a hundred unit overviews. Not when it is only admin:
+    学费, "how to enroll" and 毕业 are questions for the official pages, and
+    they listed hundreds of units that mention fees, enrolment or graduates.
+    A subject word, or anything the tables do not know, keeps units in.
+    """
+    text_ = term.lower()
+    if _DEGREE_EN.search(text_) or any(word in term for word in _DEGREE_ZH):
+        return False
+    zh = [run for run, _ in concept_runs(term)]
+    en = [phrase for phrase, _ in english.phrase_runs(term)]
+    if not zh and not en:
+        return True
+    if any(run in synonyms.ZH_FIELD_TERMS for run in zh) or any(
+            not english.is_admin(phrase) for phrase in en):
+        return True
+    cjk, latin = _unexplained(term)
+    return bool(cjk or latin)
+
+
 # Chinese has no word boundaries, so a student typing 学籍统计 is typing a
 # contiguous run and means it. Substring is the honest query, and pg_trgm makes
-# it an indexed one. The similarity fallback catches a query that is close but
-# not contained - a synonym the glossary happens to know differently.
-ZH_SIMILARITY = 0.3
-
-
+# it an indexed one (from three characters; see _search_units for two).
 def _like(term: str) -> str:
     """``term`` with LIKE's wildcards escaped, so "100%" is not "100 then anything"."""
     return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -133,11 +316,16 @@ def _starts(column, term: str):
 
 
 def _zh_match(column, term: str):
-    """Match a Chinese query against a column holding translated text."""
-    return or_(
-        _contains(column, term),
-        func.similarity(column, term) > ZH_SIMILARITY,
-    )
+    """Match a Chinese query against a column holding translated text.
+
+    This used to OR in ``similarity(column, term) > 0.3`` as well. Against a
+    whole page of Chinese that is never true - a short query is a vanishing
+    fraction of a long text's trigrams - and checked on the production
+    snapshot it matched nothing the substring had not, for any query tried.
+    It was also most of the cost of a Chinese unit search: computed over
+    every unit, it took 0.9 of the 2.5 seconds 学费 spent there.
+    """
+    return _contains(column, term)
 
 
 def _array_contained_in_query(column: str, term: str, alternatives: tuple[str, ...] = ()):
@@ -179,9 +367,12 @@ def search_units(db: Session, query: str, *, year: int, **kwargs) -> tuple[list[
     list 1,247 units - every one that mentions an exam - because the loose
     query was the only one there was.
     """
+    query = fold(query)
     found = _search_units(db, query, year=year, **kwargs)
-    if found[1] == 0 and _is_multi_concept((query or "").strip()):
+    if found[1] == 0 and _is_multi_concept(query):
         return _search_units(db, query, year=year, strict=False, **kwargs)
+    if found[1] == 0 and (content := _english_fallback(query)):
+        return _search_units(db, content, year=year, **kwargs)
     return found
 
 
@@ -206,31 +397,36 @@ def _search_units(
     )
 
     codes = extract_unit_codes(query)
-    term = (query or "").strip()
+    # A campus is where the student is, not what the unit is about: 马莫 in
+    # 马莫学费 matched 242 units whose overview says "Monash Malaysia".
+    _, term = campus_in_query(query or "")
     translated_title = (
         _translated_title(Unit, UNIT_TRANSLATION, Unit.unit_code, Unit.title)
         if has_cjk(term)
         else None
     )
+    about_units = bool(term) and _about_units(term)
+    ts_query = _ts_query(term, strict=strict) if term else None
 
     if term:
-        if codes:
-            matches = [
-                Unit.unit_code.in_(codes),
-                Unit.search_vector.op("@@")(_ts_query(term, strict=strict)),
-            ]
-        else:
-            matches = [
-                _starts(Unit.unit_code, term),
-                *([_contains(Unit.unit_code, term)] if _is_code_fragment(term) else []),
-                Unit.search_vector.op("@@")(_ts_query(term, strict=strict)),
-                func.similarity(Unit.title, term) > 0.25,
-            ]
-        if translated_title is not None:
-            matches.extend(
-                [_contains(translated_title, term), _zh_match(Unit.search_zh, term)]
-            )
-        match = or_(*matches)
+        matches = [Unit.unit_code.in_(codes)] if codes else [
+            *([_starts(Unit.unit_code, term)] if _is_code_prefix(term) else []),
+            *([_contains(Unit.unit_code, term)] if _is_code_fragment(term) else []),
+        ]
+        if about_units:
+            matches.append(Unit.search_vector.op("@@")(ts_query))
+            if not codes:
+                matches.append(func.similarity(Unit.title, term) > 0.25)
+            if translated_title is not None:
+                matches.append(_contains(translated_title, term))
+                # The translated overview. pg_trgm cannot index a pattern of
+                # two characters, so 算法 or 学费 here is a sequential scan of
+                # every unit's Chinese - 0.4 seconds, twice with the count.
+                # A two-character word the synonym tables know is already
+                # searched in English, so only an unknown one pays for it.
+                if len(term) >= 3 or _unexplained(term)[0]:
+                    matches.append(_zh_match(Unit.search_zh, term))
+        match = or_(*matches) if matches else literal(False)
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
 
@@ -273,7 +469,22 @@ def _search_units(
         # prose.
         in_code = case((_contains(Unit.unit_code, term), 1), else_=0) \
             if _is_code_fragment(term) else literal(0)
-        rank = func.ts_rank(Unit.search_vector, _ts_query(term, strict=strict))
+        rank = func.ts_rank(Unit.search_vector, ts_query)
+        # Then the title, in decreasing order of how exactly it says what was
+        # asked. "databases" listed "Spatial databases" above "Databases",
+        # and "linear algebra" put the Honours computational unit first.
+        phrasings = _phrasings(term)
+        title_exact = (
+            case((func.lower(Unit.title).in_(phrasings), 1), else_=0)
+            if phrasings else literal(0)
+        )
+        title_starts = (
+            case((or_(*(_starts(Unit.title, p) for p in phrasings)), 1), else_=0)
+            if phrasings else literal(0)
+        )
+        title_literal = _literal(Unit.title, _literal_query(term))
+        title_stemmed = case(
+            (func.to_tsvector("english", Unit.title).op("@@")(ts_query), 1), else_=0)
         # A Chinese query gets little or nothing from ts_rank even after the
         # glossary expansion, so the Chinese text is what orders those results.
         zh_rank = (
@@ -290,10 +501,22 @@ def _search_units(
             if translated_title is not None
             else literal(0)
         )
+        says_it = or_(translated_title_contains == 1, title_literal == 1)
+        title_says_it = case((says_it, 1), else_=0)
+        # Among the titles that say it, first year before honours: "psychology"
+        # led with three PSY4xxx honours units and "data science" lost
+        # FIT1043 Introduction to data science below the project units.
+        # Research units are numbered 0xxx and go last. Everything else keeps
+        # the same value so the text rank still decides.
+        first_digit = func.substring(Unit.unit_code, "[0-9]")
+        level = case((says_it, func.coalesce(func.nullif(first_digit, "0"), "9")), else_="0")
         stmt = stmt.order_by(
-            exact.desc(), in_code.desc(), exact_translation.desc(),
-            translated_title_contains.desc(), rank.desc(), zh_rank.desc(),
-            func.similarity(Unit.title, term).desc(),
+            exact.desc(), in_code.desc(), exact_translation.desc(), title_exact.desc(),
+            title_says_it.desc(), level, title_starts.desc(), title_stemmed.desc(),
+            rank.desc(), zh_rank.desc(), func.similarity(Unit.title, term).desc(),
+            # Among equals the shorter title is the more general unit:
+            # "Machine learning" before "Machine learning for finance".
+            func.length(Unit.title), Unit.unit_code,
         )
     else:
         stmt = stmt.order_by(Unit.unit_code)
@@ -362,6 +585,7 @@ def search_courses(
     faculty: str | None = None,
 ) -> tuple[list[Course], int]:
     """Search degrees by code, English title, or their published Chinese title."""
+    query = fold(query)
     stmt = select(Course).where(Course.academic_year == year, Course.is_active.is_(True))
     count_stmt = select(func.count(Course.id)).where(
         Course.academic_year == year, Course.is_active.is_(True)
@@ -376,19 +600,25 @@ def search_courses(
     if term:
         matches = [
             _starts(Course.course_code, term),
-            _contains(Course.title, term),
             _starts(Course.abbreviated_name, term),
         ]
+        # Two letters inside a title are not a search: "sc" was in every
+        # Science degree.
+        if len(term) >= 3:
+            matches.append(_contains(Course.title, term))
         if translated_title is not None:
             matches.append(_contains(translated_title, term))
         # 商科学士 is "bachelor" and "commerce or business". Degree titles are
-        # short and English, so every concept has to appear in the title.
-        groups = concepts(term)
-        if groups:
-            matches.append(and_(*(
-                or_(*(_contains(Course.title, alternative) for alternative in alternatives))
-                for alternatives in groups
-            )))
+        # short and English, so every concept has to appear in the title. The
+        # same goes for English typed in any order: "bachelor computer science"
+        # is not a substring of "Bachelor of Computer Science", and found none.
+        groups = _course_groups(term)
+        title_words = and_(*(
+            or_(*(_title_word(Course.title, alternative) for alternative in alternatives))
+            for alternatives in groups
+        )) if groups else None
+        if title_words is not None:
+            matches.append(title_words)
         match = or_(*matches)
         stmt = stmt.where(match)
         count_stmt = count_stmt.where(match)
@@ -411,12 +641,92 @@ def search_courses(
             if translated_title is not None
             else literal(0)
         )
-        stmt = stmt.order_by(exact_code.desc(), exact_translation.desc(), Course.title)
+        # Alphabetical used to put "Bachelor of Business and Commerce and
+        # Bachelor of Computer Science" first for "computer science". A single
+        # degree is the likelier answer than a double, and the shortest title
+        # is the degree itself rather than its Honours or Advanced variant.
+        # With no level asked for, a bachelor comes before a graduate
+        # certificate - most of the people searching are undergraduates.
+        double = case((Course.title.ilike("% and bachelor of %"), 1),
+                      (Course.title.ilike("% and master of %"), 1), else_=0)
+        level_named = _DEGREE_EN.search(term.lower()) or any(w in term for w in _DEGREE_ZH)
+        undergraduate = (
+            literal(0) if level_named
+            # A vertical double (BMedSc and MD) is entered from school too.
+            else case((Course.course_type.ilike("UG%"), 0),
+                      (Course.course_type == "Vertical double", 0), else_=1)
+        )
+        # "bcom" is BCom before it is the start of BCompSci.
+        abbreviation = case(
+            (func.lower(Course.abbreviated_name) == term.lower(), 1),
+            (func.lower(Course.abbreviated_name).startswith(term.lower() + "("), 1),
+            else_=0)
+        # The words as a phrase, then each at the start of a word: "medicine"
+        # is Doctor of Medicine before it is the end of Paramedicine, and "MBA"
+        # is Master of Business Administration before Business Analytics.
+        # The query or its first rewrite beats a later one: "MBA" is Master of
+        # Business Administration before Bachelor of Business Administration.
+        phrases = [p for p in _with_variants(term) if len(p) >= 3]
+        first = [p for p in [term.lower(), *english.variants(term)[:1]] if len(p) >= 3]
+        whens = [(or_(*(_title_word(Course.title, p) for p in group)), weight)
+                 for group, weight in ((first, 2), (phrases, 1)) if group]
+        phrase = case(*whens, else_=0) if whens and not has_cjk(term) else literal(0)
+        words = case((title_words, 1), else_=0) if title_words is not None else literal(0)
+        stmt = stmt.order_by(
+            exact_code.desc(), exact_translation.desc(), abbreviation.desc(), phrase.desc(),
+            words.desc(), double, undergraduate, func.length(Course.title), Course.title,
+        )
     else:
         stmt = stmt.order_by(Course.title)
 
     stmt = stmt.limit(limit).offset(offset)
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
+
+
+# "honours" and "double degree" are not here: they narrow the list to a kind
+# of degree, where "bachelor" alone is half the Handbook.
+_LEVEL_WORDS = frozenset({
+    "bachelor", "bachelors", "master", "masters", "graduate", "postgraduate", "diploma",
+    "certificate", "doctor", "undergraduate",
+})
+
+# Words that say "a degree" without saying which. They are not in any title.
+_COURSE_FILLER = frozenset({
+    "degree", "degrees", "course", "courses", "program", "programs", "programme",
+    "programmes", "study", "studies", "studying", "major", "majors",
+})
+
+
+def _course_groups(term: str) -> list[tuple[str, ...]]:
+    """What a degree title has to contain for ``term``, as groups of alternatives.
+
+    Chinese concepts as before; English word by word, each word or the
+    abbreviation it stands for ("IT" is information technology).
+    """
+    groups = list(concepts(term))
+    latin = latin_part(term) if has_cjk(term) else term
+    if not latin:
+        return groups
+    runs = sorted(english.phrase_runs(latin), key=lambda run: run[1][0])
+    text_ = fold(latin).lower()
+    last = 0
+    for phrase, (start, end) in runs:
+        groups.extend((word,) for word in _content_words(text_[last:start])
+                      if word not in _COURSE_FILLER)
+        groups.append(english.EN_TERMS[phrase])
+        last = end
+    groups.extend((word,) for word in _content_words(text_[last:])
+                  if word not in _COURSE_FILLER)
+    # A level alone is every degree at that level: "apply to graduate" is not
+    # a search for the Graduate Diplomas.
+    if all(set(alternatives) <= _LEVEL_WORDS for alternatives in groups):
+        return []
+    return groups
+
+
+def _title_word(column, phrase: str):
+    """``phrase`` in ``column`` starting at a word: "IT" is not inside "Architecture"."""
+    return column.op("~*")(r"\m" + re.escape(phrase))
 
 
 def search_official(
@@ -431,6 +741,7 @@ def search_official(
     pages because each of them says "your Monash account", and the card listed
     them as the official answer to a question about studying accounting.
     """
+    query = fold(query)
     if campus is None:
         # The campus is who is asking, not what about: "马莫怎么交学费" is a
         # question about paying fees, from Malaysia. Left in, 马来西亚 found
@@ -450,6 +761,8 @@ def _search_with_fallback(db: Session, query: str, **kwargs) -> tuple[list[Offic
     found = _search_official(db, query, **kwargs)
     if found[1] == 0 and _is_multi_concept((query or "").strip()):
         return _search_official(db, query, strict=False, **kwargs)
+    if found[1] == 0 and (content := _english_fallback(query or "")):
+        return _search_official(db, content, **kwargs)
     return found
 
 
@@ -548,13 +861,19 @@ def _search_official(
         # 抄袭 has to reach the page tagged "plagiarism", so the tags are also
         # tried against the English the question expands to.
         tag_hit = _array_contained_in_query(
-            "official_pages.tags", term, tuple(expand(term)))
+            "official_pages.tags", term, (*expand(term), *english.alternatives(term)))
         title_like = func.similarity(OfficialPage.title, term) > TITLE_SIMILARITY
         headline = and_(
             OfficialPage.search_vector.op("@@")(ts_query),
             func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query) > 0,
         )
-        strong = [tag_hit, title_like, headline]
+        literal_query = _literal_query(term)
+        if _subject_only(term) and literal_query is not None:
+            # A tag like 毕业 sits inside 毕业设计, so tags are no help here.
+            strong = [title_like, _literal_match(
+                func.concat_ws(" ", OfficialPage.title, OfficialPage.summary), literal_query)]
+        else:
+            strong = [tag_hit, title_like, headline]
         if translated_title is not None:
             strong.append(_contains(translated_title, term))
         matches = [OfficialPage.search_vector.op("@@")(ts_query), *strong]
@@ -594,20 +913,41 @@ def _search_official(
                 (func.lower(OfficialPage.title).contains(term.lower()), 1), else_=0)
         else:
             title_phrase = literal(0)
+        # Every word of the question, as Monash would write it, in the title -
+        # unstemmed, so "accounting" does not count "IT Account" as a match.
+        # "supp exam" is answered by "Supplementary assessments", and before
+        # this the eExam pages came first because each says "exam" twice.
+        title_literal = _literal(OfficialPage.title, literal_query)
+        # Whole words before prefixes, and the words as typed before the
+        # rewrites: "pay fees" is "Pay your fees" before "Fees non-payment",
+        # where "pay" is only the start of "payment".
+        # A Chinese query has no typed English, its first phrasing is just
+        # the first alternative in the table.
+        title_typed = literal(0) if has_cjk(term) else _literal(
+            OfficialPage.title, _literal_query(term, prefix=False, first_only=True))
+        title_words = _literal(OfficialPage.title, _literal_query(term, prefix=False))
+        summary_literal = _literal(
+            func.concat_ws(" ", OfficialPage.title, OfficialPage.summary), literal_query)
         stmt = stmt.order_by(
             exact_translation.desc(),
+            # A page called what was asked: "Graduations" for 毕业, "Fees" for 学费.
+            _title_is(OfficialPage.title, term).desc(),
             # A page the query is about beats a page that mentions it.
             case((or_(*strong), 1), else_=0).desc(),
             # Then this year's pages before ones a past year names in their title:
             # 考试时间表 led with "Principal dates for Monash University Malaysia (2022)".
             _past_year_title().asc(),
             title_phrase.desc(),
+            title_typed.desc(),
+            title_words.desc(),
+            title_literal.desc(),
             # Then the pages someone tagged with what was asked. Among the "about it"
             # pages a curated tag is the surest signal: 转专业 is a tag on the internal
             # course transfer pages, and without this a pharmacy page whose summary
             # happened to say "course" came first; 心理咨询 put one counsellor's
             # profile above the counselling service.
             case((tag_hit, 1), else_=0).desc(),
+            summary_literal.desc(),
             func.ts_rank(HEADLINE_WEIGHTS, OfficialPage.search_vector, ts_query).desc(),
             func.ts_rank(OfficialPage.search_vector, ts_query).desc(),
             zh_rank.desc(),
@@ -649,7 +989,7 @@ def match_faqs(
     table is a few dozen hand-written rows, so it is read whole and matched in
     Python, where the rules can be read and tested.
     """
-    term = (query or "").strip()
+    term = fold(query)
     if not term:
         return []
     entries = list(db.scalars(select(FaqEntry).options(selectinload(FaqEntry.official_page))))
@@ -677,7 +1017,7 @@ def search_faq(db: Session, query: str, *, limit: int = 5) -> list[FaqEntry]:
 
     An empty query lists the curated set by priority, as the browse view does.
     """
-    term = (query or "").strip()
+    term = fold(query)
     if not term:
         stmt = select(FaqEntry).order_by(FaqEntry.priority.desc(), FaqEntry.slug)
         return list(db.scalars(stmt.limit(limit)))
@@ -697,7 +1037,7 @@ def search_community(
         if condition is not None:
             stmt = stmt.where(condition)
             count_stmt = count_stmt.where(condition)
-    term = (query or "").strip()
+    term = fold(query)
     codes = extract_unit_codes(term)
     if unit_code:
         stmt = stmt.where(CommunityPost.unit_code == unit_code.upper())

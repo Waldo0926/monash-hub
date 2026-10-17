@@ -27,7 +27,9 @@ from app.search.keywords import classify_intent, extract_unit_codes, is_subjecti
         ("FIT21023", []),
         ("FIT12345678", []),
         ("学号12345678", []),
-        ("FIT２１０２", []),
+        # A full-width input method types this. It is folded to ASCII before
+        # the pattern runs, so what reaches the database is still ASCII.
+        ("FIT２１０２", ["FIT2102"]),
     ],
 )
 def test_extract_unit_codes(query, expected):

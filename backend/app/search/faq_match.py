@@ -33,10 +33,10 @@ Everything here is pure: no database, no network. The router loads the rows.
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass, field
 
-from app.search.chinese import CJK
+from app.search.chinese import CJK, concept_runs
+from app.search.normalise import fold
 
 # Words that carry no subject. A question is allowed to be made of these plus
 # the FAQ's own vocabulary and still count as fully covered.
@@ -82,8 +82,8 @@ PUNCT = re.compile(r"[\s\W_]+", re.UNICODE)
 
 
 def normalise(text: str) -> str:
-    """Full-width to half-width, lower case, one space between words."""
-    text = unicodedata.normalize("NFKC", text or "").lower()
+    """Full-width to half-width, Simplified, lower case, one space between words."""
+    text = fold(text).lower()
     return PUNCT.sub(" ", text).strip()
 
 
@@ -193,6 +193,20 @@ def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
     return [run for run in left.split() if CJK.search(run) and len(run) >= 2]
 
 
+def _unknown_concepts(query_norm: str, vocabulary: list[str]) -> list[str]:
+    """Search concepts in the query that the FAQ's own words never use.
+
+    The character-by-character cover in :func:`_cjk_residue` can be fooled by
+    a word made of the FAQ's characters: 在读证明 (proof of enrolment) is 在,
+    which is filler, 读, one character, and 证明, a keyword of the SC
+    documents entry - so a question about an enrolment letter was answered
+    with what to attach to a special consideration application. The synonym
+    tables know 在读证明 is one thing, and this FAQ does not mention it.
+    """
+    return [run for run, _ in concept_runs(query_norm)
+            if not any(run in v for v in vocabulary)]
+
+
 def _residue(query_norm: str, query_words: list[str], candidate: FaqCandidate,
              ignore: set[str]) -> list[str]:
     latin, cjk = _vocabulary(candidate)
@@ -201,7 +215,9 @@ def _residue(query_norm: str, query_words: list[str], candidate: FaqCandidate,
         if w not in EN_FILLER and stem(w) not in latin and w not in ignore
         and not w.isdigit()
     ]
-    return leftover + _cjk_residue(query_norm, cjk)
+    residue = leftover + _cjk_residue(query_norm, cjk)
+    residue += [run for run in _unknown_concepts(query_norm, cjk) if run not in residue]
+    return residue
 
 
 def match(query: str, candidates: list[FaqCandidate], *,
