@@ -32,6 +32,18 @@ All notable changes to Monash Hub are documented here.
 - New table `unit_reviews` (migration `e7b3c5a19f42`). `GET /v1/units` results
   carry `rating`, and the sign-in page returns to the page in `?next=`.
 
+### Changed (unit search)
+
+- Results come in pages of 24 with numbered pages, and the page number is in
+  the URL, so a filtered search can be shared and Back returns to the same
+  page. A new search or filter starts again from page 1.
+- Active filters show as chips above the results, each removable on its own.
+- Campus, level and exam are one-tap pills instead of dropdowns, and there is
+  a new subject filter (FIT, MAT and so on) from the existing `prefix` option.
+- Sort sits next to the result count, and a list view shows one unit per row
+  for scanning codes, with the student rating when a unit has one. The
+  choice of view is remembered in the browser.
+
 ### Added (graduation)
 
 - A curated answer to "Do I still need to apply to graduate?" in English and
