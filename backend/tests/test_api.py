@@ -620,6 +620,27 @@ def test_filter_lists_put_the_biggest_value_first(client, faculties):
     assert body["levels"] == ["Level 1", "Level 2"]
 
 
+def test_filter_labels_come_from_the_glossary_in_every_language(client, faculties):
+    """The values stay English for the search; the labels are what the box shows.
+
+    The faculty list on /units used to be labelled by a Chinese-only dictionary
+    in the frontend, which knew 75 of the 120 names the Handbook uses: "School
+    of Mathematics" sat in English between 管理系 and 药学与制药科学学院.
+    """
+    zh = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "zh"}).json()
+    assert zh["faculties"] == ["Faculty of Information Technology", "Faculty of Engineering"]
+    assert zh["labels"]["Faculty of Engineering"] == "工程学院"
+    assert zh["labels"]["Malaysia School of Engineering"] == "马来西亚校区工程学院"
+    assert zh["labels"]["Malaysia"] == "马来西亚校区"
+    assert zh["labels"]["First semester"] == "第一学期"
+    # Not in the glossary: no label, and the page falls back to the English.
+    assert "Department of Data Science and AI" not in zh["labels"]
+
+    ja = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "ja"}).json()
+    assert ja["labels"]["Faculty of Engineering"] == "工学部"
+    assert client.get("/api/v1/units/filters", params={"year": 2026}).json()["labels"] == {}
+
+
 def test_facet_counts_leave_out_their_own_filter(client, faculties):
     counts = client.get(
         "/api/v1/units/facets", params={"year": 2026, "campus": "Malaysia"}

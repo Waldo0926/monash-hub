@@ -22,6 +22,22 @@ COMPOSE=(docker compose -p monash-hub)
 mkdir -p "$STATE_DIR"
 cd "$PROJECT_DIR"
 
+# The engine is whatever .env says (TRANSLATE_ENGINE, default the offline
+# model). It matters: a page that changes is translated again here, and the
+# offline model would put back what the chat model had just replaced.
+engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
+# Every language the site offers. Each pass only sends what changed since the
+# last one (it skips any target whose English hash it has already translated),
+# so after the first fill this is minutes, not hours.
+locales="$(sed -n 's/^TRANSLATE_LOCALES=//p' .env 2>/dev/null | tail -1)"
+locales="${locales:-zh ja ko}"
+
+translate() {
+  docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
+    run --rm crawler python -m crawler.translate.run --fields all \
+    --engine "${engine:-argos}" --workers 4 "$@"
+}
+
 exec 9>"$STATE_DIR/scheduled-refresh.lock"
 if ! flock -n 9; then
   echo "another scheduled refresh is running; skipping this one"
@@ -33,18 +49,12 @@ case "${1:-}" in
     # Only pages whose tier says they are due, so running this often costs a
     # handful of requests, not the whole seed list.
     "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run
-    # A page that changed keeps its old Chinese, flagged stale, until it is
-    # translated again. Only changed or new pages are sent - the pass skips
-    # any whose English hash it has already translated - so this is a minute
-    # or two, and a person's translation still wins on read.
-    #
-    # The engine is whatever .env says (TRANSLATE_ENGINE, default the offline
-    # model). It matters: a page that changes is translated again here, and the
-    # offline model would put back what the chat model had just replaced.
-    engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
-    docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
-      run --rm crawler python -m crawler.translate.run --locale zh --fields all --targets official \
-      --engine "${engine:-argos}" --workers 4
+    # A page that changed keeps its old translation, flagged stale, until it
+    # is translated again. Only changed or new pages are sent, so this is a
+    # minute or two, and a person's translation still wins on read.
+    for locale in $locales; do
+      translate --locale "$locale" --targets official
+    done
     ;;
 
   handbook)
@@ -54,6 +64,13 @@ case "${1:-}" in
       python -m crawler.handbook.run --all --skip-fresh 144 --min-interval 2
     "${COMPOSE[@]}" run --rm crawler \
       python -m crawler.handbook.run_courses --all --skip-fresh 144 --min-interval 2
+    # Nothing translated the new Handbook English before this, so a unit
+    # Monash rewrote stayed in English until somebody ran translate.sh by hand.
+    # Stored sentences are reused; only the ones that changed reach the engine.
+    for locale in $locales; do
+      translate --locale "$locale" --targets units
+      translate --locale "$locale" --targets curriculum
+    done
     ;;
   *)
     echo "usage: $0 {official|handbook}" >&2

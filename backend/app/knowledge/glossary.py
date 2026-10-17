@@ -933,52 +933,52 @@ TERMS: dict[str, dict[str, str]] = {
     "Term 1": {
         "zh": "第 1 学季",
         "ja": "第1ターム",
-        "ko": "1학기(term)",
+        "ko": "1텀",
     },
     "Term 2": {
         "zh": "第 2 学季",
         "ja": "第2ターム",
-        "ko": "2학기(term)",
+        "ko": "2텀",
     },
     "Term 3": {
         "zh": "第 3 学季",
         "ja": "第3ターム",
-        "ko": "3학기(term)",
+        "ko": "3텀",
     },
     "Term 4": {
         "zh": "第 4 学季",
         "ja": "第4ターム",
-        "ko": "4학기(term)",
+        "ko": "4텀",
     },
     "Teaching period 1": {
         "zh": "教学期 1",
         "ja": "開講期 1",
-        "ko": "학기 1",
+        "ko": "수업 기간 1",
     },
     "Teaching period 2": {
         "zh": "教学期 2",
         "ja": "開講期 2",
-        "ko": "학기 2",
+        "ko": "수업 기간 2",
     },
     "Teaching period 3": {
         "zh": "教学期 3",
         "ja": "開講期 3",
-        "ko": "학기 3",
+        "ko": "수업 기간 3",
     },
     "Teaching period 4": {
         "zh": "教学期 4",
         "ja": "開講期 4",
-        "ko": "학기 4",
+        "ko": "수업 기간 4",
     },
     "Teaching period 5": {
         "zh": "教学期 5",
         "ja": "開講期 5",
-        "ko": "학기 5",
+        "ko": "수업 기간 5",
     },
     "Teaching period 6": {
         "zh": "教学期 6",
         "ja": "開講期 6",
-        "ko": "학기 6",
+        "ko": "수업 기간 6",
     },
 
     # --- campuses and periods (enumerable, so pin them exactly) --------------
@@ -2478,6 +2478,296 @@ TERMS: dict[str, dict[str, str]] = {
 }
 
 # ---------------------------------------------------------------------------
+# The Handbook's faculties, schools and departments, as whole values.
+#
+# Every owning organisation named by a unit, degree or area of study in the
+# 2025 to 2027 Handbooks. They are names, so the model has no sentence to read
+# them from: "School of Mathematics" left in English beside 管理系 in the same
+# filter list is what this table is for. Proper names (Jeffrey Cheah, Monash
+# Health, Eastern Health) stay in English; only the generic words around them
+# are translated.
+_ORGS: dict[str, tuple[str, str, str]] = {
+    # name: (zh, ja, ko)
+    # faculties
+    "Faculty of Art, Design and Architecture": (
+        "艺术、设计与建筑学院", "芸術・デザイン・建築学部", "예술·디자인·건축대학",
+    ),
+    "Faculty of Arts": ("文学院", "文学部", "인문대학"),
+    "Faculty of Business and Economics": ("商学与经济学院", "ビジネス・経済学部", "경영·경제대학"),
+    "Faculty of Education": ("教育学院", "教育学部", "교육대학"),
+    "Faculty of Engineering": ("工程学院", "工学部", "공과대학"),
+    "Faculty of Information Technology": ("信息技术学院", "情報技術学部", "정보기술대학"),
+    "Faculty of Law": ("法学院", "法学部", "법과대학"),
+    "Faculty of Medicine, Nursing and Health Sciences": (
+        "医学、护理与健康科学学院", "医学・看護・健康科学部", "의학·간호·보건과학대학",
+    ),
+    "Faculty of Pharmacy and Pharmaceutical Sciences": (
+        "药学与制药科学学院", "薬学・薬科学部", "약학·제약과학대학",
+    ),
+    "Faculty of Science": ("理学院", "理学部", "이과대학"),
+    # schools
+    "School of Biological Sciences": ("生物科学学院", "生物科学スクール", "생명과학부"),
+    "School of Biomedical Sciences": ("生物医学科学学院", "生物医科学スクール", "의생명과학부"),
+    "School of Chemistry": ("化学学院", "化学スクール", "화학부"),
+    "School of Clinical Sciences at Monash Health": (
+        "Monash Health 临床科学学院", "Monash Health 臨床科学スクール", "Monash Health 임상과학부",
+    ),
+    "School of Earth, Atmosphere and Environment": (
+        "地球、大气与环境学院", "地球・大気・環境スクール", "지구·대기·환경학부",
+    ),
+    "School of Languages, Literatures, Cultures and Linguistics": (
+        "语言、文学、文化与语言学学院",
+        "言語・文学・文化・言語学スクール",
+        "언어·문학·문화·언어학부",
+    ),
+    "School of Mathematics": ("数学学院", "数学スクール", "수학부"),
+    "School of Media, Film and Journalism": (
+        "媒体、电影与新闻学院",
+        "メディア・映画・ジャーナリズムスクール",
+        "미디어·영화·저널리즘학부",
+    ),
+    "School of Nursing and Midwifery": ("护理与助产学院", "看護・助産スクール", "간호·조산학부"),
+    "School of Philosophical, Historical and Indigenous Studies": (
+        "哲学、历史与原住民研究学院", "哲学・歴史・先住民研究スクール", "철학·역사·원주민학부",
+    ),
+    "School of Physics and Astronomy": (
+        "物理与天文学院", "物理学・天文学スクール", "물리·천문학부",
+    ),
+    "School of Primary & Allied Health Care": (
+        "初级卫生与联合医疗学院", "プライマリ・連携医療スクール", "1차·연합보건의료학부",
+    ),
+    "School of Primary Health Care": (
+        "初级卫生保健学院", "プライマリヘルスケアスクール", "1차보건의료학부",
+    ),
+    "School of Psychological Sciences": ("心理科学学院", "心理科学スクール", "심리과학부"),
+    "School of Public Health and Preventive Medicine": (
+        "公共卫生与预防医学学院", "公衆衛生・予防医学スクール", "공중보건·예방의학부",
+    ),
+    "School of Rural Health": ("乡村卫生学院", "地域医療スクール", "농촌보건학부"),
+    "School of Social Sciences": ("社会科学学院", "社会科学スクール", "사회과학부"),
+    "School of Translational Medicine": (
+        "转化医学学院", "トランスレーショナル医学スクール", "중개의학부",
+    ),
+    "Sir Zelman Cowen School of Music and Performance": (
+        "Sir Zelman Cowen 音乐与表演学院",
+        "Sir Zelman Cowen 音楽・パフォーマンススクール",
+        "Sir Zelman Cowen 음악·공연학부",
+    ),
+    "Jeffrey Cheah School of Medicine and Health Sciences Malaysia": (
+        "马来西亚校区 Jeffrey Cheah 医学与健康科学学院",
+        "マレーシア校 Jeffrey Cheah 医学・健康科学スクール",
+        "말레이시아 캠퍼스 Jeffrey Cheah 의학·보건과학부",
+    ),
+    "Clayton School of Information Technology": (
+        "Clayton 信息技术学院", "Clayton 情報技術スクール", "Clayton 정보기술학부",
+    ),
+    "FUA Gippsland School of Applied Science & Engineering": (
+        "FUA Gippsland 应用科学与工程学院",
+        "FUA Gippsland 応用科学・工学スクール",
+        "FUA Gippsland 응용과학·공학부",
+    ),
+    "Central Clinical School": ("中央临床学院", "セントラル臨床スクール", "중앙임상학부"),
+    "Eastern Health Clinical School": (
+        "Eastern Health 临床学院", "Eastern Health 臨床スクール", "Eastern Health 임상학부",
+    ),
+    # Malaysia
+    "Malaysia School of Arts and Social Sciences": (
+        "马来西亚校区文学与社会科学学院",
+        "マレーシア校 文学・社会科学スクール",
+        "말레이시아 캠퍼스 인문사회과학부",
+    ),
+    "Malaysia School of Engineering": (
+        "马来西亚校区工程学院", "マレーシア校 工学スクール", "말레이시아 캠퍼스 공학부",
+    ),
+    "Malaysia School of Science": (
+        "马来西亚校区理学院", "マレーシア校 理学スクール", "말레이시아 캠퍼스 이학부",
+    ),
+    "Malaysia School of Pathways & Immersion": (
+        "马来西亚校区衔接与沉浸式学习学院",
+        "マレーシア校 進学準備・体験学習スクール",
+        "말레이시아 캠퍼스 진학·몰입 학습부",
+    ),
+    "Malaysia Business Law & Taxation": (
+        "马来西亚校区商法与税法",
+        "マレーシア校 ビジネス法・税法",
+        "말레이시아 캠퍼스 비즈니스법·조세",
+    ),
+    # departments
+    "Department of Accounting": ("会计系", "会計学科", "회계학과"),
+    "Department of Anatomy and Development Biology": (
+        "解剖学与发育生物学系", "解剖学・発生生物学科", "해부학·발생생물학과",
+    ),
+    "Department of Architecture": ("建筑系", "建築学科", "건축학과"),
+    "Department of Banking and Finance": ("银行与金融系", "銀行・金融学科", "은행·금융학과"),
+    "Department of Biochemistry and Molecular Biology": (
+        "生物化学与分子生物学系", "生化学・分子生物学科", "생화학·분자생물학과",
+    ),
+    "Department of Business Law and Taxation": (
+        "商法与税法系", "ビジネス法・税法学科", "비즈니스법·조세학과",
+    ),
+    "Department of Chemical and Biological Engineering": (
+        "化学与生物工程系", "化学・生物工学科", "화학생물공학과",
+    ),
+    "Department of Civil and Environmental Engineering": (
+        "土木与环境工程系", "土木・環境工学科", "토목환경공학과",
+    ),
+    "Department of Design": ("设计系", "デザイン学科", "디자인학과"),
+    "Department of Econometrics and Business Statistics": (
+        "计量经济与商业统计系", "計量経済学・ビジネス統計学科", "계량경제·경영통계학과",
+    ),
+    "Department of Economics": ("经济学系", "経済学科", "경제학과"),
+    "Department of Electrical and Computer Systems Engineering": (
+        "电气与计算机系统工程系", "電気・コンピュータシステム工学科", "전기·컴퓨터시스템공학과",
+    ),
+    "Department of Epidemiology and Preventive Medicine": (
+        "流行病学与预防医学系", "疫学・予防医学科", "역학·예방의학과",
+    ),
+    "Department of Fine Art": ("美术系", "美術学科", "미술학과"),
+    "Department of Immunology": ("免疫学系", "免疫学科", "면역학과"),
+    "Department of Management": ("管理系", "経営学科", "경영학과"),
+    "Department of Marketing": ("市场营销系", "マーケティング学科", "마케팅학과"),
+    "Department of Materials Science and Engineering": (
+        "材料科学与工程系", "材料科学工学科", "재료공학과",
+    ),
+    "Department of Mechanical and Aerospace Engineering": (
+        "机械与航空航天工程系", "機械・航空宇宙工学科", "기계항공공학과",
+    ),
+    "Department of Microbiology": ("微生物学系", "微生物学科", "미생물학과"),
+    "Department of Nutrition, Dietetics and Food": (
+        "营养、膳食与食品系", "栄養・食事療法・食品学科", "영양·식이·식품학과",
+    ),
+    "Department of Obstetrics and Gynaecology": ("妇产科学系", "産婦人科学教室", "산부인과학교실"),
+    "Department of Occupational Therapy": ("作业治疗系", "作業療法学科", "작업치료학과"),
+    "Department of Paramedicine": ("院前急救系", "救急救命学科", "응급구조학과"),
+    "Department of Pharmacology": ("药理学系", "薬理学科", "약리학과"),
+    "Department of Physiology": ("生理学系", "生理学科", "생리학과"),
+    "Department of Physiotherapy": ("物理治疗系", "理学療法学科", "물리치료학과"),
+    "Department of Tourism": ("旅游系", "観光学科", "관광학과"),
+    # disciplines named on their own
+    "Anaesthesia Teaching and Research": (
+        "麻醉学教学与研究", "麻酔学教育・研究", "마취학 교육·연구",
+    ),
+    "Anthropology": ("人类学", "人類学", "인류학"),
+    "Archaeology and Ancient History": ("考古学与古代史", "考古学・古代史", "고고학·고대사"),
+    "Chinese Studies": ("汉学研究", "中国研究", "중국학"),
+    "Communications": ("传播学", "コミュニケーション学", "커뮤니케이션학"),
+    "Criminology": ("犯罪学", "犯罪学", "범죄학"),
+    "Critical Performance Studies": ("批判表演研究", "批判的パフォーマンス研究", "비판적 공연학"),
+    "European Languages": ("欧洲语言", "ヨーロッパ言語", "유럽 언어"),
+    "Film, Screen and Culture": ("电影、影像与文化", "映画・映像・文化", "영화·영상·문화"),
+    "Forensic Medicine": ("法医学", "法医学", "법의학"),
+    "History": ("历史学", "歴史学", "역사학"),
+    "Human Geography Anthropology & Development Studies": (
+        "人文地理、人类学与发展研究", "人文地理学・人類学・開発研究", "인문지리·인류학·개발학",
+    ),
+    "Indonesian Studies": ("印尼研究", "インドネシア研究", "인도네시아학"),
+    "Intercultural Studies": ("跨文化研究", "異文化研究", "상호문화연구"),
+    "Japanese Studies": ("日本研究", "日本研究", "일본학"),
+    "Journalism": ("新闻学", "ジャーナリズム", "저널리즘"),
+    "Korean Studies": ("韩国研究", "韓国研究", "한국학"),
+    "Linguistics": ("语言学", "言語学", "언어학"),
+    "Literary Studies": ("文学研究", "文学研究", "문학 연구"),
+    "Media": ("媒体研究", "メディア研究", "미디어학"),
+    "Medical Imaging and Radiation Sciences": (
+        "医学影像与放射科学", "医用画像・放射線科学", "의료영상·방사선과학",
+    ),
+    "Philosophy": ("哲学", "哲学", "철학"),
+    "Politics and International Relations": (
+        "政治学与国际关系", "政治学・国際関係", "정치학·국제관계",
+    ),
+    "Psychiatry Monash Health": (
+        "Monash Health 精神病学", "Monash Health 精神医学", "Monash Health 정신의학",
+    ),
+    "Psychology": ("心理学", "心理学", "심리학"),
+    "Social Work": ("社会工作", "ソーシャルワーク", "사회복지학"),
+    "Sociology": ("社会学", "社会学", "사회학"),
+    "Sustainable Development Education": (
+        "可持续发展教育", "持続可能な開発のための教育", "지속가능발전교육",
+    ),
+    "Translation Studies": ("翻译研究", "翻訳研究", "번역학"),
+    # centres and institutes
+    "Australian Centre for Jewish Civilisation": (
+        "澳大利亚犹太文明研究中心", "オーストラリア・ユダヤ文明センター", "호주 유대 문명 센터",
+    ),
+    "Australian Regenerative Medicine Institute": (
+        "澳大利亚再生医学研究所", "オーストラリア再生医学研究所", "호주 재생의학연구소",
+    ),
+    "Centre for Ancient Cultures": ("古代文化研究中心", "古代文化センター", "고대문화 센터"),
+    "Centre for Consciousness and Contemplative Studies": (
+        "意识与冥想研究中心", "意識・瞑想研究センター", "의식·명상 연구 센터",
+    ),
+    "Centre for Health Economics": ("健康经济学研究中心", "医療経済学センター", "보건경제학 센터"),
+    "Monash Bioethics Centre": (
+        "Monash 生物伦理中心", "Monash 生命倫理センター", "Monash 생명윤리 센터",
+    ),
+    "Monash Centre for Financial Studies": (
+        "Monash 金融研究中心", "Monash 金融研究センター", "Monash 금융연구센터",
+    ),
+    "Monash Indigenous Studies Centre": (
+        "Monash 原住民研究中心", "Monash 先住民研究センター", "Monash 원주민 연구 센터",
+    ),
+    "Monash Sustainable Development Institute": (
+        "Monash 可持续发展研究院", "Monash 持続可能な開発研究所", "Monash 지속가능발전연구소",
+    ),
+    "Monash University Accident Research Centre": (
+        "Monash 大学事故研究中心", "Monash 大学 事故研究センター", "Monash 대학교 사고연구센터",
+    ),
+    "Victorian Heart Institute (VHI)": (
+        "维多利亚心脏研究所（VHI）", "ビクトリア心臓研究所（VHI）", "빅토리아 심장연구소(VHI)",
+    ),
+    # the business school's programmes
+    "Monash Business School GEMBA": (
+        "Monash 商学院 GEMBA", "Monash ビジネススクール GEMBA", "Monash 경영대학원 GEMBA",
+    ),
+    "Monash Business School MBA": (
+        "Monash 商学院 MBA", "Monash ビジネススクール MBA", "Monash 경영대학원 MBA",
+    ),
+    "Monash Business School Online": (
+        "Monash 商学院在线课程", "Monash ビジネススクール オンライン", "Monash 경영대학 온라인",
+    ),
+    "Monash Business School of Executive Education": (
+        "Monash 商学院高管教育",
+        "Monash ビジネススクール エグゼクティブ教育",
+        "Monash 경영대학원 경영자 교육",
+    ),
+    # offices and programme codes the Handbook uses as an owner
+    "Office of the DVC Education and Senior VP": (
+        "教育副校长办公室", "教育担当副学長室", "교육 담당 부총장실",
+    ),
+    "Office of the DVC Student Experience and Senior VP": (
+        "学生体验副校长办公室", "学生体験担当副学長室", "학생 경험 담당 부총장실",
+    ),
+    "BMedSc Md": (
+        "医学科学学士与医学博士（BMedSc MD）",
+        "医科学士・医学博士（BMedSc MD）",
+        "의과학사·의학박사(BMedSc MD)",
+    ),
+    "MFJ Graduate Studies": (
+        "媒体、电影与新闻研究生课程",
+        "メディア・映画・ジャーナリズム大学院課程",
+        "미디어·영화·저널리즘 대학원 과정",
+    ),
+    "Capstone": ("毕业项目（Capstone）", "キャップストーン", "캡스톤"),
+    "Global Immersion Guarantee": (
+        "全球沉浸式学习保障项目",
+        "グローバル体験学習保証プログラム",
+        "글로벌 몰입 학습 보장 프로그램",
+    ),
+    "Education Faculty Activities": ("教育学院项目", "教育学部プログラム", "교육대학 프로그램"),
+    "Education Psychology Activities": (
+        "教育心理学项目", "教育心理学プログラム", "교육심리학 프로그램",
+    ),
+    "Rural Health Churchill": (
+        "乡村卫生（Churchill）", "地域医療（Churchill）", "농촌보건(Churchill)",
+    ),
+}
+
+ORG_NAMES: dict[str, dict[str, str]] = {
+    name: dict(zip(LOCALES, names, strict=True)) for name, names in _ORGS.items()
+}
+
+
+# ---------------------------------------------------------------------------
 # Whole field values, matched exactly rather than as substrings.
 #
 # The Handbook draws these from closed lists - eight levels, nineteen assessment
@@ -2487,9 +2777,9 @@ TERMS: dict[str, dict[str, str]] = {
 # unaided the model returns 锻炼 (physical exercise) for the assessment type
 # *Exercise* and 阈值 (a numeric threshold) for the hurdle type *Threshold*.
 #
-# Names of institutions are deliberately left in English. "Walter and Eliza Hall
-# Institute" is what is written on the building, and a student looking for it
-# needs the name that is on the building.
+# The proper part of an institution's name stays in English and only the generic
+# part is translated: "Walter and Eliza Hall 研究所". The name on the building is
+# what a student has to find, and 研究所 tells them what kind of place it is.
 ENUMS: dict[str, dict[str, str]] = {
     # --- a numbered choice in a degree structure ------------------------------
     #
@@ -2699,16 +2989,16 @@ ENUMS: dict[str, dict[str, str]] = {
         "ko": "겨울 학기(대체 일정)",
     },
     "November teaching period": {"zh": "11 月教学期", "ja": "11月開講期", "ko": "11월 학기"},
-    "Teaching period 1": {"zh": "教学期 1", "ja": "開講期 1", "ko": "학기 1"},
-    "Teaching period 2": {"zh": "教学期 2", "ja": "開講期 2", "ko": "학기 2"},
-    "Teaching period 3": {"zh": "教学期 3", "ja": "開講期 3", "ko": "학기 3"},
-    "Teaching period 4": {"zh": "教学期 4", "ja": "開講期 4", "ko": "학기 4"},
-    "Teaching period 5": {"zh": "教学期 5", "ja": "開講期 5", "ko": "학기 5"},
-    "Teaching period 6": {"zh": "教学期 6", "ja": "開講期 6", "ko": "학기 6"},
-    "Term 1": {"zh": "第 1 学季", "ja": "第1タームト", "ko": "1학기(term)"},
-    "Term 2": {"zh": "第 2 学季", "ja": "第2ターム", "ko": "2학기(term)"},
-    "Term 3": {"zh": "第 3 学季", "ja": "第3ターム", "ko": "3학기(term)"},
-    "Term 4": {"zh": "第 4 学季", "ja": "第4ターム", "ko": "4학기(term)"},
+    "Teaching period 1": {"zh": "教学期 1", "ja": "開講期 1", "ko": "수업 기간 1"},
+    "Teaching period 2": {"zh": "教学期 2", "ja": "開講期 2", "ko": "수업 기간 2"},
+    "Teaching period 3": {"zh": "教学期 3", "ja": "開講期 3", "ko": "수업 기간 3"},
+    "Teaching period 4": {"zh": "教学期 4", "ja": "開講期 4", "ko": "수업 기간 4"},
+    "Teaching period 5": {"zh": "教学期 5", "ja": "開講期 5", "ko": "수업 기간 5"},
+    "Teaching period 6": {"zh": "教学期 6", "ja": "開講期 6", "ko": "수업 기간 6"},
+    "Term 1": {"zh": "第 1 学季", "ja": "第1ターム", "ko": "1텀"},
+    "Term 2": {"zh": "第 2 学季", "ja": "第2ターム", "ko": "2텀"},
+    "Term 3": {"zh": "第 3 学季", "ja": "第3ターム", "ko": "3텀"},
+    "Term 4": {"zh": "第 4 学季", "ja": "第4ターム", "ko": "4텀"},
     "Trimester 1": {"zh": "第 1 学段", "ja": "第1トライメスター", "ko": "1트라이메스터"},
     "Trimester 2": {"zh": "第 2 学段", "ja": "第2トライメスター", "ko": "2트라이메스터"},
     "Trimester 3": {"zh": "第 3 学段", "ja": "第3トライメスター", "ko": "3트라이메스터"},
@@ -2828,6 +3118,178 @@ ENUMS: dict[str, dict[str, str]] = {
         "ja": "学外在籍（EXT-CAND）",
         "ko": "교외 등록(EXT-CAND)",
     },
+    # --- more teaching periods ------------------------------------------------
+    "October intake teaching period, Malaysia campus": {
+        "zh": "10 月入学教学期（马来西亚校区）",
+        "ja": "10月入学開講期（マレーシアキャンパス）",
+        "ko": "10월 입학 학기(말레이시아 캠퍼스)",
+    },
+    "Monash Indonesia semester 1": {
+        "zh": "印尼校区第一学期", "ja": "インドネシア校 第1学期", "ko": "인도네시아 캠퍼스 1학기",
+    },
+    "Monash Indonesia semester 2": {
+        "zh": "印尼校区第二学期", "ja": "インドネシア校 第2学期", "ko": "인도네시아 캠퍼스 2학기",
+    },
+    "Monash Indonesia term 1": {
+        "zh": "印尼校区第 1 学季", "ja": "インドネシア校 第1ターム", "ko": "인도네시아 캠퍼스 1텀",
+    },
+    "Monash Indonesia term 2": {
+        "zh": "印尼校区第 2 学季", "ja": "インドネシア校 第2ターム", "ko": "인도네시아 캠퍼스 2텀",
+    },
+    "Monash Indonesia term 3": {
+        "zh": "印尼校区第 3 学季", "ja": "インドネシア校 第3ターム", "ko": "인도네시아 캠퍼스 3텀",
+    },
+    "Monash Indonesia term 4": {
+        "zh": "印尼校区第 4 学季", "ja": "インドネシア校 第4ターム", "ko": "인도네시아 캠퍼스 4텀",
+    },
+    "Monash Indonesia term 5": {
+        "zh": "印尼校区第 5 学季", "ja": "インドネシア校 第5ターム", "ko": "인도네시아 캠퍼스 5텀",
+    },
+    # A unit that starts in one period and finishes in the next.
+    "Second semester to First semester": {
+        "zh": "第二学期至第一学期", "ja": "第2学期〜第1学期", "ko": "2학기 ~ 1학기",
+    },
+    "Summer semester A to First semester": {
+        "zh": "夏季学期 A 至第一学期",
+        "ja": "サマーセメスター A〜第1学期",
+        "ko": "여름 학기 A ~ 1학기",
+    },
+    "Second semester to Summer semester A": {
+        "zh": "第二学期至夏季学期 A",
+        "ja": "第2学期〜サマーセメスター A",
+        "ko": "2학기 ~ 여름 학기 A",
+    },
+
+    # --- more campuses and teaching sites -------------------------------------
+    "Alfred Hospital": {"zh": "Alfred 医院", "ja": "Alfred 病院", "ko": "Alfred 병원"},
+    "Monash Medical Centre": {
+        "zh": "Monash Medical Centre（医疗中心）",
+        "ja": "Monash Medical Centre（医療センター）",
+        "ko": "Monash Medical Centre(의료 센터)",
+    },
+    "Monash Medical School - Alfred Hospital": {
+        "zh": "Monash 医学院 · Alfred 医院",
+        "ja": "Monash 医学部・Alfred 病院",
+        "ko": "Monash 의과대학 · Alfred 병원",
+    },
+    "Monash Law Chambers": {
+        "zh": "Monash Law Chambers（法学院市区教学楼）",
+        "ja": "Monash Law Chambers（法学部の市内校舎）",
+        "ko": "Monash Law Chambers(법과대학 시내 강의동)",
+    },
+    "Monash Suzhou Research Institute": {
+        "zh": "Monash 苏州研究院", "ja": "Monash 蘇州研究院", "ko": "Monash 쑤저우 연구원",
+    },
+    "Hudson Institute of Medical Research": {
+        "zh": "Hudson 医学研究所", "ja": "Hudson 医学研究所", "ko": "Hudson 의학연구소",
+    },
+    "Burnet Institute": {"zh": "Burnet 研究所", "ja": "Burnet 研究所", "ko": "Burnet 연구소"},
+    "Baker Institute": {"zh": "Baker 研究所", "ja": "Baker 研究所", "ko": "Baker 연구소"},
+    "Walter and Eliza Hall Institute": {
+        "zh": "Walter and Eliza Hall 研究所",
+        "ja": "Walter and Eliza Hall 研究所",
+        "ko": "Walter and Eliza Hall 연구소",
+    },
+    "Peter MacCallum Cancer Centre": {
+        "zh": "Peter MacCallum 癌症中心",
+        "ja": "Peter MacCallum がんセンター",
+        "ko": "Peter MacCallum 암센터",
+    },
+    "Murdoch Children's Research Institute": {
+        "zh": "Murdoch 儿童研究所", "ja": "Murdoch 小児研究所", "ko": "Murdoch 아동연구소",
+    },
+    "Victorian Heart Hospital": {
+        "zh": "维多利亚心脏医院", "ja": "ビクトリア心臓病院", "ko": "빅토리아 심장병원",
+    },
+    "King's College London": {
+        "zh": "伦敦国王学院", "ja": "キングス・カレッジ・ロンドン", "ko": "킹스 칼리지 런던",
+    },
+    "University of the Philippines": {
+        "zh": "菲律宾大学", "ja": "フィリピン大学", "ko": "필리핀 대학교",
+    },
+    "Sri Lanka": {"zh": "斯里兰卡", "ja": "スリランカ", "ko": "스리랑카"},
+    "Bairnsdale": {"zh": "Bairnsdale", "ja": "Bairnsdale", "ko": "Bairnsdale"},
+    "Wonthaggi": {"zh": "Wonthaggi", "ja": "Wonthaggi", "ko": "Wonthaggi"},
+
+    # --- more assessment types -------------------------------------------------
+    "Participation": {"zh": "课堂参与", "ja": "授業参加", "ko": "수업 참여"},
+    "Take home exam": {"zh": "居家考试", "ja": "持ち帰り試験", "ko": "재택 시험"},
+    "Thesis": {"zh": "学位论文", "ja": "論文", "ko": "학위 논문"},
+    "In class test": {"zh": "课堂测验", "ja": "授業内テスト", "ko": "수업 중 테스트"},
+
+    # --- more kinds of area of study, and study levels --------------------------
+    "Honours research area": {
+        "zh": "荣誉学位研究方向", "ja": "オナーズ研究分野", "ko": "우등 학위 연구 분야",
+    },
+    "HDR program": {
+        "zh": "研究型学位项目（HDR）",
+        "ja": "研究学位プログラム（HDR）",
+        "ko": "연구 학위 과정(HDR)",
+    },
+    "Undergraduate": {"zh": "本科", "ja": "学部", "ko": "학부"},
+    "Postgraduate": {"zh": "研究生", "ja": "大学院", "ko": "대학원"},
+
+    # --- AQF level of a degree --------------------------------------------------
+    #
+    # A double degree lists one per half, "Level 7 - Bachelor Degree / Level 9 -
+    # Master's Degree (Extended)"; ``whole_value`` translates each half.
+    "Level 5 - Diploma": {
+        "zh": "第 5 级 · 文凭", "ja": "レベル 5・ディプロマ", "ko": "레벨 5 · 디플로마",
+    },
+    "Level 7 - Bachelor Degree": {
+        "zh": "第 7 级 · 学士学位", "ja": "レベル 7・学士", "ko": "레벨 7 · 학사 학위",
+    },
+    "Level 8 - Bachelor Honours Degree": {
+        "zh": "第 8 级 · 荣誉学士学位",
+        "ja": "レベル 8・オナーズ学士",
+        "ko": "레벨 8 · 우등 학사 학위",
+    },
+    "Level 8 - Graduate Certificate": {
+        "zh": "第 8 级 · 研究生证书",
+        "ja": "レベル 8・大学院サーティフィケート",
+        "ko": "레벨 8 · 대학원 수료증",
+    },
+    "Level 8 - Graduate Diploma": {
+        "zh": "第 8 级 · 研究生文凭",
+        "ja": "レベル 8・大学院ディプロマ",
+        "ko": "레벨 8 · 대학원 디플로마",
+    },
+    "Level 9 - Master's Degree (Coursework)": {
+        "zh": "第 9 级 · 硕士学位（授课型）",
+        "ja": "レベル 9・修士（授業型）",
+        "ko": "레벨 9 · 석사 학위(수업형)",
+    },
+    # The Handbook writes this one with a curly apostrophe.
+    "Level 9 - Master’s Degree (Research)": {
+        "zh": "第 9 级 · 硕士学位（研究型）",
+        "ja": "レベル 9・修士（研究型）",
+        "ko": "레벨 9 · 석사 학위(연구형)",
+    },
+    "Level 9 - Master's Degree (Research)": {
+        "zh": "第 9 级 · 硕士学位（研究型）",
+        "ja": "レベル 9・修士（研究型）",
+        "ko": "레벨 9 · 석사 학위(연구형)",
+    },
+    "Level 9 - Master's Degree (Extended)": {
+        "zh": "第 9 级 · 硕士学位（扩展型）",
+        "ja": "レベル 9・修士（拡張型）",
+        "ko": "레벨 9 · 석사 학위(확장형)",
+    },
+    "Level 10 - Doctoral Degree": {
+        "zh": "第 10 级 · 博士学位", "ja": "レベル 10・博士", "ko": "레벨 10 · 박사 학위",
+    },
+    "Level 10 - Higher Doctoral Degree": {
+        "zh": "第 10 级 · 高级博士学位",
+        "ja": "レベル 10・上位博士",
+        "ko": "레벨 10 · 고등 박사 학위",
+    },
+
+    # --- faculties, schools and departments --------------------------------------
+    #
+    # The Handbook's owning organisation for a unit, degree or area of study,
+    # every value in the 2025 to 2027 data. The filter on /units lists them, so
+    # a missing one shows up as an English line among Chinese ones.
+    **ORG_NAMES,
 }
 
 
@@ -3067,7 +3529,20 @@ def whole_value(text: str, locale: str) -> str | None:
     both safer and better than translating them as prose.
     """
     entry = ENUMS.get(text.strip())
-    return entry.get(locale) if entry else None
+    if entry:
+        return entry.get(locale)
+    # A double degree names one value per half: "Level 7 - Bachelor Degree /
+    # Level 9 - Master's Degree (Extended)". Both halves have to be known; one
+    # half in English beside one in Chinese reads as a bug. The Handbook also
+    # writes "X / X" for a double degree whose halves are the same level, and
+    # that is said once.
+    parts = [part.strip() for part in text.split(" / ")]
+    if len(parts) < 2 or not all(part in ENUMS for part in parts):
+        return None
+    done = [ENUMS[part].get(locale) for part in parts]
+    if not all(done):
+        return None
+    return done[0] if len(set(done)) == 1 else " / ".join(done)
 
 
 # ---------------------------------------------------------------------------

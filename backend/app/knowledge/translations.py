@@ -16,6 +16,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from app.knowledge.glossary import whole_value
 from app.models.translation import (
     CURATED,
     GLOBAL,
@@ -97,6 +98,25 @@ class Translation:
         if source is None:
             return None
         return self.strings.get(source.strip()) or source
+
+    def value(self, source: str | None) -> str | None:
+        """A Handbook field drawn from a closed list: a campus, a faculty, a level.
+
+        The glossary's agreed wording wins over a machine row. The stored row
+        was written once and is primed back into every later pass, so a name
+        added to the glossary afterwards would otherwise never reach a unit that
+        was already translated. Only a person's (or curated) wording beats it.
+
+        Not for page text: "Malaysia" in a fee table is the country, and
+        "Credit" in a sentence is not the grade. Those go through ``string``.
+        """
+        if source is None:
+            return None
+        key = source.strip()
+        if key in self.human_strings:
+            return self.strings[key]
+        agreed = whole_value(key, self.locale) if self.locale else None
+        return agreed or self.strings.get(key) or source
 
     def meta(self) -> dict[str, Any] | None:
         """What the UI needs to label this as a translation rather than a source."""

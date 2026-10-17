@@ -208,6 +208,31 @@ def test_institution_names_are_left_in_english():
     assert whole_value("Bendigo", "zh") == "Bendigo"
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("Level 7 - Bachelor Degree / Level 7 - Bachelor Degree", "第 7 级 · 学士学位"),
+        (
+            "Level 8 - Bachelor Honours Degree / Level 7 - Bachelor Degree",
+            "第 8 级 · 荣誉学士学位 / 第 7 级 · 学士学位",
+        ),
+        # Whole values that happen to contain the separator are still whole values.
+        ("Quiz / Test", "小测 / 测验"),
+        ("PG Grad Cert / Grad Dip", "研究生证书／研究生文凭"),
+        # Half known is not known.
+        ("Level 7 - Bachelor Degree / Level 11 - Something new", None),
+    ],
+)
+def test_a_double_degree_level_is_translated_half_by_half(value, expected):
+    assert whole_value(value, "zh") == expected
+
+
+def test_term_and_semester_are_different_words_in_korean():
+    # Both used to be N학기, so Term 1 and First semester read the same.
+    assert whole_value("Term 1", "ko") != whole_value("First semester", "ko")
+    assert whole_value("Teaching period 1", "ko") != whole_value("First semester", "ko")
+
+
 def test_a_lost_placeholder_is_detectable():
     """The model sometimes transliterates the token instead of copying it.
 
@@ -315,11 +340,14 @@ def test_the_frontend_dictionary_agrees_with_the_glossary():
         Path(__file__).resolve().parents[2] / "frontend" / "i18n" / "handbook-terms.ts"
     ).read_text(encoding="utf-8")
 
-    disagree = {
-        key: (written, ENUMS[key]["zh"])
-        for key, written in re.findall(r"\n\s*'([^']+)':\s*'([^']*)'", source)
-        if key in ENUMS and ENUMS[key].get("zh") and ENUMS[key]["zh"] != written
-    }
+    disagree = {}
+    blocks = re.findall(r"const (zh|ja|ko)\w*: Dictionary = \{(.*?)\n\}", source, re.S)
+    assert {locale for locale, _ in blocks} == {"zh", "ja", "ko"}
+    for locale, body in blocks:
+        for key, written in re.findall(r"\n\s*'([^']+)':\s*'([^']*)'", body):
+            agreed = ENUMS.get(key, {}).get(locale)
+            if agreed and agreed != written:
+                disagree[(locale, key)] = (written, agreed)
     assert disagree == {}
 
 

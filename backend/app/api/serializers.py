@@ -73,15 +73,15 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         "title": tr.field("title", unit.title),
         "academic_year": unit.academic_year,
         "credit_points": unit.credit_points,
-        "level": tr.string(unit.level),
-        "faculty": tr.string(unit.faculty),
+        "level": tr.value(unit.level),
+        "faculty": tr.value(unit.faculty),
         "has_exam": unit.has_exam,
         "assessment_count": len(unit.assessments),
         "offerings": [
             {
-                "campus": tr.string(o.campus),
-                "teaching_period": tr.string(o.teaching_period),
-                "attendance_mode": tr.string(o.attendance_mode),
+                "campus": tr.value(o.campus),
+                "teaching_period": tr.value(o.teaching_period),
+                "attendance_mode": tr.value(o.attendance_mode),
                 # Untranslated, for the planner to match against the plan's
                 # own campus and period names, and the S1/S2 tag it shows.
                 "campus_raw": o.campus,
@@ -114,7 +114,7 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         # False when the Handbook now answers this code with a 404. The page
         # still shows what it last said, under a notice saying so.
         "is_active": unit.is_active,
-        "school": tr.string(unit.school),
+        "school": tr.value(unit.school),
         "overview": tr.field("overview", unit.overview),
         "areas_of_study": tr.field("areas_of_study", unit.areas_of_study),
         "teaching_approach": tr.field("teaching_approach", unit.teaching_approach),
@@ -399,7 +399,7 @@ def tree_node(
         "unit_code": unit.unit_code,
         "title": tr.field("title", unit.title),
         "credit_points": unit.credit_points,
-        "level": tr.string(unit.level),
+        "level": tr.value(unit.level),
         "prefix": unit.subject_prefix or unit.unit_code[:3],
         "depth": depth,
         "in_year": True,
@@ -407,9 +407,9 @@ def tree_node(
         "periods": periods,
         "offerings": [
             {
-                "campus": tr.string(o.campus),
+                "campus": tr.value(o.campus),
                 "campus_raw": o.campus,
-                "teaching_period": tr.string(o.teaching_period),
+                "teaching_period": tr.value(o.teaching_period),
                 "short": short_period(o.teaching_period),
             }
             for o in offerings
@@ -432,14 +432,14 @@ def course_brief(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str, 
         # An abbreviation is a mark, not a sentence: BCompSci stays BCompSci.
         "abbreviated_name": course.abbreviated_name,
         "credit_points": course.credit_points,
-        "course_type": tr.string(course.course_type),
+        "course_type": tr.value(course.course_type),
         # A closed-list value used for grouping and filtering.  The translated
         # display value is useful to API clients, but the UI also needs the
         # source key so it can select a reviewed label rather than grouping on
         # whatever an older machine-translation row happened to contain.
         "course_type_raw": course.course_type,
-        "faculty": tr.string(course.faculty),
-        "campuses": [tr.string(c) for c in course.campuses or []],
+        "faculty": tr.value(course.faculty),
+        "campuses": [tr.value(c) for c in course.campuses or []],
         "campuses_raw": list(course.campuses or []),
         "duration_years": course.duration_years,
         "academic_year": course.academic_year,
@@ -451,9 +451,9 @@ def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str,
     return {
         **course_brief(course, tr),
         "is_active": course.is_active,
-        "aqf_level": tr.string(course.aqf_level),
+        "aqf_level": tr.value(course.aqf_level),
         "cricos_code": course.cricos_code,
-        "school": tr.string(course.school),
+        "school": tr.value(course.school),
         "overview": tr.field("overview", course.overview),
         # structure_text and requirements_text stay in the database and out of
         # this payload. They are five thousand characters that nothing renders,
@@ -469,10 +469,10 @@ def area_of_study_detail(aos: AreaOfStudy, tr: Translation = NO_TRANSLATION) -> 
     return {
         "aos_code": aos.aos_code,
         "title": tr.field("title", aos.title),
-        "aos_type": tr.string(aos.aos_type),
-        "study_level": tr.string(aos.study_level),
+        "aos_type": tr.value(aos.aos_type),
+        "study_level": tr.value(aos.study_level),
         "credit_points": aos.credit_points,
-        "faculty": tr.string(aos.faculty),
+        "faculty": tr.value(aos.faculty),
         "overview": tr.field("overview", aos.overview),
         "academic_year": aos.academic_year,
         "source_url": aos.source_url,

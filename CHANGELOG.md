@@ -4,6 +4,30 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (Handbook names left in English)
+
+- Every faculty, school and department the Handbook names (120 of them)
+  now has a checked name in Chinese, Japanese and Korean. The faculty and
+  school filters on the unit search page showed about 45 of them in
+  English, such as School of Mathematics and Psychology.
+- The filters now take their labels from the API, so Japanese and Korean
+  get them too, and a name reads the same in the filter and on the unit
+  page.
+- Unit, degree and area of study pages use the glossary's wording for
+  closed-list values (campus, teaching period, level, faculty, AQF level,
+  type of area of study) even where an older machine translation said
+  something else. In Japanese and Korean these values were all English.
+- Added the campuses, teaching periods, assessment types and AQF levels
+  that were missing, and the attendance modes, assessment types and
+  activity types in Japanese and Korean.
+- In Korean, Term 1 and Teaching period 1 no longer read the same as
+  First semester (all three were 1학기).
+- The marks calculator's level heading was still "Level 2" in Chinese,
+  Japanese and Korean.
+- The weekly Handbook refresh now translates the units and degrees it
+  changed, and both scheduled refreshes cover Japanese and Korean as well
+  as Chinese (`TRANSLATE_LOCALES` in `.env`).
+
 ### Changed (footer points to 马莫百科)
 
 - In the footer line about the 马莫百科 WeChat account, the account name

@@ -37,6 +37,34 @@ def test_an_untranslated_string_stays_in_english(db):
     assert tr.string("Withdrawn fail") == "Withdrawn fail"
 
 
+def test_a_closed_list_value_uses_the_glossary_over_a_machine_row():
+    """The machine row was written before the name was in the glossary.
+
+    Passes prime themselves from what is stored, so without this the agreed
+    name would never reach a unit that had already been translated once.
+    """
+    tr = translations.Translation("zh")
+    tr.strings = {"School of Mathematics": "数学系学校", "Faculty of Law": "法学院："}
+    assert tr.value("School of Mathematics") == "数学学院"
+    assert tr.value("Faculty of Law") == "法学院"
+    # Page text is not a closed list: "Malaysia" in a fee table is the country.
+    assert tr.string("School of Mathematics") == "数学系学校"
+    assert tr.value("Something only one unit says") == "Something only one unit says"
+
+
+def test_a_persons_wording_beats_the_glossary():
+    tr = translations.Translation("zh")
+    tr.strings = {"Psychology": "心理学（人工）"}
+    tr.human_strings = {"Psychology"}
+    assert tr.value("Psychology") == "心理学（人工）"
+
+
+def test_japanese_and_korean_get_closed_list_values_with_no_rows_at_all():
+    assert translations.Translation("ja").value("Department of Accounting") == "会計学科"
+    assert translations.Translation("ko").value("First semester") == "1학기"
+    assert translations.Translation("").value("First semester") == "First semester"
+
+
 def test_a_stored_part_heading_is_read_with_a_colon(db):
     _store(
         db, target_type=OFFICIAL_PAGE, target_key="c2001", field="body",
