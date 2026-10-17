@@ -15,6 +15,18 @@ All notable changes to Monash Hub are documented here.
 - The course map status pill says "还没有课程" / "No units yet" without a full
   stop, and the notification panel no longer joins its two lines with a dash.
 
+### Added (graduation)
+
+- A curated answer to "Do I still need to apply to graduate?" in English and
+  Chinese. It covers Monash's notice that from December 2026 awards are
+  conferred automatically each month, testamurs follow shortly after and
+  graduating in absentia ends, and points Malaysia campus students to their own
+  pages, which still describe applying. Questions such as 还需要申请毕业吗,
+  怎么申请毕业, 自动授予学位, "apply to graduate" and "testamur" now get it.
+- A reviewed Chinese translation of the notice on the Graduations guide, which
+  was shown in machine translation. The notice uses curly apostrophes, so the
+  keys do too.
+
 ### Added (more than one course plan)
 
 - A browser can keep up to 20 plans. `/plans` lists them as cards: the

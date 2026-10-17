@@ -299,4 +299,34 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "semester-exchange",
         priority=50,
     ),
+    # Monash added the notice to the graduations page on 2026-10-16 and says the
+    # full details come out in December 2026. Rewrite this entry then, and check
+    # whether Monash Malaysia has moved over: its FAQ still says you must apply.
+    FaqSeed(
+        "automatic-conferral",
+        "Do I still need to apply to graduate?",
+        "From December 2026, Monash confers awards automatically, so you will not need to "
+        "apply to graduate. Once your faculty confirms you have completed your course, you "
+        "are conferred in the next monthly cycle and receive your testamur shortly after. "
+        "You are conferred first and then invited to an upcoming ceremony, so graduating in "
+        "absentia will no longer apply. If you have already applied to graduate this year, "
+        "the current process on the official page still applies to you. Full details of the "
+        "new process will be published in December. Monash Malaysia's own graduation pages "
+        "still describe applying to graduate, so Malaysia campus students should check "
+        "those as well until they are updated.",
+        "graduation",
+        ("graduation", "graduate", "graduating", "ceremony", "degree", "award", "awards",
+         "automatic", "automatically", "december", "2026", "monthly", "faculty",
+         "complete", "completed", "change", "changes", "new", "process", "still",
+         "apply", "applied", "malaysia", "毕业", "毕业典礼", "典礼", "学位", "自动",
+         "每月", "学院", "完成", "变化", "改变", "新", "还", "12月", "十二月",
+         "马来西亚", "校区", "申请", "毕业证", "学位证", "证书"),
+        ("apply to graduate", "applying to graduate", "apply for graduation",
+         "graduation application", "conferral", "conferred", "confer", "testamur",
+         "in absentia", "申请毕业", "毕业申请", "授予学位", "学位授予", "自动毕业",
+         "自动授予", "缺席毕业", "毕业要不要申请", "毕业还要申请", "毕业还需要申请",
+         "毕业需要申请", "毕业要申请"),
+        "graduations",
+        priority=45,
+    ),
 )
