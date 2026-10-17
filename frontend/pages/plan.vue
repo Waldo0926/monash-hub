@@ -21,60 +21,19 @@ const {
   plan, yearsList, slotEntries, add, remove, reset, addYear, removeYear, exported, imported
 } = usePlan()
 
-const picking = ref<{ year: number; period: string } | null>(null)
-const query = ref('')
-const results = ref<any[]>([])
-const searching = ref(false)
-const searchError = ref('')
-
-async function search() {
-  const term = query.value.trim()
-  if (term.length < 2) {
-    results.value = []
-    return
-  }
-  searching.value = true
-  searchError.value = ''
-  try {
-    const params = new URLSearchParams({ q: term, limit: '12' })
-    if (plan.value.campus) params.set('campus', plan.value.campus)
-    const body = await apiFetch<any>(`/v1/units?${params.toString()}`)
-    results.value = body.results || []
-  } catch (caught) {
-    // Fired from a timer, so nothing upstream would catch it.
-    results.value = []
-    searchError.value = apiErrorMessage(caught, $t)
-  } finally {
-    searching.value = false
-  }
-}
-
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(query, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(search, 220)
-})
-
 /**
- * Opening the picker and then having to click the field it just opened is one
- * click too many when you are placing thirty units.
+ * The slot the add-unit dialog was opened for. The dialog does its own search
+ * and preview; this page only says where the unit goes and puts it there.
  */
-const pickerInput = ref<HTMLInputElement | HTMLInputElement[] | null>(null)
+const picking = ref<{ year: number; period: string } | null>(null)
+
 function openPicker(year: number, period: string) {
   picking.value = { year, period }
-  query.value = ''
-  results.value = []
-  nextTick(() => {
-    const field = Array.isArray(pickerInput.value) ? pickerInput.value[0] : pickerInput.value
-    field?.focus()
-  })
 }
 
 function place(unitCode: string) {
   if (!picking.value) return
   add(unitCode, picking.value.year, picking.value.period)
-  query.value = ''
-  results.value = []
 }
 
 // --- checking --------------------------------------------------------------
@@ -531,33 +490,7 @@ useSeoMeta({ title: () => $t('plan.title') })
               </li>
             </ul>
 
-            <div v-if="picking?.year === year && picking?.period === period" class="picker">
-              <input
-                ref="pickerInput"
-                v-model="query"
-                class="input"
-                :placeholder="$t('plan.searchPlaceholder')"
-                autocomplete="off"
-                @keydown.esc="picking = null"
-              />
-              <ul v-if="results.length" class="results">
-                <li v-for="unit in results" :key="unit.unit_code">
-                  <button type="button" @click="place(unit.unit_code)">
-                    <span class="unit-code">{{ unit.unit_code }}</span>
-                    <span class="result-title">{{ unit.title }}</span>
-                  </button>
-                </li>
-              </ul>
-              <p v-if="searchError" class="tiny bad-text" role="alert">{{ searchError }}</p>
-              <p v-else-if="query.length >= 2 && !searching" class="muted">
-                {{ $t('plan.noMatches') }}
-              </p>
-              <button class="btn btn--ghost btn--small" type="button" @click="picking = null">
-                {{ $t('plan.done') }}
-              </button>
-            </div>
             <button
-              v-else
               class="add"
               type="button"
               @click="openPicker(year, period)"
@@ -616,6 +549,18 @@ useSeoMeta({ title: () => $t('plan.title') })
         </section>
       </aside>
     </div>
+
+    <UnitPicker
+      v-if="picking"
+      :year="picking.year"
+      :period="picking.period"
+      :campus="plan.campus"
+      :entries="plan.entries"
+      :describe="issueText"
+      :period-name="shortPeriod"
+      @add="place"
+      @close="picking = null"
+    />
   </div>
 </template>
 
@@ -711,16 +656,6 @@ useSeoMeta({ title: () => $t('plan.title') })
 }
 .add:hover { border-color: var(--blue); color: var(--blue); }
 
-.picker { display: grid; gap: var(--s2); }
-.picker .input { max-width: none; }
-.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 220px; overflow-y: auto; }
-.results button {
-  display: flex; gap: var(--s2); width: 100%; text-align: left; border: 0;
-  background: none; padding: var(--s2); border-radius: var(--radius-sm);
-  cursor: pointer; font: inherit; color: var(--text);
-}
-.results button:hover { background: var(--blue-50); }
-.result-title { font-size: 0.85rem; color: var(--muted); }
 
 .panel { display: grid; gap: var(--s3); position: sticky; top: calc(var(--header-h) + var(--s3)); }
 .card {

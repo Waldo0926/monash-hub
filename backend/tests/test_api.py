@@ -535,3 +535,14 @@ def test_the_answer_title_is_in_the_readers_language(client, loaded, db):
         "/api/v1/ask", json={"query": "FIT2102"}, params={"locale": "zh"}
     ).json()
     assert body["title"] == "FIT2102 · 编程范式"
+
+
+def test_search_results_carry_the_planner_period_tags(client, loaded):
+    # The add-unit dialog on /plan tags each result S1/S2 at the plan's campus.
+    # FIT2102's fixture spells the period "Semester 2", which has to read as S2
+    # just like "Second semester" does.
+    body = client.get("/api/v1/units?q=FIT2102&campus=Malaysia").json()
+    offerings = body["results"][0]["offerings"]
+    assert {o["campus_raw"] for o in offerings} >= {"Malaysia"}
+    assert all(o["short"] == "S2" for o in offerings)
+    assert all(o["teaching_period_raw"] for o in offerings)
