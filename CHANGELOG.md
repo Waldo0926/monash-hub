@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (degree list layout)
+
+- The degree page groups degrees into panels by type, two columns on a wide
+  screen: undergraduate types on the left, postgraduate and Honours on the
+  right. Each panel shows six degrees and scrolls inside itself, so the whole
+  list fits on about one screen instead of one long column.
+- A row of type links with counts sits above the panels and jumps to a type,
+  reopening the panel if it was folded. Panels fold from their header.
+- On a phone the panels stack in one column, the type links scroll sideways,
+  and each panel is shorter.
+
 ### Changed (tab titles)
 
 - Every browser tab reads "Page | Monash Hub", for example "选课规划 | Monash
