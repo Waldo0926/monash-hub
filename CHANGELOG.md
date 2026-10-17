@@ -14,6 +14,8 @@ All notable changes to Monash Hub are documented here.
   reopening the panel if it was folded. Panels fold from their header.
 - On a phone the panels stack in one column, the type links scroll sideways,
   and each panel is shorter.
+- The search box, campus and Handbook year controls are all 44px high. On a
+  phone the campus and year selects split one row evenly.
 
 ### Changed (tab titles)
 

@@ -151,7 +151,7 @@ useSeoMeta({ title: () => $t('courses.title') })
       <form class="finder" @submit.prevent="search">
         <input
           v-model="draft"
-          class="input"
+          class="field"
           :placeholder="$t('courses.searchPlaceholder')"
           :aria-label="$t('courses.search')"
           autocomplete="off"
@@ -159,8 +159,8 @@ useSeoMeta({ title: () => $t('courses.title') })
         <button class="btn btn--primary" type="submit">{{ $t('courses.search') }}</button>
       </form>
       <label class="campus">
-        <span>{{ $t('tree.campus') }}</span>
-        <select v-model="campus" class="input">
+        <span class="tiny muted">{{ $t('tree.campus') }}</span>
+        <select v-model="campus" class="field">
           <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
           <option value="">{{ $t('tree.campusAny') }}</option>
         </select>
@@ -221,13 +221,16 @@ useSeoMeta({ title: () => $t('courses.title') })
 .intro h1 { margin: 0 0 var(--s2); }
 .lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
 
-.controls { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; margin-bottom: var(--s3); }
-.finder { display: flex; gap: var(--s2); flex: 1 1 320px; }
-.campus { display: grid; gap: var(--s1); font-size: 0.85rem; color: var(--muted); }
-.input {
-  width: 100%; padding: var(--s2) var(--s3); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--text);
+/* Search, campus and year share one row and one control height. On a phone
+   the search takes its own row and the two selects split the next one. */
+.controls {
+  display: grid; grid-template-columns: minmax(0, 1fr) 11rem 8rem; gap: var(--s3);
+  align-items: end; margin-bottom: var(--s3);
 }
+.finder { display: flex; gap: var(--s2); }
+.finder .btn { flex: none; }
+.campus { display: grid; gap: var(--s1); min-width: 0; }
+.controls :deep(.field) { height: 44px; }
 .count { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--s5); }
 
 .jump { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s4); }
@@ -282,6 +285,10 @@ details[open] .panel-head { border-bottom: 1px solid var(--border); }
 }
 .panel-list li + li { border-top: 1px solid var(--border); }
 
+@media (max-width: 700px) {
+  .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .finder { grid-column: 1 / -1; }
+}
 @media (max-width: 900px) {
   .board { grid-template-columns: minmax(0, 1fr); }
   /* One swipeable row of jump links instead of six wrapped ones. */
