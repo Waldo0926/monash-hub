@@ -20,6 +20,19 @@ All notable changes to Monash Hub are documented here.
   WAM, GPA and credit points while the summary is off screen.
 - The calculation and the saved data are unchanged. Empty rows saved by the
   old page are dropped when it loads.
+### Changed (degree list layout)
+
+- The degree page groups degrees into panels by type, two columns on a wide
+  screen: undergraduate types on the left, postgraduate and Honours on the
+  right. Each panel shows six degrees and scrolls inside itself, so the whole
+  list fits on about one screen instead of one long column.
+- A row of type links with counts sits above the panels and jumps to a type,
+  reopening the panel if it was folded. Panels fold from their header.
+- On a phone the panels stack in one column, the type links scroll sideways,
+  and each panel is shorter.
+- The search box, campus and Handbook year controls are all 44px high. On a
+  phone the campus and year selects split one row evenly.
+
 ### Changed (header controls)
 
 - The search box in the header is one soft pill with the search button

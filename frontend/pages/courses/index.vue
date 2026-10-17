@@ -55,23 +55,25 @@ function search() {
 const campusName = useCampusName()
 const campusLabel = computed(() => campusName(campus.value))
 
-/** Undergraduate before postgraduate, then research - how a student looks. */
-const ORDER = [
-  'UG specialist',
-  'UG comprehensive',
-  'UG double',
-  'Vertical double',
-  'Honours - 1 yr',
-  'UG diploma',
-  'PG Grad Cert / Grad Dip',
+/**
+ * Two columns, so the whole list fits on about one screen and each type
+ * scrolls on its own. Undergraduate types go on the left and postgraduate on
+ * the right, most common first, which is the order a student scans in.
+ * Honours sits on the right because it is a year taken after the bachelor's.
+ */
+const LEFT = ['UG specialist', 'UG comprehensive', 'UG double', 'Vertical double', 'UG diploma']
+const RIGHT = [
   'PG Masters',
-  'PG coursework double',
   'Masters by research',
   'Doctorate by research',
   'Higher doctorate',
-  'Non award pathway',
-  'Other'
+  'Honours - 1 yr',
+  'PG Grad Cert / Grad Dip',
+  'PG coursework double'
 ]
+
+/** Rows a panel shows before it starts to scroll. Mirrors the CSS max-height. */
+const VISIBLE_ROWS = 6
 
 const TYPE_KEYS: Record<string, string> = {
   'UG specialist': 'courses.type.ugSpecialist',
@@ -95,19 +97,45 @@ function typeLabel(type: string) {
   return key ? $t(key) : type
 }
 
-const grouped = computed(() => {
+type Group = { type: string; courses: any[] }
+
+const columns = computed(() => {
   const buckets = new Map<string, any[]>()
   for (const course of data.value?.results || []) {
     const key = course.course_type_raw || course.course_type || 'Other'
     if (!buckets.has(key)) buckets.set(key, [])
     buckets.get(key)!.push(course)
   }
-  return [...buckets.entries()].sort((a, b) => {
-    const ia = ORDER.indexOf(a[0])
-    const ib = ORDER.indexOf(b[0])
-    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a[0].localeCompare(b[0])
-  })
+  const take = (order: string[]): Group[] =>
+    order.filter((type) => buckets.has(type)).map((type) => ({ type, courses: buckets.get(type)! }))
+  const left = take(LEFT)
+  const right = take(RIGHT)
+
+  // Pathways, "Other" and any type the Handbook adds later go under whichever
+  // column is shorter, so neither side ends with a long empty gap.
+  const placed = new Set([...LEFT, ...RIGHT])
+  const rest = [...buckets.keys()]
+    .filter((type) => !placed.has(type))
+    .sort((a, b) => (a === 'Other' ? 1 : b === 'Other' ? -1 : a.localeCompare(b)))
+  const height = (groups: Group[]) =>
+    groups.reduce((sum, g) => sum + 2 + Math.min(g.courses.length, VISIBLE_ROWS), 0)
+  for (const type of rest) {
+    const group = { type, courses: buckets.get(type)! }
+    ;(height(left) <= height(right) ? left : right).push(group)
+  }
+  return [left, right].filter((column) => column.length)
 })
+
+/** A stable anchor for each panel, so the jump links and shared URLs work. */
+function anchor(type: string) {
+  return `type-${type.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+}
+
+/** A jump link has to land on an open panel, even one the reader folded. */
+function reveal(type: string) {
+  const details = document.querySelector<HTMLDetailsElement>(`#${anchor(type)} details`)
+  if (details) details.open = true
+}
 
 useSeoMeta({ title: () => $t('courses.title') })
 </script>
@@ -123,7 +151,7 @@ useSeoMeta({ title: () => $t('courses.title') })
       <form class="finder" @submit.prevent="search">
         <input
           v-model="draft"
-          class="input"
+          class="field"
           :placeholder="$t('courses.searchPlaceholder')"
           :aria-label="$t('courses.search')"
           autocomplete="off"
@@ -131,8 +159,8 @@ useSeoMeta({ title: () => $t('courses.title') })
         <button class="btn btn--primary" type="submit">{{ $t('courses.search') }}</button>
       </form>
       <label class="campus">
-        <span>{{ $t('tree.campus') }}</span>
-        <select v-model="campus" class="input">
+        <span class="tiny muted">{{ $t('tree.campus') }}</span>
+        <select v-model="campus" class="field">
           <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
           <option value="">{{ $t('tree.campusAny') }}</option>
         </select>
@@ -151,14 +179,40 @@ useSeoMeta({ title: () => $t('courses.title') })
     <Skeleton v-if="pending" :lines="8" />
     <EmptyState v-else-if="!data?.total" :title="$t('courses.noneTitle')" :body="$t('courses.noneBody')" />
 
-    <section v-for="[type, courses] in grouped" v-else :key="type" class="group">
-      <h2>{{ typeLabel(type) }}</h2>
-      <ul class="cards">
-        <li v-for="course in courses" :key="course.course_code">
-          <CourseCard :course="course" />
-        </li>
-      </ul>
-    </section>
+    <template v-else>
+      <nav class="jump" :aria-label="$t('courses.jump')">
+        <a
+          v-for="group in columns.flat()"
+          :key="group.type"
+          :href="`#${anchor(group.type)}`"
+          class="jump-link"
+          @click="reveal(group.type)"
+        >
+          {{ typeLabel(group.type) }}<span class="jump-n">{{ group.courses.length }}</span>
+        </a>
+      </nav>
+
+      <div class="board">
+        <div v-for="(column, i) in columns" :key="i" class="column">
+          <section v-for="group in column" :id="anchor(group.type)" :key="group.type" class="panel">
+            <details open>
+              <summary class="panel-head">
+                <h2>{{ typeLabel(group.type) }}</h2>
+                <span class="tally" :aria-label="$t('courses.groupCount', { n: group.courses.length })">
+                  {{ group.courses.length }}
+                </span>
+                <PlanIcon name="chevron" class="caret" />
+              </summary>
+              <ul class="panel-list">
+                <li v-for="course in group.courses" :key="course.course_code">
+                  <CourseCard :course="course" compact />
+                </li>
+              </ul>
+            </details>
+          </section>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -167,16 +221,87 @@ useSeoMeta({ title: () => $t('courses.title') })
 .intro h1 { margin: 0 0 var(--s2); }
 .lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
 
-.controls { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; margin-bottom: var(--s3); }
-.finder { display: flex; gap: var(--s2); flex: 1 1 320px; }
-.campus { display: grid; gap: var(--s1); font-size: 0.85rem; color: var(--muted); }
-.input {
-  width: 100%; padding: var(--s2) var(--s3); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--text);
+/* Search, campus and year share one row and one control height. On a phone
+   the search takes its own row and the two selects split the next one. */
+.controls {
+  display: grid; grid-template-columns: minmax(0, 1fr) 11rem 8rem; gap: var(--s3);
+  align-items: end; margin-bottom: var(--s3);
 }
+.finder { display: flex; gap: var(--s2); }
+.finder .btn { flex: none; }
+.campus { display: grid; gap: var(--s1); min-width: 0; }
+.controls :deep(.field) { height: 44px; }
 .count { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--s5); }
 
-.group { margin-bottom: var(--s6); }
-.group h2 { font-size: 1rem; color: var(--muted); font-weight: 600; margin: 0 0 var(--s3); }
-.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.jump { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s4); }
+.jump-link {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px var(--s3);
+  border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface);
+  color: var(--muted); font-size: 0.8rem; text-decoration: none; white-space: nowrap;
+}
+.jump-link:hover { border-color: var(--blue); color: var(--blue); }
+.jump-n { font: 600 0.75rem var(--font-mono); color: var(--muted); }
+
+.board {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4);
+  align-items: start;
+}
+.column { display: grid; gap: var(--s4); min-width: 0; }
+
+.panel {
+  scroll-margin-top: calc(var(--header-h, 64px) + var(--s4));
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4);
+  cursor: pointer; list-style: none; user-select: none;
+}
+.panel-head::-webkit-details-marker { display: none; }
+.panel-head:hover h2 { color: var(--blue); }
+.panel-head:focus-visible { outline-offset: -2px; }
+.panel-head h2 { font-size: 0.95rem; font-weight: 600; margin: 0; flex: 1; min-width: 0; }
+.tally {
+  font: 600 0.75rem var(--font-mono); color: var(--navy); background: var(--blue-50);
+  border-radius: var(--radius-pill); padding: 2px var(--s2); min-width: 1.75rem; text-align: center;
+}
+.caret { color: var(--muted-2); transition: transform 0.15s ease; }
+details[open] .caret { transform: rotate(90deg); }
+details[open] .panel-head { border-bottom: 1px solid var(--border); }
+
+/* Six rows, then the list scrolls inside the panel. The two "local" layers
+   cover the shadows once the list is scrolled to that end, so a shadow only
+   shows where there is more to see. */
+.panel-list {
+  list-style: none; margin: 0; padding: var(--s1) 0; max-height: 22.5rem; overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    linear-gradient(var(--surface) 30%, transparent) top / 100% 28px no-repeat,
+    linear-gradient(transparent, var(--surface) 70%) bottom / 100% 28px no-repeat,
+    radial-gradient(farthest-side at 50% 0, rgba(12, 27, 42, 0.14), transparent) top / 100% 10px no-repeat,
+    radial-gradient(farthest-side at 50% 100%, rgba(12, 27, 42, 0.14), transparent) bottom / 100% 10px no-repeat,
+    var(--surface);
+  background-attachment: local, local, scroll, scroll;
+}
+.panel-list li + li { border-top: 1px solid var(--border); }
+
+@media (max-width: 700px) {
+  .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .finder { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+  .board { grid-template-columns: minmax(0, 1fr); }
+  /* One swipeable row of jump links instead of six wrapped ones. */
+  .jump {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--s4)); padding-inline: var(--s4);
+  }
+  .jump::-webkit-scrollbar { display: none; }
+  /* On a phone the page itself scrolls, so a shorter panel and normal scroll
+     chaining keep a swipe from getting stuck inside a list. */
+  .panel-list { max-height: 19rem; overscroll-behavior: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret { transition: none; }
+}
 </style>
