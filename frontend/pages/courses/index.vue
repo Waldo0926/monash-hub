@@ -133,6 +133,39 @@ const columns = computed(() => {
   return [left, right].filter((column) => column.length)
 })
 
+/**
+ * The jump links run in reading order rather than column order: every
+ * undergraduate type on the first row of five, then the combined and
+ * postgraduate types, so each row is one level of study.
+ */
+const JUMP_ORDER = [
+  'UG specialist',
+  'UG comprehensive',
+  'UG double',
+  'Honours - 1 yr',
+  'UG diploma',
+  'Vertical double',
+  'PG Masters',
+  'Masters by research',
+  'Doctorate by research',
+  'PG Grad Cert / Grad Dip',
+  'PG coursework double',
+  'Higher doctorate'
+]
+
+const jumpGroups = computed(() => {
+  const rank = (type: string) => {
+    const i = JUMP_ORDER.indexOf(type)
+    return i < 0 ? JUMP_ORDER.length : i
+  }
+  return columns.value.flat().sort((a, b) => rank(a.type) - rank(b.type))
+})
+
+/** Lets a long "A/B" label wrap at the slash instead of mid-word. */
+function breakAfterSlash(label: string) {
+  return label.replace(/\//g, '/\u200b')
+}
+
 /** A stable anchor for each panel, so the jump links and shared URLs work. */
 function anchor(type: string) {
   return `type-${type.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
@@ -189,13 +222,14 @@ useSeoMeta({ title: () => $t('courses.title') })
     <template v-else>
       <nav class="jump" :aria-label="$t('courses.jump')">
         <a
-          v-for="group in columns.flat()"
+          v-for="group in jumpGroups"
           :key="group.type"
           :href="`#${anchor(group.type)}`"
           class="jump-link"
           @click="reveal(group.type)"
         >
-          {{ typeLabel(group.type) }}<span class="jump-n">{{ group.courses.length }}</span>
+          <span class="jump-label">{{ breakAfterSlash(typeLabel(group.type)) }}</span>
+          <span class="jump-n">{{ group.courses.length }}</span>
         </a>
       </nav>
 
@@ -240,14 +274,23 @@ useSeoMeta({ title: () => $t('courses.title') })
 .controls :deep(.field) { height: 44px; }
 .count { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--s5); }
 
-.jump { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s4); }
+/* Five equal columns, so ten types make two even rows. */
+.jump {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s2);
+  margin: 0 0 var(--s4);
+}
 .jump-link {
-  display: inline-flex; align-items: center; gap: 6px; padding: 3px var(--s3);
-  border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface);
-  color: var(--muted); font-size: 0.8rem; text-decoration: none; white-space: nowrap;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
+  min-height: 40px; padding: 6px var(--s3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-size: 0.85rem; line-height: 1.3; text-decoration: none;
 }
 .jump-link:hover { border-color: var(--blue); color: var(--blue); }
-.jump-n { font: 600 0.75rem var(--font-mono); color: var(--muted); }
+.jump-label { min-width: 0; }
+.jump-n {
+  flex: none; font: 600 0.75rem var(--font-mono); color: var(--navy); background: var(--blue-50);
+  border-radius: var(--radius-pill); padding: 1px var(--s2); min-width: 1.75rem; text-align: center;
+}
 
 .board {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4);
@@ -298,11 +341,12 @@ details[open] .panel-head { border-bottom: 1px solid var(--border); }
 }
 @media (max-width: 900px) {
   .board { grid-template-columns: minmax(0, 1fr); }
-  /* One swipeable row of jump links instead of six wrapped ones. */
+  /* One swipeable row of jump links instead of a grid too narrow to read. */
   .jump {
-    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    display: flex; overflow-x: auto; scrollbar-width: none;
     margin-inline: calc(-1 * var(--s4)); padding-inline: var(--s4);
   }
+  .jump-link { flex: none; min-height: 36px; border-radius: var(--radius-pill); white-space: nowrap; }
   .jump::-webkit-scrollbar { display: none; }
   /* On a phone the page itself scrolls, so a shorter panel and normal scroll
      chaining keep a swipe from getting stuck inside a list. */
