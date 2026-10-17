@@ -11,6 +11,14 @@ All notable changes to Monash Hub are documented here.
   first code, and a migration renames the stored row (or drops it where
   the year already has M6011) along with its translations.
 
+### Fixed (translation no longer blocks the weekly crawl)
+
+- Scheduled translation now runs after the crawl lock is released, under
+  its own lock that `translate.sh` shares. The first Japanese and Korean
+  fill takes hours, and while it held the crawl lock the weekly Handbook
+  refresh would have skipped itself. The weekly run waits for a running
+  pass; the six-hourly official run leaves its pages for the next one.
+
 ### Fixed (Handbook names left in English)
 
 - Every faculty, school and department the Handbook names (120 of them)
