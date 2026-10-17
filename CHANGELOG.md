@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (a degree page nobody could link to)
+
+- M6011 is published as "M6011 M6019". The pair was stored as the course
+  code, so its page sat at /courses/M6011 M6019. The crawl now keeps the
+  first code, and a migration renames the stored row (or drops it where
+  the year already has M6011) along with its translations.
+
 ### Fixed (Handbook names left in English)
 
 - Every faculty, school and department the Handbook names (120 of them)
