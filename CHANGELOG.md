@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Ask button on every page)
+
+- An Ask button in the bottom right corner opens a chat panel. Questions
+  go to the same zero-AI router as the search page, so answers still come
+  from the Handbook, the FAQ, official pages and student posts, each with
+  its source. No model and no API key.
+- On a unit page the unit is filled in, so "有期末考试吗" is about that unit.
+- Answers also point at the site's own tools when a question names one
+  (WAM 怎么算 shows the calculator, "plan my units" shows the course map)
+  and at matching 马莫百科 posts. When nothing matches, the panel says so
+  and links to the community and AskMira.
+- Full screen on phones, above the tab bar and the calculator's summary
+  bar otherwise. Hidden on /search, which already does the same thing.
+  All four languages.
+
 ### Changed (Honours degrees on the left)
 
 - On the degree page the one-year Honours panel moves to the left column,

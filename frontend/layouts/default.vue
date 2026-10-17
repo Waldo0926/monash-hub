@@ -7,6 +7,7 @@
     </main>
     <AppFooter />
     <MobileNav />
+    <ClientOnly><SiteAssistant /></ClientOnly>
   </div>
 </template>
 
