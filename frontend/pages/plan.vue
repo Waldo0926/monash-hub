@@ -20,7 +20,7 @@ const { $t } = useNuxtApp()
 const campusName = useCampusName()
 const {
   plan, yearsList, slotEntries, add, remove, move, reset, addYear, removeYear, exported, imported,
-  undo, redo, canUndo, canRedo, savedAt
+  undo, redo, canUndo, canRedo, savedAt, library
 } = usePlan()
 
 /**
@@ -391,7 +391,7 @@ function download() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `monash-hub-plan-${plan.value.startYear}.json`
+  link.download = `${fileStem()}.json`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -547,9 +547,15 @@ function downloadCsv() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `monash-hub-plan-${plan.value.startYear}.csv`
+  link.download = `${fileStem()}.csv`
   link.click()
   URL.revokeObjectURL(url)
+}
+
+/** "monash-hub-plan-2026", or the plan's own name when it has one that survives as a file name. */
+function fileStem(): string {
+  const name = plan.value.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return name ? `monash-hub-${name}` : `monash-hub-plan-${plan.value.startYear}`
 }
 
 function print() {
@@ -669,6 +675,19 @@ useSeoMeta({ title: () => $t('plan.title') })
     <div class="split">
       <section class="board" :aria-label="$t('plan.title')">
         <div class="board-head">
+          <div class="plan-title">
+            <input
+              v-model.lazy.trim="plan.name"
+              class="plan-name"
+              type="text"
+              maxlength="60"
+              :placeholder="$t('plans.untitled')"
+              :aria-label="$t('plans.name')"
+            />
+            <NuxtLink to="/plans" class="plan-all">
+              {{ $t('plans.all', { n: library.plans.length }) }}
+            </NuxtLink>
+          </div>
           <div class="settings">
             <label class="ctl">
               <span class="ctl-label">{{ $t('tree.campus') }}</span>
@@ -1001,6 +1020,17 @@ useSeoMeta({ title: () => $t('plan.title') })
   display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
   gap: var(--s3); padding: var(--s4) var(--s5);
 }
+.plan-title { display: flex; align-items: center; gap: var(--s3); flex-basis: 100%; min-width: 0; }
+/* The name is an input that looks like a heading until you touch it. */
+.plan-name {
+  flex: 1; min-width: 0; margin-left: -8px; padding: 2px 8px;
+  border: 1px solid transparent; border-radius: 6px; background: none;
+  font: 600 1.15rem var(--font); color: var(--text);
+}
+.plan-name::placeholder { color: var(--text); }
+.plan-name:hover { border-color: var(--border); }
+.plan-name:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px var(--blue-50); }
+.plan-all { flex: none; font-size: 0.82rem; font-weight: 500; }
 /* Named tracks plus min-width: 0. The degree <select> holds 200 long titles,
    which gives it a max-content width in the thousands of pixels; without the
    minmax(0, ...) that width decides the layout instead of the screen. */
@@ -1306,6 +1336,7 @@ select.ctl-input {
   .board, .panel { box-shadow: none; border-color: #c9d2dc; }
   .board-head { padding: 8px 12px; }
   .ctl-input { border: 0; padding: 0; height: auto; background-image: none; }
+  .plan-all { display: none; }
   .year { break-inside: avoid; }
   .year-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .ucard, .ucard::before, .ucard-part, .part-fill, .part-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

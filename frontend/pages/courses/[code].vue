@@ -44,11 +44,14 @@ function pickYear(y: number) {
 const campusName = useCampusName()
 const campusLabel = computed(() => campusName(campus.value))
 
-// "Plan this degree": hand the degree and campus to the course map, which
-// keeps whatever units are already planned. Changing a plan's degree only
-// changes what the bars are measured against, so nothing is lost by it.
-const { plan } = usePlan()
+// "Plan this degree": open the course map with this degree picked. A plan
+// that is empty, or already for this degree, is reused. One that has units in
+// it for a different degree is left as it is and a new plan is started, so
+// looking at another degree never rewires the plan a student already made.
+const { plan, create } = usePlan()
 function planThis() {
+  const busy = plan.value.entries.length && plan.value.courseCode && plan.value.courseCode !== code.value
+  if (busy) create(code.value)
   plan.value.courseCode = code.value
   if (campus.value) plan.value.campus = campus.value
   navigateTo('/plan')
