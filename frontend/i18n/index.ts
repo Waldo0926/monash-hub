@@ -410,7 +410,8 @@ const en: Messages = {
   'footer.conceptBy': 'Concept by',
   'footer.builtMaintainedBy': 'Built and maintained by',
   'footer.wechat':
-    'Follow the 马莫百科 WeChat account for updates. You can also message the account with questions.',
+    'Follow the {name} WeChat account for updates. You can also message the account with questions.',
+  'footer.wechatCta': 'Scan to follow or add on WeChat',
   'home.communityEmptyHint': 'Official pages cover the rules. Ask other students here what a unit is actually like.',
 
   // --- badges -------------------------------------------------------------
@@ -1428,7 +1429,8 @@ const zh: Messages = {
   'footer.conceptBy': '创意：',
   'footer.builtMaintainedBy': '搭建与维护：',
   'footer.wechat':
-    '更多消息可以关注「马莫百科」公众号，有问题也可以在公众号后台私信。',
+    '更多消息可以关注「{name}」公众号，有问题也可以在公众号后台私信。',
+  'footer.wechatCta': '扫码关注、加好友',
   'home.communityEmptyHint': '规定看官方页面，实际上课体验可以在这里问同学。',
 
   'badge.handbook': '官方 Handbook',
@@ -2421,7 +2423,8 @@ const ja: Messages = {
   'footer.conceptBy': '企画：',
   'footer.builtMaintainedBy': '構築・運営：',
   'footer.wechat':
-    '「马莫百科」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
+    '「{name}」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
+  'footer.wechatCta': 'QR コードでフォロー・友だち追加',
   'home.communityEmptyHint': '規程は公式ページで確認できます。実際の授業の様子はここで他の学生に聞いてみてください。',
 
   'badge.handbook': '公式 Handbook',
@@ -3427,7 +3430,8 @@ const ko: Messages = {
   'footer.conceptBy': '기획:',
   'footer.builtMaintainedBy': '구축 및 유지보수:',
   'footer.wechat':
-    '「马莫百科」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
+    '「{name}」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
+  'footer.wechatCta': 'QR로 팔로우·친구 추가',
   'home.communityEmptyHint': '규정은 공식 페이지에서 확인하고, 실제 수업이 어땠는지는 여기서 다른 학생에게 물어보세요.',
 
   'badge.handbook': '공식 Handbook',

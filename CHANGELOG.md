@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (footer points to 马莫百科)
+
+- In the footer line about the 马莫百科 WeChat account, the account name
+  now opens the 马莫百科 page, and a new blue "扫码关注、加好友" button opens it at
+  the QR codes for following the account and adding the WeChat. All four
+  languages.
+
 ### Changed (unit search filters fold away)
 
 - The filters on the unit search page are now headings that open and

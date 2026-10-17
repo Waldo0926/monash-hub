@@ -7,6 +7,11 @@ const sectionLinks = useSectionNavigation()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
 
+// The account name is a link to /mamo, so the sentence is split around it.
+// The name stays in Chinese in every language because that is what people
+// search for in WeChat.
+const wechatParts = computed(() => $t('footer.wechat').split('{name}'))
+
 const featuresHeading = computed(() => {
   if (locale.value === 'zh') return '功能导航'
   if (locale.value === 'en') return 'Features'
@@ -86,7 +91,28 @@ const featuresHeading = computed(() => {
       </nav>
 
       <div class="footer-bottom">
-        <p class="small wechat">{{ $t('footer.wechat') }}</p>
+        <!-- Points at the 马莫百科 page rather than only naming the account,
+             so someone can see what it posts and scan the QR codes there. -->
+        <div class="wechat">
+          <p class="small wechat-text">
+            {{ wechatParts[0] }}<NuxtLink to="/mamo" class="wechat-name">马莫百科</NuxtLink>{{ wechatParts[1] }}
+          </p>
+          <!-- A filled button rather than another text link: as plain bold text
+               at the end of the sentence nobody saw that it could be clicked. -->
+          <NuxtLink to="/mamo#follow" class="btn btn--small wechat-cta">
+            <svg class="qr-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>{{ $t('footer.wechatCta') }}</span>
+            <span aria-hidden="true">→</span>
+          </NuxtLink>
+        </div>
         <p class="tiny copyright">© 2026 Shuoxun Wen. All rights reserved.</p>
       </div>
     </div>
@@ -127,11 +153,33 @@ const featuresHeading = computed(() => {
   gap: var(--s3);
 }
 .wechat {
-  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3) var(--s4);
   padding-left: var(--s3);
   border-left: 2px solid var(--footer-accent);
+}
+.wechat-text {
+  margin: 0;
   color: var(--footer-heading);
 }
+.footer .wechat-name {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer .wechat-cta {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+.footer .wechat-cta:hover {
+  background: var(--brand-700);
+  color: #fff;
+}
+.qr-icon { flex: none; }
 .copyright {
   margin: 0;
   color: var(--footer-text);
