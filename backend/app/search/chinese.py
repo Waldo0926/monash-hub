@@ -35,6 +35,7 @@ from functools import lru_cache
 
 from app.knowledge import glossary
 from app.search import synonyms
+from app.search.normalise import fold
 
 # CJK ideographs, plus the kana and Hangul the other two locales need. A query
 # with any of these cannot be served by the English text search config.
@@ -83,7 +84,9 @@ def _reverse_index() -> tuple[tuple[str, tuple[str, ...]], ...]:
     pairs: dict[str, list[str]] = {}
 
     def add(run: str, english: str) -> None:
-        alternatives = pairs.setdefault(run, [])
+        # Folded like the query will be: a Japanese 試験 has to meet the
+        # 試験 a reader typed after both went through the same fold.
+        alternatives = pairs.setdefault(fold(run), [])
         if english not in alternatives:
             alternatives.append(english)
 
@@ -122,6 +125,7 @@ def concept_runs(term: str) -> list[tuple[str, tuple[str, ...]]]:
     Runs never overlap, and the longest wins: 学籍统计日 is one concept, not
     学籍统计日 plus a shorter fragment that drags in every page about enrolment.
     """
+    term = fold(term)
     if not has_cjk(term):
         return []
     found: list[tuple[str, tuple[str, ...]]] = []

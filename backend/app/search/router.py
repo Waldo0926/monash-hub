@@ -33,6 +33,7 @@ from app.search.keywords import (
     extract_unit_codes,
     is_subjective,
 )
+from app.search.normalise import fold
 
 # Students name campuses in either language, and a Chinese question about the
 # Malaysia offering has to reach the same answer as the English one.
@@ -481,7 +482,10 @@ def answer(
     to the official pages search. A code typed in the question still wins over
     the page it was typed on.
     """
-    query = (query or "").strip()
+    typed = (query or "").strip()
+    # Full-width and Traditional folded to what the index holds; see
+    # app/search/normalise.py. The reader still sees what they typed.
+    query = fold(typed)
     codes = extract_unit_codes(query)
     intent, matched = classify_intent(query)
     subjective = is_subjective(query)
@@ -489,7 +493,7 @@ def answer(
     unit_code = codes[0] if codes else from_page
 
     base: dict[str, Any] = {
-        "query": query,
+        "query": typed,
         "intent": intent,
         "matched_keywords": matched,
         "unit_code": unit_code,

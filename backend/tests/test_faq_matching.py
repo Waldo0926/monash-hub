@@ -46,6 +46,8 @@ def answer(query: str, **kwargs) -> str | None:
         ("enrol in units", "how-to-withdraw-from-a-unit"),
         ("学分转换", "what-is-wam"),
         ("马来西亚校区", "student-visa-work-hours"),
+        # 证明 is a word in the SC entry, 在读 is in no entry at all.
+        ("在读证明", "what-documents-for-sc"),
         # A lost testamur is a documents question, not a conferral one.
         ("毕业证丢了怎么补办", "automatic-conferral"),
     ],
@@ -100,6 +102,9 @@ def test_the_more_specific_entry_wins(query, right):
         ("can i defer my exam", "defer-a-final-assessment"),
         ("I am sick and missed my exam", "defer-a-final-assessment"),
         ("生病了没去考试", "defer-a-final-assessment"),
+        # Traditional characters and a full-width IME.
+        ("怎麼申請特殊考慮", "how-to-apply-special-consideration"),
+        ("ＷＡＭ怎么算", "what-is-wam"),
         ("hurdle没过怎么办", "what-is-a-hurdle"),
         ("failed a hurdle what happens", "what-is-a-hurdle"),
         ("我能补考吗", "supplementary-assessment"),
