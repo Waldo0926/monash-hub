@@ -47,10 +47,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "履修取消期限（census dates）",
         "ko": "수강 철회 마감일(census dates)",
     },
+    # Japanese and Korean get the noun, not the verb: the model conjugates
+    # whatever stands in the verb's place, and 履修取消する came back as
+    # 履修取消するする, 철회하다 as 철회하다할수있는.
     "withdraw": {
         "zh": "退选",
-        "ja": "履修取消する",
-        "ko": "철회하다",
+        "ja": "履修取消",
+        "ko": "철회",
     },
     "withdrawal": {
         "zh": "退选",
@@ -523,8 +526,8 @@ TERMS: dict[str, dict[str, str]] = {
     },
     "enrol": {
         "zh": "选课注册",
-        "ja": "履修登録する",
-        "ko": "수강 신청하다",
+        "ja": "履修登録",
+        "ko": "수강 신청",
     },
     # Longer first, or the hyphen lets *enrolment* match inside *Re-enrolment*
     # and WES's own menu came out as 选课注册/Re-选课注册.
@@ -550,6 +553,13 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "成绩单",
         "ja": "成績証明書",
         "ko": "성적 증명서",
+    },
+    # Left to the model, "apply to graduate" in Japanese was applying to
+    # graduate school (大学院).
+    "apply to graduate": {
+        "zh": "申请毕业",
+        "ja": "卒業申請",
+        "ko": "졸업 신청",
     },
     "graduation": {
         "zh": "毕业",

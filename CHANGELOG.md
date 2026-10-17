@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (Japanese and Korean translation quality)
+
+- Korean kept none of its spaces. A rule that joins Chinese and Japanese
+  words after a glossary term was also running over Korean.
+- Japanese no longer doubles words around a glossary term
+  (マレーシアキャンパスキャンパス, 履修取消するする). Verb terms such as
+  *withdraw* and *enrol* are now nouns in Japanese and Korean, so the model
+  adds the verb ending itself.
+- Dates are written year first (2026年12月, not 12月2026年).
+- A Japanese answer with Simplified Chinese characters in it is dropped and
+  the English stays.
+- "apply to graduate" has agreed wording, so Japanese no longer says
+  graduate school. The prompts also tell the model not to leave clauses out.
+
 ### Fixed (machine translation into Japanese and Korean)
 
 - The chat-model engine refused every language but Chinese, so the

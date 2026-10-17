@@ -475,3 +475,46 @@ def test_a_cell_with_no_words_never_reaches_the_engine():
     engine = translator(lambda _text: pytest.fail("sent to the engine"))
     for cell in ("E116 - E140", "TP1/TP2", "S1-01"):
         assert engine.text(cell) is None
+
+
+def test_korean_keeps_the_spaces_between_words():
+    """The space-joining rule was meant for Chinese and Japanese. Run over
+    Korean it wrote 졸업신청을해야하나요?"""
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("졸업 신청을 해야 하나요?", "ko") == "졸업 신청을 해야 하나요?"
+    assert _tidy("수강 철회 마감일(census date)은 마지막 날입니다.", "ko") == (
+        "수강 철회 마감일(census date)은 마지막 날입니다."
+    )
+    # Chinese and Japanese still lose the space a restored term leaves behind.
+    assert _tidy("会计 基础", "zh") == "会计基础"
+    assert _tidy("履修取消 期限", "ja") == "履修取消期限"
+
+
+def test_month_and_year_are_written_year_first():
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("12月2026年から自動的に授与されます。", "ja") == "2026年12月から自動的に授与されます。"
+    assert _tidy("从12月2026年起", "zh") == "从2026年12月起"
+    assert _tidy("12월 2026년부터", "ko") == "2026년 12월부터"
+    assert _tidy("2026年12月1日", "ja") == "2026年12月1日"
+
+
+def test_a_term_is_not_followed_by_the_models_own_word_for_it():
+    """"the Malaysia campus" came back as マレーシアキャンパスキャンパス."""
+    engine = translator(lambda text: text.replace("Students at the Zqa campus", "Zqaキャンパスの学生"))
+    engine.locale = "ja"
+    assert engine.text("Students at the Malaysia campus") == "マレーシアキャンパスの学生"
+
+
+def test_a_verb_term_is_a_noun_the_model_can_conjugate():
+    """With 履修取消する in the glossary the model added its own する."""
+    engine = translator(lambda text: "Zqbを Zqaすることができます。")
+    engine.locale = "ja"
+    assert engine.text("You can withdraw from a unit.") == "科目を履修取消することができます。"
+
+
+def test_japanese_with_chinese_in_it_keeps_the_english():
+    engine = translator(lambda text: "缺席した場合はどうなりますか？")
+    engine.locale = "ja"
+    assert engine.text("What happens if I am absent?") is None
