@@ -3007,6 +3007,14 @@ ENUMS: dict[str, dict[str, str]] = {
     "Research quarter 3": {"zh": "研究季度 3", "ja": "研究クォーター 3", "ko": "연구 분기 3"},
     "Research quarter 4": {"zh": "研究季度 4", "ja": "研究クォーター 4", "ko": "연구 분기 4"},
 
+    # --- who published an official guide -------------------------------------
+    "Monash University": {"zh": "Monash 大学", "ja": "Monash 大学", "ko": "Monash 대학교"},
+    "Monash University Malaysia": {
+        "zh": "Monash 大学马来西亚校区",
+        "ja": "Monash 大学マレーシアキャンパス",
+        "ko": "Monash 대학교 말레이시아 캠퍼스",
+    },
+
     # --- campus --------------------------------------------------------------
     "Clayton": {"zh": "Clayton 校区", "ja": "Clayton キャンパス", "ko": "Clayton 캠퍼스"},
     "Caulfield": {"zh": "Caulfield 校区", "ja": "Caulfield キャンパス", "ko": "Caulfield 캠퍼스"},

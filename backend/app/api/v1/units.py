@@ -261,6 +261,9 @@ def _areas_including(db: Session, code: str, year: int, locale: str | None) -> l
         entry.pop("_hash")
         entry["title"] = tr[aos_code].field("title", entry["title"]) or entry["title"]
         entry["aos_type"] = tr[aos_code].value(entry["aos_type"])
+        # The part names ("Level 2 and 3 elective units") are translated in
+        # the area's own rows, the same wording its page shows.
+        entry["parts"] = [tr[aos_code].string(part) for part in entry["parts"]]
         result.append(entry)
     return result
 

@@ -27,6 +27,20 @@ All notable changes to Monash Hub are documented here.
 - The weekly Handbook refresh now translates the units and degrees it
   changed, and both scheduled refreshes cover Japanese and Korean as well
   as Chinese (`TRANSLATE_LOCALES` in `.env`).
+- On a unit page, the part of each major that lists the unit ("Level 2 and
+  3 elective units") now uses the major's own translation. It was English
+  on about a third of Chinese unit pages.
+- The faculty's advice in a unit's learning resources ("There are required
+  texts for this unit...") is translated. Book citations stay English, and
+  a line whose translation lost a link is shown in English.
+- A guide names its publisher in the reader's language (Monash University
+  Malaysia was English on 355 Chinese guides).
+- The home page key dates card works in Japanese and Korean, and links its
+  sources by their translated titles. The example faculties, search
+  suggestions and dates on the home page are translated too.
+- The exchange page text and the footer copyright line were English in
+  every language. The teach-out tags on degree pages are now translated in
+  Japanese and Korean as well as Chinese.
 
 ### Changed (footer points to 马莫百科)
 

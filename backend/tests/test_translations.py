@@ -713,6 +713,18 @@ def test_a_narrower_pass_does_not_delete_what_a_wider_one_wrote(db):
     # and the row still knows it has been through the wider pass
     assert row.note == "fields=all"
 
+    # A pass with the learning resources is wider still, and a later
+    # `short` keeps it.
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=all+resources")
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=short")
+    db.commit()
+    db.refresh(row)
+    assert row.note == "fields=all+resources"
+
 
 def test_graduations_conferral_notice_is_translated_by_hand():
     """Monash's 2026 conferral notice, in the shape the live page ships it.
@@ -753,3 +765,16 @@ def test_graduations_conferral_notice_is_translated_by_hand():
     notice = [t for t in texts if t != "Graduations"]
     assert len(notice) == 6
     assert all(any("一" <= ch <= "鿿" for ch in t) for t in notice)
+
+
+def test_a_reading_list_line_keeps_its_links_or_stays_english():
+    from app.api.serializers import _resource
+
+    source = "There are required texts (https://shop.example.com/books) for this unit."
+    tr = translations.Translation("zh")
+    tr.strings[source] = "本课程有指定教材（https://shop.example.com/books）。"
+    assert _resource(source, tr) == "本课程有指定教材（https://shop.example.com/books）。"
+
+    tr.strings[source] = "本课程有指定教材（书店）。"
+    assert _resource(source, tr) == source
+    assert _resource("Cormen (2009). Algorithms.", tr) == "Cormen (2009). Algorithms."

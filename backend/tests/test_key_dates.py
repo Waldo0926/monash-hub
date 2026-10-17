@@ -169,3 +169,34 @@ def test_key_dates_endpoint_names_its_sources(client, db):
     assert {i["source"] for i in body["items"]} <= set(body["sources"])
     assert all(body["sources"][s]["url"].startswith("https://") for s in body["sources"])
     assert client.get("/api/v1/key-dates", params={"campus": "mars"}).status_code == 422
+
+
+def test_key_dates_source_titles_follow_the_language(client, db):
+    """The card linked "Final assessment dates" in English on a Chinese page."""
+    from app.knowledge.repository import get_or_create_source, upsert_seed_page
+    from app.models.translation import MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    source = get_or_create_source(db, "monash-students", "Monash University",
+                                  "https://www.monash.edu")
+    page = upsert_seed_page(
+        db, source=source, slug=kd.CENSUS, url=f"https://www.monash.edu/{kd.CENSUS}",
+        title="Census dates", category="fees-dates", tags=[], refresh_tier="dynamic",
+    )
+    page.blocks = [{"type": "table", "rows": CENSUS_ROWS}]
+    page.status = "ok"
+    db.add(ContentTranslation(
+        locale="zh", target_type=OFFICIAL_PAGE, target_key=kd.CENSUS, field="title",
+        text="学籍统计日", status=PUBLISHED, provenance=MACHINE,
+    ))
+    db.commit()
+
+    def titles(**params):
+        body = client.get(
+            "/api/v1/key-dates", params={"campus": "australia", "limit": 20, **params}
+        ).json()
+        return {s["title"] for s in body["sources"].values()}
+
+    assert titles(locale="zh") == {"学籍统计日"}
+    assert titles() == {"Census dates"}
+    # No Japanese row yet: the English title, not an empty link.
+    assert titles(locale="ja") == {"Census dates"}

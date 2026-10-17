@@ -108,6 +108,22 @@ def _assessment_name(name: str | None, tr: Translation) -> str | None:
     return tr.string(name)
 
 
+_URL = re.compile(r"https?://[^\s()（）<>\"'，。、；]+")
+
+
+def _links(text: str) -> set[str]:
+    return {url.rstrip(".,;:") for url in _URL.findall(text)}
+
+
+def _resource(item: str, tr: Translation) -> str:
+    """A reading-list line. Its links are what the page makes clickable, so a
+    translation that lost or changed one is not used."""
+    translated = tr.string(item)
+    if translated == item or _links(item) - _links(translated):
+        return item
+    return translated
+
+
 def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         **unit_brief(unit, tr),
@@ -125,7 +141,10 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         "assessment_static_text": tr.string(unit.assessment_static_text),
         # Reading lists are titles and links, shown as published: translating
         # a book title would only make it harder to find.
-        "learning_resources": unit.learning_resources or [],
+        "learning_resources": [
+            {**group, "items": [_resource(item, tr) for item in group.get("items") or []]}
+            for group in unit.learning_resources or []
+        ],
         "sca_band": unit.sca_band,
         "study_abroad": unit.study_abroad,
         "translation": tr.meta(),
@@ -187,7 +206,7 @@ def official_detail(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dic
         # fallback for a page crawled before the structured extractor existed.
         "blocks": blocks,
         "clean_text": page.clean_text,
-        "source_name": page.source.name if page.source else None,
+        "source_name": tr.value(page.source.name) if page.source else None,
         "refresh_tier": page.refresh_tier,
     }
 

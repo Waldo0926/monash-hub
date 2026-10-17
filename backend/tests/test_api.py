@@ -429,6 +429,28 @@ def test_a_guide_says_which_campus_it_is_for(client, db):
     assert row["applies_to"] == "malaysia"
 
 
+def test_a_guide_names_its_publisher_in_the_readers_language(client, db):
+    """"Monash University Malaysia" sat in English over 355 Chinese guides."""
+    source = get_or_create_source(db, "monash-malaysia", "Monash University Malaysia",
+                                  "https://www.monash.edu.my")
+    page = upsert_seed_page(
+        db, source=source, slug="my-dates", url="https://www.monash.edu.my/dates",
+        title="Principal dates", category="fees-dates", tags=["dates"],
+        refresh_tier="medium", applies_to="malaysia",
+    )
+    record_fetch(db, page, clean_page("<h1>Principal dates</h1><p>Dates.</p>",
+                                      url=page.canonical_url))
+    db.commit()
+
+    def name(locale=None):
+        params = {"locale": locale} if locale else {}
+        return client.get("/api/v1/guides/my-dates", params=params).json()["source_name"]
+
+    assert name() == "Monash University Malaysia"
+    assert name("zh") == "Monash 大学马来西亚校区"
+    assert name("ko") == "Monash 대학교 말레이시아 캠퍼스"
+
+
 def test_guides_narrow_to_one_campus(client, db):
     """A Malaysia reader sees Malaysia pages and the every-campus ones, never
     the Australian fees or visa page; the category counts follow the filter."""

@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import logging
+import re
 import time
 
 from app.core.db import SessionLocal
@@ -84,8 +85,21 @@ def unit_strings(unit: Unit, *, long_prose: bool) -> list[str]:
             strings += _paragraphs(outcome.description)
         for assessment in unit.assessments:
             strings += _paragraphs(assessment.description)
+        for group in unit.learning_resources or []:
+            strings += [item for item in group.get("items") or [] if resource_prose(item)]
 
     return [s for s in strings if s and s.strip()]
+
+
+# A reading list is mostly citations, and a book title is looked up in English.
+# What is worth translating is the faculty's own advice around it ("There are
+# required texts for this unit..."), which talks to the student.
+_ADVICE = re.compile(r"\b(?:you|your|this unit|students?|there (?:is|are|may))\b", re.I)
+_CITATION = re.compile(r"\(\d{4}[a-z]?\)|\bISBN\b|\b\d+(?:st|nd|rd|th) ed\b|\bedn?\.", re.I)
+
+
+def resource_prose(text: str) -> bool:
+    return bool(_ADVICE.search(text)) and not _CITATION.search(text)
 
 
 def _paragraphs(text: str | None) -> list[str]:
@@ -165,6 +179,12 @@ def _join(spans: list[dict] | None) -> str:
 
 # --- writing ---------------------------------------------------------------
 
+# Widest first. "fields=all+resources" is "fields=all" with the learning
+# resources added; it is a new name so units done before then are picked up
+# again (with their stored strings primed, so only the new ones go out).
+SCOPES = ("fields=all+resources", "fields=all", "fields=short")
+
+
 def store(db, *, locale: str, target_type: str, target_key: str,
           strings: dict[str, str], source_hash: str | None, scope: str = "") -> None:
     """Upsert the machine row for one target."""
@@ -201,9 +221,7 @@ def store(db, *, locale: str, target_type: str, target_key: str,
     row.data = {"strings": {**existing, **strings}}
     # The widest pass this row has seen, so that a later `short` does not make
     # an `all` row look as though the long prose still needs doing.
-    widest = scope
-    if (row.note or "") == "fields=all" or scope == "fields=all":
-        widest = "fields=all"
+    widest = next((s for s in SCOPES if s in (row.note or "", scope)), scope)
     # The source hash is what the caller passed: a unit's own hash, or for a
     # unit in several Handbook years the digest from `years_marker`. `load_many`
     # only warns "may be out of date" for whole-field translations (`text`), so
@@ -320,7 +338,7 @@ def translate_units(
             if not rows:
                 continue
             marker = years_marker([row.content_hash for row in rows])
-            scope = "fields=all" if long_prose else "fields=short"
+            scope = SCOPES[0] if long_prose else "fields=short"
             if not refresh and _up_to_date(db, locale, UNIT, code, marker, scope):
                 summary["skipped"] += 1
                 continue
