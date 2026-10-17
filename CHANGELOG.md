@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (the fee band said "Band SCA Band 2")
+
+- The live Handbook labels the band "SCA Band 2", not "Band 2" as the fixture
+  had it, so the parser kept the whole label and the unit page put its own
+  "Band" in front. The parser now strips "SCA" as well, and migration
+  `a3d7e2b95c41` cleans the rows the first crawl already wrote.
+
 ### Changed (the unit page reads faster)
 
 - The header opens with four facts: credit points, when the unit is taught at

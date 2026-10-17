@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 from app.handbook.parser import (
     ParseError,
+    _band,
     _unit_codes,
     compute_content_hash,
     derive_has_exam,
@@ -237,6 +238,14 @@ def test_fee_band_and_study_abroad(handbook_html):
     unit = _parse(handbook_html, "FIT2102")
     assert unit["sca_band"] == "2"
     assert unit["study_abroad"] is True
+
+
+@pytest.mark.parametrize(
+    "node", [{"label": "SCA Band 2"}, {"label": "Band 2"}, {"value": "2"}, 2]
+)
+def test_fee_band_is_stored_without_the_words(node):
+    # The live Handbook labels it "SCA Band 2"; the page adds its own "Band".
+    assert _band(node) == "2"
 
 
 def test_a_unit_that_says_nothing_stays_unknown(handbook_html):
