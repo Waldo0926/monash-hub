@@ -32,6 +32,45 @@ All notable changes to Monash Hub are documented here.
 - Two-letter Chinese unit searches skip a trigram scan that never matched
   and took about a second.
 
+### Changed (WAM/GPA calculator layout)
+
+- The calculator now looks like the course map: units on the left, grouped
+  by level with each level's weight and average, and a summary panel on the
+  right with the WAM in a ring, the GPA or CGPA, a grade mix bar and the
+  "what do I need" box. Each grade shows as a coloured tag, and clicking it
+  sets a grade by hand (WN, SFR and so on).
+- One add line at the bottom replaces the four empty rows. It looks the unit
+  up in the Handbook first, so the row lands in the right level straight away.
+- "Paste from WES" and "Read a screenshot" are under one Import button. The
+  campus scale is a two-button switch. Removing a unit or clearing the list can
+  be undone.
+- On a phone each unit is a small card, and a bar above the tab bar shows the
+  WAM, GPA and credit points while the summary is off screen.
+- The calculation and the saved data are unchanged. Empty rows saved by the
+  old page are dropped when it loads.
+### Changed (degree list layout)
+
+- The degree page groups degrees into panels by type, two columns on a wide
+  screen: undergraduate types on the left, postgraduate and Honours on the
+  right. Each panel shows six degrees and scrolls inside itself, so the whole
+  list fits on about one screen instead of one long column.
+- A row of type links with counts sits above the panels and jumps to a type,
+  reopening the panel if it was folded. Panels fold from their header.
+- On a phone the panels stack in one column, the type links scroll sideways,
+  and each panel is shorter.
+- The search box, campus and Handbook year controls are all 44px high. On a
+  phone the campus and year selects split one row evenly.
+
+### Changed (header controls)
+
+- The search box in the header is one soft pill with the search button
+  inside it, and the whole pill gets the focus ring.
+- Language and account share one tray on the right. The language picker has
+  a globe and a caret instead of a bordered box, sign in is a raised chip,
+  and once signed in the tray holds the bell, your avatar and name, and an
+  icon to sign out. Phones hide the sign out icon, which is also on the
+  profile page.
+
 ### Changed (tab titles)
 
 - Every browser tab reads "Page | Monash Hub", for example "选课规划 | Monash

@@ -16,6 +16,10 @@ onBeforeUnmount(stop)
 
 const links = useSectionNavigation()
 
+// Shown in the avatar circle when there is no picture. Array.from keeps a
+// Chinese or emoji first character whole.
+const initial = computed(() => (Array.from(user.value?.nickname?.trim() || '')[0] ?? '?').toUpperCase())
+
 const query = ref('')
 watch(() => route.query.q, q => { query.value = (q as string) || '' }, { immediate: true })
 
@@ -41,39 +45,42 @@ function search(value: string) {
       <div class="header-search">
         <SearchInput
           v-model="query"
-          compact-button
+          inset
           :placeholder="$t('search.placeholderShort')"
           @submit="search"
         />
       </div>
 
+      <!-- One tray for language and account. The controls inside are flat until
+           hovered and only the main action is raised, so the corner reads as one
+           group instead of a row of separate boxes. -->
       <div class="account">
         <LanguageSwitcher />
         <template v-if="user">
-          <NuxtLink to="/notifications" class="bell" :aria-label="$t('nav.notifications')">
-            <span aria-hidden="true">🔔</span>
+          <NuxtLink to="/notifications" class="icon-btn bell" :aria-label="$t('nav.notifications')">
+            <PlanIcon name="bell" :size="18" />
             <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
           </NuxtLink>
           <!-- Your own name goes to your own page. It used to go to the
                community, which answered a question nobody was asking. -->
-          <NuxtLink to="/profile" class="nav-link nickname">
+          <NuxtLink to="/profile" class="chip nickname" :aria-label="user.nickname">
             <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
-                 class="nickname-avatar" alt="" @error="avatarBroken = true">
-            {{ user.nickname }}
+                 class="avatar" alt="" @error="avatarBroken = true">
+            <span v-else class="avatar avatar--initial" aria-hidden="true">{{ initial }}</span>
+            <span class="nickname-text">{{ user.nickname }}</span>
           </NuxtLink>
-          <button class="btn btn--ghost btn--small" @click="signOut">{{ $t('nav.signOut') }}</button>
+          <button type="button" class="icon-btn sign-out" :aria-label="$t('nav.signOut')"
+                  :title="$t('nav.signOut')" @click="signOut">
+            <PlanIcon name="logout" :size="18" />
+          </button>
         </template>
-        <NuxtLink v-else to="/login" class="btn btn--ghost btn--small">{{ $t('nav.signIn') }}</NuxtLink>
+        <NuxtLink v-else to="/login" class="chip">{{ $t('nav.signIn') }}</NuxtLink>
       </div>
     </div>
   </header>
 </template>
 
 <style scoped>
-.nickname { display: inline-flex; align-items: center; gap: var(--s2); }
-.nickname-avatar {
-  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none;
-}
 .header {
   position: sticky;
   top: 0;
@@ -134,39 +141,93 @@ function search(value: string) {
 /* Search can give up a little width before the navigation does. This keeps long
    destinations such as WAM/GPA calculator visually separate from Community. */
 .header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
-.account { display: flex; align-items: center; gap: var(--s1); flex: none; }
+.account {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  margin-left: var(--s1);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
 
-.bell {
+/* The raised piece in the tray: sign in, or your own name once signed in. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 32px;
+  padding: 0 var(--s4);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px rgba(12, 27, 42, 0.06), 0 1px 3px rgba(12, 27, 42, 0.1);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: box-shadow 0.15s, color 0.15s;
+}
+.chip:hover {
+  color: var(--brand);
+  text-decoration: none;
+  box-shadow: 0 0 0 1px rgba(12, 27, 42, 0.08), 0 2px 6px rgba(12, 27, 42, 0.14);
+}
+.nickname { padding-left: 4px; }
+.avatar {
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none;
+}
+.avatar--initial {
+  display: grid;
+  place-items: center;
+  background: var(--blue-50);
+  color: var(--brand);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.icon-btn {
   position: relative;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
 }
-.bell:hover { background: var(--surface-2); text-decoration: none; }
+.icon-btn:hover { background: rgba(12, 27, 42, 0.06); color: var(--text); text-decoration: none; }
 .dot {
   position: absolute;
-  top: 0;
+  top: 1px;
   right: 0;
-  min-width: 18px;
-  padding: 0 4px;
+  min-width: 8px;
+  padding: 0 3px;
+  border: 2px solid var(--surface-2);
   border-radius: var(--radius-pill);
   background: var(--danger);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 12px;
   text-align: center;
+  box-sizing: content-box;
 }
 
 /* Below this width there is not enough room for eight intrinsic-width labels,
    search and account controls without crowding. Navigation moves to the bottom
    bar and search lives on the page instead. */
 @media (max-width: 1420px) {
-  .nav, .header-search, .nickname { display: none; }
+  .nav, .header-search, .nickname-text { display: none; }
+  .nickname { padding: 0 4px; }
   .account { margin-left: auto; }
+}
+/* Signing out is also on the profile page, so a phone keeps the tray short. */
+@media (max-width: 520px) {
+  .sign-out { display: none; }
 }
 </style>
