@@ -113,7 +113,7 @@ const featuresHeading = computed(() => {
             <span aria-hidden="true">→</span>
           </NuxtLink>
         </div>
-        <p class="tiny copyright">© 2026 Shuoxun Wen. All rights reserved.</p>
+        <p class="tiny copyright">{{ $t('footer.copyright') }}</p>
       </div>
     </div>
   </footer>

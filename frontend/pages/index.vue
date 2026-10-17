@@ -32,26 +32,26 @@ if (campus.value !== 'malaysia' && campus.value !== 'australia') campus.value = 
 // One example unit per faculty. Not "most searched": there is not yet enough
 // traffic for that to mean anything, and a ranking built on the founder's own
 // testing would show one faculty to everyone.
-const EXAMPLES: Record<string, { code: string; area: { en: string; zh: string } }[]> = {
+const EXAMPLES: Record<string, { code: string; area: Record<'en' | 'zh' | 'ja' | 'ko', string> }[]> = {
   malaysia: [
-    { code: 'FIT1045', area: { en: 'Information Technology', zh: '信息技术' } },
-    { code: 'MKW1120', area: { en: 'Business', zh: '商学' } },
-    { code: 'ENG1011', area: { en: 'Engineering', zh: '工程' } },
-    { code: 'AMU1010', area: { en: 'Arts and Media', zh: '文学与传媒' } },
-    { code: 'SCI1020', area: { en: 'Science', zh: '理学' } },
-    { code: 'PSY1011', area: { en: 'Psychology', zh: '心理学' } },
-    { code: 'BPS1011', area: { en: 'Pharmacy', zh: '药学' } },
-    { code: 'NUT1021', area: { en: 'Health Sciences', zh: '健康科学' } }
+    { code: 'FIT1045', area: { en: 'Information Technology', zh: '信息技术', ja: '情報技術', ko: '정보기술' } },
+    { code: 'MKW1120', area: { en: 'Business', zh: '商学', ja: 'ビジネス', ko: '경영학' } },
+    { code: 'ENG1011', area: { en: 'Engineering', zh: '工程', ja: '工学', ko: '공학' } },
+    { code: 'AMU1010', area: { en: 'Arts and Media', zh: '文学与传媒', ja: '人文・メディア', ko: '인문·미디어' } },
+    { code: 'SCI1020', area: { en: 'Science', zh: '理学', ja: '理学', ko: '이학' } },
+    { code: 'PSY1011', area: { en: 'Psychology', zh: '心理学', ja: '心理学', ko: '심리학' } },
+    { code: 'BPS1011', area: { en: 'Pharmacy', zh: '药学', ja: '薬学', ko: '약학' } },
+    { code: 'NUT1021', area: { en: 'Health Sciences', zh: '健康科学', ja: '健康科学', ko: '보건과학' } }
   ],
   australia: [
-    { code: 'FIT1045', area: { en: 'Information Technology', zh: '信息技术' } },
-    { code: 'MKC1200', area: { en: 'Business', zh: '商学' } },
-    { code: 'ENG1011', area: { en: 'Engineering', zh: '工程' } },
-    { code: 'ATS1125', area: { en: 'Arts and Media', zh: '文学与传媒' } },
-    { code: 'SCI1020', area: { en: 'Science', zh: '理学' } },
-    { code: 'PSY1011', area: { en: 'Psychology', zh: '心理学' } },
-    { code: 'LAW1111', area: { en: 'Law', zh: '法学' } },
-    { code: 'MED1100', area: { en: 'Medicine', zh: '医学' } }
+    { code: 'FIT1045', area: { en: 'Information Technology', zh: '信息技术', ja: '情報技術', ko: '정보기술' } },
+    { code: 'MKC1200', area: { en: 'Business', zh: '商学', ja: 'ビジネス', ko: '경영학' } },
+    { code: 'ENG1011', area: { en: 'Engineering', zh: '工程', ja: '工学', ko: '공학' } },
+    { code: 'ATS1125', area: { en: 'Arts and Media', zh: '文学与传媒', ja: '人文・メディア', ko: '인문·미디어' } },
+    { code: 'SCI1020', area: { en: 'Science', zh: '理学', ja: '理学', ko: '이학' } },
+    { code: 'PSY1011', area: { en: 'Psychology', zh: '心理学', ja: '心理学', ko: '심리학' } },
+    { code: 'LAW1111', area: { en: 'Law', zh: '法学', ja: '法学', ko: '법학' } },
+    { code: 'MED1100', area: { en: 'Medicine', zh: '医学', ja: '医学', ko: '의학' } }
   ]
 }
 const examples = computed(() => EXAMPLES[campus.value]!)
@@ -87,7 +87,7 @@ const unitRows = computed(() => {
   const byCode = new Map<string, any>((units.value?.results ?? []).map((u: any) => [u.unit_code, u]))
   return examples.value.flatMap(({ code, area }) => {
     const unit = byCode.get(code)
-    return unit ? [{ unit, area: locale.value === 'zh' ? area.zh : area.en }] : []
+    return unit ? [{ unit, area: area[locale.value as keyof typeof area] ?? area.en }] : []
   })
 })
 function campusesOf(unit: any): string[] {
@@ -176,14 +176,22 @@ const directory = computed(() =>
   })
 )
 
+// The query stays English, which is what the official pages are indexed by.
+const POPULAR = {
+  consideration: { en: 'Special consideration', zh: '特殊考虑', ja: '特別配慮', ko: '특별 고려' },
+  visa: { en: 'Student visa', zh: '学生签证', ja: '学生ビザ', ko: '학생 비자' },
+  exchange: { en: 'Exchange', zh: '交换', ja: '交換留学', ko: '교환학생' }
+}
+const lang = () => (['zh', 'ja', 'ko'].includes(locale.value) ? locale.value : 'en') as keyof typeof POPULAR.visa
+
 const popularTerms = computed(() =>
   [
     { query: 'C2001', text: 'C2001', code: true },
     { query: 'FIT2102', text: 'FIT2102', code: true },
-    { query: 'Special consideration', text: locale.value === 'zh' ? '特殊考虑' : 'Special consideration' },
+    { query: 'Special consideration', text: POPULAR.consideration[lang()] },
     { query: 'WAM', text: 'WAM/GPA' },
-    { query: 'Student visa', text: locale.value === 'zh' ? '学生签证' : 'Student visa' },
-    { query: 'Exchange', text: locale.value === 'zh' ? '交换' : 'Exchange' }
+    { query: 'Student visa', text: POPULAR.visa[lang()] },
+    { query: 'Exchange', text: POPULAR.exchange[lang()] }
   ]
 )
 
@@ -197,7 +205,8 @@ function shortDate(iso: string | null): string {
   if (!iso) return ''
   const [, m, d] = iso.slice(0, 10).split('-').map(Number) as [number, number, number]
   const en = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return locale.value === 'zh' ? `${m}月${d}日` : `${d} ${en[m - 1]}`
+  if (locale.value === 'ko') return `${m}월 ${d}일`
+  return locale.value === 'zh' || locale.value === 'ja' ? `${m}月${d}日` : `${d} ${en[m - 1]}`
 }
 
 useSeoMeta({

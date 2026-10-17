@@ -248,3 +248,22 @@ def test_a_unit_page_names_the_areas_of_study_that_list_it(client, degrees):
 
 def test_a_unit_no_area_lists_has_none(client, degrees):
     assert client.get("/api/v1/units/FIT1047").json()["areas"] == []
+
+
+def test_a_unit_page_names_the_part_in_the_areas_own_wording(client, degrees):
+    """"Level 3 elective units" sat in English under every major on a Chinese
+    unit page, while the major's own page showed the Chinese."""
+    from app.models.translation import AREA_OF_STUDY, MACHINE, PUBLISHED, ContentTranslation
+
+    _unit(degrees, "FIT3101", "Synthetic elective", ("Malaysia",))
+    degrees.add(ContentTranslation(
+        locale="zh", target_type=AREA_OF_STUDY, target_key="DATASCI11", field="content",
+        data={"strings": {"Level 3 elective units": "三年级选修课"}},
+        status=PUBLISHED, provenance=MACHINE,
+    ))
+    degrees.commit()
+
+    zh = client.get("/api/v1/units/FIT3101", params={"locale": "zh"}).json()["areas"]
+    assert zh[0]["parts"] == ["三年级选修课"]
+    en = client.get("/api/v1/units/FIT3101").json()["areas"]
+    assert en[0]["parts"] == ["Level 3 elective units"]

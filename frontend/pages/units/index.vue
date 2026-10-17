@@ -8,6 +8,8 @@
  * included, so a filtered search can be shared and the back button returns
  * to the same page of results.
  */
+import type { TermKind } from '~/i18n/handbook-terms'
+
 const route = useRoute()
 const router = useRouter()
 const { $t, $term } = useNuxtApp() as any
@@ -103,14 +105,19 @@ watch([query, () => JSON.stringify(filters)], () => { page.value = 1 })
 
 // --- filter options ------------------------------------------------------------------
 
-/** How each filter's values are labelled. The value stays the Handbook's own string: it is what the API matches on. */
+/**
+ * How each filter's values are labelled. The value stays the Handbook's own string: it is what the API matches on.
+ * The API sends the glossary's label for each value in the reader's language; the local dictionary covers the rest.
+ */
+const labelled = (kind: TermKind) => (v: string) =>
+  facets.value?.labels?.[v] || $term(kind, v) || v
 const LABEL: Record<MultiKey, (value: string) => string> = {
-  campus: v => $term('campus', v) || v,
-  teaching_period: v => $term('period', v) || v,
-  faculty: v => $term('faculty', v) || v,
-  school: v => $term('faculty', v) || v,
+  campus: labelled('campus'),
+  teaching_period: labelled('period'),
+  faculty: labelled('faculty'),
+  school: labelled('faculty'),
   prefix: v => v,
-  level: v => $term('level', v) || v
+  level: labelled('level')
 }
 
 const FACET_LIST: Record<MultiKey, string> = {

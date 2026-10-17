@@ -408,6 +408,7 @@ const en: Messages = {
   'footer.monashStudents': 'Monash current students',
   'footer.about': 'An independent student platform',
   'footer.conceptBy': 'Concept by',
+  'footer.copyright': '© 2026 Shuoxun Wen. All rights reserved.',
   'footer.builtMaintainedBy': 'Built and maintained by',
   'footer.wechat':
     'Follow the {name} WeChat account for updates. You can also message the account with questions.',
@@ -912,7 +913,11 @@ const en: Messages = {
   // --- exchange -----------------------------------------------------------
   'exchange.title': 'Exchange',
   'exchange.metaTitle': 'Exchange',
-  'exchange.planned': 'Planned for {stage}.',
+  'exchange.summary':
+    'Exchange data currently lives in the Monash Abroad Tracker. The Hub will link to it through an API rather than copy the data.',
+  'exchange.topic.eligibility': 'Eligibility and application',
+  'exchange.topic.partners': 'Partner institutions',
+  'exchange.topic.credit': 'Credit transfer and course mapping',
   'exchange.note':
     'In the meantime, the official Monash exchange page is indexed under Official guides, and exchange questions belong in Community.',
   'unlocks.before': 'Before {code}',
@@ -1186,7 +1191,7 @@ const zh: Messages = {
   'marks.cancel': '关闭',
   'marks.yourUnits': '我的课程',
   'marks.unitsMeta': '{n} 门课，计入 {cp} 学分',
-  'marks.level': 'Level {n}',
+  'marks.level': '第 {n} 级',
   'marks.levelUnset': '未填级别',
   'marks.levelWeight': 'WAM 权重 ×{w}',
   'marks.groupAverage': '平均 {wam}',
@@ -1427,6 +1432,7 @@ const zh: Messages = {
   'footer.monashStudents': 'Monash 在读学生页',
   'footer.about': '独立学生平台',
   'footer.conceptBy': '创意：',
+  'footer.copyright': '© 2026 Shuoxun Wen。保留所有权利。',
   'footer.builtMaintainedBy': '搭建与维护：',
   'footer.wechat':
     '更多消息可以关注「{name}」公众号，有问题也可以在公众号后台私信。',
@@ -1903,7 +1909,10 @@ const zh: Messages = {
 
   'exchange.title': '交换',
   'exchange.metaTitle': '交换',
-  'exchange.planned': '计划在 {stage} 阶段完成。',
+  'exchange.summary': '交换数据目前在 Monash Abroad Tracker 里。Hub 以后会通过 API 接入，不会再复制一份数据。',
+  'exchange.topic.eligibility': '申请条件和流程',
+  'exchange.topic.partners': '合作院校',
+  'exchange.topic.credit': '学分转换和课程对应',
   'exchange.note':
     '在那之前，Monash 官方的交换页面已经收录在「官方指南」里，交换相关的问题可以发到「社区」。',
   'unlocks.before': '修 {code} 之前',
@@ -2177,7 +2186,7 @@ const ja: Messages = {
   'marks.cancel': '閉じる',
   'marks.yourUnits': '自分のユニット',
   'marks.unitsMeta': '{n} ユニット、計算対象 {cp} 単位',
-  'marks.level': 'Level {n}',
+  'marks.level': 'レベル {n}',
   'marks.levelUnset': 'レベル未入力',
   'marks.levelWeight': 'WAM で ×{w}',
   'marks.groupAverage': '平均 {wam}',
@@ -2421,6 +2430,7 @@ const ja: Messages = {
   'footer.monashStudents': 'Monash 在学生ページ',
   'footer.about': '独立した学生プラットフォーム',
   'footer.conceptBy': '企画：',
+  'footer.copyright': '© 2026 Shuoxun Wen. 無断転載を禁じます。',
   'footer.builtMaintainedBy': '構築・運営：',
   'footer.wechat':
     '「{name}」WeChat 公式アカウントでも随時更新しています。ご質問はアカウントへのメッセージでどうぞ。',
@@ -2910,7 +2920,10 @@ const ja: Messages = {
 
   'exchange.title': '交換留学',
   'exchange.metaTitle': '交換留学',
-  'exchange.planned': '{stage} で対応予定です。',
+  'exchange.summary': '交換留学のデータは現在 Monash Abroad Tracker にあります。Hub では今後 API で連携し、データを複製することはしません。',
+  'exchange.topic.eligibility': '応募資格と申請',
+  'exchange.topic.partners': '協定校',
+  'exchange.topic.credit': '単位認定と科目の対応',
   'exchange.note':
     'それまでは、Monash 公式の交換留学ページを「公式ガイド」に収録しています。交換留学の質問は「コミュニティ」へどうぞ。',
   'unlocks.before': '{code} の前に',
@@ -3184,7 +3197,7 @@ const ko: Messages = {
   'marks.cancel': '닫기',
   'marks.yourUnits': '내 과목',
   'marks.unitsMeta': '{n}과목, 계산에 포함된 학점 {cp}',
-  'marks.level': 'Level {n}',
+  'marks.level': '레벨 {n}',
   'marks.levelUnset': '레벨 미입력',
   'marks.levelWeight': 'WAM 가중치 ×{w}',
   'marks.groupAverage': '평균 {wam}',
@@ -3428,6 +3441,7 @@ const ko: Messages = {
   'footer.monashStudents': 'Monash 재학생 페이지',
   'footer.about': '독립 학생 플랫폼',
   'footer.conceptBy': '기획:',
+  'footer.copyright': '© 2026 Shuoxun Wen. 모든 권리 보유.',
   'footer.builtMaintainedBy': '구축 및 유지보수:',
   'footer.wechat':
     '「{name}」WeChat 공식 계정에서도 계속 업데이트합니다. 문의는 계정 메시지로 보내주세요.',
@@ -3915,7 +3929,10 @@ const ko: Messages = {
 
   'exchange.title': '교환학생',
   'exchange.metaTitle': '교환학생',
-  'exchange.planned': '{stage} 단계에서 지원할 예정입니다.',
+  'exchange.summary': '교환학생 데이터는 현재 Monash Abroad Tracker에 있습니다. Hub는 데이터를 복사하지 않고 앞으로 API로 연결할 예정입니다.',
+  'exchange.topic.eligibility': '지원 자격과 신청',
+  'exchange.topic.partners': '협정 대학',
+  'exchange.topic.credit': '학점 인정과 과목 대응',
   'exchange.note':
     '그때까지는 Monash 공식 교환학생 페이지가 “공식 가이드”에 수록되어 있으며, 교환학생 관련 질문은 “커뮤니티”에 올려 주세요.',
   'unlocks.before': '{code} 이전',

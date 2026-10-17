@@ -429,6 +429,28 @@ def test_a_guide_says_which_campus_it_is_for(client, db):
     assert row["applies_to"] == "malaysia"
 
 
+def test_a_guide_names_its_publisher_in_the_readers_language(client, db):
+    """"Monash University Malaysia" sat in English over 355 Chinese guides."""
+    source = get_or_create_source(db, "monash-malaysia", "Monash University Malaysia",
+                                  "https://www.monash.edu.my")
+    page = upsert_seed_page(
+        db, source=source, slug="my-dates", url="https://www.monash.edu.my/dates",
+        title="Principal dates", category="fees-dates", tags=["dates"],
+        refresh_tier="medium", applies_to="malaysia",
+    )
+    record_fetch(db, page, clean_page("<h1>Principal dates</h1><p>Dates.</p>",
+                                      url=page.canonical_url))
+    db.commit()
+
+    def name(locale=None):
+        params = {"locale": locale} if locale else {}
+        return client.get("/api/v1/guides/my-dates", params=params).json()["source_name"]
+
+    assert name() == "Monash University Malaysia"
+    assert name("zh") == "Monash 大学马来西亚校区"
+    assert name("ko") == "Monash 대학교 말레이시아 캠퍼스"
+
+
 def test_guides_narrow_to_one_campus(client, db):
     """A Malaysia reader sees Malaysia pages and the every-campus ones, never
     the Australian fees or visa page; the category counts follow the filter."""
@@ -618,6 +640,27 @@ def test_filter_lists_put_the_biggest_value_first(client, faculties):
         "Malaysia School of Engineering",
     }
     assert body["levels"] == ["Level 1", "Level 2"]
+
+
+def test_filter_labels_come_from_the_glossary_in_every_language(client, faculties):
+    """The values stay English for the search; the labels are what the box shows.
+
+    The faculty list on /units used to be labelled by a Chinese-only dictionary
+    in the frontend, which knew 75 of the 120 names the Handbook uses: "School
+    of Mathematics" sat in English between 管理系 and 药学与制药科学学院.
+    """
+    zh = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "zh"}).json()
+    assert zh["faculties"] == ["Faculty of Information Technology", "Faculty of Engineering"]
+    assert zh["labels"]["Faculty of Engineering"] == "工程学院"
+    assert zh["labels"]["Malaysia School of Engineering"] == "马来西亚校区工程学院"
+    assert zh["labels"]["Malaysia"] == "马来西亚校区"
+    assert zh["labels"]["First semester"] == "第一学期"
+    # Not in the glossary: no label, and the page falls back to the English.
+    assert "Department of Data Science and AI" not in zh["labels"]
+
+    ja = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "ja"}).json()
+    assert ja["labels"]["Faculty of Engineering"] == "工学部"
+    assert client.get("/api/v1/units/filters", params={"year": 2026}).json()["labels"] == {}
 
 
 def test_facet_counts_leave_out_their_own_filter(client, faculties):

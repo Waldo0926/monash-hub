@@ -175,7 +175,8 @@ function codesIn(groups: any[]): string[] {
 
 // --- resources ---------------------------------------------------------------
 
-const URL_RE = /(https?:\/\/[^\s)]+)/g
+// Stops at full-width punctuation too, which a translated line puts right after a link.
+const URL_RE = /(https?:\/\/[^\s)（）"'，。、；]+)/g
 
 /** "Recommended resources" in the reader's language, or as published. */
 function resourceLabel(type: string): string {

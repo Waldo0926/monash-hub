@@ -37,6 +37,34 @@ def test_an_untranslated_string_stays_in_english(db):
     assert tr.string("Withdrawn fail") == "Withdrawn fail"
 
 
+def test_a_closed_list_value_uses_the_glossary_over_a_machine_row():
+    """The machine row was written before the name was in the glossary.
+
+    Passes prime themselves from what is stored, so without this the agreed
+    name would never reach a unit that had already been translated once.
+    """
+    tr = translations.Translation("zh")
+    tr.strings = {"School of Mathematics": "数学系学校", "Faculty of Law": "法学院："}
+    assert tr.value("School of Mathematics") == "数学学院"
+    assert tr.value("Faculty of Law") == "法学院"
+    # Page text is not a closed list: "Malaysia" in a fee table is the country.
+    assert tr.string("School of Mathematics") == "数学系学校"
+    assert tr.value("Something only one unit says") == "Something only one unit says"
+
+
+def test_a_persons_wording_beats_the_glossary():
+    tr = translations.Translation("zh")
+    tr.strings = {"Psychology": "心理学（人工）"}
+    tr.human_strings = {"Psychology"}
+    assert tr.value("Psychology") == "心理学（人工）"
+
+
+def test_japanese_and_korean_get_closed_list_values_with_no_rows_at_all():
+    assert translations.Translation("ja").value("Department of Accounting") == "会計学科"
+    assert translations.Translation("ko").value("First semester") == "1학기"
+    assert translations.Translation("").value("First semester") == "First semester"
+
+
 def test_a_stored_part_heading_is_read_with_a_colon(db):
     _store(
         db, target_type=OFFICIAL_PAGE, target_key="c2001", field="body",
@@ -685,6 +713,18 @@ def test_a_narrower_pass_does_not_delete_what_a_wider_one_wrote(db):
     # and the row still knows it has been through the wider pass
     assert row.note == "fields=all"
 
+    # A pass with the learning resources is wider still, and a later
+    # `short` keeps it.
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=all+resources")
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=short")
+    db.commit()
+    db.refresh(row)
+    assert row.note == "fields=all+resources"
+
 
 def test_graduations_conferral_notice_is_translated_by_hand():
     """Monash's 2026 conferral notice, in the shape the live page ships it.
@@ -725,3 +765,16 @@ def test_graduations_conferral_notice_is_translated_by_hand():
     notice = [t for t in texts if t != "Graduations"]
     assert len(notice) == 6
     assert all(any("一" <= ch <= "鿿" for ch in t) for t in notice)
+
+
+def test_a_reading_list_line_keeps_its_links_or_stays_english():
+    from app.api.serializers import _resource
+
+    source = "There are required texts (https://shop.example.com/books) for this unit."
+    tr = translations.Translation("zh")
+    tr.strings[source] = "本课程有指定教材（https://shop.example.com/books）。"
+    assert _resource(source, tr) == "本课程有指定教材（https://shop.example.com/books）。"
+
+    tr.strings[source] = "本课程有指定教材（书店）。"
+    assert _resource(source, tr) == source
+    assert _resource("Cormen (2009). Algorithms.", tr) == "Cormen (2009). Algorithms."

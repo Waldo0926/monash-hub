@@ -89,7 +89,7 @@ function away(code: string) {
               <span v-if="fact(item.code).periods?.length" class="periods">
                 {{ fact(item.code).periods.join('·') }}
               </span>
-              <span v-if="fact(item.code).teach_out?.length" class="tag tag--teach" :title="fact(item.code).teach_out[0].plan">{{ teachOutLabel(fact(item.code).teach_out[0].change, locale === 'zh') }}</span>
+              <span v-if="fact(item.code).teach_out?.length" class="tag tag--teach" :title="fact(item.code).teach_out[0].plan">{{ teachOutLabel(fact(item.code).teach_out[0].change, locale) }}</span>
               <span v-if="!fact(item.code).in_year" class="tag tag--gone">{{ $t('courses.notInYear', { year }) }}</span>
               <span v-else-if="away(item.code)" class="tag tag--away">✕ {{ campus }}</span>
             </span>

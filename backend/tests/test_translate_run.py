@@ -105,3 +105,15 @@ def test_the_campus_in_a_title_is_never_the_models_to_translate():
     assert not _campus_title_ok(title, "常见问题解答（新国际学生（Monash Malaysia（马来西亚校区））学生）", "zh")
     assert _campus_title_ok(title, "新国际学生常见问题（马来西亚校区）", "zh")
     assert _campus_title_ok("Results", "成绩", "zh")
+
+
+def test_reading_list_advice_is_translated_and_citations_are_not():
+    from crawler.translate.run import resource_prose
+
+    assert resource_prose(
+        "There are required texts for this unit. Required texts are usually available "
+        "for purchase through the University Bookstore (https://example.com)"
+    )
+    assert resource_prose("This unit requires access to a laptop that meets minimum specifications")
+    assert not resource_prose("Cormen, T. (2009). Introduction to Algorithms. MIT Press.")
+    assert not resource_prose("The Python Tutorial https://docs.python.org/3/tutorial/")

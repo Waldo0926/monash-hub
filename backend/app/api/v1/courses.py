@@ -432,7 +432,7 @@ def get_course(
         {
             "code": row.aos_code,
             "title": aos_tr[row.aos_code].field("title", row.title),
-            "aos_type": aos_tr[row.aos_code].string(row.aos_type),
+            "aos_type": aos_tr[row.aos_code].value(row.aos_type),
             "credit_points": row.credit_points,
             "unit_codes": aos_units.get(row.aos_code, []),
         }

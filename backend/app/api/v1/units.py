@@ -13,6 +13,7 @@ from app.core.db import get_db
 from app.handbook import tree
 from app.handbook.years import available_years, resolve_year
 from app.knowledge import teach_out, translations
+from app.knowledge.glossary import whole_value
 from app.models.curriculum import AreaOfStudy, CurriculumContainer, CurriculumItem
 from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
 from app.models.translation import AREA_OF_STUDY, UNIT
@@ -100,7 +101,11 @@ def _units_by_code(db: Session, codes: str, year: int) -> list[Unit]:
 
 
 @router.get("/filters")
-def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict:
+def unit_filters(
+    year: int | None = None,
+    locale: str | None = Depends(requested_locale),
+    db: Session = Depends(get_db),
+) -> dict:
     """Facet values that actually exist, so the UI never offers a dead filter.
 
     Most lists come back with the value most units have first, so a short list
@@ -124,9 +129,7 @@ def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict
     years = db.scalars(
         select(distinct(Unit.academic_year)).order_by(Unit.academic_year.desc())
     ).all()
-    return {
-        "academic_year": resolved,
-        "years": list(years),
+    values = {
         "campuses": by_count(UnitOffering.campus, offering=True),
         "teaching_periods": by_count(UnitOffering.teaching_period, offering=True),
         "levels": list(levels),
@@ -134,6 +137,16 @@ def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict
         "faculties": by_count(Unit.faculty),
         "schools": by_count(Unit.school),
     }
+    # The values stay English because they are what the search matches on. The
+    # labels are the glossary's wording for them, so the checkbox says the same
+    # thing as the unit page it leads to, in every language and not only Chinese.
+    labels = {}
+    if locale and locale != "en":
+        for name in ("campuses", "teaching_periods", "levels", "faculties", "schools"):
+            for value in values[name]:
+                if agreed := whole_value(value, locale):
+                    labels[value] = agreed
+    return {"academic_year": resolved, "years": list(years), **values, "labels": labels}
 
 
 @router.get("/facets")
@@ -247,7 +260,10 @@ def _areas_including(db: Session, code: str, year: int, locale: str | None) -> l
     for aos_code, entry in found.items():
         entry.pop("_hash")
         entry["title"] = tr[aos_code].field("title", entry["title"]) or entry["title"]
-        entry["aos_type"] = tr[aos_code].string(entry["aos_type"])
+        entry["aos_type"] = tr[aos_code].value(entry["aos_type"])
+        # The part names ("Level 2 and 3 elective units") are translated in
+        # the area's own rows, the same wording its page shows.
+        entry["parts"] = [tr[aos_code].string(part) for part in entry["parts"]]
         result.append(entry)
     return result
 
