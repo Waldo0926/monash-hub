@@ -4,7 +4,7 @@
 early-2027 Handbook. This module is for the *next* one: the labels have shapes,
 and a shape can be rendered without asking a model.
 
-    Part B. Breadth studies             B 部分。通识课程（Breadth studies）
+    Part B. Breadth studies             B 部分：通识课程（Breadth studies）
     Level 8 - Bachelor Honours Degree   第 8 级 - 荣誉学士学位
     Essay (2,000 words)                 论文（2,000 字）
 
@@ -213,10 +213,10 @@ def compose_part(text: str) -> str | None:
     if two:
         first, second = _part_title(two.group(1)), _part_title(two.group(3))
         if first and second:
-            return f"{head}。{first}与 {two.group(2)} 部分。{second}"
+            return f"{head}：{first}与 {two.group(2)} 部分：{second}"
         return None
     title = _part_title(rest)
-    return f"{head}。{title}" if title else None
+    return f"{head}：{title}" if title else None
 
 
 def compose_level(text: str) -> str | None:

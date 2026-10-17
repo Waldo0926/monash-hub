@@ -100,7 +100,7 @@ function messageFor(item: any) {
     </ul>
 
     <p v-else class="small muted empty">
-      {{ $t('notifications.empty') }} — {{ $t('notifications.emptyHint') }}
+      {{ $t('notifications.empty') }}<br>{{ $t('notifications.emptyHint') }}
     </p>
 
     <NuxtLink v-if="!full && items.length" to="/notifications" class="small more">
