@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (degree type links in two rows)
+
+- The type links above the degree panels are a grid of five equal columns.
+  The first row holds the undergraduate types (specialist, comprehensive,
+  double, Honours, diploma) and the second the vertical double degrees and
+  postgraduate types, so ten types make two even rows. Each count sits in a
+  pill on the right. Phones keep the single sideways-scrolling row.
+
 ### Added (Ask button on every page)
 
 - An Ask button in the bottom right corner opens a chat panel. Questions
