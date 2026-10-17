@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (tab titles)
+
+- Every browser tab reads "Page | Monash Hub", for example "选课规划 | Monash
+  Hub", so a row of open tabs still shows which site each one is. The suffix
+  comes from one title template in `app.vue`; pages set only their own name.
+  The old " — Monash Hub" endings on some pages are gone, the unit tree page
+  and the error page now have a title, and the home page reads
+  "Monash Hub | Handbook, official guides and student community".
+
 ### Fixed (some part headings still had a full stop)
 
 - Course translations the crawler stored before the change still read

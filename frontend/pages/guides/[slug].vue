@@ -18,7 +18,7 @@ const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides
 useErrorStatus(error)
 
 useSeoMeta({
-  title: () => (guide.value ? `${guide.value.title} — Monash Hub` : 'Guide — Monash Hub'),
+  title: () => (guide.value ? guide.value.title : 'Guide'),
   // A guide with no summary still gets a sentence of its own: an empty
   // description would override the site's default and leave a preview blank.
   description: () =>

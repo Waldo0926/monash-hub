@@ -141,7 +141,7 @@ const poster = computed(() => {
 })
 
 useSeoMeta({
-  title: () => (post.value ? `${post.value.title} — Monash Hub` : $t('community.title')),
+  title: () => (post.value ? post.value.title : $t('community.title')),
   // The start of the question, so a shared thread previews as what was asked.
   description: () => {
     const body = (post.value?.body || '').replace(/\s+/g, ' ').trim()
