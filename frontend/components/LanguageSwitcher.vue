@@ -28,6 +28,7 @@ function onChange(event: Event) {
 
 <template>
   <div class="switcher">
+    <PlanIcon name="globe" class="globe" />
     <label class="visually-hidden" for="language-switcher">{{ $t('nav.language') }}</label>
     <select
       id="language-switcher"
@@ -39,24 +40,36 @@ function onChange(event: Event) {
         {{ option.label }}
       </option>
     </select>
+    <PlanIcon name="chevron-down" :size="14" class="caret" />
   </div>
 </template>
 
 <style scoped>
-.switcher { display: flex; align-items: center; }
+/* No box of its own: it sits in the header's account tray, so it only needs a
+   globe in front and a caret behind. Both icons ignore the pointer, so a click
+   anywhere on the row still opens the native picker. */
+.switcher { position: relative; display: flex; align-items: center; color: var(--text); }
+.globe, .caret { position: absolute; pointer-events: none; }
+.globe { left: 10px; color: var(--muted); }
+.caret { right: 8px; color: var(--muted); }
 .select {
-  min-height: 36px;
-  padding: 0 var(--s2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  height: 32px;
+  padding: 0 28px 0 32px;
+  border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--text);
+  color: inherit;
   font: inherit;
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s;
 }
 /* The popup list is drawn by the platform, so its options get readable
    colours of their own rather than inheriting whatever the header uses. */
 .select option { background: var(--surface); color: var(--text); }
-.select:hover { border-color: var(--text); }
+.select:hover { background: rgba(12, 27, 42, 0.06); }
+.select:focus-visible { outline-offset: 0; border-radius: var(--radius-pill); }
 </style>

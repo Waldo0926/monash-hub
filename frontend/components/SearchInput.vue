@@ -7,9 +7,9 @@ const props = withDefaults(
     placeholder?: string
     autofocus?: boolean
     big?: boolean
-    compactButton?: boolean
+    inset?: boolean
   }>(),
-  { modelValue: '', placeholder: '', big: false, compactButton: false }
+  { modelValue: '', placeholder: '', big: false, inset: false }
 )
 const { $t } = useNuxtApp()
 const resolvedPlaceholder = computed(() => props.placeholder || $t('search.placeholder'))
@@ -28,8 +28,9 @@ function submit() {
 </script>
 
 <template>
-  <form class="search" :class="{ big, 'compact-button': compactButton }" role="search" @submit.prevent="submit">
+  <form class="search" :class="{ big, inset }" role="search" @submit.prevent="submit">
     <label class="visually-hidden" :for="inputId">{{ $t('search.label') }}</label>
+    <PlanIcon v-if="inset" name="search" class="lead" />
     <input
       :id="inputId"
       v-model="value"
@@ -46,10 +47,48 @@ function submit() {
 <style scoped>
 .search { display: flex; gap: var(--s2); width: 100%; }
 .field { flex: 1; width: auto; min-width: 0; }
-.compact-button .btn { padding-inline: var(--s3); }
+
+/* The header version is one soft pill with the button sitting inside it, so
+   the field and its button read as one control rather than two boxes. The
+   ring goes on the whole pill when the input has focus. */
+.search.inset {
+  align-items: center;
+  gap: 0;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.search.inset:hover { border-color: var(--border); }
+.search.inset:focus-within {
+  border-color: var(--blue);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--blue-50);
+}
+.inset .lead { margin-left: var(--s2); color: var(--muted); }
+.inset .field {
+  min-height: 0;
+  height: 100%;
+  padding: 0 var(--s2);
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+}
+.inset .field:focus-visible { outline: none; }
+.inset .field::-webkit-search-cancel-button { -webkit-appearance: none; }
+.inset .btn {
+  min-height: 0;
+  height: 100%;
+  padding-inline: var(--s4);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  box-shadow: 0 1px 2px rgba(12, 27, 42, 0.2);
+}
 .search.big .field { min-height: 56px; font-size: 1.05rem; }
 .search.big .btn { min-height: 56px; }
 @media (max-width: 520px) {
-  .search { flex-direction: column; }
+  .search:not(.inset) { flex-direction: column; }
 }
 </style>

@@ -4,6 +4,16 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (header controls)
+
+- The search box in the header is one soft pill with the search button
+  inside it, and the whole pill gets the focus ring.
+- Language and account share one tray on the right. The language picker has
+  a globe and a caret instead of a bordered box, sign in is a raised chip,
+  and once signed in the tray holds the bell, your avatar and name, and an
+  icon to sign out. Phones hide the sign out icon, which is also on the
+  profile page.
+
 ### Changed (tab titles)
 
 - Every browser tab reads "Page | Monash Hub", for example "选课规划 | Monash
