@@ -33,10 +33,10 @@ Everything here is pure: no database, no network. The router loads the rows.
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass, field
 
-from app.search.chinese import CJK
+from app.search.chinese import CJK, concept_runs
+from app.search.normalise import fold
 
 # Words that carry no subject. A question is allowed to be made of these plus
 # the FAQ's own vocabulary and still count as fully covered.
@@ -82,8 +82,8 @@ PUNCT = re.compile(r"[\s\W_]+", re.UNICODE)
 
 
 def normalise(text: str) -> str:
-    """Full-width to half-width, lower case, one space between words."""
-    text = unicodedata.normalize("NFKC", text or "").lower()
+    """Full-width to half-width, Simplified, lower case, one space between words."""
+    text = fold(text).lower()
     return PUNCT.sub(" ", text).strip()
 
 
@@ -169,11 +169,9 @@ def _vocabulary(candidate: FaqCandidate) -> tuple[set[str], list[str]]:
     return latin, cjk
 
 
-def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
-    """CJK runs in the query that neither the FAQ's words nor filler explain."""
-    text = re.sub(r"[a-z0-9 ]+", " ", query_norm)
-    # Cover every substring of two or more characters that appears in the
-    # FAQ's own vocabulary, longest first.
+def _covered(text: str, vocabulary: list[str]) -> list[bool]:
+    """Which characters of ``text`` sit in a two-or-more character piece of
+    the FAQ's own vocabulary, longest piece first."""
     covered = [False] * len(text)
     for i in range(len(text)):
         for j in range(len(text), i + 1, -1):
@@ -184,6 +182,13 @@ def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
                 for k in range(i, j):
                     covered[k] = True
                 break
+    return covered
+
+
+def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
+    """CJK runs in the query that neither the FAQ's words nor filler explain."""
+    text = re.sub(r"[a-z0-9 ]+", " ", query_norm)
+    covered = _covered(text, vocabulary)
     left = "".join(ch if not covered[i] else " " for i, ch in enumerate(text))
     for phrase in ZH_FILLER_PHRASES:
         left = left.replace(phrase, " ")
@@ -191,6 +196,21 @@ def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
     # 怎么开成绩单, 留 once 学生 is taken out of 留学生) far more often than it
     # is a subject. Two or more is a word, and a word is a subject.
     return [run for run in left.split() if CJK.search(run) and len(run) >= 2]
+
+
+def _unknown_concepts(query_norm: str, vocabulary: list[str]) -> list[str]:
+    """Search concepts in the query that the FAQ's own words do not cover.
+
+    :func:`_cjk_residue` lets a lone character through as grammar, and that
+    can be fooled by a word made of the FAQ's characters: 在读证明 (proof of
+    enrolment) is 在, which is filler, 读, one character, and 证明, a keyword
+    of the SC documents entry - so a question about an enrolment letter was
+    answered with what to attach to a special consideration application. The
+    synonym tables know 在读证明 is one word, so here every character of it
+    has to be covered, the way 马来西亚 and 校区 cover 马来西亚校区.
+    """
+    return [run for run, _ in concept_runs(query_norm)
+            if not all(_covered(run, vocabulary))]
 
 
 def _residue(query_norm: str, query_words: list[str], candidate: FaqCandidate,
@@ -201,7 +221,9 @@ def _residue(query_norm: str, query_words: list[str], candidate: FaqCandidate,
         if w not in EN_FILLER and stem(w) not in latin and w not in ignore
         and not w.isdigit()
     ]
-    return leftover + _cjk_residue(query_norm, cjk)
+    residue = leftover + _cjk_residue(query_norm, cjk)
+    residue += [run for run in _unknown_concepts(query_norm, cjk) if run not in residue]
+    return residue
 
 
 def match(query: str, candidates: list[FaqCandidate], *,

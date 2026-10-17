@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import re
 
+from app.search.normalise import fold
+
 # Bounded by "not a Latin letter or digit" rather than \b. Python's \b treats
 # CJK as word characters, so "FIT2102有考试吗" - typed without a space, the way
 # Chinese is written - had no boundary after the code and found no unit at all.
@@ -68,7 +70,9 @@ SUBJECTIVE_KEYWORDS: tuple[str, ...] = (
 def extract_unit_codes(query: str) -> list[str]:
     """Pull unit codes out of free text. ``fit 2102`` and ``FIT-2102`` both count."""
     seen: list[str] = []
-    for prefix, digits in UNIT_CODE_RE.findall(query or ""):
+    # Folded first, so the ＦＩＴ２１０２ a full-width input method types is the
+    # ASCII code the pattern accepts.
+    for prefix, digits in UNIT_CODE_RE.findall(fold(query)):
         code = f"{prefix.upper()}{digits}"
         if code not in seen:
             seen.append(code)
@@ -82,7 +86,7 @@ def classify_intent(query: str) -> tuple[str | None, list[str]]:
     "contact hours" beats "hours". A tie between intents is broken by the order
     of ``INTENT_KEYWORDS``, which puts the Handbook-backed intents first.
     """
-    text = (query or "").lower()
+    text = fold(query).lower()
     best: tuple[str, int] | None = None
     matched: list[str] = []
     for intent, keywords in INTENT_KEYWORDS.items():
@@ -99,7 +103,7 @@ def classify_intent(query: str) -> tuple[str | None, list[str]]:
 
 
 def is_subjective(query: str) -> bool:
-    text = (query or "").lower()
+    text = fold(query).lower()
     return any(_contains(text, kw) for kw in SUBJECTIVE_KEYWORDS)
 
 
@@ -111,4 +115,4 @@ def _contains(text: str, keyword: str) -> bool:
     """
     if keyword.isascii():
         return re.search(rf"(?<![a-z0-9]){re.escape(keyword)}(?![a-z0-9])", text) is not None
-    return keyword in text
+    return fold(keyword) in text

@@ -10,6 +10,34 @@ All notable changes to Monash Hub are documented here.
   under the undergraduate double degrees, with the vertical double degrees
   and diplomas after it. The right column was much longer than the left.
 
+### Changed (search understands more of what students type)
+
+- Traditional Chinese and full-width input are folded to Simplified and
+  ASCII before anything else, so 簽證, 學費 and ＦＩＴ２００４ find what
+  签证, 学费 and FIT2004 find. 12 of 180 test queries found nothing at all
+  before; one does now (雅思, which no stored page mentions).
+- English slang and abbreviations are searched in Monash's words as well:
+  supp exam and resit reach Supplementary assessments, drop reaches
+  withdraw, RPL reaches credit, comp sci and CS reach Computer Science,
+  master of IT reaches Master of Information Technology, honors and MBA
+  work. The query as typed is always searched too.
+- Admin questions (学费, 毕业, how to enroll, census date) no longer list
+  units and degrees. 毕业 listed 258 units and 83 Graduate Certificates.
+- 毕业 means graduation, not "graduate": it leads with Graduations. The
+  Chinese table has more campus words (毕业证, 在读证明, 续签, 缓考, 成绩复查,
+  开学, 退费) and common unit topics (数据结构, 操作系统, 机器学习 and others).
+- Degrees: a single bachelor comes before double degrees and graduate
+  certificates unless a level is asked for. "computer science" listed two
+  double degrees first. "double degree" and "honors" found nothing.
+- Units: a title that says the query comes first, first year before
+  honours and research units. "psychology" led with three PSY4xxx units.
+  "accounting" no longer counts "IT account" as a match.
+- Official pages: a page called what was asked comes first, then pages
+  with the typed words as whole words. "supp exam" led with the eExam pages.
+- 在读证明 no longer answers with the special consideration documents FAQ.
+- Two-letter Chinese unit searches skip a trigram scan that never matched
+  and took about a second.
+
 ### Changed (WAM/GPA calculator layout)
 
 - The calculator now looks like the course map: units on the left, grouped
