@@ -18,6 +18,13 @@ All notable changes to Monash Hub are documented here.
 - In the scheduled refreshes, one failed translation pass no longer stops
   the passes after it or the search reindex.
 
+### Fixed (a degree page nobody could link to)
+
+- M6011 is published as "M6011 M6019". The pair was stored as the course
+  code, so its page sat at /courses/M6011 M6019. The crawl now keeps the
+  first code, and a migration renames the stored row (or drops it where
+  the year already has M6011) along with its translations.
+
 ### Fixed (translation no longer blocks the weekly crawl)
 
 - Scheduled translation now runs after the crawl lock is released, under

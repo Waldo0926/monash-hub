@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from urllib.parse import unquote
 
 from app.handbook.parser import (
     ParseError,
@@ -144,7 +145,10 @@ def parse_course_page(html: str, source_url: str) -> dict[str, Any]:
     # a payload code with a space in it loses to the URL.
     code = (content.get("course_code") or content.get("code") or "").strip().upper()
     if " " in code:
-        code = source_url.rstrip("/").rsplit("/", 1)[-1].strip().upper() or code.split()[0]
+        asked = unquote(source_url.rstrip("/").rsplit("/", 1)[-1]).strip().upper()
+        # The URL can carry the pair too, when the index listed it that way.
+        # Then the first code is the one the page is filed under.
+        code = asked if asked and " " not in asked else code.split()[0]
     if not code:
         raise ParseError(f"no course_code in payload for {source_url}")
     academic_year = _as_int(content.get("implementation_year"))

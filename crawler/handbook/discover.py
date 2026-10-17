@@ -88,6 +88,9 @@ def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[st
                 if not uri.startswith(prefix):
                     continue
                 code = (item.get("code") or uri.rsplit("/", 1)[-1]).strip().upper()
+                # M6011 is listed as "M6011 M6019": one page, two codes. A code
+                # with a space makes a URL nobody can link to, so keep the first.
+                code = code.split()[0] if code else code
                 if code and code not in seen:
                     seen.add(code)
                     codes.append(code)

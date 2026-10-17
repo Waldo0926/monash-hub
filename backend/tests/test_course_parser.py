@@ -171,3 +171,12 @@ def test_a_double_degree_carries_two_aqf_levels(db):
     )
     db.commit()
     assert db.query(Course).filter_by(course_code="B6043").one().aqf_level == long_level
+
+
+@pytest.mark.parametrize("asked", ["M6011", "M6011%20M6019", "M6011 M6019"])
+def test_a_page_with_two_course_codes_is_filed_under_the_first(handbook_html, asked):
+    """M6011 publishes "M6011 M6019". A code with a space made the URL
+    /courses/M6011 M6019, which no link could reach."""
+    html = handbook_html("course-C2001").replace('"course_code":"C2001"', '"course_code":"M6011 M6019"')
+    record = parse_course_page(html, f"https://handbook.monash.edu/2026/courses/{asked}")
+    assert record["course_code"] == "M6011"
