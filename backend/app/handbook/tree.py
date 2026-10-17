@@ -182,6 +182,50 @@ def walk(db: Session, seed: str, year: int, direction: str, depth: int) -> Walk:
     return result
 
 
+@dataclass
+class Unlocks:
+    """What one unit opens up: the units that name it, and how far that goes."""
+
+    direct: dict[str, str] = field(default_factory=dict)  # code -> edge type
+    total: int = 0
+    truncated: bool = False
+
+
+def unlocks(db: Session, seed: str, year: int) -> Unlocks:
+    """The units that list ``seed`` as a prerequisite or corequisite.
+
+    This is the list a student wants under "what can I take after this", so a
+    withdrawn unit is left out: it is not something they can take after it.
+    ``total`` is the whole downstream walk, so "those lead on to 143 units"
+    can be said without drawing the graph.
+    """
+    result = Unlocks()
+    stmt = (
+        select(Unit.unit_code, UnitRequisiteGroup.requisite_type)
+        .join(UnitRequisiteGroup, UnitRequisiteGroup.unit_id == Unit.id)
+        .join(UnitRequisiteItem, UnitRequisiteItem.group_id == UnitRequisiteGroup.id)
+        .where(
+            UnitRequisiteItem.item_code == seed,
+            Unit.academic_year == year,
+            Unit.is_active.is_(True),
+            Unit.unit_code != seed,
+            _edge_type_clause(),
+        )
+    )
+    for code, req_type in db.execute(stmt):
+        kind = _canonical_edge_type(req_type)
+        # A unit that names the seed in both a prerequisite and a corequisite
+        # group needs it first, which is the stronger statement.
+        if result.direct.get(code) != "prerequisite":
+            result.direct[code] = kind
+
+    if result.direct:
+        found = walk(db, seed, year, "downstream", MAX_DEPTH)
+        result.total = len(found.depth_of) - 1
+        result.truncated = found.truncated
+    return result
+
+
 def load_units(db: Session, codes: list[str], year: int) -> dict[str, Unit]:
     if not codes:
         return {}

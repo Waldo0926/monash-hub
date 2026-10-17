@@ -218,6 +218,45 @@ def get_offerings(code: str, year: int | None = None, db: Session = Depends(get_
     }
 
 
+@router.get("/{code}/unlocks")
+def get_unlocks(
+    code: str,
+    campus: str | None = None,
+    year: int | None = None,
+    locale: str | None = Depends(requested_locale),
+    db: Session = Depends(get_db),
+) -> dict:
+    """The units that need this one, as a list rather than a graph.
+
+    The graph on /tree answers "how deep does this go"; this answers the
+    simpler question on a unit page, "what can I take after it". Each row
+    carries the same campus mark as a tree node.
+    """
+    academic_year, not_in_year = _resolve(db, code, year)
+    seed = _load(db, code, academic_year)
+    found = tree.unlocks(db, seed.unit_code, academic_year)
+
+    codes = sorted(found.direct)
+    units = tree.load_units(db, codes, academic_year)
+    hashes = {c: u.content_hash for c, u in units.items()}
+    tr = translations.load_many(db, locale, UNIT, codes, source_hashes=hashes)
+    rows = [
+        {**tree_node(units.get(c), c, 1, campus, tr[c]), "requisite_type": found.direct[c]}
+        for c in codes
+        if c in units
+    ]
+    return {
+        "seed": seed.unit_code,
+        "academic_year": academic_year,
+        "not_in_year": not_in_year,
+        "campus": campus,
+        "count": len(rows),
+        "total_downstream": found.total,
+        "truncated": found.truncated,
+        "units": rows,
+    }
+
+
 @router.get("/{code}/tree")
 def get_tree(
     code: str,

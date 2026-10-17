@@ -4,6 +4,25 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (what comes after a unit)
+
+- `GET /v1/units/{code}/unlocks` lists the units that name a unit as a
+  prerequisite or corequisite, each with the campus mark the tree uses, and
+  how many units the whole downstream walk reaches. Withdrawn units and
+  prohibitions are not counted.
+- The requisites section on a unit page is split into Before and After. After
+  shows the first eight units, the rest behind Show more, and links to the
+  graph. The same list sits under the graph on `/tree`, whose zoom buttons now
+  sit on the canvas instead of the section so the list does not move them.
+
+### Fixed (asking about "this unit" on a unit page)
+
+- The ask box on a unit page sent only the text, so "How good is this unit?"
+  reached the router with no code and fell through to the official pages
+  search. The page now sends its unit code and Handbook year; the router uses
+  them only when the question names no unit, and a policy question asked on a
+  unit page still gets the policy answer.
+
 ### Docs (crawling policy matches the fetcher)
 
 - `docs/CRAWLING.md` now says who the crawler is (`MonashHubBot`), how
