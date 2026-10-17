@@ -4,6 +4,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (see a unit before adding it to the course map)
+
+- "Add unit" on `/plan` opens a dialog instead of an inline list. Results are
+  tagged S1, S2 and so on at the plan's campus, and picking one shows its
+  overview, offerings by teaching period and requisites, with a line at the top
+  saying whether it fits the semester you opened. That line comes from the
+  same `/plan/check` the map runs, with the unit added, so the two always
+  agree. Arrow keys move through the results, Enter adds, Esc closes, and the
+  dialog stays open after adding so the next unit can be searched straight away.
+- Unit search results carry each offering's untranslated campus and period and
+  a short period label. "Semester 1" and "Semester 2" now shorten to S1 and S2
+  the same way "First semester" and "Second semester" do.
 ### Added (what comes after a unit)
 
 - `GET /v1/units/{code}/unlocks` lists the units that name a unit as a

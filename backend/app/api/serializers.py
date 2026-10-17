@@ -82,6 +82,11 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
                 "campus": tr.string(o.campus),
                 "teaching_period": tr.string(o.teaching_period),
                 "attendance_mode": tr.string(o.attendance_mode),
+                # Untranslated, for the planner to match against the plan's
+                # own campus and period names, and the S1/S2 tag it shows.
+                "campus_raw": o.campus,
+                "teaching_period_raw": o.teaching_period,
+                "short": short_period(o.teaching_period),
             }
             for o in unit.offerings
             if o.offered
@@ -311,6 +316,9 @@ def answer_brief(
 _PERIOD_SHORT = (
     ("first semester", "S1"),
     ("second semester", "S2"),
+    # Older rows and some fixtures spell the two semesters this way round.
+    ("semester 1", "S1"),
+    ("semester 2", "S2"),
     ("summer semester a", "SA"),
     ("summer semester b", "SB"),
     ("winter semester", "W"),
