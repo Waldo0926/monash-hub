@@ -16,6 +16,21 @@ All notable changes to Monash Hub are documented here.
   was shown in machine translation. The notice uses curly apostrophes, so the
   keys do too.
 
+### Added (more than one course plan)
+
+- A browser can keep up to 20 plans. `/plans` lists them as cards: the
+  plan's name (editable in place), degree, credit points against the degree,
+  problems, last updated, and a small grid of its semesters and unit codes.
+  Each card can be opened on the map, duplicated, deleted (after a prompt) or
+  exported to CSV.
+- The course map shows the plan's name at the top, editable, with a link to
+  all plans. Importing a JSON plan adds it as a new plan instead of replacing
+  the one on screen.
+- "Plan this degree" starts a new plan when the open one already has units
+  for a different degree.
+- Plans are stored under `mh_plans_v1`. A plan saved under the old
+  `mh_plan_v1` key becomes the first plan; the old key is left in place.
+
 ### Fixed (the fee band said "Band SCA Band 2")
 
 - The live Handbook labels the band "SCA Band 2", not "Band 2" as the fixture

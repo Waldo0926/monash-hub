@@ -23,6 +23,8 @@ const PATHS: Record<string, string[]> = {
   undo: ['M9 14 4.5 9.5 9 5', 'M4.5 9.5h10a5 5 0 0 1 0 10H11'],
   redo: ['M15 14l4.5-4.5L15 5', 'M19.5 9.5h-10a5 5 0 0 0 0 10H13'],
   print: ['M7 9V3.5h10V9', 'M7 17H4.5V10h15v7H17', 'M7 14h10v6.5H7z'],
+  copy: ['M8.5 8.5h11v11h-11z', 'M15.5 8.5V4.5h-11v11h4'],
+  chevron: ['M9.5 6l6 6-6 6'],
   spinner: ['M12 4a8 8 0 1 1-8 8']
 }
 
