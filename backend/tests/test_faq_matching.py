@@ -46,6 +46,8 @@ def answer(query: str, **kwargs) -> str | None:
         ("enrol in units", "how-to-withdraw-from-a-unit"),
         ("学分转换", "what-is-wam"),
         ("马来西亚校区", "student-visa-work-hours"),
+        # A lost testamur is a documents question, not a conferral one.
+        ("毕业证丢了怎么补办", "automatic-conferral"),
     ],
 )
 def test_a_shared_word_is_not_an_answer(query, wrong):
@@ -103,6 +105,17 @@ def test_the_more_specific_entry_wins(query, right):
         ("我能补考吗", "supplementary-assessment"),
         ("supp exam", "supplementary-assessment"),
         ("收到学业预警邮件", "unsatisfactory-progress"),
+        ("还需要申请毕业吗", "automatic-conferral"),
+        ("毕业要不要申请", "automatic-conferral"),
+        ("怎么申请毕业", "automatic-conferral"),
+        ("自动授予学位", "automatic-conferral"),
+        ("自动毕业是什么", "automatic-conferral"),
+        ("马来西亚校区还要申请毕业吗", "automatic-conferral"),
+        ("do I still need to apply to graduate", "automatic-conferral"),
+        ("how do I apply for graduation", "automatic-conferral"),
+        ("what is automatic conferral", "automatic-conferral"),
+        ("when will I get my testamur", "automatic-conferral"),
+        ("can I graduate in absentia", "automatic-conferral"),
     ],
 )
 def test_a_question_the_faq_covers_gets_it(query, slug):

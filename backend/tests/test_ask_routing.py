@@ -123,6 +123,8 @@ def test_a_topic_reaches_its_official_page_in_either_language(client, seeded, qu
         ("延期考试", "defer-a-final-assessment"),
         ("怎么申请 SC", "how-to-apply-special-consideration"),
         ("how do I withdraw from a unit", "how-to-withdraw-from-a-unit"),
+        ("还需要申请毕业吗", "automatic-conferral"),
+        ("apply to graduate", "automatic-conferral"),
     ],
 )
 def test_a_covered_question_gets_its_curated_answer(client, seeded, query, slug):
