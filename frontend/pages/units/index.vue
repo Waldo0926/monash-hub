@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * Unit search. The point is fewer steps than the Handbook itself: type a code
- * or a word, narrow by campus, teaching period, level, subject or whether an
- * exam is listed.
+ * or a word, narrow by campus, teaching period, faculty, school, level,
+ * subject or whether an exam is listed.
  *
  * Everything that changes the result list lives in the URL, page number
  * included, so a filtered search can be shared and the back button returns
@@ -14,15 +14,26 @@ const { $t, $term } = useNuxtApp() as any
 
 const PAGE = 24
 
+/** A filter that can hold several values. One value from an older link still works. */
+function many(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v)
+  return typeof value === 'string' && value ? [value] : []
+}
+
+const MULTI = ['campus', 'teaching_period', 'faculty', 'school', 'prefix', 'level'] as const
+type MultiKey = typeof MULTI[number]
+
 const query = ref((route.query.q as string) || '')
 const filters = reactive({
   // Empty is the current Handbook. A year is kept in the URL so a link to the
   // 2025 list stays the 2025 list, and the unit cards carry it on.
   year: (route.query.year as string) || '',
-  campus: (route.query.campus as string) || '',
-  teaching_period: (route.query.teaching_period as string) || '',
-  level: (route.query.level as string) || '',
-  prefix: (route.query.prefix as string) || '',
+  campus: many(route.query.campus),
+  teaching_period: many(route.query.teaching_period),
+  faculty: many(route.query.faculty),
+  school: many(route.query.school),
+  prefix: many(route.query.prefix),
+  level: many(route.query.level),
   has_exam: (route.query.has_exam as string) || '',
   sort: (route.query.sort as string) || 'relevance'
 })
@@ -42,10 +53,19 @@ const shownYear = computed({
   }
 })
 
-const requestPath = computed(() => {
+/** The query and filters as URL parameters, shared by the result list and the counts. */
+const filterParams = computed(() => {
   const params = new URLSearchParams()
   if (query.value) params.set('q', query.value)
-  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, String(value))
+  if (filters.year) params.set('year', filters.year)
+  for (const key of MULTI) for (const value of filters[key]) params.append(key, value)
+  if (filters.has_exam) params.set('has_exam', filters.has_exam)
+  return params
+})
+
+const requestPath = computed(() => {
+  const params = new URLSearchParams(filterParams.value)
+  if (filters.sort !== 'relevance') params.set('sort', filters.sort)
   params.set('limit', String(PAGE))
   if (page.value > 1) params.set('offset', String((page.value - 1) * PAGE))
   return `/v1/units?${params.toString()}`
@@ -55,10 +75,23 @@ const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(() => 
   watch: [requestPath]
 })
 
+// The numbers beside each checkbox. Fetched on the client after the list, so
+// a slow count never holds up the results, and a failed one just hides them.
+const facetPath = computed(() => `/v1/units/facets?${filterParams.value.toString()}`)
+const { data: facetCounts } = useApiFetch<any>(() => facetPath.value, {
+  watch: [facetPath],
+  server: false,
+  lazy: true
+})
+const counts = computed(() => facetCounts.value?.counts || null)
+
 function syncUrl() {
-  const q: Record<string, string> = {}
+  const q: Record<string, string | string[]> = {}
   if (query.value) q.q = query.value
-  for (const [key, value] of Object.entries(filters)) if (value && value !== 'relevance') q[key] = String(value)
+  if (filters.year) q.year = filters.year
+  for (const key of MULTI) if (filters[key].length) q[key] = [...filters[key]]
+  if (filters.has_exam) q.has_exam = filters.has_exam
+  if (filters.sort !== 'relevance') q.sort = filters.sort
   if (page.value > 1) q.page = String(page.value)
   router.replace({ query: q })
 }
@@ -66,37 +99,80 @@ watch([query, filters, page], syncUrl, { deep: true })
 
 // A new search or filter starts again from the first page; leaving page 4 in
 // place would show an empty page for a query with two pages of results.
-watch([query, () => ({ ...filters })], () => { page.value = 1 }, { deep: true })
+watch([query, () => JSON.stringify(filters)], () => { page.value = 1 })
+
+// --- filter options ------------------------------------------------------------------
+
+/** How each filter's values are labelled. The value stays the Handbook's own string: it is what the API matches on. */
+const LABEL: Record<MultiKey, (value: string) => string> = {
+  campus: v => $term('campus', v) || v,
+  teaching_period: v => $term('period', v) || v,
+  faculty: v => $term('faculty', v) || v,
+  school: v => $term('faculty', v) || v,
+  prefix: v => v,
+  level: v => $term('level', v) || v
+}
+
+const FACET_LIST: Record<MultiKey, string> = {
+  campus: 'campuses',
+  teaching_period: 'teaching_periods',
+  faculty: 'faculties',
+  school: 'schools',
+  prefix: 'prefixes',
+  level: 'levels'
+}
+
+function optionsFor(key: MultiKey) {
+  return ((facets.value?.[FACET_LIST[key]] || []) as string[]).map(value => ({ value, label: LABEL[key](value) }))
+}
+
+const examOptions = computed(() => [
+  { value: 'true', label: $t('units.hasExamShort') },
+  { value: 'false', label: $t('units.noExamShort') }
+])
+const examValue = computed({
+  get: () => (filters.has_exam ? [filters.has_exam] : []),
+  // Two boxes for one yes or no: ticking one unticks the other.
+  set: (next: string[]) => { filters.has_exam = next.find(v => v !== filters.has_exam) || '' }
+})
 
 // --- filters as chips ---------------------------------------------------------------
 
-type FilterKey = 'campus' | 'teaching_period' | 'level' | 'prefix' | 'has_exam'
+type FilterKey = MultiKey | 'has_exam'
 
 const active = computed(() => {
-  const chips: { key: FilterKey; label: string }[] = []
-  if (filters.campus) chips.push({ key: 'campus', label: $term('campus', filters.campus) || filters.campus })
-  if (filters.teaching_period) {
-    chips.push({ key: 'teaching_period', label: $term('period', filters.teaching_period) || filters.teaching_period })
-  }
-  if (filters.level) chips.push({ key: 'level', label: $term('level', filters.level) || filters.level })
-  if (filters.prefix) chips.push({ key: 'prefix', label: filters.prefix })
+  const chips: { key: FilterKey; value: string; label: string }[] = []
+  for (const key of MULTI) for (const value of filters[key]) chips.push({ key, value, label: LABEL[key](value) })
   if (filters.has_exam) {
-    chips.push({ key: 'has_exam', label: filters.has_exam === 'true' ? $t('units.hasExam') : $t('units.noExam') })
+    chips.push({
+      key: 'has_exam',
+      value: filters.has_exam,
+      label: filters.has_exam === 'true' ? $t('units.hasExam') : $t('units.noExam')
+    })
   }
   return chips
 })
 
-function clear(key: FilterKey) {
-  filters[key] = ''
+function clear(key: FilterKey, value: string) {
+  if (key === 'has_exam') filters.has_exam = ''
+  else filters[key] = filters[key].filter(v => v !== value)
 }
 
 function reset() {
-  filters.campus = ''
-  filters.teaching_period = ''
-  filters.level = ''
-  filters.prefix = ''
+  for (const key of MULTI) filters[key] = []
   filters.has_exam = ''
 }
+
+// --- phone drawer ---------------------------------------------------------------------
+
+function onKey(event: KeyboardEvent) {
+  if (event.key === 'Escape' && drawerOpen.value) drawerOpen.value = false
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
+// The page behind an open drawer should not scroll under the finger.
+watch(drawerOpen, (open) => { document.documentElement.style.overflow = open ? 'hidden' : '' })
+onBeforeUnmount(() => { document.documentElement.style.overflow = '' })
 
 // --- paging ---------------------------------------------------------------------------
 
@@ -170,88 +246,111 @@ useSeoMeta({
       type="button"
       :aria-expanded="drawerOpen"
       aria-controls="unit-filters"
-      @click="drawerOpen = !drawerOpen"
+      @click="drawerOpen = true"
     >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M7 12h10 M10 18h4" /></svg>
       {{ $t('units.filters') }}<span v-if="active.length" class="toggle-count">{{ active.length }}</span>
-      {{ drawerOpen ? ' ▲' : ' ▼' }}
     </button>
 
     <div class="layout">
-      <aside id="unit-filters" class="filters" :class="{ open: drawerOpen }">
-        <h2 class="small">{{ $t('units.filters') }}</h2>
+      <div v-if="drawerOpen" class="backdrop" aria-hidden="true" @click="drawerOpen = false" />
+      <aside
+        id="unit-filters"
+        class="filters"
+        :class="{ open: drawerOpen }"
+        :aria-label="$t('units.filters')"
+      >
+        <div class="filters-head">
+          <h2 class="filters-title">{{ $t('units.filters') }}</h2>
+          <button v-if="active.length" type="button" class="clear-btn" @click="reset">
+            {{ $t('units.clear') }}
+          </button>
+          <button type="button" class="close-btn" :aria-label="$t('units.closeFilters')" @click="drawerOpen = false">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
 
-        <YearPicker v-model="shownYear" :years="facets?.years || []" class="filter" />
+        <div class="filters-body">
+          <FilterGroup v-if="facets?.years?.length" :title="$t('handbook.year')" open>
+            <select
+              class="field"
+              :value="shownYear ?? ''"
+              :aria-label="$t('handbook.year')"
+              @change="shownYear = Number(($event.target as HTMLSelectElement).value)"
+            >
+              <option v-for="y in facets.years" :key="y" :value="y">{{ y }}</option>
+            </select>
+          </FilterGroup>
 
-        <fieldset v-if="facets?.campuses?.length" class="filter">
-          <legend class="tiny muted">{{ $t('units.campus') }}</legend>
-          <div class="pills">
-            <label class="pill" :class="{ on: !filters.campus }">
-              <input v-model="filters.campus" type="radio" name="campus" value="" class="visually-hidden">
-              {{ $t('units.anyCampus') }}
-            </label>
-            <!-- The value stays the Handbook's own string: it is the filter the
-                 API matches on. Only the label is translated. -->
-            <label v-for="campus in facets.campuses" :key="campus" class="pill" :class="{ on: filters.campus === campus }">
-              <input v-model="filters.campus" type="radio" name="campus" :value="campus" class="visually-hidden">
-              {{ $term('campus', campus) }}
-            </label>
-          </div>
-        </fieldset>
+          <FilterGroup v-if="facets?.campuses?.length" :title="$t('units.campus')" :selected="filters.campus.length" open>
+            <FilterOptions v-model="filters.campus" :options="optionsFor('campus')" :counts="counts?.campus" />
+          </FilterGroup>
 
-        <label class="filter">
-          <span class="tiny muted">{{ $t('units.teachingPeriod') }}</span>
-          <select v-model="filters.teaching_period" class="field">
-            <option value="">{{ $t('units.anyPeriod') }}</option>
-            <option v-for="period in facets?.teaching_periods || []" :key="period" :value="period">
-              {{ $term('period', period) }}
-            </option>
-          </select>
-        </label>
+          <FilterGroup
+            v-if="facets?.teaching_periods?.length"
+            :title="$t('units.teachingPeriod')"
+            :selected="filters.teaching_period.length"
+            :open="!!filters.teaching_period.length"
+          >
+            <FilterOptions
+              v-model="filters.teaching_period"
+              :options="optionsFor('teaching_period')"
+              :counts="counts?.teaching_period"
+            />
+          </FilterGroup>
 
-        <fieldset v-if="facets?.levels?.length" class="filter">
-          <legend class="tiny muted">{{ $t('units.level') }}</legend>
-          <div class="pills">
-            <label class="pill" :class="{ on: !filters.level }">
-              <input v-model="filters.level" type="radio" name="level" value="" class="visually-hidden">
-              {{ $t('units.any') }}
-            </label>
-            <label v-for="level in facets.levels" :key="level" class="pill" :class="{ on: filters.level === level }">
-              <input v-model="filters.level" type="radio" name="level" :value="level" class="visually-hidden">
-              {{ $term('level', level) }}
-            </label>
-          </div>
-        </fieldset>
+          <FilterGroup
+            v-if="facets?.faculties?.length"
+            :title="$t('units.faculty')"
+            :selected="filters.faculty.length"
+            :open="!!filters.faculty.length"
+          >
+            <FilterOptions v-model="filters.faculty" :options="optionsFor('faculty')" :counts="counts?.faculty" :limit="10" />
+          </FilterGroup>
 
-        <label v-if="facets?.prefixes?.length" class="filter">
-          <span class="tiny muted">{{ $t('units.prefix') }}</span>
-          <select v-model="filters.prefix" class="field">
-            <option value="">{{ $t('units.anyPrefix') }}</option>
-            <option v-for="prefix in facets.prefixes" :key="prefix" :value="prefix">{{ prefix }}</option>
-          </select>
-        </label>
+          <FilterGroup
+            v-if="facets?.schools?.length"
+            :title="$t('units.school')"
+            :selected="filters.school.length"
+            :open="!!filters.school.length"
+          >
+            <FilterOptions
+              v-model="filters.school"
+              :options="optionsFor('school')"
+              :counts="counts?.school"
+              searchable
+            />
+          </FilterGroup>
 
-        <fieldset class="filter">
-          <legend class="tiny muted">{{ $t('units.examination') }}</legend>
-          <div class="pills">
-            <label class="pill" :class="{ on: !filters.has_exam }">
-              <input v-model="filters.has_exam" type="radio" name="exam" value="" class="visually-hidden">
-              {{ $t('units.any') }}
-            </label>
-            <label class="pill" :class="{ on: filters.has_exam === 'true' }">
-              <input v-model="filters.has_exam" type="radio" name="exam" value="true" class="visually-hidden">
-              {{ $t('units.hasExamShort') }}
-            </label>
-            <label class="pill" :class="{ on: filters.has_exam === 'false' }">
-              <input v-model="filters.has_exam" type="radio" name="exam" value="false" class="visually-hidden">
-              {{ $t('units.noExamShort') }}
-            </label>
-          </div>
-        </fieldset>
+          <FilterGroup
+            v-if="facets?.prefixes?.length"
+            :title="$t('units.prefix')"
+            :selected="filters.prefix.length"
+            :open="!!filters.prefix.length"
+          >
+            <FilterOptions v-model="filters.prefix" :options="optionsFor('prefix')" :counts="counts?.prefix" searchable />
+          </FilterGroup>
 
-        <button v-if="active.length" class="btn btn--ghost btn--small" type="button" @click="reset">
-          {{ $t('units.clearFilters') }}
-        </button>
-        <p class="tiny muted note">{{ $t('units.examNote') }}</p>
+          <FilterGroup
+            v-if="facets?.levels?.length"
+            :title="$t('units.level')"
+            :selected="filters.level.length"
+            :open="!!filters.level.length"
+          >
+            <FilterOptions v-model="filters.level" :options="optionsFor('level')" :counts="counts?.level" :limit="0" />
+          </FilterGroup>
+
+          <FilterGroup :title="$t('units.examination')" :selected="filters.has_exam ? 1 : 0" :open="!!filters.has_exam">
+            <FilterOptions v-model="examValue" :options="examOptions" :counts="counts?.has_exam" :limit="0" />
+            <p class="tiny muted note">{{ $t('units.examNote') }}</p>
+          </FilterGroup>
+        </div>
+
+        <div class="filters-foot">
+          <button type="button" class="btn show-btn" @click="drawerOpen = false">
+            {{ $t('units.showResults', { count: total }) }}
+          </button>
+        </div>
       </aside>
 
       <div ref="top" class="results">
@@ -303,11 +402,11 @@ useSeoMeta({
         <p v-if="active.length" class="chips">
           <button
             v-for="chip in active"
-            :key="chip.key"
+            :key="`${chip.key}:${chip.value}`"
             type="button"
             class="chip"
             :aria-label="$t('units.removeFilter', { filter: chip.label })"
-            @click="clear(chip.key)"
+            @click="clear(chip.key, chip.value)"
           >
             {{ chip.label }}<span aria-hidden="true" class="chip-x">×</span>
           </button>
@@ -376,23 +475,29 @@ useSeoMeta({
 <style scoped>
 h1 { margin-bottom: var(--s2); }
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
+/* A card that scrolls on its own, so the headings stay in reach beside a
+   long result list. */
 .filters {
-  display: grid; gap: var(--s4); align-content: start;
+  display: flex; flex-direction: column; align-self: start; min-width: 0;
   position: sticky; top: calc(var(--header-h) + var(--s4));
+  max-height: calc(100vh - var(--header-h) - var(--s6));
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
 }
-.filters h2 { margin: 0; }
-.filter { display: grid; gap: var(--s1); border: 0; margin: 0; padding: 0; min-width: 0; }
-.filter legend { padding: 0; margin-bottom: var(--s1); }
-.note { margin: 0; }
-.pills { display: flex; flex-wrap: wrap; gap: 6px; }
-.pill {
-  display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; cursor: pointer;
-  border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
-  background: var(--surface); font-size: 0.85rem;
+.filters-head { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); }
+.filters-title { flex: 1; margin: 0; font-family: inherit; font-size: 1rem; font-weight: 700; }
+.clear-btn {
+  padding: 4px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--brand); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
 }
-.pill:hover { border-color: var(--brand); }
-.pill.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); }
-.pill:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.clear-btn:hover { border-color: var(--brand); }
+.close-btn {
+  display: none; width: 36px; height: 36px; border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--muted); font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.filters-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--s4) var(--s2); }
+.filters-foot { display: none; }
+.note { margin: var(--s2) 0 0; }
+.backdrop { display: none; }
 
 .results { min-width: 0; scroll-margin-top: calc(var(--header-h) + var(--s4)); }
 .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s3); }
@@ -444,7 +549,8 @@ h1 { margin-bottom: var(--s2); }
 .page-btn.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); font-weight: 600; }
 .page-gap { padding: 0 4px; color: var(--muted); }
 
-.filter-toggle { display: none; margin-top: var(--s3); }
+.filter-toggle { display: none; gap: 6px; margin-top: var(--s3); }
+.filter-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .toggle-count {
   display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px;
   border-radius: var(--radius-pill); background: var(--navy); color: var(--text-inverse); font-size: 0.72rem;
@@ -453,11 +559,22 @@ h1 { margin-bottom: var(--s2); }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; gap: var(--s4); }
   .filter-toggle { display: inline-flex; align-items: center; }
-  /* On a phone the filters collapse rather than pushing results below the fold. */
-  .filters { display: none; position: static; }
-  .filters.open { display: grid; padding: var(--s4); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-  /* The button above already says Filters. */
-  .filters h2 { display: none; }
+  /* On a phone the filters slide in over the results rather than pushing
+     them below the fold. */
+  .filters {
+    display: none; position: fixed; z-index: 60; inset: 0 auto 0 0; top: 0;
+    width: min(360px, 88vw); max-height: none; border: 0; border-radius: 0;
+    box-shadow: var(--shadow);
+    /* align-self also sizes a fixed box; start would end it where its content does. */
+    align-self: stretch;
+  }
+  .filters-body > :first-child { border-top: 0; }
+  .filters.open { display: flex; }
+  .backdrop { display: block; position: fixed; inset: 0; z-index: 59; background: rgba(12, 27, 42, 0.4); }
+  .filters-head { border-bottom: 1px solid var(--border); }
+  .close-btn { display: grid; place-items: center; }
+  .filters-foot { display: block; padding: var(--s3) var(--s4); border-top: 1px solid var(--border); }
+  .show-btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 600px) {
   .row { grid-template-columns: 80px minmax(0, 1fr); }

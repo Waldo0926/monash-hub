@@ -12,7 +12,19 @@ from datetime import date
 from itertools import islice, product
 from typing import Any
 
-from sqlalchemy import Integer, and_, case, cast, func, literal, literal_column, or_, select, text
+from sqlalchemy import (
+    Integer,
+    and_,
+    case,
+    cast,
+    distinct,
+    func,
+    literal,
+    literal_column,
+    or_,
+    select,
+    text,
+)
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
@@ -376,26 +388,34 @@ def search_units(db: Session, query: str, *, year: int, **kwargs) -> tuple[list[
     return found
 
 
-def _search_units(
-    db: Session,
-    query: str,
-    *,
-    year: int,
-    limit: int = 10,
-    offset: int = 0,
-    campus: str | None = None,
-    teaching_period: str | None = None,
-    level: str | None = None,
-    prefix: str | None = None,
-    has_exam: bool | None = None,
-    sort: str = "relevance",
-    strict: bool = True,
-) -> tuple[list[Unit], int]:
-    stmt = select(Unit).where(Unit.academic_year == year, Unit.is_active.is_(True))
-    count_stmt = select(func.count(Unit.id)).where(
-        Unit.academic_year == year, Unit.is_active.is_(True)
-    )
+Choice = str | list[str] | tuple[str, ...] | None
 
+# The filters a unit list can be narrowed by, and the column each one reads.
+# Campus and teaching period live on the offering; see _unit_filters.
+UNIT_FACETS = ("campus", "teaching_period", "level", "prefix", "faculty", "school", "has_exam")
+
+
+def _many(value: Choice) -> list[str]:
+    """A filter value as a list: one string from an old link, several from the checkboxes."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value else []
+    return [v for v in value if v]
+
+
+@dataclass
+class _UnitMatch:
+    """What a text query matches, and what ranking it later needs."""
+
+    where: Any
+    term: str
+    codes: list[str]
+    ts_query: Any
+    translated_title: Any
+
+
+def _unit_match(query: str, *, strict: bool = True) -> _UnitMatch:
     codes = extract_unit_codes(query)
     # A campus is where the student is, not what the unit is about: 马莫 in
     # 马莫学费 matched 242 units whose overview says "Monash Malaysia".
@@ -408,6 +428,7 @@ def _search_units(
     about_units = bool(term) and _about_units(term)
     ts_query = _ts_query(term, strict=strict) if term else None
 
+    where = None
     if term:
         matches = [Unit.unit_code.in_(codes)] if codes else [
             *([_starts(Unit.unit_code, term)] if _is_code_prefix(term) else []),
@@ -426,33 +447,81 @@ def _search_units(
                 # searched in English, so only an unknown one pays for it.
                 if len(term) >= 3 or _unexplained(term)[0]:
                     matches.append(_zh_match(Unit.search_zh, term))
-        match = or_(*matches) if matches else literal(False)
-        stmt = stmt.where(match)
-        count_stmt = count_stmt.where(match)
+        where = or_(*matches) if matches else literal(False)
+    return _UnitMatch(where, term, codes, ts_query, translated_title)
 
+
+def _offering_filter(campus: list[str], teaching_period: list[str]):
+    """Campus and teaching period, true of the same offering.
+
+    Asked separately they are two EXISTS clauses, and a unit taught at Malaysia
+    in first semester and at Clayton over the full year answered "Malaysia, full
+    year" - a combination it is not taught in anywhere. On the small campuses
+    that was most of the page: "Suzhou (SEU), second semester" listed 27 units
+    of which 2 are actually offered there then, and "Clayton, October intake
+    teaching period, Malaysia campus" listed 13 of which none are.
+    """
+    parts = []
+    if campus:
+        parts.append(UnitOffering.campus.in_(campus))
+    if teaching_period:
+        parts.append(UnitOffering.teaching_period.in_(teaching_period))
+    return and_(*parts) if parts else None
+
+
+def _unit_filters(
+    *,
+    campus: Choice = None,
+    teaching_period: Choice = None,
+    level: Choice = None,
+    prefix: Choice = None,
+    faculty: Choice = None,
+    school: Choice = None,
+    has_exam: bool | None = None,
+) -> list:
+    """WHERE clauses for the side filters. Several values in one filter mean any of them."""
     filters = []
-    # Campus and teaching period have to be true of the *same* offering. Asked
-    # separately they are two EXISTS clauses, and a unit taught at Malaysia in
-    # first semester and at Clayton over the full year answered "Malaysia, full
-    # year" - a combination it is not taught in anywhere. On the small campuses
-    # that was most of the page: "Suzhou (SEU), second semester" listed 27 units
-    # of which 2 are actually offered there then, and "Clayton, October intake
-    # teaching period, Malaysia campus" listed 13 of which none are.
-    offering = [
-        column == value
-        for column, value in ((UnitOffering.campus, campus),
-                              (UnitOffering.teaching_period, teaching_period))
-        if value
-    ]
-    if offering:
-        filters.append(Unit.offerings.any(and_(*offering)))
-    if level:
-        filters.append(Unit.level == level)
-    if prefix:
-        filters.append(Unit.subject_prefix == prefix.upper())
+    offering = _offering_filter(_many(campus), _many(teaching_period))
+    if offering is not None:
+        filters.append(Unit.offerings.any(offering))
+    if levels := _many(level):
+        filters.append(Unit.level.in_(levels))
+    if prefixes := _many(prefix):
+        filters.append(Unit.subject_prefix.in_([p.upper() for p in prefixes]))
+    if faculties := _many(faculty):
+        filters.append(Unit.faculty.in_(faculties))
+    if schools := _many(school):
+        filters.append(Unit.school.in_(schools))
     if has_exam is not None:
         filters.append(Unit.has_exam.is_(has_exam))
-    for condition in filters:
+    return filters
+
+
+def _search_units(
+    db: Session,
+    query: str,
+    *,
+    year: int,
+    limit: int = 10,
+    offset: int = 0,
+    sort: str = "relevance",
+    strict: bool = True,
+    **filter_values,
+) -> tuple[list[Unit], int]:
+    stmt = select(Unit).where(Unit.academic_year == year, Unit.is_active.is_(True))
+    count_stmt = select(func.count(Unit.id)).where(
+        Unit.academic_year == year, Unit.is_active.is_(True)
+    )
+
+    match = _unit_match(query, strict=strict)
+    term, codes, ts_query, translated_title = (
+        match.term, match.codes, match.ts_query, match.translated_title
+    )
+    if match.where is not None:
+        stmt = stmt.where(match.where)
+        count_stmt = count_stmt.where(match.where)
+
+    for condition in _unit_filters(**filter_values):
         stmt = stmt.where(condition)
         count_stmt = count_stmt.where(condition)
 
@@ -527,6 +596,74 @@ def _search_units(
     ).limit(limit).offset(offset)
 
     return list(db.scalars(stmt)), int(db.scalar(count_stmt) or 0)
+
+
+def unit_facets(
+    db: Session, query: str, *, year: int, **filter_values
+) -> dict[str, dict[str, int]]:
+    """How many units each filter value would leave, given everything else chosen.
+
+    Each filter is counted with every other filter applied but not itself, so
+    ticking Clayton still shows how many units Malaysia would add. The text
+    query falls back exactly as ``search_units`` does, so the numbers agree
+    with the result list beside them.
+    """
+    query = fold(query)
+    base = [Unit.academic_year == year, Unit.is_active.is_(True)]
+
+    def total_for(match: _UnitMatch) -> int:
+        conditions = [*base, *([match.where] if match.where is not None else [])]
+        conditions += _unit_filters(**filter_values)
+        return int(db.scalar(select(func.count(Unit.id)).where(*conditions)) or 0)
+
+    match = _unit_match(query)
+    if query and total_for(match) == 0:
+        if _is_multi_concept(query):
+            match = _unit_match(query, strict=False)
+        elif content := _english_fallback(query):
+            match = _unit_match(content)
+    if match.where is not None:
+        base.append(match.where)
+
+    out: dict[str, dict[str, int]] = {}
+    for facet in UNIT_FACETS:
+        others = {k: v for k, v in filter_values.items() if k != facet}
+        if facet in ("campus", "teaching_period"):
+            # The other half of the offering pair has to hold on the same
+            # offering row that is being counted, not on any offering.
+            if facet == "campus":
+                column = UnitOffering.campus
+                same_row = _offering_filter([], _many(others.pop("teaching_period", None)))
+            else:
+                column = UnitOffering.teaching_period
+                same_row = _offering_filter(_many(others.pop("campus", None)), [])
+            conditions = [*base, *_unit_filters(**others), column.is_not(None)]
+            if same_row is not None:
+                conditions.append(same_row)
+            stmt = (
+                select(column, func.count(distinct(Unit.id)))
+                .join(UnitOffering, UnitOffering.unit_id == Unit.id)
+                .where(*conditions)
+                .group_by(column)
+            )
+        else:
+            column = {
+                "level": Unit.level,
+                "prefix": Unit.subject_prefix,
+                "faculty": Unit.faculty,
+                "school": Unit.school,
+                "has_exam": Unit.has_exam,
+            }[facet]
+            stmt = (
+                select(column, func.count(Unit.id))
+                .where(*base, *_unit_filters(**others), column.is_not(None))
+                .group_by(column)
+            )
+        out[facet] = {
+            (str(value).lower() if isinstance(value, bool) else value): int(count)
+            for value, count in db.execute(stmt)
+        }
+    return out
 
 
 def _translated_title(model, target_type: str, target_key, source_title):

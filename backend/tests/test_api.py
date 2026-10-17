@@ -546,3 +546,106 @@ def test_search_results_carry_the_planner_period_tags(client, loaded):
     assert {o["campus_raw"] for o in offerings} >= {"Malaysia"}
     assert all(o["short"] == "S2" for o in offerings)
     assert all(o["teaching_period_raw"] for o in offerings)
+
+
+def _plain_unit(code, *, faculty, school=None, offerings=(), has_exam=None, level="Level 1"):
+    return Unit(
+        unit_code=code,
+        title=f"Unit {code}",
+        academic_year=2026,
+        level=level,
+        faculty=faculty,
+        school=school,
+        subject_prefix=code[:3],
+        has_exam=has_exam,
+        source_url=f"https://handbook.monash.edu/2026/units/{code}",
+        content_hash=f"{code}-test",
+        is_active=True,
+        offerings=[UnitOffering(campus=c, teaching_period=p) for c, p in offerings],
+    )
+
+
+@pytest.fixture
+def faculties(db):
+    db.add_all([
+        _plain_unit("FIT1001", faculty="Faculty of Information Technology",
+                    school="School of Information Technology",
+                    offerings=[("Malaysia", "First semester"), ("Clayton", "Second semester")],
+                    has_exam=True),
+        _plain_unit("FIT1002", faculty="Faculty of Information Technology",
+                    school="Department of Data Science and AI",
+                    offerings=[("Clayton", "First semester")], has_exam=False),
+        _plain_unit("ENG1001", faculty="Faculty of Engineering",
+                    school="Malaysia School of Engineering",
+                    offerings=[("Malaysia", "Second semester")], has_exam=True, level="Level 2"),
+    ])
+    db.commit()
+    return db
+
+
+def test_units_filter_by_faculty_and_school(client, faculties):
+    by_faculty = client.get("/api/v1/units", params={"faculty": "Faculty of Engineering"}).json()
+    assert [r["unit_code"] for r in by_faculty["results"]] == ["ENG1001"]
+
+    by_school = client.get(
+        "/api/v1/units", params={"school": "Department of Data Science and AI"}
+    ).json()
+    assert [r["unit_code"] for r in by_school["results"]] == ["FIT1002"]
+
+
+def test_several_values_in_one_filter_mean_any_of_them(client, faculties):
+    body = client.get(
+        "/api/v1/units",
+        params=[("campus", "Malaysia"), ("campus", "Clayton"), ("level", "Level 2")],
+    ).json()
+    assert [r["unit_code"] for r in body["results"]] == ["ENG1001"]
+
+    # Still one offering: FIT1002 is not taught at Malaysia in either semester.
+    body = client.get(
+        "/api/v1/units",
+        params=[("campus", "Malaysia"), ("teaching_period", "First semester"),
+                ("teaching_period", "Second semester")],
+    ).json()
+    assert {r["unit_code"] for r in body["results"]} == {"FIT1001", "ENG1001"}
+
+
+def test_filter_lists_put_the_biggest_value_first(client, faculties):
+    body = client.get("/api/v1/units/filters", params={"year": 2026}).json()
+    assert body["faculties"] == ["Faculty of Information Technology", "Faculty of Engineering"]
+    assert set(body["schools"]) == {
+        "School of Information Technology",
+        "Department of Data Science and AI",
+        "Malaysia School of Engineering",
+    }
+    assert body["levels"] == ["Level 1", "Level 2"]
+
+
+def test_facet_counts_leave_out_their_own_filter(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets", params={"year": 2026, "campus": "Malaysia"}
+    ).json()["counts"]
+    # Ticking Malaysia still says what Clayton would add.
+    assert counts["campus"] == {"Malaysia": 2, "Clayton": 2}
+    # Every other filter counts within Malaysia only.
+    assert counts["faculty"] == {
+        "Faculty of Information Technology": 1,
+        "Faculty of Engineering": 1,
+    }
+    assert counts["has_exam"] == {"true": 2}
+
+
+def test_facet_counts_keep_campus_and_period_on_one_offering(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets",
+        params={"year": 2026, "teaching_period": "First semester"},
+    ).json()["counts"]
+    # FIT1001 is at Clayton only in second semester, so first semester at
+    # Clayton is FIT1002 alone.
+    assert counts["campus"] == {"Malaysia": 1, "Clayton": 1}
+
+
+def test_facet_counts_follow_the_text_query(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets", params={"year": 2026, "q": "ENG1001"}
+    ).json()["counts"]
+    assert counts["faculty"] == {"Faculty of Engineering": 1}

@@ -4,6 +4,25 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (unit search filters fold away)
+
+- The filters on the unit search page are now headings that open and
+  close, with + and − on the right. Year and campus start open, the rest
+  start closed unless a filter in them is set, so every heading fits on one
+  screen. The panel scrolls on its own beside the results.
+- Options are checkboxes with the number of units each one leaves, worked
+  out with the other filters applied. Long lists show the six biggest
+  values first and hide the rest behind "Show more". School and subject
+  lists have a box to type into.
+- New Faculty and School or department filters, from the Faculty and
+  Organisational unit fields the Handbook already gives every unit.
+- Several values can be ticked in one filter, such as Malaysia and
+  Clayton, and mean any of them. Links with a single value still work.
+- On a phone the filters open in a drawer from the side, with a button at
+  the bottom to see the results.
+- New `/api/v1/units/facets` endpoint for the counts. `/units/filters`
+  now also lists faculties and schools, biggest first.
+
 ### Changed (degree type links in two rows)
 
 - The type links above the degree panels are a grid of five equal columns.

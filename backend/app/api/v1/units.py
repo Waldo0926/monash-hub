@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import distinct, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import requested_locale
@@ -29,10 +29,12 @@ def _year(year: int | None) -> int:
 def list_units(
     q: str = Query("", max_length=300, description="Unit code, title or keyword"),
     year: int | None = None,
-    campus: str | None = None,
-    teaching_period: str | None = None,
-    level: str | None = None,
-    prefix: str | None = Query(None, description="Subject prefix, e.g. FIT"),
+    campus: list[str] | None = Query(None),
+    teaching_period: list[str] | None = Query(None),
+    level: list[str] | None = Query(None),
+    prefix: list[str] | None = Query(None, description="Subject prefix, e.g. FIT"),
+    faculty: list[str] | None = Query(None),
+    school: list[str] | None = Query(None, description="The Handbook's organisational unit"),
     has_exam: bool | None = None,
     sort: str = Query("relevance", pattern="^(relevance|code|title)$"),
     codes: str | None = Query(
@@ -61,6 +63,8 @@ def list_units(
             teaching_period=teaching_period,
             level=level,
             prefix=prefix,
+            faculty=faculty,
+            school=school,
             has_exam=has_exam,
             sort=sort,
         )
@@ -97,29 +101,25 @@ def _units_by_code(db: Session, codes: str, year: int) -> list[Unit]:
 
 @router.get("/filters")
 def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict:
-    """Facet values that actually exist, so the UI never offers a dead filter."""
+    """Facet values that actually exist, so the UI never offers a dead filter.
+
+    Most lists come back with the value most units have first, so a short list
+    with "show more" opens on Clayton and Malaysia rather than Alfred Hospital.
+    Levels stay in their own order.
+    """
     resolved = _year(year)
-    campuses = db.scalars(
-        select(distinct(UnitOffering.campus))
-        .join(Unit, Unit.id == UnitOffering.unit_id)
-        .where(Unit.academic_year == resolved, UnitOffering.campus.is_not(None))
-        .order_by(UnitOffering.campus)
-    ).all()
-    periods = db.scalars(
-        select(distinct(UnitOffering.teaching_period))
-        .join(Unit, Unit.id == UnitOffering.unit_id)
-        .where(Unit.academic_year == resolved, UnitOffering.teaching_period.is_not(None))
-        .order_by(UnitOffering.teaching_period)
-    ).all()
+
+    def by_count(column, *, offering: bool = False) -> list[str]:
+        units = func.count(distinct(Unit.id))
+        stmt = select(column).where(Unit.academic_year == resolved, column.is_not(None))
+        if offering:
+            stmt = stmt.select_from(UnitOffering).join(Unit, Unit.id == UnitOffering.unit_id)
+        return list(db.scalars(stmt.group_by(column).order_by(units.desc(), column)).all())
+
     levels = db.scalars(
         select(distinct(Unit.level))
         .where(Unit.academic_year == resolved, Unit.level.is_not(None))
         .order_by(Unit.level)
-    ).all()
-    prefixes = db.scalars(
-        select(distinct(Unit.subject_prefix))
-        .where(Unit.academic_year == resolved, Unit.subject_prefix.is_not(None))
-        .order_by(Unit.subject_prefix)
     ).all()
     years = db.scalars(
         select(distinct(Unit.academic_year)).order_by(Unit.academic_year.desc())
@@ -127,10 +127,48 @@ def unit_filters(year: int | None = None, db: Session = Depends(get_db)) -> dict
     return {
         "academic_year": resolved,
         "years": list(years),
-        "campuses": list(campuses),
-        "teaching_periods": list(periods),
+        "campuses": by_count(UnitOffering.campus, offering=True),
+        "teaching_periods": by_count(UnitOffering.teaching_period, offering=True),
         "levels": list(levels),
-        "prefixes": list(prefixes),
+        "prefixes": by_count(Unit.subject_prefix),
+        "faculties": by_count(Unit.faculty),
+        "schools": by_count(Unit.school),
+    }
+
+
+@router.get("/facets")
+def unit_facet_counts(
+    q: str = Query("", max_length=300),
+    year: int | None = None,
+    campus: list[str] | None = Query(None),
+    teaching_period: list[str] | None = Query(None),
+    level: list[str] | None = Query(None),
+    prefix: list[str] | None = Query(None),
+    faculty: list[str] | None = Query(None),
+    school: list[str] | None = Query(None),
+    has_exam: bool | None = None,
+    db: Session = Depends(get_db),
+) -> dict:
+    """How many units each filter value would leave, for the numbers beside the checkboxes.
+
+    Kept apart from ``/filters`` because these change with every tick and
+    query, while the list of values only changes with the year.
+    """
+    resolved = _year(year)
+    return {
+        "academic_year": resolved,
+        "counts": service.unit_facets(
+            db,
+            q,
+            year=resolved,
+            campus=campus,
+            teaching_period=teaching_period,
+            level=level,
+            prefix=prefix,
+            faculty=faculty,
+            school=school,
+            has_exam=has_exam,
+        ),
     }
 
 

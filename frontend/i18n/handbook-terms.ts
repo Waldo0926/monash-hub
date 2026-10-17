@@ -202,6 +202,8 @@ const zhFaculty: Dictionary = {
   'Faculty of Education': '教育学院',
   'Faculty of Engineering': '工程学院',
   'Faculty of Information Technology': '信息技术学院',
+  'Faculty of Law': '法学院',
+  'Faculty of Medicine, Nursing and Health Sciences': '医学、护理与健康科学学院',
   'Faculty of Pharmacy and Pharmaceutical Sciences': '药学与制药科学学院',
   'Faculty of Science': '理学院',
   'Department of Accounting': '会计系',
