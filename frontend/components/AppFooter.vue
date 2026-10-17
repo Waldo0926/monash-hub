@@ -7,6 +7,11 @@ const sectionLinks = useSectionNavigation()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
 
+// The account name is a link to /mamo, so the sentence is split around it.
+// The name stays in Chinese in every language because that is what people
+// search for in WeChat.
+const wechatParts = computed(() => $t('footer.wechat').split('{name}'))
+
 const featuresHeading = computed(() => {
   if (locale.value === 'zh') return '功能导航'
   if (locale.value === 'en') return 'Features'
@@ -86,7 +91,12 @@ const featuresHeading = computed(() => {
       </nav>
 
       <div class="footer-bottom">
-        <p class="small wechat">{{ $t('footer.wechat') }}</p>
+        <!-- Points at the 马莫百科 page rather than only naming the account,
+             so someone can see what it posts and scan the QR codes there. -->
+        <p class="small wechat">
+          {{ wechatParts[0] }}<NuxtLink to="/mamo" class="wechat-name">马莫百科</NuxtLink>{{ wechatParts[1] }}
+          <NuxtLink to="/mamo#follow" class="wechat-cta">{{ $t('footer.wechatCta') }} →</NuxtLink>
+        </p>
         <p class="tiny copyright">© 2026 Shuoxun Wen. All rights reserved.</p>
       </div>
     </div>
@@ -131,6 +141,16 @@ const featuresHeading = computed(() => {
   padding-left: var(--s3);
   border-left: 2px solid var(--footer-accent);
   color: var(--footer-heading);
+}
+.wechat-name {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wechat-cta {
+  margin-left: var(--s2);
+  font-weight: 600;
+  white-space: nowrap;
 }
 .copyright {
   margin: 0;

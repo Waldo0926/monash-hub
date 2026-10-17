@@ -115,7 +115,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         </ul>
       </div>
 
-      <aside class="follow card" :aria-label="$t('mamo.followHeading')">
+      <!-- The footer links here with #follow. -->
+      <aside id="follow" class="follow card" :aria-label="$t('mamo.followHeading')">
         <h2 class="follow-heading">{{ $t('mamo.followHeading') }}</h2>
         <div v-for="c in contacts" :key="c.value" class="follow-row">
           <img :src="c.qr" :alt="c.qrAlt" class="qr" width="112" height="112" loading="lazy">
@@ -287,7 +288,10 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
 }
 .stats strong { color: var(--text); }
 
-.follow { padding: var(--s5); }
+.follow {
+  padding: var(--s5);
+  scroll-margin-top: calc(var(--header-h, 64px) + var(--s4));
+}
 .follow-heading { margin-bottom: var(--s3); font-size: 1.05rem; }
 .follow-row {
   display: flex;
