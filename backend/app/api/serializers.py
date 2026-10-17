@@ -123,6 +123,11 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         # One string, identical on thousands of units - it lives in the global
         # set rather than being stored 2,596 times.
         "assessment_static_text": tr.string(unit.assessment_static_text),
+        # Reading lists are titles and links, shown as published: translating
+        # a book title would only make it harder to find.
+        "learning_resources": unit.learning_resources or [],
+        "sca_band": unit.sca_band,
+        "study_abroad": unit.study_abroad,
         "translation": tr.meta(),
         "handbook_version": unit.handbook_version,
         "assessments": [

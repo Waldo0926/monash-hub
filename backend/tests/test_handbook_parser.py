@@ -214,3 +214,34 @@ def test_html_to_text_flattens_lists_and_entities():
 )
 def test_unit_codes_ignore_cjk_neighbours(text, expected):
     assert _unit_codes(text) == expected
+
+
+# --- reading list, fee band, study abroad ------------------------------------------
+
+def test_reading_list_keeps_its_links_and_order(handbook_html):
+    unit = _parse(handbook_html, "FIT2102")
+    groups = unit["learning_resources"]
+    # Ordered by the Handbook's own order, and a group with nothing in it is dropped.
+    assert [g["type"] for g in groups] == ["Required resources", "Recommended resources"]
+    required, recommended = groups
+    # A link inside the Handbook is not an address a student can open from here.
+    assert required["items"] == ["Lecture notes on FIT1008 topics"]
+    assert recommended["items"] == [
+        "Synthetic field guide: https://example.org/guide",
+        "The synthetic tutorial https://example.org/tutorial",
+        "Additional language support:",
+    ]
+
+
+def test_fee_band_and_study_abroad(handbook_html):
+    unit = _parse(handbook_html, "FIT2102")
+    assert unit["sca_band"] == "2"
+    assert unit["study_abroad"] is True
+
+
+def test_a_unit_that_says_nothing_stays_unknown(handbook_html):
+    unit = _parse(handbook_html, "FIT1008")
+    assert unit["learning_resources"] == []
+    assert unit["sca_band"] is None
+    # Not stated is not "no".
+    assert unit["study_abroad"] is None

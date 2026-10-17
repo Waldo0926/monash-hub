@@ -455,6 +455,68 @@ def _parse_activities(raw: list[dict] | None) -> list[dict[str, Any]]:
     return activities
 
 
+_LINK_RE = re.compile(r"<a\b[^>]*?href\s*=\s*[\"']([^\"']+)[\"'][^>]*>(.*?)</a>", re.I | re.S)
+
+
+def _keep_links(value: str | None) -> str | None:
+    """``html_to_text``, except a link keeps its address.
+
+    A reading list is mostly links. Dropping the tags the usual way would
+    leave "The Python Tutorial" with nowhere to go, so an http(s) link is
+    written out after its label unless the label already is the address.
+    """
+    if not value:
+        return None
+
+    def spell(match: re.Match) -> str:
+        url = unescape(match.group(1)).strip()
+        label = unescape(TAG_RE.sub("", match.group(2))).strip()
+        if not url.lower().startswith(("http://", "https://")):
+            return label
+        if not label or label == url or url in label:
+            return url
+        return f"{label} {url}"
+
+    return html_to_text(_LINK_RE.sub(spell, value))
+
+
+def _parse_learning_resources(raw: list[dict] | None) -> list[dict[str, Any]]:
+    """``learning_resources_grouped``: required and recommended reading, in order."""
+    groups = []
+    for group in sorted(raw or [], key=lambda g: _as_int(g.get("order")) or 0):
+        items = [
+            text
+            for resource in group.get("resources") or []
+            if (text := _keep_links(resource.get("description")))
+        ]
+        if items:
+            groups.append({
+                "type": _plain(group.get("type"), "label", "value") or "Resources",
+                "items": items,
+            })
+    return groups
+
+
+def _yes_no(node: Any) -> bool | None:
+    """A Handbook yes/no field. Anything else stays unknown rather than becoming "no"."""
+    value = (_plain(node, "value", "label") or "").lower()
+    if value in ("yes", "true"):
+        return True
+    if value in ("no", "false"):
+        return False
+    return None
+
+
+def _band(node: Any) -> str | None:
+    """The SCA band as published, "Band 2" or a bare 2, without the word."""
+    if isinstance(node, int):
+        return str(node)
+    value = _plain(node, "label", "value")
+    if not value:
+        return None
+    return re.sub(r"(?i)^band\s*", "", value).strip() or None
+
+
 def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
     """Parse one Handbook unit page into a normalised record."""
     data = extract_next_data(html)
@@ -514,6 +576,11 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
         "requisite_groups": requisite_groups,
         "learning_outcomes": _parse_learning_outcomes(content.get("unit_learning_outcomes")),
         "activities": _parse_activities(content.get("learning_activities_grouped")),
+        "learning_resources": _parse_learning_resources(content.get("learning_resources_grouped")),
+        # The student contribution band sets what a Commonwealth supported
+        # student pays for the unit. It is published as "Band 2" or just "2".
+        "sca_band": _band(content.get("highest_sca_band")),
+        "study_abroad": _yes_no(content.get("study_abroad_unit")),
     }
     record["has_exam"] = derive_has_exam(assessments, assessment_summary)
     record["content_hash"] = compute_content_hash(record)

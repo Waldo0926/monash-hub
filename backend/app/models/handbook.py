@@ -64,6 +64,13 @@ class Unit(Base):
     workload_requirements: Mapped[str | None] = mapped_column(Text)
     assessment_summary: Mapped[str | None] = mapped_column(Text)
     assessment_static_text: Mapped[str | None] = mapped_column(Text)
+    # [{"type": "Recommended resources", "items": ["The Python Tutorial https://..."]}]
+    learning_resources: Mapped[list | None] = mapped_column(JSONB)
+    # Student contribution band, "1" to "4". Nullable: most postgraduate units
+    # and every unit before the band was published have none.
+    sca_band: Mapped[str | None] = mapped_column(String(16))
+    # None when the Handbook does not say, which is not the same as "no".
+    study_abroad: Mapped[bool | None] = mapped_column(Boolean)
 
     # Derived flags the Unit Search filters use. ``has_exam`` stays nullable on
     # purpose: "the Handbook does not list one" is not the same claim as "there
