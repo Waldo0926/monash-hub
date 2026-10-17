@@ -231,3 +231,20 @@ def test_a_specialisation_line_uses_the_title_its_own_page_has_in_chinese(client
     en = client.get("/api/v1/courses/C2001").json()
     part_c_en = next(c for c in en["containers"] if "Specialist" in (c["title"] or ""))
     assert {i["code"]: i["name"] for i in part_c_en["items"]}["DATASCI11"] != "数据科学"
+
+
+def test_a_unit_page_names_the_areas_of_study_that_list_it(client, degrees):
+    _unit(degrees, "FIT2101", "Synthetic core unit", ("Malaysia",))
+    _unit(degrees, "FIT3101", "Synthetic elective", ("Malaysia",))
+    degrees.commit()
+
+    core = client.get("/api/v1/units/FIT2101").json()["areas"]
+    assert [a["aos_code"] for a in core] == ["DATASCI11"]
+    assert core[0]["parts"] == ["Core units"]
+
+    elective = client.get("/api/v1/units/FIT3101").json()["areas"]
+    assert elective[0]["parts"] == ["Level 3 elective units"]
+
+
+def test_a_unit_no_area_lists_has_none(client, degrees):
+    assert client.get("/api/v1/units/FIT1047").json()["areas"] == []

@@ -12,8 +12,9 @@ from app.core.db import get_db
 from app.handbook import tree
 from app.handbook.years import available_years, resolve_year
 from app.knowledge import teach_out, translations
+from app.models.curriculum import AreaOfStudy, CurriculumContainer, CurriculumItem
 from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
-from app.models.translation import UNIT
+from app.models.translation import AREA_OF_STUDY, UNIT
 from app.search import service
 
 router = APIRouter(prefix="/units", tags=["units"])
@@ -157,6 +158,55 @@ def _load(db: Session, code: str, year: int) -> Unit:
     return unit
 
 
+def _areas_including(db: Session, code: str, year: int, locale: str | None) -> list[dict]:
+    """The majors, minors and specialisations whose curriculum lists this unit.
+
+    The unit's own ``areas_of_study`` field is a line of prose from the
+    Handbook. This reads the curriculum the other way round, so each one can
+    be a link, and it says which part of the curriculum names the unit
+    ("Core units", "Level 3 elective units"), because core and elective are
+    very different reasons to take it.
+    """
+    rows = db.execute(
+        select(
+            AreaOfStudy.aos_code,
+            AreaOfStudy.title,
+            AreaOfStudy.aos_type,
+            AreaOfStudy.content_hash,
+            CurriculumContainer.title,
+        )
+        .join(CurriculumContainer, CurriculumContainer.area_of_study_id == AreaOfStudy.id)
+        .join(CurriculumItem, CurriculumItem.container_id == CurriculumContainer.id)
+        .where(
+            CurriculumItem.item_code == code.upper(),
+            AreaOfStudy.academic_year == year,
+            AreaOfStudy.is_active.is_(True),
+        )
+        .order_by(AreaOfStudy.aos_type, AreaOfStudy.title, CurriculumContainer.order_index)
+    ).all()
+
+    found: dict[str, dict] = {}
+    for aos_code, title, aos_type, content_hash, part in rows:
+        entry = found.setdefault(aos_code, {
+            "aos_code": aos_code, "title": title, "aos_type": aos_type,
+            "parts": [], "_hash": content_hash,
+        })
+        if part and part not in entry["parts"]:
+            entry["parts"].append(part)
+
+    codes = list(found)
+    tr = translations.load_many(
+        db, locale, AREA_OF_STUDY, codes, source_hashes={c: found[c]["_hash"] for c in codes}
+    )
+    result = []
+    for aos_code, entry in found.items():
+        entry.pop("_hash")
+        entry["title"] = tr[aos_code].field("title", entry["title"]) or entry["title"]
+        entry["aos_type"] = tr[aos_code].string(entry["aos_type"])
+        result.append(entry)
+    return result
+
+
 @router.get("/{code}")
 def get_unit(
     code: str,
@@ -172,6 +222,7 @@ def get_unit(
         "not_in_year": not_in_year,
         "available_years": available_years(db, Unit.unit_code, Unit.academic_year, code),
         "teach_out": teach_out.lookup(db, [unit.unit_code]).get(unit.unit_code),
+        "areas": _areas_including(db, unit.unit_code, academic_year, locale),
     }
 
 

@@ -4,6 +4,32 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (the unit page reads faster)
+
+- The header opens with four facts: credit points, when the unit is taught at
+  the reader's campus, whether the Handbook lists an exam and how many items,
+  and level.
+- Every section has an icon, and the contents on the right follow the scroll.
+- Assessment is a bar of how the marks are split, with each item, its type
+  and any hurdle underneath, instead of a five-column table.
+- Offerings are grouped by teaching period, with the reader's campus first and
+  shaded. Workload shows the expected study time and each activity as tiles.
+
+### Added (reading lists, where a unit fits, common questions)
+
+- The parser keeps `learning_resources_grouped`, `highest_sca_band` and
+  `study_abroad_unit`. A reading list keeps its links; a yes/no field the
+  Handbook leaves out stays unknown. The new columns change every unit's
+  content hash, so the next crawl rewrites each unit once.
+- `GET /v1/units/{code}` returns `areas`: the majors, minors and
+  specialisations whose curriculum lists the unit, and which part of it.
+- New unit page sections: Learning resources, Where it fits (cards linking to
+  each area of study), Common questions and More details (SCA band, study
+  abroad, Handbook years). Common questions are written from the fields on the
+  page, "is it hard" included: Monash Hub says it does not rate units and
+  points to the workload and to Community. The same answers go out as
+  FAQPage structured data.
+
 ### Changed (see a unit before adding it to the course map)
 
 - "Add unit" on `/plan` opens a dialog instead of an inline list. Results are
