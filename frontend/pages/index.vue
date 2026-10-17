@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * Home answers three questions above the fold and nothing else: what is this,
- * where do I search, and what is coming up for me. Everything below is a way
- * in: the eight tools, one example unit per faculty, the guides most used at
- * this point in the semester, and the community.
+ * Home answers four questions above the fold: what is this, where do I search,
+ * what else can I do here, and what is coming up for me. Everything below is a
+ * way in: one example unit per faculty, the guides most used at this point in
+ * the semester, and the community.
  *
  * For a signed-in reader it also carries the notification list, because the
  * point of being told your question was answered is that you see it without
@@ -106,7 +106,6 @@ const COPY = {
     lead: 'Handbook units, official Monash pages and student experience, kept apart. Every entry says where it came from and when it was last checked.',
     placeholder: 'FIT2004, special consideration, census date…',
     popular: 'Often searched',
-    startHere: 'Start here',
     unitsTitle: 'Units across the faculties',
     unitsLead: 'One unit from each, as a way in. Search covers every unit in the Handbook.',
     exam: 'exam',
@@ -124,17 +123,7 @@ const COPY = {
       ['Every 6 hours', 'Official Monash pages checked for changes'],
       ['2025–2027', 'Three Handbook years, so you can check by your intake year'],
       ['4 languages', '中文 · English · 日本語 · 한국어']
-    ],
-    hints: {
-      '/units': 'Assessment, requisites, where and when it runs',
-      '/guides': 'Special consideration, census dates, visas',
-      '/tree': 'What a unit needs first, and what it unlocks',
-      '/plan': 'Lay out semesters, checked against each year’s Handbook',
-      '/courses': 'Structure, core units and majors',
-      '/marks': 'Type marks in, or read them from a transcript screenshot',
-      '/community': 'Ask, and hear from students who took it',
-      '/mamo': 'Life and admin at the Malaysia campus'
-    } as Record<string, string>
+    ]
   },
   zh: {
     eyebrow: '学生自建 · 非 Monash 官方',
@@ -144,7 +133,6 @@ const COPY = {
     lead: 'Handbook 课程、Monash 官方页面和同学的经验分开放。每条信息都写明来自哪里、最后什么时候核对过。',
     placeholder: 'FIT2004、特殊考虑、census date…',
     popular: '常搜',
-    startHere: '从这里开始',
     unitsTitle: '各学院的课程',
     unitsLead: '每个学院放一门，当作入口。搜索能查 Handbook 里的全部课程。',
     exam: '有考试',
@@ -162,27 +150,29 @@ const COPY = {
       ['每 6 小时', '核对一次 Monash 官方页面有没有改动'],
       ['2025–2027', '三年 Handbook 都在，按入学年份查'],
       ['4 种语言', '中文 · English · 日本語 · 한국어']
-    ],
-    hints: {
-      '/units': '考核方式、先修要求、哪个校区哪学期开',
-      '/guides': '特殊考虑、Census date、学生签证',
-      '/tree': '一门课要先修什么，修完能解锁什么',
-      '/plan': '按学期排课，按当年 Handbook 检查先修',
-      '/courses': '学位结构、必修课和专业方向',
-      '/marks': '手动输入，或上传成绩单截图识别',
-      '/community': '提问，看同学怎么说',
-      '/mamo': '马来西亚校区的生活和办事'
-    } as Record<string, string>
+    ]
   }
 }
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 const marketing = computed(() => locale.value === 'en' || locale.value === 'zh')
 
-const ORDER = ['/units', '/guides', '/tree', '/plan', '/courses', '/marks', '/community', '/mamo']
+// The eight tools sit under the search box, so a first visit sees what the site
+// does without scrolling past the dates. Labels come from the header navigation;
+// the icons are the line set the header and the plan page already use.
+const TOOLS = [
+  { to: '/units', key: 'units', icon: 'book' },
+  { to: '/guides', key: 'guides', icon: 'page' },
+  { to: '/tree', key: 'tree', icon: 'tree' },
+  { to: '/plan', key: 'plan', icon: 'columns' },
+  { to: '/courses', key: 'courses', icon: 'degree' },
+  { to: '/marks', key: 'marks', icon: 'percent' },
+  { to: '/community', key: 'community', icon: 'chat' },
+  { to: '/mamo', key: 'mamo', icon: 'pin' }
+]
 const directory = computed(() =>
-  ORDER.flatMap(to => {
+  TOOLS.flatMap(({ to, key, icon }) => {
     const item = sectionItems.value.find(i => i.to === to)
-    return item ? [{ ...item, hint: c.value.hints[to] }] : []
+    return item ? [{ to, icon, label: item.label, hint: $t(`home.toolHint.${key}`) }] : []
   })
 )
 
@@ -247,6 +237,16 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
             {{ term.text }}
           </button>
         </p>
+        <nav class="tools" aria-labelledby="tools-title">
+          <h2 id="tools-title" class="tools-title">{{ $t('home.startHere') }}</h2>
+          <NuxtLink v-for="item in directory" :key="item.to" :to="item.to" class="tool">
+            <span class="tool-icon"><PlanIcon :name="item.icon" :size="20" /></span>
+            <span class="tool-text">
+              <b>{{ item.label }}</b>
+              <span class="tool-hint">{{ item.hint }}</span>
+            </span>
+          </NuxtLink>
+        </nav>
       </div>
       <KeyDatesCard v-model:campus="campus" />
     </section>
@@ -259,16 +259,6 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         <span class="small">{{ text }}</span>
       </li>
     </ul>
-
-    <section class="sec" aria-labelledby="start-title">
-      <h2 id="start-title">{{ marketing ? c.startHere : $t('home.moreTools') }}</h2>
-      <nav class="dir">
-        <NuxtLink v-for="item in directory" :key="item.to" :to="item.to">
-          <strong>{{ item.label }}</strong>
-          <span v-if="marketing" class="small">{{ item.hint }}</span>
-        </NuxtLink>
-      </nav>
-    </section>
 
     <section class="sec" aria-labelledby="units-title">
       <div class="sec-head">
@@ -408,16 +398,52 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .sec-head p { margin: var(--s1) 0 0; }
 .more { color: var(--brand); white-space: nowrap; }
 
-/* The eight tools as a ruled index rather than eight boxes. The first rule is
-   ink and the rest are hairlines, so the list reads as one object. */
-.dir { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--s6); }
-.dir a { display: block; padding: var(--s4) 0 var(--s5); border-top: 1px solid var(--border); color: inherit; }
-.dir a:nth-child(-n + 4) { border-top-color: var(--ink); }
-.dir a:hover { text-decoration: none; }
-.dir strong { display: flex; align-items: center; gap: var(--s2); font-weight: 600; }
-.dir strong::after { content: '→'; color: var(--brand); font-weight: 400; opacity: 0; transform: translateX(-4px); transition: opacity 0.15s, transform 0.15s; }
-.dir a:hover strong::after { opacity: 1; transform: none; }
-.dir span { display: block; margin-top: var(--s1); color: var(--muted); line-height: 1.5; }
+/* The eight tools as soft tiles on the same light grey as the header tray: two
+   columns beside the dates, an app-style grid of four on a phone. The icon sits
+   on a small white chip, like the raised sign-in piece in the header. */
+.tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+  margin-top: var(--s5);
+}
+.tools-title {
+  grid-column: 1 / -1;
+  margin: 0 0 var(--s1);
+  color: var(--muted-2);
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.tool {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: var(--s3);
+  align-items: center;
+  padding: var(--s2) var(--s3);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: inherit;
+  transition: background-color 0.15s;
+}
+.tool:hover { background: var(--blue-50); text-decoration: none; }
+.tool:hover b { color: var(--brand-700); }
+.tool-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--brand);
+  box-shadow: var(--shadow-sm), 0 0 0 1px var(--border);
+}
+.tool-text { display: grid; gap: 1px; }
+.tool b { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+.tool-hint { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+/* Korean wraps between words, not inside them. */
+.tool-hint:lang(ko) { word-break: keep-all; }
 
 .units { border-top: 1px solid var(--ink); }
 .unit {
@@ -459,14 +485,25 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
   .trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dir { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dir a:nth-child(-n + 4) { border-top-color: var(--border); }
-  .dir a:nth-child(-n + 2) { border-top-color: var(--ink); }
+  .tools { margin-top: var(--s5); }
   .split { grid-template-columns: 1fr; gap: var(--s6); }
 }
 @media (max-width: 560px) {
-  .dir { grid-template-columns: 1fr; }
-  .dir a:nth-child(2) { border-top-color: var(--border); }
+  .tools { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s3) var(--s2); }
+  .tool {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: start;
+    row-gap: 6px;
+    padding: 0;
+    background: none;
+    text-align: center;
+  }
+  .tool:hover { background: none; }
+  .tool-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); box-shadow: none; }
+  .tool:hover .tool-icon { background: var(--blue-50); }
+  .tool b { font-size: 0.75rem; font-weight: 500; }
+  .tool-hint { display: none; }
   .unit { grid-template-columns: 1fr auto; gap: 2px var(--s3); }
   .area { grid-column: 2; grid-row: 1; text-align: right; }
   .code { grid-column: 1; grid-row: 1; }
@@ -474,6 +511,6 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   .campuses { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dir strong::after { transition: none; }
+  .tool { transition: none; }
 }
 </style>
