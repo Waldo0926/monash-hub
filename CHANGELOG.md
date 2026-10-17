@@ -4,6 +4,12 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (Honours degrees on the left)
+
+- On the degree page the one-year Honours panel moves to the left column,
+  under the undergraduate double degrees, with the vertical double degrees
+  and diplomas after it. The right column was much longer than the left.
+
 ### Changed (search understands more of what students type)
 
 - Traditional Chinese and full-width input are folded to Simplified and
