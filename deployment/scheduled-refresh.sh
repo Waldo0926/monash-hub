@@ -12,8 +12,13 @@
 # crawler/sync/refresh.py (12 hours for dates, 2 days, 14 days) only mean
 # something if something asks what is due.
 #
-# One lock for both: they share the crawler container's CPU budget and the same
-# upstream, and neither is urgent enough to run beside the other.
+# One lock for both crawls: they share the crawler container's CPU budget and
+# the same upstream, and neither is urgent enough to run beside the other.
+#
+# Translation runs after the crawl lock is released, under a lock of its own
+# (shared with translate.sh). The first Japanese and Korean fill takes hours,
+# and while it held the crawl lock the 02:26 Handbook refresh saw it and
+# skipped itself, leaving the week's crawl undone.
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
@@ -49,12 +54,6 @@ case "${1:-}" in
     # Only pages whose tier says they are due, so running this often costs a
     # handful of requests, not the whole seed list.
     "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run
-    # A page that changed keeps its old translation, flagged stale, until it
-    # is translated again. Only changed or new pages are sent, so this is a
-    # minute or two, and a person's translation still wins on read.
-    for locale in $locales; do
-      translate --locale "$locale" --targets official
-    done
     ;;
 
   handbook)
@@ -64,13 +63,6 @@ case "${1:-}" in
       python -m crawler.handbook.run --all --skip-fresh 144 --min-interval 2
     "${COMPOSE[@]}" run --rm crawler \
       python -m crawler.handbook.run_courses --all --skip-fresh 144 --min-interval 2
-    # Nothing translated the new Handbook English before this, so a unit
-    # Monash rewrote stayed in English until somebody ran translate.sh by hand.
-    # Stored sentences are reused; only the ones that changed reach the engine.
-    for locale in $locales; do
-      translate --locale "$locale" --targets units
-      translate --locale "$locale" --targets curriculum
-    done
     ;;
   *)
     echo "usage: $0 {official|handbook}" >&2
@@ -99,4 +91,35 @@ CURRENT_ACADEMIC_YEAR when it is complete. See docs/DEPLOYMENT.md." || true
 fi
 
 # A refreshed page keeps its translations, but search reads the flattened copy.
+"${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh
+
+# The crawl is done; let the other refresh have the upstream.
+flock -u 9
+exec 9>&-
+
+exec 8>"$STATE_DIR/translate.lock"
+if [[ "$1" == official ]]; then
+  # Every six hours, so a refresh that finds a pass running leaves its pages
+  # to the next one rather than queueing behind it.
+  if ! flock -n 8; then
+    echo "a translation pass is running; changed pages wait for the next refresh"
+    exit 0
+  fi
+  # A page that changed keeps its old translation, flagged stale, until it
+  # is translated again. Only changed or new pages are sent, and a person's
+  # translation still wins on read.
+  for locale in $locales; do
+    translate --locale "$locale" --targets official
+  done
+else
+  # Weekly, so it waits its turn instead of skipping a week. Nothing
+  # translated the new Handbook English before this, so a unit Monash
+  # rewrote stayed in English until somebody ran translate.sh by hand.
+  # Stored sentences are reused; only the ones that changed reach the engine.
+  flock 8
+  for locale in $locales; do
+    translate --locale "$locale" --targets units
+    translate --locale "$locale" --targets curriculum
+  done
+fi
 "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh

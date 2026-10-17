@@ -23,7 +23,18 @@
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
+STATE_DIR="${STATE_DIR:-/opt/monash-hub/state}"
 cd "$PROJECT_DIR"
+
+# One pass at a time, the scheduled ones included (see scheduled-refresh.sh).
+# Two passes over the same targets send the same sentences twice. This waits
+# rather than failing, so a by-hand run started during a refresh still runs.
+mkdir -p "$STATE_DIR"
+exec 8>"$STATE_DIR/translate.lock"
+if ! flock -n 8; then
+  echo "waiting for the translation pass that is already running"
+  flock 8
+fi
 COMPOSE=(docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub)
 
 locale="${1:-zh}"
