@@ -4,6 +4,16 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (Korean particles and a few mistranslated terms)
+
+- Korean particles now match the glossary term in front of them (과목을,
+  not 과목를). The model chose the particle for its own word, and the term
+  put back afterwards often ends differently.
+- *testamur*, *Department of Home Affairs* and *full-time load* have agreed
+  wording. Korean had transliterated testamur, and both languages read the
+  department as an academic one.
+- The prompts say an award is a degree, not a prize.
+
 ### Fixed (Japanese and Korean translation quality)
 
 - Korean kept none of its spaces. A rule that joins Chinese and Japanese

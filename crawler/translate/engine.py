@@ -219,6 +219,51 @@ def _undouble(text: str, wordings: Iterable[str]) -> str:
     return text
 
 
+# Korean particles that change with the noun before them: the first after a
+# final consonant, the second after a vowel. The model picks the particle for
+# the word it would have written, and the glossary puts a different word back -
+# 과목를, 요건는. 으로/로 is left alone because ㄹ takes 로 and the rule is not
+# worth getting wrong.
+_PARTICLES = (("은", "는"), ("이", "가"), ("을", "를"), ("과", "와"))
+_PARTICLE = re.compile(
+    "(" + "|".join(p for pair in _PARTICLES for p in pair) + r")(?=$|[\s.,!?;:)」』])"
+)
+
+
+def _batchim(word: str) -> bool | None:
+    """Whether a Korean word ends in a consonant. ``None`` when it does not end
+    in Hangul at all, so the particle is the model's call.
+
+    A bracketed English gloss does not count: 평가(additional assessment) takes
+    the particle for 평가.
+    """
+    word = re.sub(r"\s*\([^()]*\)$", "", word.strip())
+    if not word or not "가" <= word[-1] <= "힣":
+        return None
+    return (ord(word[-1]) - 0xAC00) % 28 != 0
+
+
+def _particles(text: str, wordings: Iterable[str]) -> str:
+    """Give each agreed Korean term the particle its last syllable needs."""
+    for wording in wordings:
+        final = _batchim(wording)
+        if final is None:
+            continue
+
+        def fix(match: re.Match[str], wording: str = wording, final: bool = final) -> str:
+            pair = next(pair for pair in _PARTICLES if match.group(1) in pair)
+            return wording + pair[0 if final else 1]
+
+        text = re.sub(re.escape(wording) + _PARTICLE.pattern, fix, text)
+    return text
+
+
+def _settle(text: str, wordings: list[str], locale: str) -> str:
+    """Fix what goes wrong around a term that has just been put back."""
+    text = _undouble(text, wordings)
+    return _particles(text, wordings) if locale == "ko" else text
+
+
 def _invented(result: str, source: str) -> bool:
     """Whether the model made something up rather than translating.
 
@@ -383,7 +428,7 @@ class Translator:
             # but still something to tidy: the space that separated the English
             # words is left sitting between two Chinese ones, and "Accounting
             # fundamentals" came out as 会计 基础.
-            result = _tidy(_undouble(restore(masked, terms), terms), self.locale)
+            result = _tidy(_settle(restore(masked, terms), terms, self.locale), self.locale)
         elif _CODE.match(source):
             # A grade code on its own. Checked after the glossary, so a term
             # that happens to look like one - WAM - still gets its agreed
@@ -434,7 +479,7 @@ class Translator:
                 # the finished sentence has a Chinese one, and leave the comma
                 # alone.
                 result = _tidy(
-                    _undouble(restore(translated, terms, mask), terms), self.locale
+                    _settle(restore(translated, terms, mask), terms, self.locale), self.locale
                 )
 
         result = _unsigned(result.strip(), source)
@@ -465,7 +510,7 @@ class Translator:
             return None
         if not llm.faithful(source, reply, terms):
             return None
-        return _undouble(reply, [agreed for _english, agreed in terms])
+        return _settle(reply, [agreed for _english, agreed in terms], self.locale)
 
     def _ask(self, text: str) -> str:
         """Hand a string to the model in the punctuation it was trained on."""
