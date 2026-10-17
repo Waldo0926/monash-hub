@@ -29,6 +29,7 @@ from app.models.community import (
     CommunityVote,
     PostTag,
 )
+from app.models.review import UnitReview
 from app.models.user import User
 from app.search import service
 
@@ -47,6 +48,9 @@ CATEGORIES = [
 ]
 VALID_CATEGORIES = {c["key"] for c in CATEGORIES}
 REPORT_REASONS = ("spam", "abuse", "privacy", "advertising", "misinformation", "other")
+# What a report can be about. A unit rating is community content too, and is
+# reported and hidden the same way; see app/api/v1/reviews.py.
+REPORTABLE = {"post": CommunityPost, "answer": CommunityAnswer, "review": UnitReview}
 UNIT_CODE = re.compile(r"^[A-Z]{3,4}\d{4}$")
 
 
@@ -454,9 +458,9 @@ def create_report(
 ) -> dict:
     if payload.reason not in REPORT_REASONS:
         raise HTTPException(400, f"reason must be one of {', '.join(REPORT_REASONS)}")
-    if payload.target_type not in ("post", "answer"):
-        raise HTTPException(400, "target_type must be post or answer")
-    model = CommunityPost if payload.target_type == "post" else CommunityAnswer
+    model = REPORTABLE.get(payload.target_type)
+    if model is None:
+        raise HTTPException(400, "target_type must be post, answer or review")
     if db.get(model, payload.target_id) is None:
         raise HTTPException(404, "Nothing to report")
 
@@ -495,6 +499,15 @@ def create_report(
 
 def _report_target(db: Session, report: CommunityReport) -> dict | None:
     """What a moderator needs to judge a report without opening five tabs."""
+    if report.target_type == "review":
+        review = db.get(UnitReview, report.target_id)
+        if review is None:
+            return None
+        return {"unit_code": review.unit_code, "title": f"{review.unit_code} · {review.overall}/5",
+                "excerpt": (review.body or "")[:400],
+                "author": review.author.nickname if review.author else None,
+                "anonymous": review.author_id is None, "hidden": review.is_hidden,
+                "deleted": False}
     if report.target_type == "post":
         post = db.get(CommunityPost, report.target_id)
         if post is None:
@@ -564,8 +577,7 @@ def resolve_report(
     if report is None:
         raise HTTPException(404, "Report not found")
     if action == "hide":
-        model = CommunityPost if report.target_type == "post" else CommunityAnswer
-        target = db.get(model, report.target_id)
+        target = db.get(REPORTABLE[report.target_type], report.target_id)
         if target is not None and not target.is_hidden:
             # A reply its author deleted already left the count.
             if isinstance(target, CommunityAnswer) and target.deleted_at is None:
@@ -597,14 +609,14 @@ def moderate(
     db: Session = Depends(get_db),
     admin: User = Depends(current_admin),
 ) -> dict:
-    if target_type not in ("post", "answer"):
-        raise HTTPException(400, "target_type must be post or answer")
-    model = CommunityPost if target_type == "post" else CommunityAnswer
+    model = REPORTABLE.get(target_type)
+    if model is None:
+        raise HTTPException(400, "target_type must be post, answer or review")
     target = db.get(model, target_id)
     if target is None:
         raise HTTPException(404, "Nothing to moderate")
     if action in ("hide", "unhide"):
-        if action == "unhide" and target.deleted_at is not None:
+        if action == "unhide" and getattr(target, "deleted_at", None) is not None:
             raise HTTPException(409, "Its author deleted this; it cannot be restored")
         hide = action == "hide"
         if (isinstance(target, CommunityAnswer) and target.is_hidden != hide
