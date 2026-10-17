@@ -160,3 +160,11 @@ th {
   white-space: nowrap;
 }
 tbody tr:last-child td { border-bottom: 0; }
+
+/* Printing a page prints its content. The site chrome is for getting around
+   on a screen; on paper it is a navigation bar nobody can click. */
+@media print {
+  body { background: #fff; }
+  .header, .footer, .mobile-nav, .skip { display: none !important; }
+  .main { padding: 0 !important; }
+}

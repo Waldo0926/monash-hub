@@ -13,12 +13,14 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
  * at the moment it is checked, and nothing is stored on the server - which is
  * why there is no sign-in on this page and why there is an export button.
  */
-import { OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
+import { toCsv } from '~/utils/csv'
+import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 
 const { $t } = useNuxtApp()
 const campusName = useCampusName()
 const {
-  plan, yearsList, slotEntries, add, remove, reset, addYear, removeYear, exported, imported
+  plan, yearsList, slotEntries, add, remove, move, reset, addYear, removeYear, exported, imported,
+  undo, redo, canUndo, canRedo, savedAt
 } = usePlan()
 
 /**
@@ -225,8 +227,8 @@ const AOS_TYPES = ['specialisation', 'major', 'minor']
  * and the matched one is named, because "36/36 via Algorithms and software"
  * tells the student something "36/36" does not.
  */
-const progress = computed(() => {
-  if (!course.value?.containers) return []
+const requirements = computed(() => {
+  if (!course.value?.containers) return null
   const facts = course.value.units || {}
   const aosUnits = new Map<string, string[]>(
     (course.value.areas_of_study || []).map((a: any) => [a.code, a.unit_codes || []])
@@ -322,8 +324,63 @@ const progress = computed(() => {
     first.via = null
   }
 
-  return rows.map(({ claimed: _claimed, ...row }: any) => row)
+  // Which part each planned unit counts towards, for the colour on its card.
+  // Named parts first, in the order the degree lists them, then the free
+  // elective part takes whatever is left - the same order the scoring above
+  // uses, so a card never says "Part A" while the bar counted it under C.
+  const partOf = new Map<string, number>()
+  rows.forEach((row: any, index: number) => {
+    if (row.free) return
+    for (const code of row.claimed) if (!partOf.has(code)) partOf.set(code, index)
+  })
+  if (free.length) {
+    const at = rows.indexOf(free[0])
+    for (const code of planned.value) if (!partOf.has(code)) partOf.set(code, at)
+  }
+
+  return {
+    partOf,
+    rows: rows.map(({ claimed: _claimed, ...row }: any, index: number) => ({
+      ...row,
+      index,
+      letter: partLetter(row.title, index),
+      tone: partTone(row, index)
+    }))
+  }
 })
+
+/**
+ * The short tag on a unit card. Handbook parts are titled "Part A. Foundation
+ * studies", and the translated titles keep the letter at the front, so the
+ * letter is read off the title; a degree whose parts are not lettered gets a
+ * number instead.
+ */
+function partLetter(title: string, index: number): string {
+  const match = /^(?:Part\s+)?([A-Z])(?=[\s.。:：]|$)/.exec((title || '').trim())
+  return match?.[1] ?? String(index + 1)
+}
+
+/**
+ * One of six colours. The free elective part is always the grey one: it is
+ * "everything else", and giving it a loud colour made the electives look like
+ * the most important units on the map.
+ */
+function partTone(row: any, index: number): number {
+  return row.free ? 6 : (index % 5) + 1
+}
+
+/** The parts worth a row in the side panel. */
+const progress = computed(() =>
+  // A container with no credit points of its own and nothing planned in it is
+  // a heading the Handbook uses to group rules ("Rules", 0). As a bar it was
+  // an empty track with a 0 next to it, which tells the reader nothing.
+  (requirements.value?.rows || []).filter((row: any) => row.required || row.planned)
+)
+
+function partFor(code: string) {
+  const index = requirements.value?.partOf.get(code)
+  return index === undefined ? null : requirements.value!.rows[index]
+}
 
 // --- export and import -----------------------------------------------------
 
@@ -367,184 +424,512 @@ function shortPeriod(period: string): string {
   return label === key ? period : label
 }
 
+// --- what the map shows on each card -----------------------------------------
+
+/** The Handbook title, from the check, or from the degree when the check has not come back yet. */
+function titleOf(code: string): string {
+  return report.value?.unit_titles?.[code] || course.value?.units?.[code]?.title || ''
+}
+
+function worthOf(code: string): number {
+  return Number(report.value?.unit_credit_points?.[code] ?? course.value?.units?.[code]?.credit_points ?? 0)
+}
+
+function pointsIn(entries: PlanEntry[]): number {
+  return entries.reduce((sum, entry) => sum + worthOf(entry.unit_code), 0)
+}
+
+function yearPoints(year: number): number {
+  return pointsIn(plan.value.entries.filter((e) => e.year === year))
+}
+
+function slotHasError(year: number, period: string): boolean {
+  return slotEntries(year, period).some((entry) => entryIssues(entry).some((i) => i.severity === 'error'))
+}
+
+function cardState(entry: PlanEntry): '' | 'error' | 'warn' {
+  const issues = entryIssues(entry)
+  if (issues.some((i) => i.severity === 'error')) return 'error'
+  return issues.length ? 'warn' : ''
+}
+
+/**
+ * A full-time load is four units. Empty slots up to that are drawn so the row
+ * reads as a semester; once it is full, adding a fifth moves to a small button
+ * by the semester's name instead of a whole empty card on a row of its own.
+ */
+const LOAD = 4
+function placeholders(year: number, period: string): number {
+  return Math.max(0, LOAD - slotEntries(year, period).length)
+}
+
+// --- moving units ----------------------------------------------------------
+//
+// Two ways, because dragging only exists for a mouse. The "move to" menu on
+// each card is a real <select>, so it works with a keyboard, a screen reader
+// and a phone's own picker without any of the long-press code a touch drag
+// would need.
+
+const dragging = ref<PlanEntry | null>(null)
+const dropTarget = ref('')
+
+function slotKey(year: number, period: string) {
+  return `${year}|${period}`
+}
+
+function onDragStart(entry: PlanEntry, event: DragEvent) {
+  dragging.value = entry
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', entry.unit_code)
+  }
+}
+
+function onDragOver(year: number, period: string) {
+  if (dragging.value) dropTarget.value = slotKey(year, period)
+}
+
+function onDragLeave(event: DragEvent) {
+  // dragleave fires when the pointer crosses into a child card too; only a
+  // leave to somewhere outside the row clears the highlight.
+  const row = event.currentTarget as Node
+  if (!row.contains(event.relatedTarget as Node | null)) dropTarget.value = ''
+}
+
+function onDrop(year: number, period: string) {
+  if (dragging.value) move(dragging.value, year, period)
+  onDragEnd()
+}
+
+function onDragEnd() {
+  dragging.value = null
+  dropTarget.value = ''
+}
+
+function moveTo(entry: PlanEntry, event: Event) {
+  const select = event.target as HTMLSelectElement
+  const [year, ...rest] = select.value.split('|')
+  if (year && rest.length) move(entry, Number(year), rest.join('|'))
+  select.value = ''
+}
+
+// --- toolbar ---------------------------------------------------------------
+
+function confirmReset() {
+  // The only button on the page that cannot be put back by hand, so it asks.
+  // Undo would also bring it back, but nobody looks for undo after "clear".
+  if (!plan.value.entries.length || window.confirm($t('plan.resetConfirm'))) reset()
+}
+
+/**
+ * The plan as a spreadsheet: one row per unit, in plan order. JSON is for
+ * moving a plan between browsers; this is for an advisor's email or a print-out
+ * you can annotate.
+ */
+function downloadCsv() {
+  const order = (period: string) => {
+    const at = plan.value.periods.indexOf(period)
+    return at < 0 ? 99 : at
+  }
+  const rows = [...plan.value.entries]
+    .sort((a, b) => a.year - b.year || order(a.teaching_period) - order(b.teaching_period))
+    .map((entry) => [
+      entry.year,
+      shortPeriod(entry.teaching_period),
+      entry.unit_code,
+      titleOf(entry.unit_code),
+      worthOf(entry.unit_code) || '',
+      partFor(entry.unit_code)?.title || '',
+      entryIssues(entry).map(issueText).join(' ')
+    ])
+  const head = ['year', 'teaching_period', 'unit_code', 'title', 'credit_points', 'counts_towards', 'issues']
+  const blob = new Blob([toCsv([head, ...rows])], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `monash-hub-plan-${plan.value.startYear}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function print() {
+  window.print()
+}
+
+/** Ctrl/Cmd+Z and Shift+Ctrl/Cmd+Z (or Ctrl+Y), except while typing in a field. */
+function onKey(event: KeyboardEvent) {
+  if (!(event.ctrlKey || event.metaKey)) return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+  if (picking.value) return
+  const key = event.key.toLowerCase()
+  if (key === 'z' && !event.shiftKey) {
+    event.preventDefault()
+    undo()
+  } else if ((key === 'z' && event.shiftKey) || key === 'y') {
+    event.preventDefault()
+    redo()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
+
+// --- summary ---------------------------------------------------------------
+
+const plannedPoints = computed(() => report.value?.credit_points ?? 0)
+const requiredPoints = computed(() => Number(course.value?.credit_points) || 0)
+const ringValue = computed(() =>
+  requiredPoints.value ? plannedPoints.value / requiredPoints.value : null
+)
+const percent = computed(() => Math.min(100, Math.round((ringValue.value ?? 0) * 100)))
+
+/** "Saved on this device" plus the time, refreshed every half minute so "just now" ages. */
+const now = ref(Date.now())
+let clock: ReturnType<typeof setInterval> | undefined
+onMounted(() => { clock = setInterval(() => (now.value = Date.now()), 30_000) })
+onBeforeUnmount(() => clearInterval(clock))
+const savedLabel = computed(() => {
+  if (!savedAt.value) return ''
+  const minutes = Math.floor((now.value - savedAt.value) / 60_000)
+  if (minutes < 1) return $t('plan.savedJustNow')
+  if (minutes < 60) return $t('plan.savedMinutes', { n: minutes })
+  return $t('plan.saved')
+})
+
+const status = computed<'empty' | 'checking' | 'failed' | 'error' | 'warn' | 'ok'>(() => {
+  if (!plan.value.entries.length) return 'empty'
+  if (checking.value && !report.value) return 'checking'
+  if (checkError.value) return 'failed'
+  if (errorCount.value) return 'error'
+  if (warningCount.value) return 'warn'
+  return 'ok'
+})
+
 useSeoMeta({ title: () => $t('plan.title') })
 </script>
 
 <template>
   <div class="page">
     <header class="intro">
-      <h1>{{ $t('plan.title') }}</h1>
-      <p class="lede">{{ $t('plan.lede') }}</p>
-    </header>
+      <div class="intro-text">
+        <h1>{{ $t('plan.title') }}</h1>
+        <p class="lede">{{ $t('plan.lede') }}</p>
+      </div>
 
-    <div class="toolbar">
-      <label class="field">
-        <span>{{ $t('tree.campus') }}</span>
-        <select v-model="plan.campus" class="input">
-          <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
-          <option value="">{{ $t('tree.campusAny') }}</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>{{ $t('plan.course') }}</span>
-        <select v-model="plan.courseCode" class="input">
-          <option value="">{{ $t('plan.noCourse') }}</option>
-          <option v-for="c in courseList?.results || []" :key="c.course_code" :value="c.course_code">
-            {{ c.course_code }} {{ c.title }}
-          </option>
-        </select>
-      </label>
-
-      <label class="field field--narrow">
-        <span>{{ $t('plan.startYear') }}</span>
-        <input v-model.number="plan.startYear" class="input" type="number" min="2020" max="2040" />
-      </label>
-
-      <div class="actions">
-        <button class="btn btn--ghost btn--small" type="button" @click="addYear">
-          {{ $t('plan.addYear') }}
-        </button>
-        <button class="btn btn--ghost btn--small" type="button" @click="showOptional = !showOptional">
-          {{ $t('plan.periods') }}
-        </button>
-        <button class="btn btn--ghost btn--small" type="button" @click="download">
-          {{ $t('plan.export') }}
-        </button>
-        <label class="btn btn--ghost btn--small file">
-          {{ $t('plan.import') }}
-          <input type="file" accept="application/json" @change="upload" />
-        </label>
-        <button class="btn btn--ghost btn--small" type="button" @click="reset">
-          {{ $t('plan.reset') }}
+      <div class="tools" role="toolbar" :aria-label="$t('plan.tools')">
+        <div class="tool-group">
+          <button
+            class="tool tool--icon"
+            type="button"
+            :disabled="!canUndo"
+            :title="$t('plan.undo')"
+            :aria-label="$t('plan.undo')"
+            @click="undo"
+          ><PlanIcon name="undo" /></button>
+          <button
+            class="tool tool--icon"
+            type="button"
+            :disabled="!canRedo"
+            :title="$t('plan.redo')"
+            :aria-label="$t('plan.redo')"
+            @click="redo"
+          ><PlanIcon name="redo" /></button>
+        </div>
+        <div class="tool-group">
+          <button
+            class="tool"
+            :class="{ 'tool--on': showOptional }"
+            type="button"
+            :aria-expanded="showOptional"
+            @click="showOptional = !showOptional"
+          ><PlanIcon name="calendar" />{{ $t('plan.periods') }}</button>
+          <button class="tool" type="button" @click="downloadCsv">
+            <PlanIcon name="download" />CSV
+          </button>
+          <button class="tool" type="button" @click="download">
+            <PlanIcon name="download" />{{ $t('plan.export') }}
+          </button>
+          <label class="tool file">
+            <PlanIcon name="upload" />{{ $t('plan.import') }}
+            <input type="file" accept="application/json" @change="upload" />
+          </label>
+          <button class="tool" type="button" @click="print">
+            <PlanIcon name="print" />{{ $t('plan.print') }}
+          </button>
+        </div>
+        <button class="tool tool--danger" type="button" @click="confirmReset">
+          <PlanIcon name="trash" />{{ $t('plan.reset') }}
         </button>
       </div>
-    </div>
+    </header>
 
-    <div v-if="showOptional" class="periods">
-      <span class="periods-label">{{ $t('plan.periodsHelp') }}</span>
-      <button
-        v-for="period in OPTIONAL_PERIODS"
-        :key="period"
-        class="chip"
-        :class="{ 'chip--on': plan.periods.includes(period) }"
-        type="button"
-        @click="togglePeriod(period)"
-      >{{ shortPeriod(period) }}</button>
-    </div>
-
-    <p v-if="importError" class="warn">{{ importError }}</p>
+    <p v-if="importError" class="banner banner--bad" role="alert">{{ importError }}</p>
 
     <div class="split">
-      <section class="grid">
-        <article v-for="year in yearsList" :key="year" class="year">
-          <header class="year-head">
-            <h2>{{ $t('plan.yearLabel', { year }) }}</h2>
+      <section class="board" :aria-label="$t('plan.title')">
+        <div class="board-head">
+          <div class="settings">
+            <label class="ctl">
+              <span class="ctl-label">{{ $t('tree.campus') }}</span>
+              <select v-model="plan.campus" class="ctl-input">
+                <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
+                <option value="">{{ $t('tree.campusAny') }}</option>
+              </select>
+            </label>
+
+            <label class="ctl ctl--wide">
+              <span class="ctl-label">{{ $t('plan.course') }}</span>
+              <select v-model="plan.courseCode" class="ctl-input">
+                <option value="">{{ $t('plan.noCourse') }}</option>
+                <option v-for="c in courseList?.results || []" :key="c.course_code" :value="c.course_code">
+                  {{ c.course_code }} {{ c.title }}
+                </option>
+              </select>
+            </label>
+
+            <label class="ctl ctl--narrow">
+              <span class="ctl-label">{{ $t('plan.startYear') }}</span>
+              <input v-model.number="plan.startYear" class="ctl-input" type="number" min="2020" max="2040" />
+            </label>
+          </div>
+
+          <!-- The verdict on the whole plan, where the eye already is. The
+               side panel has the numbers; this only says whether to look. -->
+          <p class="pill" :class="`pill--${status}`" role="status" aria-live="polite">
+            <template v-if="status === 'empty'">{{ $t('plan.empty') }}</template>
+            <template v-else-if="status === 'checking'"><PlanIcon name="spinner" :size="14" />{{ $t('plan.checking') }}</template>
+            <template v-else-if="status === 'failed'"><PlanIcon name="alert" :size="14" />{{ $t('plan.checkFailed') }}</template>
+            <template v-else-if="status === 'error'"><PlanIcon name="alert" :size="14" />{{ $t('plan.errors', { n: errorCount }) }}</template>
+            <template v-else-if="status === 'warn'"><PlanIcon name="alert" :size="14" />{{ $t('plan.warnings', { n: warningCount }) }}</template>
+            <template v-else><PlanIcon name="check" :size="14" />{{ $t('plan.allClear') }}</template>
+          </p>
+        </div>
+
+        <div v-if="showOptional" class="periods">
+          <span class="periods-label">{{ $t('plan.periodsHelp') }}</span>
+          <button
+            v-for="period in OPTIONAL_PERIODS"
+            :key="period"
+            class="chip"
+            :class="{ 'chip--on': plan.periods.includes(period) }"
+            type="button"
+            :aria-pressed="plan.periods.includes(period)"
+            @click="togglePeriod(period)"
+          >{{ shortPeriod(period) }}</button>
+        </div>
+
+        <article v-for="(year, yearIndex) in yearsList" :key="year" class="year">
+          <header class="year-bar">
+            <h2 class="year-name">
+              {{ $t('plan.yearNth', { n: yearIndex + 1 }) }}
+              <span class="year-num">{{ year }}</span>
+            </h2>
+            <span v-if="yearPoints(year)" class="year-points">
+              {{ $t('plan.cp', { n: yearPoints(year) }) }}
+            </span>
             <button
               v-if="yearsList.length > 1"
-              class="drop"
+              class="bar-btn"
               type="button"
-              :aria-label="$t('plan.removeYear')"
+              :title="$t('plan.removeYear')"
+              :aria-label="`${$t('plan.removeYear')} ${year}`"
               @click="removeYear(year)"
-            >×</button>
+            ><PlanIcon name="trash" :size="15" /></button>
           </header>
 
-          <div v-for="period in plan.periods" :key="period" class="slot">
-            <div class="slot-head">
-              <span class="slot-name">{{ shortPeriod(period) }}</span>
-              <span class="slot-count">
-                {{ slotEntries(year, period).length }}
-              </span>
+          <div
+            v-for="period in plan.periods"
+            :key="period"
+            class="term"
+            :class="{ 'term--target': dropTarget === slotKey(year, period) }"
+            @dragover.prevent="onDragOver(year, period)"
+            @dragleave="onDragLeave"
+            @drop.prevent="onDrop(year, period)"
+          >
+            <div class="term-label">
+              <h3 class="term-name">
+                {{ shortPeriod(period) }}
+                <span
+                  v-if="slotHasError(year, period)"
+                  class="term-dot"
+                  :title="$t('plan.slotHasProblems')"
+                ><span class="visually-hidden">{{ $t('plan.slotHasProblems') }}</span></span>
+              </h3>
+              <p class="term-meta">
+                {{ $t(slotEntries(year, period).length === 1 ? 'plan.unitCountOne' : 'plan.unitCount', { n: slotEntries(year, period).length }) }}
+                <template v-if="pointsIn(slotEntries(year, period))">
+                  · {{ $t('plan.cp', { n: pointsIn(slotEntries(year, period)) }) }}
+                </template>
+              </p>
+              <button
+                v-if="!placeholders(year, period)"
+                class="term-add"
+                type="button"
+                :aria-label="`${$t('plan.addUnit')}: ${shortPeriod(period)}, ${year}`"
+                @click="openPicker(year, period)"
+              ><PlanIcon name="plus" :size="13" />{{ $t('plan.addUnit') }}</button>
             </div>
 
-            <ul class="units">
+            <ul class="cards">
               <li
                 v-for="entry in slotEntries(year, period)"
                 :key="entry.unit_code"
-                class="unit"
-                :class="{
-                  'unit--error': entryIssues(entry).some((i) => i.severity === 'error'),
-                  'unit--warn': entryIssues(entry).every((i) => i.severity === 'warning')
-                    && entryIssues(entry).length > 0
-                }"
+                class="ucard"
+                :class="[
+                  cardState(entry) && `ucard--${cardState(entry)}`,
+                  partFor(entry.unit_code) && `tone-${partFor(entry.unit_code).tone}`,
+                  { 'ucard--dragging': dragging === entry }
+                ]"
+                draggable="true"
+                @dragstart="onDragStart(entry, $event)"
+                @dragend="onDragEnd"
               >
-                <div class="unit-line">
-                  <NuxtLink class="unit-code" :to="`/units/${entry.unit_code}`">
+                <div class="ucard-top">
+                  <NuxtLink class="ucard-code" :to="`/units/${entry.unit_code}`">
                     {{ entry.unit_code }}
                   </NuxtLink>
-                  <NuxtLink
-                    class="unit-tree"
-                    :to="`/tree?unit=${entry.unit_code}&campus=${plan.campus}`"
-                    :title="$t('courses.openTree')"
-                  >⤳</NuxtLink>
-                  <button
-                    class="drop"
-                    type="button"
-                    :aria-label="$t('plan.removeUnit')"
-                    @click="remove(entry)"
-                  >×</button>
+                  <span class="ucard-tools">
+                    <NuxtLink
+                      class="mini"
+                      :to="`/tree?unit=${entry.unit_code}&campus=${plan.campus}`"
+                      :title="$t('courses.openTree')"
+                      :aria-label="`${$t('courses.openTree')}: ${entry.unit_code}`"
+                    ><PlanIcon name="tree" :size="14" /></NuxtLink>
+                    <label class="mini mini--select" :title="$t('plan.moveTo')">
+                      <PlanIcon name="move" :size="14" />
+                      <span class="visually-hidden">{{ $t('plan.moveTo') }} {{ entry.unit_code }}</span>
+                      <select @change="moveTo(entry, $event)">
+                        <option value="" selected disabled>{{ $t('plan.moveTo') }}</option>
+                        <optgroup
+                          v-for="(y, yi) in yearsList"
+                          :key="y"
+                          :label="`${$t('plan.yearNth', { n: yi + 1 })} · ${y}`"
+                        >
+                          <option
+                            v-for="p in plan.periods"
+                            :key="p"
+                            :value="slotKey(y, p)"
+                            :disabled="y === entry.year && p === entry.teaching_period"
+                          >{{ shortPeriod(p) }}, {{ y }}</option>
+                        </optgroup>
+                      </select>
+                    </label>
+                    <button
+                      class="mini mini--remove"
+                      type="button"
+                      :title="$t('plan.removeUnit')"
+                      :aria-label="`${$t('plan.removeUnit')}: ${entry.unit_code}`"
+                      @click="remove(entry)"
+                    ><PlanIcon name="close" :size="14" /></button>
+                  </span>
                 </div>
-                <p v-for="(issue, i) in entryIssues(entry)" :key="i" class="issue">
-                  {{ issueText(issue) }}
-                </p>
+                <p v-if="titleOf(entry.unit_code)" class="ucard-title">{{ titleOf(entry.unit_code) }}</p>
+                <ul v-if="entryIssues(entry).length" class="ucard-issues">
+                  <li v-for="(issue, i) in entryIssues(entry)" :key="i">
+                    <PlanIcon name="alert" :size="12" />{{ issueText(issue) }}
+                  </li>
+                </ul>
+                <div class="ucard-foot">
+                  <span v-if="worthOf(entry.unit_code)" class="ucard-cp">
+                    {{ $t('plan.cp', { n: worthOf(entry.unit_code) }) }}
+                  </span>
+                  <span
+                    v-if="partFor(entry.unit_code)"
+                    class="ucard-part"
+                    :title="partFor(entry.unit_code).title"
+                  >{{ partFor(entry.unit_code).letter }}</span>
+                </div>
+              </li>
+
+              <li v-for="n in placeholders(year, period)" :key="`slot-${n}`" class="slot-li" :class="{ 'slot-li--extra': n > 1 }">
+                <button
+                  class="slot"
+                  type="button"
+                  :aria-label="`${$t('plan.addUnit')}: ${shortPeriod(period)}, ${year}`"
+                  @click="openPicker(year, period)"
+                >
+                  <PlanIcon name="plus" :size="18" />
+                  <span v-if="n === 1" class="slot-text">{{ $t('plan.addUnit') }}</span>
+                </button>
               </li>
             </ul>
-
-            <button
-              class="add"
-              type="button"
-              @click="openPicker(year, period)"
-            >+ {{ $t('plan.addUnit') }}</button>
           </div>
         </article>
+
+        <button class="add-year" type="button" :disabled="yearsList.length >= MAX_YEARS" @click="addYear">
+          <PlanIcon name="plus" />{{ $t('plan.addYear') }}
+        </button>
+
+        <p class="board-foot">
+          <span class="hint">{{ $t('plan.dragHint') }}</span>
+          <span v-if="savedLabel" class="saved"><PlanIcon name="check" :size="13" />{{ savedLabel }}</span>
+        </p>
       </section>
 
-      <aside class="panel">
-        <section class="card">
-          <h2>{{ $t('plan.summary') }}</h2>
-          <p class="totals">
-            <strong>{{ report?.credit_points ?? 0 }}</strong>
-            <span v-if="course?.credit_points"> / {{ course.credit_points }}</span>
-            {{ $t('courses.creditPoints') }}
-          </p>
-          <p v-if="checking" class="muted">{{ $t('plan.checking') }}</p>
-          <p v-else-if="checkError" class="tiny bad-text" role="alert">{{ checkError }}</p>
-          <p v-else-if="!plan.entries.length" class="muted">{{ $t('plan.empty') }}</p>
-          <p v-else-if="!errorCount && !warningCount" class="ok">{{ $t('plan.allClear') }}</p>
-          <template v-else>
-            <p v-if="errorCount" class="warn">{{ $t('plan.errors', { n: errorCount }) }}</p>
-            <p v-if="warningCount" class="note">{{ $t('plan.warnings', { n: warningCount }) }}</p>
-          </template>
+      <aside class="side">
+        <section class="panel panel--progress">
+          <h2 class="panel-title">{{ $t('plan.summary') }}</h2>
+          <PlanRing :value="ringValue">
+            <template v-if="requiredPoints">
+              <span class="ring-big">{{ percent }}<small>%</small></span>
+              <span class="ring-small">{{ plannedPoints }} / {{ requiredPoints }} {{ $t('courses.creditPoints') }}</span>
+            </template>
+            <template v-else>
+              <span class="ring-big">{{ plannedPoints }}</span>
+              <span class="ring-small">{{ $t('courses.creditPoints') }}</span>
+            </template>
+          </PlanRing>
+          <p v-if="!requiredPoints" class="panel-note">{{ $t('plan.pickDegree') }}</p>
+          <p v-else-if="course?.title" class="panel-note">{{ course.course_code }} {{ course.title }}</p>
+
+          <dl class="stats">
+            <div>
+              <dt>{{ $t('plan.stat.units') }}</dt>
+              <dd>{{ plan.entries.length }}</dd>
+            </div>
+            <div :class="{ 'stat--bad': errorCount }">
+              <dt>{{ $t('plan.stat.errors') }}</dt>
+              <dd>{{ errorCount }}</dd>
+            </div>
+            <div :class="{ 'stat--warn': warningCount }">
+              <dt>{{ $t('plan.stat.warnings') }}</dt>
+              <dd>{{ warningCount }}</dd>
+            </div>
+          </dl>
+          <p v-if="checkError" class="tiny bad-text" role="alert">{{ checkError }}</p>
         </section>
 
-        <section v-if="progress.length" class="card">
-          <h2>{{ $t('plan.progress') }}</h2>
-          <ul class="bars">
-            <li v-for="row in progress" :key="row.title">
-              <div class="bar-line">
-                <span class="bar-name">{{ row.title }}</span>
-                <span class="bar-num">{{ row.planned }}<template v-if="row.required">/{{ row.required }}</template></span>
+        <section v-if="progress.length" class="panel">
+          <h2 class="panel-title">{{ $t('plan.progress') }}</h2>
+          <ul class="parts">
+            <li v-for="row in progress" :key="row.title" :class="`tone-${row.tone}`">
+              <div class="part-line">
+                <span class="part-tag">{{ row.letter }}</span>
+                <span class="part-name">{{ row.title }}</span>
+                <span class="part-num">{{ row.planned }}<template v-if="row.required"> / {{ row.required }}</template></span>
               </div>
-              <div class="bar">
+              <div class="part-bar">
                 <span
-                  class="bar-fill"
+                  class="part-fill"
                   :style="{ width: `${row.required ? Math.min(100, (row.planned / row.required) * 100) : 0}%` }"
                 />
               </div>
               <!-- Which specialisation the points came from. A part that asks
                    for one of four is answered by naming the one, not by a
                    number that could have come from any of them. -->
-              <p v-if="row.via" class="tiny muted via">{{ $t('plan.via', { name: row.via }) }}</p>
+              <p v-if="row.via" class="part-note">{{ $t('plan.via', { name: row.via }) }}</p>
               <!-- And for a free elective part, why units it never lists are
                    counted towards it. -->
-              <p v-else-if="row.free && row.count" class="tiny muted via">
+              <p v-else-if="row.free && row.count" class="part-note">
                 {{ $t('plan.freeElective', { n: row.count }) }}
               </p>
             </li>
           </ul>
         </section>
 
-        <section class="card note-card">
+        <section class="panel panel--quiet">
+          <PlanIcon name="lock" :size="15" />
           <p>{{ $t('plan.privacy') }}</p>
         </section>
       </aside>
@@ -565,123 +950,366 @@ useSeoMeta({ title: () => $t('plan.title') })
 </template>
 
 <style scoped>
-.page { max-width: var(--container); margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
-.intro h1 { margin: 0 0 var(--s2); }
-.lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
+.page { max-width: 1400px; margin: 0 auto; padding: var(--s5) var(--s5) var(--s7); }
 
-/* Grid, not flex-wrap.
- *
- * As a flex row every field took a whole line to itself, so the four controls
- * stacked into four rows on a 1440px screen. The cause was the course <select>:
- * 200 options with long titles give it a max-content width in the thousands of
- * pixels, and `max-width` on the .input constrained the select without ever
- * constraining the .field wrapping it. Named tracks plus `min-width: 0` are
- * what stop a wide option list from deciding the layout. */
-.toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) 110px auto;
-  gap: var(--s3); align-items: end;
-  padding: var(--s3); background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); margin-bottom: var(--s3);
-}
-.field { display: grid; gap: var(--s1); font-size: 0.8rem; color: var(--muted); min-width: 0; }
-.field--narrow { max-width: 110px; }
-.input {
-  padding: var(--s2) var(--s3); border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--text);
-  width: 100%; min-width: 0;
-}
-.actions { display: flex; flex-wrap: wrap; gap: var(--s2); justify-self: end; }
+/* --- heading and toolbar --------------------------------------------------- */
 
-/* The five buttons need ~375px; below this the row cannot hold them as well. */
-@media (max-width: 1100px) {
-  .toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px; }
-  .actions { grid-column: 1 / -1; justify-self: start; }
+.intro {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: var(--s4); margin-bottom: var(--s4);
 }
-@media (max-width: 620px) {
-  .toolbar { grid-template-columns: 1fr; }
-  .field--narrow { max-width: none; }
+.intro-text { min-width: 0; flex: 1 1 420px; }
+.intro h1 { margin: 0 0 var(--s1); }
+.lede { color: var(--muted); margin: 0; max-width: var(--measure-lede); font-size: 0.95rem; }
+
+.tools { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+.tool-group {
+  display: inline-flex; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 2px; box-shadow: var(--shadow-sm);
 }
-.file { position: relative; overflow: hidden; cursor: pointer; }
+.tool {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 34px; padding: 0 10px; border: 0; border-radius: 6px;
+  background: none; color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+}
+.tool:hover:not(:disabled) { background: var(--surface-2); }
+.tool:disabled { color: var(--muted-2); cursor: default; }
+.tool--icon { padding: 0 8px; }
+.tool--on { background: var(--blue-50); color: var(--brand-700); }
+.tool--danger {
+  border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm);
+  min-height: 40px; color: var(--muted);
+}
+.tool--danger:hover { color: var(--danger); border-color: #f1c4c4; background: var(--danger-bg) !important; }
+.file { position: relative; overflow: hidden; }
 .file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
-.periods { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-bottom: var(--s3); }
+.banner { margin: 0 0 var(--s3); padding: var(--s2) var(--s3); border-radius: var(--radius-sm); font-size: 0.85rem; }
+.banner--bad { background: var(--danger-bg); color: var(--danger); }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; }
+
+/* --- the board --------------------------------------------------------------- */
+
+.board {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow); overflow: hidden;
+}
+
+.board-head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: var(--s3); padding: var(--s4) var(--s5);
+}
+/* Named tracks plus min-width: 0. The degree <select> holds 200 long titles,
+   which gives it a max-content width in the thousands of pixels; without the
+   minmax(0, ...) that width decides the layout instead of the screen. */
+.settings {
+  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 96px;
+  gap: var(--s3); flex: 1 1 560px; min-width: 0;
+}
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl-label {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ctl-input {
+  width: 100%; min-width: 0; height: 40px; padding: 0 var(--s3);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background-color: var(--surface); color: var(--text); font: inherit; font-size: 0.9rem;
+}
+select.ctl-input {
+  appearance: none; -webkit-appearance: none; padding-right: 32px;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2356667a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.ctl-input:hover { border-color: var(--muted-2); }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; margin: 0;
+  min-height: 32px; padding: 0 12px; border-radius: var(--radius-pill);
+  font-size: 0.82rem; font-weight: 600; white-space: nowrap;
+  border: 1px solid var(--border); color: var(--muted); background: var(--surface-2);
+}
+.pill--ok { color: var(--success); background: var(--success-bg); border-color: #b7e4d0; }
+.pill--error, .pill--failed { color: var(--danger); background: var(--danger-bg); border-color: #f1c4c4; }
+.pill--warn { color: var(--warning); background: var(--warning-bg); border-color: #f5dcae; }
+
+.periods {
+  display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center;
+  padding: var(--s3) var(--s5); background: var(--surface-2); border-top: 1px solid var(--border);
+}
 .periods-label { font-size: 0.8rem; color: var(--muted); }
 .chip {
   border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
-  border-radius: var(--radius-pill); padding: var(--s1) var(--s3); font: inherit;
+  border-radius: var(--radius-pill); padding: 4px 12px; font: inherit;
   font-size: 0.8rem; cursor: pointer;
 }
-.chip--on { background: var(--navy); color: var(--text-inverse); border-color: var(--navy); }
+.chip--on { background: var(--ink); color: var(--text-inverse); border-color: var(--ink); }
 
-.split { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--s4); align-items: start; }
-.grid { display: grid; gap: var(--s3); }
-
-.year { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.year-head {
-  display: flex; align-items: center; gap: var(--s2);
-  padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border);
+/* One dark bar per year. It is the only dark block on the page, which is the
+   point: it is what the eye uses to find "third year" in a long plan. */
+.year-bar {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: 10px var(--s5); background: var(--ink); color: var(--text-inverse);
 }
-.year-head h2 { margin: 0; font-size: 0.95rem; }
-.drop {
-  margin-left: auto; border: 0; background: none; color: var(--muted);
-  font-size: 1.1rem; line-height: 1; cursor: pointer; padding: 0 var(--s1);
+.year-name {
+  margin: 0; font-family: var(--font); font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: inherit;
 }
-.drop:hover { color: var(--danger); }
-
-.slot { padding: var(--s3) var(--s4); border-top: 1px solid var(--border); }
-.slot:first-of-type { border-top: 0; }
-.slot-head { display: flex; gap: var(--s2); align-items: baseline; margin-bottom: var(--s2); }
-.slot-name { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
-.slot-count { font-size: 0.75rem; color: var(--muted); }
-
-.units { list-style: none; margin: 0 0 var(--s2); padding: 0; display: grid; gap: var(--s2); }
-.unit {
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: var(--s2) var(--s3); background: var(--surface);
+.year-num { margin-left: 6px; font-family: var(--font-mono); font-weight: 400; letter-spacing: 0; opacity: 0.6; }
+.year-points { margin-left: auto; font-size: 0.78rem; opacity: 0.7; }
+.bar-btn {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; margin-right: -6px;
+  border: 0; border-radius: 6px; background: none; color: inherit; opacity: 0.6; cursor: pointer;
 }
-.unit--error { border-color: var(--danger); background: var(--danger-bg); }
-.unit--warn { border-color: #fcd9a4; background: var(--warning-bg); }
-.unit-line { display: flex; align-items: center; gap: var(--s2); }
-.unit-code { font: 600 0.82rem var(--font-mono); color: var(--navy); text-decoration: none; }
-.unit-tree { color: var(--muted); text-decoration: none; }
-.unit-tree:hover { color: var(--blue); }
-.issue { margin: var(--s1) 0 0; font-size: 0.78rem; color: var(--danger); }
-.unit--warn .issue { color: var(--warning); }
+.year-points + .bar-btn { margin-left: 0; }
+.year-name + .bar-btn { margin-left: auto; }
+.bar-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
 
-.add {
-  width: 100%; border: 1px dashed var(--border-strong); background: none;
-  border-radius: var(--radius-sm); padding: var(--s2); cursor: pointer;
-  font: inherit; font-size: 0.82rem; color: var(--muted);
+.term {
+  display: grid; grid-template-columns: 156px minmax(0, 1fr);
+  border-top: 1px solid var(--border); transition: background 0.12s;
 }
-.add:hover { border-color: var(--blue); color: var(--blue); }
+.year-bar + .term { border-top: 0; }
+.term--target { background: var(--blue-50); box-shadow: inset 0 0 0 2px var(--brand); }
 
-
-.panel { display: grid; gap: var(--s3); position: sticky; top: calc(var(--header-h) + var(--s3)); }
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: var(--s4);
+.term-label {
+  padding: var(--s4) var(--s4) var(--s4) var(--s5);
+  border-right: 1px solid var(--border); background: #fafbfc;
 }
-.card h2 { margin: 0 0 var(--s2); font-size: 0.95rem; }
-.totals { margin: 0 0 var(--s2); font-size: 0.9rem; color: var(--muted); }
-.totals strong { font-size: 1.4rem; color: var(--text); }
-.ok { margin: 0; color: var(--success); font-size: 0.85rem; }
-.warn { margin: 0 0 var(--s1); color: var(--danger); font-size: 0.85rem; }
-.note { margin: 0; color: var(--warning); font-size: 0.85rem; }
-.muted { margin: 0; color: var(--muted); font-size: 0.85rem; }
-.note-card p { margin: 0; font-size: 0.78rem; color: var(--muted); }
+.term-name {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0; font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+}
+.term-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+.term-meta { margin: 2px 0 0; font-size: 0.76rem; color: var(--muted); }
+.term-add {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: var(--s2);
+  padding: 3px 8px 3px 6px; border: 1px dashed var(--border-strong); border-radius: 6px;
+  background: var(--surface); color: var(--muted); font: inherit; font-size: 0.74rem; cursor: pointer;
+}
+.term-add:hover { border-color: var(--brand); color: var(--brand); }
 
-.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
-.bar-line { display: flex; gap: var(--s2); align-items: baseline; margin-bottom: var(--s1); }
-.via { margin: var(--s1) 0 0; }
-.bar-name { font-size: 0.8rem; flex: 1; }
-.bar-num { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
-.bar { height: 6px; background: var(--surface-2); border-radius: var(--radius-pill); overflow: hidden; }
-.bar-fill { display: block; height: 100%; background: var(--blue); }
+.cards {
+  list-style: none; margin: 0; padding: var(--s3);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+}
 
-@media (max-width: 900px) {
+/* --- unit cards ---------------------------------------------------------------
+ * The colour stripe says which part of the degree the unit counts towards,
+ * matching the bars in the side panel. The letter in the corner says the same
+ * thing in text, so the colour is never the only signal. */
+
+.ucard {
+  --tone: var(--border-strong);
+  --tone-bg: var(--surface-2);
+  position: relative; display: flex; flex-direction: column;
+  min-height: 104px; padding: 10px 10px 10px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm); cursor: grab;
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+}
+.ucard::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm); background: var(--tone);
+}
+.ucard:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.ucard:active { cursor: grabbing; }
+.ucard--dragging { opacity: 0.45; }
+.ucard--error { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
+.ucard--warn { border-color: #e9b866; }
+
+.ucard-top { display: flex; align-items: center; gap: 4px; }
+.ucard-code {
+  font: 600 0.86rem var(--font-mono); letter-spacing: 0.01em; color: var(--navy);
+  text-decoration: none;
+}
+.ucard-code:hover { color: var(--brand); text-decoration: underline; }
+.ucard-tools { margin-left: auto; display: inline-flex; gap: 0; margin-right: -4px; }
+.mini {
+  position: relative; display: inline-grid; place-items: center;
+  width: 26px; height: 26px; border: 0; border-radius: 6px; background: none;
+  color: var(--muted-2); cursor: pointer; text-decoration: none;
+}
+.mini:hover, .mini:focus-within { background: var(--surface-2); color: var(--text); }
+.mini--remove:hover { color: var(--danger); background: var(--danger-bg); }
+/* The move menu is a real <select> laid over the icon, so the browser draws
+   the list - a native picker on a phone, a keyboard-usable one on a laptop. */
+.mini--select select {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+  font-size: 16px;
+}
+/* On a mouse, the tools only show for the card under the pointer, so a full
+   grid reads as units rather than as forty little buttons. */
+@media (hover: hover) {
+  .ucard-tools { opacity: 0; transition: opacity 0.12s; }
+  .ucard:hover .ucard-tools, .ucard:focus-within .ucard-tools { opacity: 1; }
+}
+
+.ucard-title {
+  margin: 2px 0 0; font-size: 0.78rem; line-height: 1.35; color: var(--muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ucard-issues { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.ucard-issues li {
+  display: flex; gap: 5px; align-items: flex-start;
+  padding: 5px 7px; border-radius: 6px; font-size: 0.72rem; line-height: 1.35;
+  background: var(--danger-bg); color: var(--danger);
+}
+.ucard-issues li :deep(svg) { margin-top: 2px; }
+.ucard--warn .ucard-issues li { background: var(--warning-bg); color: var(--warning); }
+.ucard-foot { display: flex; align-items: center; gap: var(--s2); margin-top: auto; padding-top: 8px; }
+.ucard-cp { font-size: 0.72rem; color: var(--muted); }
+.ucard-part {
+  margin-left: auto; min-width: 20px; padding: 1px 6px; border-radius: 4px; text-align: center;
+  font-size: 0.7rem; font-weight: 700; color: var(--tone); background: var(--tone-bg);
+}
+
+.slot-li { display: flex; }
+.slot {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 104px; border: 1.5px dashed var(--border-strong); border-radius: var(--radius-sm);
+  background: none; color: var(--muted); font: inherit; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.slot-li--extra .slot { border-color: var(--border); color: var(--muted-2); }
+.slot:hover, .slot-li--extra .slot:hover { border-color: var(--brand); color: var(--brand); background: var(--blue-50); }
+.slot-text { font-size: 0.78rem; font-weight: 500; }
+
+.add-year {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: calc(100% - 2 * var(--s5)); margin: var(--s4) var(--s5) 0; min-height: 48px;
+  border: 1.5px dashed var(--border-strong); border-radius: var(--radius-sm);
+  background: none; color: var(--muted); font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer;
+}
+.add-year:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); background: var(--blue-50); }
+.add-year:disabled { opacity: 0.5; cursor: default; }
+
+.board-foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s2);
+  margin: 0; padding: var(--s3) var(--s5) var(--s4); font-size: 0.76rem; color: var(--muted-2);
+}
+.saved { display: inline-flex; align-items: center; gap: 4px; color: var(--success); }
+@media (hover: none) {
+  .hint { visibility: hidden; }
+  /* The unit page links to the tree already; on a phone the card keeps only
+     the two tools that change the plan. */
+  .ucard-tools .mini:first-child { display: none; }
+}
+
+/* --- part colours -------------------------------------------------------------- */
+
+.tone-1 { --tone: var(--part-1); --tone-bg: var(--part-1-bg); }
+.tone-2 { --tone: var(--part-2); --tone-bg: var(--part-2-bg); }
+.tone-3 { --tone: var(--part-3); --tone-bg: var(--part-3-bg); }
+.tone-4 { --tone: var(--part-4); --tone-bg: var(--part-4-bg); }
+.tone-5 { --tone: var(--part-5); --tone-bg: var(--part-5-bg); }
+.tone-6 { --tone: var(--part-6); --tone-bg: var(--part-6-bg); }
+
+/* --- side panel ----------------------------------------------------------------- */
+
+.side { display: grid; gap: var(--s3); position: sticky; top: calc(var(--header-h) + var(--s3)); }
+.panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: var(--s4) var(--s5); box-shadow: var(--shadow-sm);
+}
+.panel-title {
+  margin: 0 0 var(--s3); font-family: var(--font); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.panel--progress { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.panel--progress .panel-title { align-self: flex-start; }
+.ring-big { font-size: 2.2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--text); }
+.ring-big small { font-size: 1rem; font-weight: 600; margin-left: 1px; color: var(--muted); }
+.ring-small { margin-top: 6px; font-size: 0.76rem; color: var(--muted); }
+.panel-note { margin: var(--s3) 0 0; font-size: 0.8rem; color: var(--muted); }
+
+.stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); width: 100%;
+  margin: var(--s4) 0 0; padding-top: var(--s3); border-top: 1px solid var(--border);
+}
+.stats div + div { border-left: 1px solid var(--border); }
+.stats dt { font-size: 0.7rem; color: var(--muted); }
+.stats dd { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text); }
+.stat--bad dd { color: var(--danger); }
+.stat--warn dd { color: var(--warning); }
+.bad-text { margin: var(--s2) 0 0; color: var(--danger); }
+
+.parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.part-line { display: flex; gap: var(--s2); align-items: center; margin-bottom: 6px; }
+.part-tag {
+  flex: none; min-width: 20px; padding: 1px 5px; border-radius: 4px; text-align: center;
+  font-size: 0.7rem; font-weight: 700; color: var(--tone); background: var(--tone-bg);
+}
+.part-name { flex: 1; min-width: 0; font-size: 0.82rem; line-height: 1.3; }
+.part-num { font: 500 0.76rem var(--font-mono); color: var(--muted); white-space: nowrap; }
+.part-bar { height: 6px; background: var(--surface-2); border-radius: var(--radius-pill); overflow: hidden; }
+.part-fill { display: block; height: 100%; background: var(--tone); border-radius: inherit; transition: width 0.4s ease; }
+.part-note { margin: 4px 0 0; font-size: 0.74rem; color: var(--muted); }
+
+.panel--quiet {
+  display: flex; gap: var(--s2); align-items: flex-start; background: var(--surface-2);
+  box-shadow: none; color: var(--muted);
+}
+.panel--quiet p { margin: 0; font-size: 0.76rem; line-height: 1.5; }
+.panel--quiet :deep(svg) { margin-top: 2px; }
+
+/* --- narrower screens ------------------------------------------------------------ */
+
+@media (max-width: 1180px) {
   .split { grid-template-columns: minmax(0, 1fr); }
-  .panel { position: static; }
-  .actions { margin-left: 0; }
+  .side { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .panel--quiet { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .page { padding: var(--s4) var(--s4) var(--s6); }
+  /* One row that scrolls sideways, rather than three rows of buttons above
+     the plan itself. */
+  .tools {
+    width: calc(100% + 2 * var(--s4)); margin: 0 calc(-1 * var(--s4)); padding: 2px var(--s4) 4px;
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  }
+  .tools::-webkit-scrollbar { display: none; }
+  .tool-group, .tool--danger { flex: none; }
+  .board { border-radius: var(--radius); margin: 0 calc(-1 * var(--s2)); }
+  .board-head { padding: var(--s4); }
+  .settings { grid-template-columns: minmax(0, 1fr) 96px; flex-basis: 100%; }
+  .ctl--wide { grid-column: 1 / -1; grid-row: 1; }
+  .periods { padding: var(--s3) var(--s4); }
+  .year-bar { padding: 10px var(--s4); }
+  .term { grid-template-columns: minmax(0, 1fr); }
+  .term-label {
+    display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2);
+    padding: 10px var(--s4) 0; border-right: 0; background: none;
+  }
+  .term-meta { margin: 0 0 0 auto; }
+  .term-add { margin-top: 0; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--s2) var(--s4) var(--s4); gap: var(--s2); }
+  .slot-li--extra { display: none; }
+  .slot, .ucard { min-height: 92px; }
+  .add-year { width: calc(100% - 2 * var(--s4)); margin: var(--s4) var(--s4) 0; }
+  .board-foot { padding: var(--s3) var(--s4) var(--s4); }
+  .side { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --- print ----------------------------------------------------------------------
+ * The board and the totals, nothing that only makes sense on a screen. A year
+ * stays on one page where it fits, so a printed plan never splits Semester 1
+ * from its own heading. */
+@media print {
+  .page { max-width: none; padding: 0; }
+  .tools, .periods, .slot-li, .add-year, .board-foot, .ucard-tools, .term-add, .panel--quiet, .lede { display: none !important; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .board, .panel { box-shadow: none; border-color: #c9d2dc; }
+  .board-head { padding: 8px 12px; }
+  .ctl-input { border: 0; padding: 0; height: auto; background-image: none; }
+  .year { break-inside: avoid; }
+  .year-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .ucard, .ucard::before, .ucard-part, .part-fill, .part-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .ucard { min-height: 0; break-inside: avoid; }
+  .side { position: static; grid-template-columns: 1fr 2fr; break-inside: avoid; }
 }
 </style>
