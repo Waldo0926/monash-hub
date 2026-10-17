@@ -308,89 +308,104 @@ function hue(prefix: string): number {
         <ErrorState v-if="error" :error="error" />
         <Skeleton v-else-if="pending" :lines="6" />
         <template v-else>
-          <div class="canvas-tools">
-            <button class="tool" type="button" :aria-label="$t('tree.zoomIn')" @click="zoomBy(1.25)">+</button>
-            <button class="tool" type="button" :aria-label="$t('tree.zoomOut')" @click="zoomBy(1 / 1.25)">−</button>
-            <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
-            <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
-          </div>
           <YearNotice v-if="data?.not_in_year" :code="data.seed" :year="data.academic_year" :missing="data.not_in_year" />
           <IntakeYearNotice v-if="data" :year="data.academic_year" :closed="layout.nodes.some((n: any) => !n.in_year)" />
           <p v-if="data?.truncated" class="truncated">{{ $t('tree.truncated') }}</p>
 
-          <div
-            ref="frame"
-            class="canvas"
-            :class="{ 'canvas--dragging': dragging }"
-            @pointerdown="startDrag"
-            @pointermove="onDrag"
-            @pointerup="endDrag"
-            @pointercancel="endDrag"
-            @wheel="onWheel"
-          >
-            <svg
-              :width="natural.w"
-              :height="natural.h"
-              :viewBox="`${-PAD} ${-PAD} ${natural.w} ${natural.h}`"
-              class="graph"
-              :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }"
-              role="img"
-              :aria-label="$t('tree.figureLabel', { code })"
+          <div class="stage">
+            <div class="canvas-tools">
+              <button class="tool" type="button" :aria-label="$t('tree.zoomIn')" @click="zoomBy(1.25)">+</button>
+              <button class="tool" type="button" :aria-label="$t('tree.zoomOut')" @click="zoomBy(1 / 1.25)">−</button>
+              <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
+              <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
+            </div>
+            <div
+              ref="frame"
+              class="canvas"
+              :class="{ 'canvas--dragging': dragging }"
+              @pointerdown="startDrag"
+              @pointermove="onDrag"
+              @pointerup="endDrag"
+              @pointercancel="endDrag"
+              @wheel="onWheel"
             >
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
-                        markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
-                </marker>
-              </defs>
-
-              <path
-                v-for="(edge, index) in layout.edges"
-                :key="index"
-                :d="edge.path"
-                class="edge"
-                :class="{ 'edge--coreq': edge.type === 'corequisite', 'edge--lit': selected === edge.source || selected === edge.target }"
-                marker-end="url(#arrow)"
-              />
-
-              <g
-                v-for="node in layout.nodes"
-                :key="node.unit_code"
-                class="node"
-                :class="{
-                  'node--seed': node.depth === 0,
-                  'node--away': campus && node.in_year && !node.offered_at_campus,
-                  'node--gone': !node.in_year,
-                  'node--on': selected === node.unit_code
-                }"
-                :transform="`translate(${node.x}, ${node.y})`"
-                :data-code="node.unit_code"
-                tabindex="0"
-                role="button"
-                @keydown.enter="selected = node.unit_code"
+              <svg
+                :width="natural.w"
+                :height="natural.h"
+                :viewBox="`${-PAD} ${-PAD} ${natural.w} ${natural.h}`"
+                class="graph"
+                :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }"
+                role="img"
+                :aria-label="$t('tree.figureLabel', { code })"
               >
-                <rect class="card-bg" :width="CARD_W" :height="CARD_H" rx="10" />
-                <rect
-                  class="stripe"
-                  width="6"
-                  :height="CARD_H"
-                  rx="3"
-                  :style="{ fill: `hsl(${hue(node.prefix)} 62% 48%)` }"
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                          markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
+                  </marker>
+                </defs>
+
+                <path
+                  v-for="(edge, index) in layout.edges"
+                  :key="index"
+                  :d="edge.path"
+                  class="edge"
+                  :class="{ 'edge--coreq': edge.type === 'corequisite', 'edge--lit': selected === edge.source || selected === edge.target }"
+                  marker-end="url(#arrow)"
                 />
-                <text class="code" x="16" y="22">{{ node.unit_code }}</text>
-                <text class="period" :x="CARD_W - 12" y="22">{{ node.periods.join('·') }}</text>
-                <text class="name" x="16" y="40">
-                  {{ clip(node.title || $t('tree.notPublished', { year: shownYear })) }}
-                </text>
-                <text
-                  v-if="campus && node.in_year && !node.offered_at_campus"
-                  class="away-mark"
-                  :x="CARD_W - 12"
-                  :y="CARD_H - 10"
-                >✕</text>
-              </g>
-            </svg>
+
+                <g
+                  v-for="node in layout.nodes"
+                  :key="node.unit_code"
+                  class="node"
+                  :class="{
+                    'node--seed': node.depth === 0,
+                    'node--away': campus && node.in_year && !node.offered_at_campus,
+                    'node--gone': !node.in_year,
+                    'node--on': selected === node.unit_code
+                  }"
+                  :transform="`translate(${node.x}, ${node.y})`"
+                  :data-code="node.unit_code"
+                  tabindex="0"
+                  role="button"
+                  @keydown.enter="selected = node.unit_code"
+                >
+                  <rect class="card-bg" :width="CARD_W" :height="CARD_H" rx="10" />
+                  <rect
+                    class="stripe"
+                    width="6"
+                    :height="CARD_H"
+                    rx="3"
+                    :style="{ fill: `hsl(${hue(node.prefix)} 62% 48%)` }"
+                  />
+                  <text class="code" x="16" y="22">{{ node.unit_code }}</text>
+                  <text class="period" :x="CARD_W - 12" y="22">{{ node.periods.join('·') }}</text>
+                  <text class="name" x="16" y="40">
+                    {{ clip(node.title || $t('tree.notPublished', { year: shownYear })) }}
+                  </text>
+                  <text
+                    v-if="campus && node.in_year && !node.offered_at_campus"
+                    class="away-mark"
+                    :x="CARD_W - 12"
+                    :y="CARD_H - 10"
+                  >✕</text>
+                </g>
+              </svg>
+            </div>
+
           </div>
+
+          <!-- The graph shows the shape; this is the names, for when the graph
+               is too wide to read and all the reader wanted was the next step. -->
+          <section v-if="data?.seed" class="card after">
+            <h2 class="after-title">{{ $t('unlocks.after', { code: data.seed }) }}</h2>
+            <UnitUnlocks
+              :code="data.seed"
+              :year="data.academic_year"
+              :campus="campus || null"
+              :graph-link="false"
+            />
+          </section>
         </template>
       </section>
 
@@ -463,6 +478,11 @@ function hue(prefix: string): number {
 .line--dash path { stroke-dasharray: 4 3; }
 
 .canvas-wrap { position: relative; min-height: 420px; }
+/* The zoom tools sit on the canvas, not on the section, so the list below
+   the graph does not push them out of place. */
+.stage { position: relative; }
+.after { margin-top: var(--s4); }
+.after-title { font-size: 1.1rem; margin-bottom: var(--s3); }
 .canvas {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   overflow: hidden; height: 620px; touch-action: none; cursor: grab;

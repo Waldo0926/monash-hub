@@ -57,6 +57,10 @@ const suggestions = computed(() => [
   $t('unit.suggestMalaysia', { code: code.value })
 ])
 
+// The campus the reader planned for, so "not taught at Malaysia" in the list
+// below means their campus. A reader with no plan gets the default, Malaysia.
+const { plan } = usePlan()
+
 const requisitesByType = computed(() => {
   const groups: Record<string, any[]> = {}
   for (const group of unit.value?.requisites || []) {
@@ -193,18 +197,27 @@ useHead(() => ({
 
           <section id="requisites" class="card section">
             <h2>{{ $t('unit.requisites') }}</h2>
-            <template v-if="unit.requisites.length">
-              <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
-                <h3 class="req-type">{{ $term('requisiteType', String(type)) }}</h3>
-                <RequisiteRule
-                  v-for="(group, gi) in groups"
-                  :key="gi"
-                  :rule="group"
-                  class="req-group"
-                />
+            <div class="before-after">
+              <div>
+                <h3 class="side-label">{{ $t('unlocks.before', { code: unit.unit_code }) }}</h3>
+                <template v-if="unit.requisites.length">
+                  <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
+                    <h4 class="req-type">{{ $term('requisiteType', String(type)) }}</h4>
+                    <RequisiteRule
+                      v-for="(group, gi) in groups"
+                      :key="gi"
+                      :rule="group"
+                      class="req-group"
+                    />
+                  </div>
+                </template>
+                <p v-else class="muted small">{{ $t('unit.noRequisites') }}</p>
               </div>
-            </template>
-            <p v-else class="muted small">{{ $t('unit.noRequisites') }}</p>
+              <div>
+                <h3 class="side-label">{{ $t('unlocks.after', { code: unit.unit_code }) }}</h3>
+                <UnitUnlocks :code="unit.unit_code" :year="unit.academic_year" :campus="plan.campus" />
+              </div>
+            </div>
           </section>
 
           <section v-if="unit.learning_outcomes.length" id="outcomes" class="card section">
@@ -339,6 +352,11 @@ useHead(() => ({
   background: var(--blue-50);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
+.before-after { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6); }
+.side-label {
+  font-family: var(--font); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: var(--s3);
+}
 .req + .req { margin-top: var(--s5); }
 .req-type { text-transform: capitalize; }
 .req-group ul { margin: var(--s2) 0; padding-left: var(--s5); }
@@ -363,6 +381,7 @@ useHead(() => ({
 
 @media (max-width: 900px) {
   .body { grid-template-columns: 1fr; }
+  .before-after { grid-template-columns: 1fr; gap: var(--s5); }
   .side { position: static; }
   .nav { display: none; }
 }

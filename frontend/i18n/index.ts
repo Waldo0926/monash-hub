@@ -772,7 +772,20 @@ const en: Messages = {
   'exchange.metaTitle': 'Exchange — Monash Hub',
   'exchange.planned': 'Planned for {stage}.',
   'exchange.note':
-    'In the meantime, the official Monash exchange page is indexed under Official guides, and exchange questions belong in Community.'
+    'In the meantime, the official Monash exchange page is indexed under Official guides, and exchange questions belong in Community.',
+  'unlocks.before': 'Before {code}',
+  'unlocks.after': 'After {code}',
+  'unlocks.none': 'No unit in the {year} Handbook lists {code} as a prerequisite or corequisite.',
+  'unlocks.countOne': '1 unit lists {code} as a prerequisite or corequisite.',
+  'unlocks.count': '{count} units list {code} as a prerequisite or corequisite.',
+  'unlocks.leadsOn': 'Those lead on to {total} units in all.',
+  'unlocks.leadsOnAtLeast': 'Those lead on to at least {total} units.',
+  'unlocks.awayNote': '{count} of them are not taught at {campus}.',
+  'unlocks.coreq': 'Corequisite',
+  'unlocks.showMore': 'Show {count} more',
+  'unlocks.showLess': 'Show fewer',
+  'unlocks.asGraph': 'See it as a graph',
+  'unlocks.error': 'Could not load the units that follow this one. Try reloading the page.',
 }
 
 const zh: Messages = {
@@ -1474,7 +1487,20 @@ const zh: Messages = {
   'exchange.metaTitle': '交换 — Monash Hub',
   'exchange.planned': '计划在 {stage} 阶段完成。',
   'exchange.note':
-    '在那之前，Monash 官方的交换页面已经收录在「官方指南」里，交换相关的问题可以发到「社区」。'
+    '在那之前，Monash 官方的交换页面已经收录在「官方指南」里，交换相关的问题可以发到「社区」。',
+  'unlocks.before': '修 {code} 之前',
+  'unlocks.after': '修完 {code} 之后',
+  'unlocks.none': '{year} 年 Handbook 里没有课程把 {code} 列为先修或同修。',
+  'unlocks.countOne': '有 1 门课把 {code} 列为先修或同修。',
+  'unlocks.count': '有 {count} 门课把 {code} 列为先修或同修。',
+  'unlocks.leadsOn': '顺着往后一共能接到 {total} 门课。',
+  'unlocks.leadsOnAtLeast': '顺着往后至少能接到 {total} 门课。',
+  'unlocks.awayNote': '其中 {count} 门在{campus}不开。',
+  'unlocks.coreq': '同修',
+  'unlocks.showMore': '展开其余 {count} 门',
+  'unlocks.showLess': '收起',
+  'unlocks.asGraph': '用图查看',
+  'unlocks.error': '后续课程没有加载出来，请刷新页面重试。',
 }
 
 const ja: Messages = {
@@ -2192,7 +2218,20 @@ const ja: Messages = {
   'exchange.metaTitle': '交換留学 — Monash Hub',
   'exchange.planned': '{stage} で対応予定です。',
   'exchange.note':
-    'それまでは、Monash 公式の交換留学ページを「公式ガイド」に収録しています。交換留学の質問は「コミュニティ」へどうぞ。'
+    'それまでは、Monash 公式の交換留学ページを「公式ガイド」に収録しています。交換留学の質問は「コミュニティ」へどうぞ。',
+  'unlocks.before': '{code} の前に',
+  'unlocks.after': '{code} の後に',
+  'unlocks.none': '{year} 年の Handbook には {code} を前提科目・同時履修科目とするユニットはありません。',
+  'unlocks.countOne': '{code} を前提科目・同時履修科目とするユニットが 1 つあります。',
+  'unlocks.count': '{code} を前提科目・同時履修科目とするユニットが {count} あります。',
+  'unlocks.leadsOn': 'そこから合計 {total} ユニットにつながります。',
+  'unlocks.leadsOnAtLeast': 'そこから少なくとも {total} ユニットにつながります。',
+  'unlocks.awayNote': 'うち {count} ユニットは{campus}で開講されていません。',
+  'unlocks.coreq': '同時履修',
+  'unlocks.showMore': '残り {count} 件を表示',
+  'unlocks.showLess': '閉じる',
+  'unlocks.asGraph': 'グラフで見る',
+  'unlocks.error': '後続ユニットを読み込めませんでした。ページを再読み込みしてください。',
 }
 
 const ko: Messages = {
@@ -2908,7 +2947,20 @@ const ko: Messages = {
   'exchange.metaTitle': '교환학생 — Monash Hub',
   'exchange.planned': '{stage} 단계에서 지원할 예정입니다.',
   'exchange.note':
-    '그때까지는 Monash 공식 교환학생 페이지가 “공식 가이드”에 수록되어 있으며, 교환학생 관련 질문은 “커뮤니티”에 올려 주세요.'
+    '그때까지는 Monash 공식 교환학생 페이지가 “공식 가이드”에 수록되어 있으며, 교환학생 관련 질문은 “커뮤니티”에 올려 주세요.',
+  'unlocks.before': '{code} 이전',
+  'unlocks.after': '{code} 이후',
+  'unlocks.none': '{year}년 Handbook에는 {code}를 선수·동시수강 과목으로 둔 과목이 없습니다.',
+  'unlocks.countOne': '{code}를 선수·동시수강 과목으로 둔 과목이 1개 있습니다.',
+  'unlocks.count': '{code}를 선수·동시수강 과목으로 둔 과목이 {count}개 있습니다.',
+  'unlocks.leadsOn': '이어서 모두 {total}개 과목으로 연결됩니다.',
+  'unlocks.leadsOnAtLeast': '이어서 최소 {total}개 과목으로 연결됩니다.',
+  'unlocks.awayNote': '그중 {count}개는 {campus}에서 개설되지 않습니다.',
+  'unlocks.coreq': '동시수강',
+  'unlocks.showMore': '{count}개 더 보기',
+  'unlocks.showLess': '접기',
+  'unlocks.asGraph': '그래프로 보기',
+  'unlocks.error': '후속 과목을 불러오지 못했습니다. 페이지를 새로고침해 주세요.',
 }
 
 export const MESSAGES: Record<LocaleCode, Messages> = { en, zh, ja, ko }

@@ -122,3 +122,42 @@ def test_a_cycle_does_not_hang_the_walk(client, db):
 
     body = client.get("/api/v1/units/LLL1001/tree", params={"direction": "both"}).json()
     assert {n["unit_code"] for n in body["nodes"]} == {"LLL1001", "RRR1001"}
+
+
+# --- the "after this unit" list on the unit page ---------------------------------
+
+def test_unlocks_lists_the_units_that_need_it(client, chain):
+    body = client.get("/api/v1/units/AAA1001/unlocks").json()
+    assert [u["unit_code"] for u in body["units"]] == ["BBB2001"]
+    assert body["count"] == 1
+    # BBB2001 leads on to CCC3001, so the walk reaches two units in all.
+    assert body["total_downstream"] == 2
+
+
+def test_a_corequisite_is_labelled_as_one(client, chain):
+    body = client.get("/api/v1/units/DDD1001/unlocks").json()
+    assert body["units"][0]["unit_code"] == "CCC3001"
+    assert body["units"][0]["requisite_type"] == "corequisite"
+
+
+def test_a_prohibition_does_not_count_as_unlocking(client, chain):
+    body = client.get("/api/v1/units/XXX9001/unlocks").json()
+    assert body["count"] == 0
+    assert body["total_downstream"] == 0
+
+
+def test_a_withdrawn_unit_is_not_offered_as_next(client, chain):
+    unit = chain.query(Unit).filter_by(unit_code="BBB2001").one()
+    unit.is_active = False
+    chain.commit()
+    body = client.get("/api/v1/units/AAA1001/unlocks").json()
+    assert body["units"] == []
+
+
+def test_unlocks_carry_the_campus_mark(client, chain):
+    clayton = _unit(chain, "FFF2001", "Needs the Clayton unit", campuses=("Clayton",))
+    _requires(chain, clayton, "AAA1001")
+    chain.commit()
+    body = client.get("/api/v1/units/AAA1001/unlocks", params={"campus": "Malaysia"}).json()
+    marks = {u["unit_code"]: u["offered_at_campus"] for u in body["units"]}
+    assert marks == {"BBB2001": True, "FFF2001": False}
