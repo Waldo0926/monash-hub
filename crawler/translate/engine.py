@@ -52,6 +52,10 @@ _SKIP = re.compile(
     r"^\s*(?:[\W\d]+|Social Media Share Bar.*|Not Configured)\s*$",
     re.IGNORECASE,
 )
+# No word in it: "E116 - E140", "TP1/TP2", "S1-01". A table of code ranges
+# holds dozens of these, and a chat model asked to translate one explains it
+# instead, which is a failed string - enough of them in a row ended a pass.
+_NO_WORDS = re.compile(r"^(?:[^A-Za-z]|\b[A-Za-z]{1,2}(?=\d)|\b[A-Za-z]\b)*$")
 
 # A short all-capitals token standing on its own is a code, not a word. The
 # results legend is a whole table of them - P, N, NE, NGO, SFR, WDN - and the
@@ -270,7 +274,7 @@ class Translator:
         if not source:
             return None
         source = source.strip()
-        if not source or _SKIP.match(source):
+        if not source or _SKIP.match(source) or _NO_WORDS.match(source):
             return None
 
         cached = self._cache.get(source)

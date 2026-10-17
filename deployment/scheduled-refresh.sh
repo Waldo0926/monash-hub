@@ -37,10 +37,13 @@ engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
 locales="$(sed -n 's/^TRANSLATE_LOCALES=//p' .env 2>/dev/null | tail -1)"
 locales="${locales:-zh ja ko}"
 
+# One failed pass (a provider that stops answering, one language the engine
+# cannot do) is logged and the next one still runs, as does the reindex.
 translate() {
   docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
     run --rm crawler python -m crawler.translate.run --fields all \
-    --engine "${engine:-argos}" --workers 4 "$@"
+    --engine "${engine:-argos}" --workers 4 "$@" \
+    || echo "translation pass failed: $*"
 }
 
 exec 9>"$STATE_DIR/scheduled-refresh.lock"
