@@ -32,3 +32,21 @@ export function useHandbookYear() {
 
   return { year, withYear, setYear }
 }
+
+/**
+ * The Handbook that describes a calendar year of a plan.
+ *
+ * Same rule as `handbook_year_for` in backend/app/handbook/plan.py, so the
+ * planner searches the Handbook it is checked against: that year's own when it
+ * is loaded, else the latest loaded one before it, else the earliest loaded.
+ * A unit in 2026 first semester is a 2026 unit. Searching without a year read
+ * the site's current Handbook, 2027 once it was loaded, and FIT1058 is not in
+ * it, so the picker said nothing matched for a unit taught that semester.
+ * `undefined` while the loaded years are not known yet.
+ */
+export function handbookYearFor(year: number, loaded: number[] | null | undefined): number | undefined {
+  if (!loaded?.length) return undefined
+  if (loaded.includes(year)) return year
+  const earlier = loaded.filter((y) => y <= year)
+  return earlier.length ? Math.max(...earlier) : Math.min(...loaded)
+}

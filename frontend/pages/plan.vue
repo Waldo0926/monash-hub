@@ -14,6 +14,7 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
  * why there is no sign-in on this page and why there is an export button.
  */
 import { toCsv } from '~/utils/csv'
+import { handbookYearFor } from '~/composables/useHandbookYear'
 import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 
 const { $t } = useNuxtApp()
@@ -182,6 +183,16 @@ const chosenCampus = computed(() => plan.value.campus)
 const { locale } = useLocale()
 const course = ref<any>(null)
 
+// Which Handbooks are loaded, for units and for degrees. A plan reads each year
+// from that year's Handbook, and the degree's rules from the year the student
+// started in, because that is the course version they are enrolled in. Left to
+// the API's default both came from the site's current Handbook, 2027 from
+// October 2026, which drops units like FIT1058 that are still taught in 2026.
+const { data: unitYears } = await useApiFetch<any>('/v1/units/filters')
+const { data: courseYears } = await useApiFetch<any>('/v1/courses/filters')
+const unitHandbook = (year: number) => handbookYearFor(year, unitYears.value?.years)
+const courseHandbook = computed(() => handbookYearFor(plan.value.startYear, courseYears.value?.years))
+
 async function loadCourse() {
   if (!chosenCourse.value) {
     course.value = null
@@ -191,6 +202,7 @@ async function loadCourse() {
     campus: chosenCampus.value || '',
     locale: locale.value
   })
+  if (courseHandbook.value) query.set('year', String(courseHandbook.value))
   try {
     course.value = await apiFetch<any>(
       `/v1/courses/${encodeURIComponent(chosenCourse.value)}?${query}`
@@ -203,11 +215,16 @@ async function loadCourse() {
 }
 
 onMounted(loadCourse)
-watch([chosenCourse, chosenCampus, locale], loadCourse)
+watch([chosenCourse, chosenCampus, locale, courseHandbook], loadCourse)
 
 const { data: courseList } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses?limit=200${chosenCampus.value ? `&campus=${chosenCampus.value}` : ''}`,
-  { watch: [chosenCampus] }
+  () => {
+    const params = new URLSearchParams({ limit: '200' })
+    if (chosenCampus.value) params.set('campus', chosenCampus.value)
+    if (courseHandbook.value) params.set('year', String(courseHandbook.value))
+    return `/v1/courses?${params}`
+  },
+  { watch: [chosenCampus, courseHandbook] }
 )
 
 const planned = computed(() => new Set(plan.value.entries.map((e) => e.unit_code)))
@@ -957,6 +974,7 @@ useSeoMeta({ title: () => $t('plan.title') })
     <UnitPicker
       v-if="picking"
       :year="picking.year"
+      :handbook-year="unitHandbook(picking.year)"
       :period="picking.period"
       :campus="plan.campus"
       :entries="plan.entries"

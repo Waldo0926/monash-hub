@@ -10,6 +10,16 @@ All notable changes to Monash Hub are documented here.
   "B 部分。核心课程", so some degrees showed both separators. Stored strings
   that start with a part heading are now read with the colon.
 
+### Fixed (course map Handbook year)
+
+- The add-a-unit dialog on the course map searches the Handbook of the year
+  the slot is in. It used to search the site's current Handbook, 2027 since
+  October 2026, so a 2026 slot could not find FIT1058, which is taught in 2026
+  but not listed in 2027. A year with no Handbook loaded uses the latest one
+  before it, the same rule the plan check uses, and the hint names the year.
+- The degree picker and the "against your degree" bars read the Handbook of
+  the plan's start year, the course version the student enrolled in.
+
 ### Changed (plainer interface copy)
 
 - Page intros, empty states, notices and error text in all four locales are
