@@ -628,6 +628,24 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "フルタイムの履修量",
         "ko": "전일제 수강 부담",
     },
+    "full-time load": {
+        "zh": "全日制学习负荷",
+        "ja": "フルタイムの履修量",
+        "ko": "전일제 수강 부담",
+    },
+    # The certificate itself. Korean got a transliteration, 테스트아머.
+    "testamur": {
+        "zh": "毕业证书",
+        "ja": "学位記",
+        "ko": "학위증",
+    },
+    # Longer than "Department of", which would make it an academic department
+    # (学科：内務省).
+    "Department of Home Affairs": {
+        "zh": "澳大利亚内政部",
+        "ja": "オーストラリア内務省",
+        "ko": "호주 내무부",
+    },
 
     # --- Monash Malaysia -----------------------------------------------------
     #

@@ -518,3 +518,23 @@ def test_japanese_with_chinese_in_it_keeps_the_english():
     engine = translator(lambda text: "缺席した場合はどうなりますか？")
     engine.locale = "ja"
     assert engine.text("What happens if I am absent?") is None
+
+
+def test_a_korean_term_gets_the_particle_its_last_syllable_needs():
+    """The model picks the particle for its own word, and the glossary puts a
+    different one back: 과목를, 요건는."""
+    from crawler.translate.engine import _particles
+
+    terms = ["필수 통과 요건", "과목", "점수", "추가 평가(additional assessment)", "WES"]
+    assert _particles(
+        "필수 통과 요건는 과목를 듣고 점수이 높으면 추가 평가(additional assessment)을 받습니다.",
+        terms,
+    ) == "필수 통과 요건은 과목을 듣고 점수가 높으면 추가 평가(additional assessment)를 받습니다."
+    # A particle that is already right, a copula and a Latin term are left alone.
+    assert _particles("과목이다. 과목은 WES가 아니라 WES이", terms) == "과목이다. 과목은 WES가 아니라 WES이"
+
+
+def test_korean_particles_are_fixed_after_a_term_is_restored():
+    engine = translator(lambda text: "Zqb를 Zqa할 수 있습니다.")
+    engine.locale = "ko"
+    assert engine.text("You can withdraw from a unit.") == "과목을 철회할 수 있습니다."
