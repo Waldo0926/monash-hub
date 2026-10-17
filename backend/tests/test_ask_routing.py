@@ -235,6 +235,63 @@ def test_the_handbook_year_is_the_units_year(client, seeded):
     assert "2026 Handbook" in body["blocks"][0]["text"]
 
 
+# --- asked from a unit page ----------------------------------------------------
+
+def ask_on_page(client, query: str, code: str | None, locale: str = "en") -> dict:
+    response = client.post(f"/api/v1/ask?locale={locale}",
+                           json={"query": query, "unit_code": code})
+    assert response.status_code == 200
+    return response.json()
+
+
+@pytest.mark.parametrize(("query", "locale"), [
+    ("How good is this unit?", "en"),
+    ("is it hard", "en"),
+    ("这门课难不难", "zh"),
+])
+def test_an_opinion_asked_on_the_unit_page_is_about_that_unit(client, seeded, query, locale):
+    # The reported bug: no code in the question, so it never reached the
+    # subjective answer even though the reader was on the FIT2102 page.
+    body = ask_on_page(client, query, "FIT2102", locale)
+    assert body["answer_type"] == "subjective"
+    assert body["unit_code"] == "FIT2102"
+
+
+def test_a_handbook_question_without_a_code_uses_the_page(client, seeded):
+    body = ask_on_page(client, "Is there a final exam?", "FIT2102")
+    assert body["answer_type"] == "handbook_assessment"
+    assert body["unit_code"] == "FIT2102"
+
+
+def test_the_same_question_off_the_page_names_no_unit(client, seeded):
+    body = ask(client, "How good is this unit?")
+    assert body["answer_type"] != "subjective"
+    assert body["unit_code"] is None
+
+
+def test_a_code_in_the_question_beats_the_page(client, seeded):
+    body = ask_on_page(client, "does FIT2102 have an exam", "FIT1045")
+    assert body["unit_code"] == "FIT2102"
+    assert body["answer_type"] == "handbook_assessment"
+
+
+def test_a_policy_question_on_the_page_still_gets_the_policy(client, seeded):
+    body = ask_on_page(client, "怎么退课", "FIT2102", "zh")
+    assert body["answer_type"] == "official_faq"
+    assert body["faq_slug"] == "how-to-withdraw-from-a-unit"
+
+
+def test_an_unmatched_question_on_the_page_is_not_a_link_back_to_it(client, seeded):
+    body = ask_on_page(client, "student visa renewal", "FIT2102")
+    assert body["answer_type"] != "handbook_overview"
+
+
+@pytest.mark.parametrize("code", ["", "not a code", "FIT2102 FIT1045", "drop table x"])
+def test_a_page_code_that_is_not_one_unit_is_ignored(client, seeded, code):
+    body = ask_on_page(client, "How good is this unit?", code)
+    assert body["unit_code"] is None
+
+
 # --- search beyond the answer card ---------------------------------------------
 
 def test_a_chinese_degree_search_finds_the_english_title(client, seeded):

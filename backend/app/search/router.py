@@ -454,25 +454,52 @@ def _localise_pages(db: Session, payload: dict[str, Any], locale: str | None) ->
             item["translation"] = tr.meta()
 
 
-def answer(db: Session, query: str, *, year: int, locale: str | None = None) -> dict[str, Any]:
-    """Route one question. Always returns a payload - never raises on a miss."""
+def _context_code(context_unit: str | None) -> str | None:
+    """The unit page's code, if it is shaped like one.
+
+    It arrives from the client, so it goes through the same pattern as a code
+    typed into the question. Anything else is dropped instead of reaching the
+    database.
+    """
+    found = extract_unit_codes(context_unit or "")
+    return found[0] if len(found) == 1 else None
+
+
+def answer(
+    db: Session,
+    query: str,
+    *,
+    year: int,
+    locale: str | None = None,
+    context_unit: str | None = None,
+) -> dict[str, Any]:
+    """Route one question. Always returns a payload - never raises on a miss.
+
+    ``context_unit`` is the unit page the question was asked on. Students on
+    that page write "this unit" or leave the unit out ("is there an exam?"),
+    and before this the router saw no code at all, so the question fell through
+    to the official pages search. A code typed in the question still wins over
+    the page it was typed on.
+    """
     query = (query or "").strip()
     codes = extract_unit_codes(query)
     intent, matched = classify_intent(query)
     subjective = is_subjective(query)
+    from_page = None if codes else _context_code(context_unit)
+    unit_code = codes[0] if codes else from_page
 
     base: dict[str, Any] = {
         "query": query,
         "intent": intent,
         "matched_keywords": matched,
-        "unit_code": codes[0] if codes else None,
+        "unit_code": unit_code,
         "sources": [],
         "related_community": [],
         "suggestions": [],
         "fallback": None,
     }
 
-    unit = _load_unit(db, codes[0], year) if codes else None
+    unit = _load_unit(db, unit_code, year) if unit_code else None
 
     # A subjective question about a real unit gets the published workload plus
     # community threads - never a fabricated difficulty rating.
@@ -521,7 +548,11 @@ def answer(db: Session, query: str, *, year: int, locale: str | None = None) -> 
         base["suggestions"] = _faq_questions(db, [*confident[1:], *related][:3], locale)
         return base
 
-    if unit is not None:
+    # The overview is for a reader who typed a code. A reader already on the
+    # unit page who asks "how do I withdraw?" wants the withdrawal pages, not a
+    # link back to the page they are reading, so a unit taken from the page
+    # carries on to the official search below.
+    if unit is not None and not from_page:
         # We know the unit but not what was being asked about it.
         #
         # This used to answer with the whole overview. On a phone that is the
