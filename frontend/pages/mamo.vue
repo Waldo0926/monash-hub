@@ -12,7 +12,7 @@ const avatar = '/mamo-avatar.jpg'
 const avatarMissing = ref(false)
 
 useSeoMeta({
-  title: () => `${$t('mamo.title')} — Monash Hub`,
+  title: () => $t('mamo.title'),
   description: MAMO_ACCOUNT.about
 })
 

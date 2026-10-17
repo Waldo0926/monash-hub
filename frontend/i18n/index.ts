@@ -36,7 +36,7 @@ type Messages = Record<string, string>
 
 const en: Messages = {
   // --- your own profile ---------------------------------------------------
-  'profile.metaTitle': 'Your profile — Monash Hub',
+  'profile.metaTitle': 'Your profile',
   'profile.title': 'Your profile',
   'profile.signedOut': 'Sign in to see your profile and everything you have written.',
   'profile.joined': 'Joined {date}',
@@ -89,7 +89,7 @@ const en: Messages = {
   'nav.marks': 'WAM/GPA calculator',
 
   // --- WAM and GPA calculator ---------------------------------------------
-  'marks.metaTitle': 'WAM and GPA calculator — Monash Hub',
+  'marks.metaTitle': 'WAM and GPA calculator',
   'marks.metaDescription':
     'Work out your WAM and GPA with the official Monash rules, and what you need this semester to reach a target.',
   'marks.title': 'WAM / GPA calculator',
@@ -410,7 +410,7 @@ const en: Messages = {
   'source.mayHaveChanged': 'source may have changed since',
 
   // --- home ---------------------------------------------------------------
-  'home.title': 'Monash Hub — Handbook, official guides and student community',
+  'home.title': 'Monash Hub | Handbook, official guides and student community',
   'home.metaDescription':
     'Search 2026 Monash Handbook units, official Monash policy pages and a public student community in one place. Independent student platform.',
   'home.hero': 'Monash units, policies and student community',
@@ -429,7 +429,7 @@ const en: Messages = {
 
   // --- unit search --------------------------------------------------------
   'units.title': 'Unit search',
-  'units.metaTitle': 'Unit search — Monash Hub',
+  'units.metaTitle': 'Unit search',
   'units.lead': '{year} Handbook data. Every result links back to the Handbook page it came from.',
   'units.searchPlaceholder': 'FIT2102, programming, databases…',
   'units.filters': 'Filters',
@@ -540,7 +540,7 @@ const en: Messages = {
 
   // --- guides -------------------------------------------------------------
   'guides.title': 'Official guides',
-  'guides.metaTitle': 'Official Monash guides — Monash Hub',
+  'guides.metaTitle': 'Official Monash guides',
   'guides.lead':
     'The Monash pages students use most, saved as searchable text with the source link and the date we last checked. The official wording is kept as is.',
   'guides.searchPlaceholder': 'special consideration, WAM, visa…',
@@ -572,7 +572,7 @@ const en: Messages = {
 
   // --- community ----------------------------------------------------------
   'community.title': 'Community',
-  'community.metaTitle': 'Community — Monash Hub',
+  'community.metaTitle': 'Community',
   'community.lead':
     'Students asking and answering each other. For official rules, see Official guides and Units.',
   'community.ask': 'Ask a question',
@@ -743,8 +743,8 @@ const en: Messages = {
   // --- accounts -----------------------------------------------------------
   'auth.signInTitle': 'Sign in',
   'auth.signUpTitle': 'Create an account',
-  'auth.metaSignIn': 'Sign in — Monash Hub',
-  'auth.metaSignUp': 'Create an account — Monash Hub',
+  'auth.metaSignIn': 'Sign in',
+  'auth.metaSignUp': 'Create an account',
   'auth.lead':
     'You only need an account to post, answer, save or report. Reading is open to everyone, and we never ask for your real name or student ID.',
   'auth.nickname': 'Nickname',
@@ -772,7 +772,7 @@ const en: Messages = {
   'auth.needAccount': 'Need an account? Create one',
   'auth.forgot': 'Forgot your password?',
   'auth.forgotTitle': 'Reset your password',
-  'auth.metaForgot': 'Reset your password — Monash Hub',
+  'auth.metaForgot': 'Reset your password',
   'auth.forgotLead':
     'Enter your email and we will send a code. Setting a new password signs out every other device.',
   'auth.resetPassword': 'Set new password',
@@ -837,7 +837,7 @@ const en: Messages = {
 
   // --- exchange -----------------------------------------------------------
   'exchange.title': 'Exchange',
-  'exchange.metaTitle': 'Exchange — Monash Hub',
+  'exchange.metaTitle': 'Exchange',
   'exchange.planned': 'Planned for {stage}.',
   'exchange.note':
     'In the meantime, the official Monash exchange page is indexed under Official guides, and exchange questions belong in Community.',
@@ -992,7 +992,7 @@ const en: Messages = {
 
 const zh: Messages = {
   // --- your own profile ---------------------------------------------------
-  'profile.metaTitle': '个人资料 — Monash Hub',
+  'profile.metaTitle': '个人资料',
   'profile.title': '个人资料',
   'profile.signedOut': '登录后可以查看你的资料和你写过的全部内容。',
   'profile.joined': '{date} 加入',
@@ -1044,7 +1044,7 @@ const zh: Messages = {
   'nav.marks': 'WAM/GPA 计算',
 
   // --- WAM and GPA calculator ---------------------------------------------
-  'marks.metaTitle': 'WAM / GPA 计算器 — Monash Hub',
+  'marks.metaTitle': 'WAM / GPA 计算器',
   'marks.metaDescription':
     '按 Monash 官方规则算 WAM 和 GPA，并算出这学期要拿多少分才能达到目标。',
   'marks.title': 'WAM / GPA 计算器',
@@ -1353,7 +1353,7 @@ const zh: Messages = {
   'source.lastChecked': '最后核对',
   'source.mayHaveChanged': '来源可能已有变动',
 
-  'home.title': 'Monash Hub — Handbook、官方指南与学生社区',
+  'home.title': 'Monash Hub | Handbook、官方指南与学生社区',
   'home.metaDescription':
     '在同一个地方查 2026 Handbook 课程、Monash 官方政策页面，以及一个公开的学生社区。独立学生平台。',
   'home.hero': 'Monash 课程、政策和学生社区',
@@ -1371,7 +1371,7 @@ const zh: Messages = {
   'home.noUnitsHint': '这个环境还没有跑过 Handbook 抓取。',
 
   'units.title': '课程搜索',
-  'units.metaTitle': '课程搜索 — Monash Hub',
+  'units.metaTitle': '课程搜索',
   'units.lead': '数据来自 {year} Handbook，每条结果都能点开对应的 Handbook 原页面。',
   'units.searchPlaceholder': 'FIT2102、programming、databases…',
   'units.filters': '筛选',
@@ -1471,7 +1471,7 @@ const zh: Messages = {
   'search.openOfficial': '打开官方页面 ↗',
 
   'guides.title': '官方指南',
-  'guides.metaTitle': 'Monash 官方指南 — Monash Hub',
+  'guides.metaTitle': 'Monash 官方指南',
   'guides.lead':
     '收录了常用的 Monash 官方页面，正文可以搜索，附来源链接和最后核对时间。内容保留官方原文，不做改写。',
   'guides.searchPlaceholder': 'special consideration、WAM、签证…',
@@ -1501,7 +1501,7 @@ const zh: Messages = {
   'category.malaysia': '马来西亚校区',
 
   'community.title': '社区',
-  'community.metaTitle': '社区 — Monash Hub',
+  'community.metaTitle': '社区',
   'community.lead':
     '同学之间分享经验、互相提问的地方。官方规定请看「官方指南」和「课程」。',
   'community.ask': '提问',
@@ -1667,8 +1667,8 @@ const zh: Messages = {
 
   'auth.signInTitle': '登录',
   'auth.signUpTitle': '注册账号',
-  'auth.metaSignIn': '登录 — Monash Hub',
-  'auth.metaSignUp': '注册账号 — Monash Hub',
+  'auth.metaSignIn': '登录',
+  'auth.metaSignUp': '注册账号',
   'auth.lead':
     '发帖、回答、收藏和举报需要账号，浏览不需要。注册不用填真实姓名或学号。',
   'auth.nickname': '昵称',
@@ -1695,7 +1695,7 @@ const zh: Messages = {
   'auth.needAccount': '还没有账号？去注册',
   'auth.forgot': '忘记密码？',
   'auth.forgotTitle': '重置密码',
-  'auth.metaForgot': '重置密码 — Monash Hub',
+  'auth.metaForgot': '重置密码',
   'auth.forgotLead': '输入邮箱，我们会发一个验证码。设置新密码会让其他设备全部退出登录。',
   'auth.resetPassword': '设置新密码',
   'auth.resetDone': '密码已修改，其他设备已退出登录。',
@@ -1754,7 +1754,7 @@ const zh: Messages = {
   'error.goHome': '回首页',
 
   'exchange.title': '交换',
-  'exchange.metaTitle': '交换 — Monash Hub',
+  'exchange.metaTitle': '交换',
   'exchange.planned': '计划在 {stage} 阶段完成。',
   'exchange.note':
     '在那之前，Monash 官方的交换页面已经收录在「官方指南」里，交换相关的问题可以发到「社区」。',
@@ -1909,7 +1909,7 @@ const zh: Messages = {
 
 const ja: Messages = {
   // --- your own profile ---------------------------------------------------
-  'profile.metaTitle': 'プロフィール — Monash Hub',
+  'profile.metaTitle': 'プロフィール',
   'profile.title': 'プロフィール',
   'profile.signedOut': 'ログインすると、プロフィールとこれまでに書いた内容を確認できます。',
   'profile.joined': '{date} に登録',
@@ -1961,7 +1961,7 @@ const ja: Messages = {
   'nav.marks': 'WAM/GPA 計算',
 
   // --- WAM and GPA calculator ---------------------------------------------
-  'marks.metaTitle': 'WAM / GPA 計算ツール — Monash Hub',
+  'marks.metaTitle': 'WAM / GPA 計算ツール',
   'marks.metaDescription':
     'Monash の公式ルールで WAM と GPA を計算し、目標に届くには今学期どれだけ必要かを出します。',
   'marks.title': 'WAM / GPA 計算ツール',
@@ -2273,7 +2273,7 @@ const ja: Messages = {
   'source.lastChecked': '最終確認',
   'source.mayHaveChanged': 'その後に変更された可能性があります',
 
-  'home.title': 'Monash Hub — Handbook・公式ガイド・学生コミュニティ',
+  'home.title': 'Monash Hub | Handbook・公式ガイド・学生コミュニティ',
   'home.metaDescription':
     '2026 年 Monash Handbook のユニット、Monash 公式の規程ページ、公開の学生コミュニティをひとつの場所で検索できます。独立した学生プラットフォームです。',
   'home.hero': 'Monash のことを、ひとつの場所で。',
@@ -2291,7 +2291,7 @@ const ja: Messages = {
   'home.noUnitsHint': 'この環境では Handbook のクロールがまだ実行されていません。',
 
   'units.title': 'ユニット検索',
-  'units.metaTitle': 'ユニット検索 — Monash Hub',
+  'units.metaTitle': 'ユニット検索',
   'units.lead': '{year} 年 Handbook のデータです。各結果は出典の Handbook ページにリンクしています。',
   'units.searchPlaceholder': 'FIT2102、programming、databases…',
   'units.filters': '絞り込み',
@@ -2397,7 +2397,7 @@ const ja: Messages = {
   'search.openOfficial': '公式ページを開く ↗',
 
   'guides.title': '公式ガイド',
-  'guides.metaTitle': 'Monash 公式ガイド — Monash Hub',
+  'guides.metaTitle': 'Monash 公式ガイド',
   'guides.lead':
     '収録済みの Monash 公式ページを、検索できる本文として出典リンクと最終確認日つきで保存しています。公式の文言は書き換えていません。',
   'guides.searchPlaceholder': 'special consideration、WAM、ビザ…',
@@ -2428,7 +2428,7 @@ const ja: Messages = {
   'category.malaysia': 'マレーシアキャンパス',
 
   'community.title': 'コミュニティ',
-  'community.metaTitle': 'コミュニティ — Monash Hub',
+  'community.metaTitle': 'コミュニティ',
   'community.lead':
     '学生同士で質問し、答え合う場所です。公式の規程は「公式ガイド」と「ユニット」を見てください。',
   'community.ask': '質問する',
@@ -2597,8 +2597,8 @@ const ja: Messages = {
 
   'auth.signInTitle': 'ログイン',
   'auth.signUpTitle': 'アカウント作成',
-  'auth.metaSignIn': 'ログイン — Monash Hub',
-  'auth.metaSignUp': 'アカウント作成 — Monash Hub',
+  'auth.metaSignIn': 'ログイン',
+  'auth.metaSignUp': 'アカウント作成',
   'auth.lead':
     'アカウントが必要なのは、投稿・回答・保存・報告のときだけです。閲覧は誰でもでき、本名や学籍番号を聞くことはありません。',
   'auth.nickname': 'ニックネーム',
@@ -2625,7 +2625,7 @@ const ja: Messages = {
   'auth.needAccount': 'アカウントがありませんか？作成する',
   'auth.forgot': 'パスワードをお忘れですか？',
   'auth.forgotTitle': 'パスワードの再設定',
-  'auth.metaForgot': 'パスワードの再設定 — Monash Hub',
+  'auth.metaForgot': 'パスワードの再設定',
   'auth.forgotLead':
     'メールアドレスを入力するとコードを送信します。新しいパスワードを設定すると、他のすべての端末からログアウトされます。',
   'auth.resetPassword': '新しいパスワードを設定',
@@ -2687,7 +2687,7 @@ const ja: Messages = {
   'error.goHome': 'ホームへ',
 
   'exchange.title': '交換留学',
-  'exchange.metaTitle': '交換留学 — Monash Hub',
+  'exchange.metaTitle': '交換留学',
   'exchange.planned': '{stage} で対応予定です。',
   'exchange.note':
     'それまでは、Monash 公式の交換留学ページを「公式ガイド」に収録しています。交換留学の質問は「コミュニティ」へどうぞ。',
@@ -2842,7 +2842,7 @@ const ja: Messages = {
 
 const ko: Messages = {
   // --- your own profile ---------------------------------------------------
-  'profile.metaTitle': '내 프로필 — Monash Hub',
+  'profile.metaTitle': '내 프로필',
   'profile.title': '내 프로필',
   'profile.signedOut': '로그인하면 프로필과 지금까지 쓴 글을 볼 수 있습니다.',
   'profile.joined': '{date} 가입',
@@ -2894,7 +2894,7 @@ const ko: Messages = {
   'nav.marks': 'WAM/GPA 계산',
 
   // --- WAM and GPA calculator ---------------------------------------------
-  'marks.metaTitle': 'WAM / GPA 계산기 — Monash Hub',
+  'marks.metaTitle': 'WAM / GPA 계산기',
   'marks.metaDescription':
     'Monash 공식 규정으로 WAM과 GPA를 계산하고, 목표에 도달하려면 이번 학기에 얼마가 필요한지 알려줍니다.',
   'marks.title': 'WAM / GPA 계산기',
@@ -3206,7 +3206,7 @@ const ko: Messages = {
   'source.lastChecked': '최종 확인',
   'source.mayHaveChanged': '이후 변경되었을 수 있습니다',
 
-  'home.title': 'Monash Hub — Handbook, 공식 가이드, 학생 커뮤니티',
+  'home.title': 'Monash Hub | Handbook, 공식 가이드, 학생 커뮤니티',
   'home.metaDescription':
     '2026 Monash Handbook 과목, Monash 공식 규정 페이지, 공개 학생 커뮤니티를 한곳에서 검색하세요. 독립 학생 플랫폼입니다.',
   'home.hero': 'Monash의 모든 것을 한곳에서.',
@@ -3224,7 +3224,7 @@ const ko: Messages = {
   'home.noUnitsHint': '이 환경에서는 Handbook 수집이 아직 실행되지 않았습니다.',
 
   'units.title': '과목 검색',
-  'units.metaTitle': '과목 검색 — Monash Hub',
+  'units.metaTitle': '과목 검색',
   'units.lead': '{year} Handbook 데이터입니다. 모든 결과는 출처 Handbook 페이지로 연결됩니다.',
   'units.searchPlaceholder': 'FIT2102, programming, databases…',
   'units.filters': '필터',
@@ -3330,7 +3330,7 @@ const ko: Messages = {
   'search.openOfficial': '공식 페이지 열기 ↗',
 
   'guides.title': '공식 가이드',
-  'guides.metaTitle': 'Monash 공식 가이드 — Monash Hub',
+  'guides.metaTitle': 'Monash 공식 가이드',
   'guides.lead':
     '수록된 Monash 공식 페이지를 검색 가능한 본문으로, 출처 링크와 최종 확인 날짜와 함께 보관합니다. 공식 표현을 고쳐 쓰지 않습니다.',
   'guides.searchPlaceholder': 'special consideration, WAM, 비자…',
@@ -3360,7 +3360,7 @@ const ko: Messages = {
   'category.malaysia': '말레이시아 캠퍼스',
 
   'community.title': '커뮤니티',
-  'community.metaTitle': '커뮤니티 — Monash Hub',
+  'community.metaTitle': '커뮤니티',
   'community.lead':
     '학생끼리 묻고 답하는 곳입니다. 공식 규정은 “공식 가이드”와 “과목”에서 확인하세요.',
   'community.ask': '질문하기',
@@ -3528,8 +3528,8 @@ const ko: Messages = {
 
   'auth.signInTitle': '로그인',
   'auth.signUpTitle': '회원가입',
-  'auth.metaSignIn': '로그인 — Monash Hub',
-  'auth.metaSignUp': '회원가입 — Monash Hub',
+  'auth.metaSignIn': '로그인',
+  'auth.metaSignUp': '회원가입',
   'auth.lead':
     '계정은 글쓰기, 답변, 저장, 신고에만 필요합니다. 읽기는 누구나 가능하며 실명이나 학번을 묻지 않습니다.',
   'auth.nickname': '닉네임',
@@ -3556,7 +3556,7 @@ const ko: Messages = {
   'auth.needAccount': '계정이 없나요? 만들기',
   'auth.forgot': '비밀번호를 잊으셨나요?',
   'auth.forgotTitle': '비밀번호 재설정',
-  'auth.metaForgot': '비밀번호 재설정 — Monash Hub',
+  'auth.metaForgot': '비밀번호 재설정',
   'auth.forgotLead':
     '이메일을 입력하면 코드를 보냅니다. 새 비밀번호를 설정하면 다른 모든 기기에서 로그아웃됩니다.',
   'auth.resetPassword': '새 비밀번호 설정',
@@ -3618,7 +3618,7 @@ const ko: Messages = {
   'error.goHome': '홈으로',
 
   'exchange.title': '교환학생',
-  'exchange.metaTitle': '교환학생 — Monash Hub',
+  'exchange.metaTitle': '교환학생',
   'exchange.planned': '{stage} 단계에서 지원할 예정입니다.',
   'exchange.note':
     '그때까지는 Monash 공식 교환학생 페이지가 “공식 가이드”에 수록되어 있으며, 교환학생 관련 질문은 “커뮤니티”에 올려 주세요.',

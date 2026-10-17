@@ -57,7 +57,7 @@ onMounted(async () => {
 watch(user, load)
 watch(status, load)
 
-useSeoMeta({ title: () => `${$t('moderation.title')} — Monash Hub`, robots: 'noindex' })
+useSeoMeta({ title: () => $t('moderation.title'), robots: 'noindex' })
 </script>
 
 <template>

@@ -21,6 +21,8 @@ const route = useRoute()
 const router = useRouter()
 const { $t } = useNuxtApp()
 
+useSeoMeta({ title: () => $t('tree.title') })
+
 // The graph opens on a unit in both the 2026 and 2027 Handbooks, taught at
 // Malaysia, with prerequisites to walk back through and plenty it unlocks. It
 // used to be FIT2004, which the 2027 Handbook dropped, so the page opened on an error.
