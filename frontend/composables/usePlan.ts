@@ -8,8 +8,14 @@
  *
  * The trade is that a plan does not follow you to another device, which is
  * what export and import are for.
+ *
+ * A reader can keep several plans (a "what if I switch to Data Science" next
+ * to the real one). They live together under one key as a small library with
+ * one plan marked active; the course map always edits the active one.
  */
-const KEY = 'mh_plan_v1'
+const KEY = 'mh_plans_v1'
+/** Where the single plan lived before there could be more than one. Read once, on upgrade. */
+const OLD_KEY = 'mh_plan_v1'
 
 export interface PlanEntry {
   unit_code: string
@@ -18,6 +24,8 @@ export interface PlanEntry {
 }
 
 export interface PlanState {
+  /** The reader's own name for the plan. Empty means "untitled"; the page supplies the wording. */
+  name: string
   startYear: number
   years: number
   campus: string
@@ -39,6 +47,7 @@ export const OPTIONAL_PERIODS = [
 
 function blank(): PlanState {
   return {
+    name: '',
     startYear: new Date().getFullYear(),
     years: 3,
     campus: 'Malaysia',
@@ -48,20 +57,95 @@ function blank(): PlanState {
   }
 }
 
+export interface StoredPlan {
+  id: string
+  updatedAt: number
+  state: PlanState
+}
+
+export interface PlanLibrary {
+  activeId: string
+  plans: StoredPlan[]
+}
+
+export const MAX_PLANS = 20
+
+function newId(): string {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+  }
+}
+
+function fresh(state: PlanState = blank()): StoredPlan {
+  return { id: newId(), updatedAt: Date.now(), state }
+}
+
+function freshLibrary(): PlanLibrary {
+  const first = fresh()
+  return { activeId: first.id, plans: [first] }
+}
+
+/**
+ * A library from storage, taken apart and rebuilt the same way a single plan
+ * is: every plan through sanitise(), ids that are strings, an active id that
+ * points at a plan that exists. Anything else and the reader would open the
+ * map on a plan that is not in the list.
+ */
+export function sanitiseLibrary(parsed: unknown): PlanLibrary | null {
+  if (!parsed || typeof parsed !== 'object') return null
+  const raw = parsed as Record<string, unknown>
+  if (!Array.isArray(raw.plans)) return null
+  const plans: StoredPlan[] = []
+  const seen = new Set<string>()
+  for (const item of raw.plans.slice(0, MAX_PLANS)) {
+    if (!item || typeof item !== 'object') continue
+    const p = item as Record<string, unknown>
+    const state = sanitise(p.state)
+    if (!state) continue
+    let id = typeof p.id === 'string' && p.id ? p.id.slice(0, 64) : newId()
+    if (seen.has(id)) id = newId()
+    seen.add(id)
+    const updatedAt = Number(p.updatedAt)
+    plans.push({ id, updatedAt: Number.isFinite(updatedAt) ? updatedAt : Date.now(), state })
+  }
+  if (!plans.length) return null
+  const activeId = typeof raw.activeId === 'string' && seen.has(raw.activeId)
+    ? raw.activeId
+    : plans[0]!.id
+  return { activeId, plans }
+}
+
 /**
  * Reading is wrapped because storage throws rather than returning null in a
  * private window and in previews, and a planner that white-screens on a
  * browser setting is worse than one that forgets.
+ *
+ * A reader from before multiple plans has their one plan under the old key.
+ * It becomes the first plan in the library, and the old key is left alone, so
+ * going back to an older build of the site still finds it.
  */
-function read(): PlanState {
-  if (import.meta.server) return blank()
+function readLibrary(): PlanLibrary {
+  if (import.meta.server) return freshLibrary()
   try {
     const raw = window.localStorage.getItem(KEY)
-    if (!raw) return blank()
-    return sanitise(JSON.parse(raw)) ?? blank()
+    if (raw) return sanitiseLibrary(JSON.parse(raw)) ?? freshLibrary()
+    const old = window.localStorage.getItem(OLD_KEY)
+    const state = old ? sanitise(JSON.parse(old)) : null
+    if (!state) return freshLibrary()
+    // Written straight away so the upgraded plan keeps one id from now on.
+    const upgraded = single(state)
+    write(upgraded)
+    return upgraded
   } catch {
-    return blank()
+    return freshLibrary()
   }
+}
+
+function single(state: PlanState): PlanLibrary {
+  const only = fresh(state)
+  return { activeId: only.id, plans: [only] }
 }
 
 export const MAX_YEARS = 10
@@ -90,6 +174,7 @@ export function sanitise(parsed: unknown): PlanState | null {
     entries.push({ unit_code: code.slice(0, 16), year: entryYear, teaching_period: period.slice(0, 120) })
   }
   return {
+    name: typeof raw.name === 'string' ? raw.name.trim().slice(0, 60) : base.name,
     startYear: Number.isInteger(year) && year >= 1990 && year <= 2100 ? year : base.startYear,
     years: Number.isInteger(years) ? Math.min(MAX_YEARS, Math.max(1, years)) : base.years,
     campus: typeof raw.campus === 'string' ? raw.campus.slice(0, 64) : base.campus,
@@ -101,10 +186,10 @@ export function sanitise(parsed: unknown): PlanState | null {
   }
 }
 
-/** True when the plan actually reached storage, so the page can say so. */
-function write(state: PlanState): boolean {
+/** True when the library actually reached storage, so the page can say so. */
+function write(library: PlanLibrary): boolean {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(state))
+    window.localStorage.setItem(KEY, JSON.stringify(library))
     return true
   } catch {
     /* a plan that cannot be saved is still a plan that can be used today */
@@ -117,6 +202,7 @@ const HISTORY = 50
 
 export function usePlan() {
   const plan = useState<PlanState>('plan', blank)
+  const library = useState<PlanLibrary>('plan-library', freshLibrary)
   const loaded = useState<boolean>('plan-loaded', () => false)
   const savedAt = useState<number | null>('plan-saved-at', () => null)
 
@@ -132,17 +218,42 @@ export function usePlan() {
 
   onMounted(() => {
     if (!loaded.value) {
-      const stored = read()
-      // Only flag the write when it will actually change something, or the
-      // flag would sit there and swallow the reader's first real edit.
-      replaying.value = JSON.stringify(stored) !== JSON.stringify(plan.value)
-      plan.value = stored
+      library.value = readLibrary()
+      openActive()
       loaded.value = true
     }
   })
 
+  /** Put the active plan from the library on the map, with a clean undo history. */
+  function openActive() {
+    const active = library.value.plans.find((p) => p.id === library.value.activeId)
+      ?? library.value.plans[0]!
+    library.value.activeId = active.id
+    const state = JSON.parse(JSON.stringify(active.state)) as PlanState
+    // Only flag the write when it will actually change something, or the
+    // flag would sit there and swallow the reader's first real edit.
+    replaying.value = JSON.stringify(state) !== JSON.stringify(plan.value)
+    plan.value = state
+    past.value = []
+    future.value = []
+  }
+
+  function persist() {
+    if (write(library.value)) savedAt.value = Date.now()
+  }
+
+  // Every edit on the map is copied into the active plan's slot in the
+  // library and the whole library saved. A library is a handful of small
+  // plans, so writing all of it is simpler than writing one and cheap enough.
   watch(plan, (value) => {
-    if (loaded.value && write(value)) savedAt.value = Date.now()
+    if (!loaded.value) return
+    const active = library.value.plans.find((p) => p.id === library.value.activeId)
+    if (!active) return
+    const next = JSON.stringify(value)
+    if (next === JSON.stringify(active.state)) return
+    active.state = JSON.parse(next)
+    active.updatedAt = Date.now()
+    persist()
   }, { deep: true })
 
   watch(() => JSON.stringify(plan.value), (now, before) => {
@@ -216,7 +327,8 @@ export function usePlan() {
   }
 
   function reset() {
-    plan.value = blank()
+    // Clearing empties the plan; it does not forget what the reader called it.
+    plan.value = { ...blank(), name: plan.value.name }
   }
 
   function addYear() {
@@ -229,6 +341,66 @@ export function usePlan() {
     plan.value.years = Math.max(1, plan.value.years - 1)
   }
 
+  // --- the library ---------------------------------------------------------
+
+  function switchTo(id: string) {
+    if (!library.value.plans.some((p) => p.id === id)) return
+    library.value.activeId = id
+    openActive()
+    persist()
+  }
+
+  /** A new empty plan, made active. Returns its id, or null at the limit. */
+  function create(name = ''): string | null {
+    if (library.value.plans.length >= MAX_PLANS) return null
+    const state = blank()
+    state.name = name.trim().slice(0, 60)
+    // Same campus as the plan the reader was just looking at: someone at
+    // Malaysia making a second plan is still at Malaysia.
+    state.campus = plan.value.campus
+    const made = fresh(state)
+    library.value.plans.push(made)
+    switchTo(made.id)
+    return made.id
+  }
+
+  function duplicate(id: string, copyName: (name: string) => string): string | null {
+    if (library.value.plans.length >= MAX_PLANS) return null
+    const source = library.value.plans.find((p) => p.id === id)
+    if (!source) return null
+    const state = JSON.parse(JSON.stringify(source.state)) as PlanState
+    state.name = copyName(source.state.name).slice(0, 60)
+    const made = fresh(state)
+    library.value.plans.splice(library.value.plans.indexOf(source) + 1, 0, made)
+    persist()
+    return made.id
+  }
+
+  /** Deleting the last plan leaves one empty plan rather than none. */
+  function removePlan(id: string) {
+    const at = library.value.plans.findIndex((p) => p.id === id)
+    if (at < 0) return
+    library.value.plans.splice(at, 1)
+    if (!library.value.plans.length) library.value.plans.push(fresh())
+    if (library.value.activeId === id) {
+      library.value.activeId = library.value.plans[Math.max(0, at - 1)]!.id
+      openActive()
+    }
+    persist()
+  }
+
+  function rename(id: string, name: string) {
+    const target = library.value.plans.find((p) => p.id === id)
+    if (!target) return
+    const clean = name.trim().slice(0, 60)
+    if (id === library.value.activeId) plan.value.name = clean
+    else {
+      target.state.name = clean
+      target.updatedAt = Date.now()
+      persist()
+    }
+  }
+
   function exported(): string {
     return JSON.stringify({ version: 1, ...plan.value }, null, 2)
   }
@@ -238,7 +410,16 @@ export function usePlan() {
     try {
       const cleaned = sanitise(JSON.parse(text))
       if (!cleaned) return 'plan.importShape'
-      plan.value = cleaned
+      // An imported plan arrives as a new plan rather than on top of the one
+      // on screen, so importing a friend's plan never costs you your own.
+      // At the limit it has nowhere else to go, so it replaces the active one.
+      if (library.value.plans.length < MAX_PLANS) {
+        const made = fresh(cleaned)
+        library.value.plans.push(made)
+        switchTo(made.id)
+      } else {
+        plan.value = cleaned
+      }
       return null
     } catch {
       return 'plan.importParse'
@@ -261,6 +442,12 @@ export function usePlan() {
     redo,
     canUndo,
     canRedo,
-    savedAt
+    savedAt,
+    library,
+    switchTo,
+    create,
+    duplicate,
+    removePlan,
+    rename
   }
 }
