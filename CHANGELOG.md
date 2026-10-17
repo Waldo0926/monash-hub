@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (machine translation into Japanese and Korean)
+
+- The chat-model engine refused every language but Chinese, so the
+  Japanese and Korean passes stopped as soon as they started. It now has a
+  Japanese and a Korean prompt.
+- Table cells with no words in them ("E116 - E140") are no longer sent to
+  the model. It explained them instead of copying them, and enough of
+  those in a row stopped the Chinese guide pass half way.
+- Every string is sent marked as text to translate, so a FAQ question is
+  translated rather than answered. A run of rejected replies now has to be
+  three times longer before it stops a pass.
+- In the scheduled refreshes, one failed translation pass no longer stops
+  the passes after it or the search reindex.
+
 ### Fixed (a degree page nobody could link to)
 
 - M6011 is published as "M6011 M6019". The pair was stored as the course

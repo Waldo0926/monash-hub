@@ -467,3 +467,11 @@ def test_a_degree_is_named_the_way_chinese_names_one():
     ):
         _, replacements = protect(english, "zh", MASKS[0])
         assert replacements == [expected], (english, replacements)
+
+
+def test_a_cell_with_no_words_never_reaches_the_engine():
+    """A table of code ranges ("E116 - E140") made a chat model explain each
+    one, and enough failed strings in a row ended the pass."""
+    engine = translator(lambda _text: pytest.fail("sent to the engine"))
+    for cell in ("E116 - E140", "TP1/TP2", "S1-01"):
+        assert engine.text(cell) is None

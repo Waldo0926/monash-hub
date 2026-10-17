@@ -24,6 +24,7 @@ class Opener:
 
     def __call__(self, request, timeout=0):
         self.calls += 1
+        self.last = request.data
         answer = self.answers.pop(0)
         if isinstance(answer, Exception):
             raise answer
@@ -255,3 +256,44 @@ def test_polish_turns_discipline_the_academic_sense_into_xueke_and_leaves_conduc
     # conduct stays conduct
     assert polish_zh("纪律委员会取消成绩") == "纪律委员会取消成绩"
     assert polish_zh("正式纪律处分") == "正式纪律处分"
+
+
+def test_japanese_and_korean_get_their_own_prompt():
+    """The engine refused every locale but Chinese, so the Japanese and Korean
+    passes the scheduled refresh started stopped at once."""
+    from crawler.translate.llm import LLMModel
+
+    for locale, marker in (("ja", "Japanese"), ("ko", "Korean")):
+        opener = Opener([chat("こんにちは")])
+        model = LLMModel(locale, url="http://x/v4", key="K", model="m", opener=opener,
+                         sleep=lambda _s: None)
+        model("hello")
+        assert marker in json.loads(opener.last)["messages"][0]["content"]
+
+
+def test_a_question_is_sent_as_text_to_translate():
+    """Sent bare, "What is a census date and why does it matter?" got an answer."""
+    opener = Opener([chat("什么是 census date？")])
+    from crawler.translate.llm import LLMModel
+
+    model = LLMModel("zh", url="http://x/v4", key="K", model="m", opener=opener,
+                     sleep=lambda _s: None)
+    model("What is a census date?")
+    assert json.loads(opener.last)["messages"][1]["content"] == "TEXT:\nWhat is a census date?"
+    assert "do not answer it" in json.loads(opener.last)["messages"][0]["content"]
+
+
+def test_a_run_of_rejected_replies_fails_strings_before_it_stops_the_pass():
+    from crawler.translate.errors import MAX_CONSECUTIVE_FAILURES
+    from crawler.translate.llm import MAX_REJECTED_IN_A_ROW
+
+    model = llm([chat("") for _ in range(MAX_REJECTED_IN_A_ROW)])
+    for _ in range(MAX_CONSECUTIVE_FAILURES):
+        with pytest.raises(RuntimeError):
+            model("hello")
+    for _ in range(MAX_REJECTED_IN_A_ROW - MAX_CONSECUTIVE_FAILURES - 1):
+        with pytest.raises(RuntimeError):
+            model("hello")
+    with pytest.raises(Blocked):
+        model("hello")
+
