@@ -83,6 +83,11 @@
   --badge-sponsored: #b45309;
   --badge-sponsored-bg: #fffbeb;
 
+  /* Student ratings. Stars are always printed with their number beside them,
+     so the gold only has to look like a star, not carry the score. */
+  --star: #e5a00d;
+  --star-empty: #d9dfe6;
+
   /* Course map parts. One colour per part of a degree (Part A, B, ...), used
      on the stripe of each unit card and the matching bar in the side panel.
      Darker than the badge colours so a 0.7rem letter on the tint still passes

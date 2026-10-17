@@ -15,6 +15,23 @@ All notable changes to Monash Hub are documented here.
 - The course map status pill says "还没有课程" / "No units yet" without a full
   stop, and the notification panel no longer joins its two lines with a dash.
 
+### Added (student ratings of units)
+
+- Each unit page has a Student ratings section, labelled as community content:
+  the average out of 5, how many students gave each score, and averages for
+  teaching, content and assessment, plus difficulty and workload on their own
+  scale. Below it are the reviews, sortable by newest, highest or lowest.
+- Anyone can rate, signed in or not. One rating per account or per browser
+  for each unit, and rating again edits it. A signed-out rating belongs to a
+  random key the browser keeps, stored only as a keyed hash, and signed-out
+  saves are limited per network address.
+- Ratings can be reported and hidden like posts, and the moderation queue
+  labels them. A hidden rating leaves the average but its author still sees it.
+- The unit header shows the average next to the Handbook chips, unit cards in
+  search show it too, and "Is it hard?" quotes the students' difficulty score.
+- New table `unit_reviews` (migration `e7b3c5a19f42`). `GET /v1/units` results
+  carry `rating`, and the sign-in page returns to the page in `?next=`.
+
 ### Added (graduation)
 
 - A curated answer to "Do I still need to apply to graduate?" in English and

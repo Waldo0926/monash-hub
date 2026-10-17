@@ -83,13 +83,14 @@ useSeoMeta({ title: () => `${$t('moderation.title')} — Monash Hub`, robots: 'n
       <article v-for="item in queue?.results || []" :key="item.id" class="card section report">
         <p class="tiny muted meta">
           <span class="reason">{{ $t(`community.reportReason.${item.reason}`) }}</span>
-          · {{ item.target_type === 'post' ? $t('moderation.post') : $t('moderation.reply') }}
+          · {{ $t(`moderation.kind.${item.target_type}`) }}
           · {{ new Date(item.created_at).toLocaleString() }}
         </p>
         <p v-if="item.detail" class="small detail">“{{ item.detail }}”</p>
 
         <div v-if="item.target" class="target">
-          <NuxtLink :to="`/community/post/${item.target.post_id}`" class="small">
+          <NuxtLink :to="item.target_type === 'review' ? `/units/${item.target.unit_code}#reviews` : `/community/post/${item.target.post_id}`"
+                    class="small">
             {{ item.target.title || $t('moderation.untitled') }}
           </NuxtLink>
           <p class="small pre excerpt">{{ item.target.excerpt }}</p>
