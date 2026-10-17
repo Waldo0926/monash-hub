@@ -90,6 +90,22 @@ Subjective questions ("FIT2102 难不难") are detected and answered with the
 published workload plus community threads. The system never produces a
 difficulty score, because there is no honest way to compute one.
 
+### The Ask button
+
+Every page except `/search` has an Ask button in the corner
+(`frontend/components/SiteAssistant.vue`). It opens a chat panel that sends
+each question to the same `/v1/ask` endpoint, with the unit code when it is
+asked on a unit page and the Handbook year when the page has `?year=`. No
+model is called and there is no key to configure.
+
+The panel adds two things the router does not know about, both plain word
+matching in `frontend/utils/assistant.ts`: the site's own tools a question
+names (WAM calculator, course map, unit tree and so on) and 马莫百科 posts that
+share at least two pairs of Chinese characters with it. When nothing matches
+it says so and links to the community and AskMira. The chat is kept in
+`sessionStorage`, so it survives a page change and is gone with the tab.
+Requests go through the same nginx limit as the rest of `/api/`.
+
 ## Trust boundaries in the UI
 
 Three badges, three colours, three labels, and the label is always present, so
