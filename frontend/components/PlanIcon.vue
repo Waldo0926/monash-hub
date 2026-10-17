@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * The handful of line icons the course map uses.
+ * The handful of line icons the course map and the header use.
  *
- * Drawn here rather than pulled from an icon package: the page needs about ten
- * glyphs, and a dependency for ten paths is a lot of node_modules for nothing.
+ * Drawn here rather than pulled from an icon package: the site needs about
+ * twenty glyphs, and a dependency for ten paths is a lot of node_modules for nothing.
  * They inherit the text colour, so a button's hover colour reaches the icon too.
  */
 const props = withDefaults(defineProps<{ name: string; size?: number }>(), { size: 16 })
@@ -25,7 +25,17 @@ const PATHS: Record<string, string[]> = {
   print: ['M7 9V3.5h10V9', 'M7 17H4.5V10h15v7H17', 'M7 14h10v6.5H7z'],
   copy: ['M8.5 8.5h11v11h-11z', 'M15.5 8.5V4.5h-11v11h4'],
   chevron: ['M9.5 6l6 6-6 6'],
-  spinner: ['M12 4a8 8 0 1 1-8 8']
+  spinner: ['M12 4a8 8 0 1 1-8 8'],
+  search: ['M10.5 4.5a6 6 0 1 1 0 12a6 6 0 1 1 0-12z', 'M15 15l4.5 4.5'],
+  globe: [
+    'M12 3.5a8.5 8.5 0 1 1 0 17a8.5 8.5 0 1 1 0-17z',
+    'M3.5 12h17',
+    'M12 3.5c2.3 2.4 3.4 5.2 3.4 8.5s-1.1 6.1-3.4 8.5',
+    'M12 3.5c-2.3 2.4-3.4 5.2-3.4 8.5s1.1 6.1 3.4 8.5'
+  ],
+  bell: ['M6.5 16V11a5.5 5.5 0 0 1 11 0v5l1.5 2h-14z', 'M10 20.5a2.2 2.2 0 0 0 4 0'],
+  logout: ['M13.5 4.5H6v15h7.5', 'M10 12h10', 'M16.5 8.5 20 12l-3.5 3.5'],
+  'chevron-down': ['M7 10l5 5 5-5']
 }
 
 const paths = computed(() => PATHS[props.name] || [])
