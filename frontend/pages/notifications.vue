@@ -3,7 +3,7 @@ const { $t } = useNuxtApp()
 const { user, restore } = useAuth()
 onMounted(restore)
 
-useSeoMeta({ title: () => `${$t('notifications.title')} — Monash Hub`, robots: 'noindex' })
+useSeoMeta({ title: () => $t('notifications.title'), robots: 'noindex' })
 </script>
 
 <template>

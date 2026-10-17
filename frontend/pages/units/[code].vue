@@ -316,7 +316,7 @@ onBeforeUnmount(() => observer?.disconnect())
 // --- head ---------------------------------------------------------------------
 
 useSeoMeta({
-  title: () => (unit.value ? `${unit.value.unit_code} ${unit.value.title} — Monash Hub` : 'Unit — Monash Hub'),
+  title: () => (unit.value ? `${unit.value.unit_code} ${unit.value.title}` : 'Unit'),
   description: () =>
     unit.value
       ? `${unit.value.unit_code} ${unit.value.title}: assessment, requisites, offerings and workload from the ${unit.value.academic_year} Monash Handbook.`

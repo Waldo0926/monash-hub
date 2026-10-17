@@ -4,6 +4,12 @@ import type { NuxtError } from '#app'
 const props = defineProps<{ error: NuxtError }>()
 const { $t } = useNuxtApp()
 const is404 = computed(() => props.error?.statusCode === 404)
+
+// The error page replaces app.vue, so it does not get the site's title
+// template and names its tab itself.
+useHead({
+  title: () => `${is404.value ? $t('error.pageMissing') : $t('error.pageBroken')} | Monash Hub`
+})
 </script>
 
 <template>
