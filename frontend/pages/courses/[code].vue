@@ -44,6 +44,16 @@ function pickYear(y: number) {
 const campusName = useCampusName()
 const campusLabel = computed(() => campusName(campus.value))
 
+// "Plan this degree": hand the degree and campus to the course map, which
+// keeps whatever units are already planned. Changing a plan's degree only
+// changes what the bars are measured against, so nothing is lost by it.
+const { plan } = usePlan()
+function planThis() {
+  plan.value.courseCode = code.value
+  if (campus.value) plan.value.campus = campus.value
+  navigateTo('/plan')
+}
+
 const elsewhereTotal = computed(() => {
   const facts = course.value?.units || {}
   return Object.values(facts).filter((f: any) => f.in_year && !f.offered_at_campus).length
@@ -89,6 +99,7 @@ useSeoMeta({
           <div v-if="course.faculty"><dt>{{ $t('courses.faculty') }}</dt><dd>{{ course.faculty }}</dd></div>
           <div v-if="course.campuses?.length"><dt>{{ $t('tree.campus') }}</dt><dd>{{ course.campuses.join(' · ') }}</dd></div>
         </dl>
+        <button class="btn plan-this" type="button" @click="planThis">{{ $t('courses.planThis') }}</button>
       </header>
 
       <div class="bar">
@@ -153,6 +164,7 @@ useSeoMeta({
 .page { max-width: 900px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .crumb { margin: 0 0 var(--s2); font-size: 0.85rem; }
 .head h1 { margin: 0 0 var(--s2); }
+.plan-this { margin: var(--s4) 0 var(--s3); }
 .sub { display: flex; gap: var(--s3); align-items: baseline; margin: 0 0 var(--s4); color: var(--muted); }
 .code { font: 600 0.9rem var(--font-mono); color: var(--navy); }
 

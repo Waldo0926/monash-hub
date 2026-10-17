@@ -83,6 +83,23 @@
   --badge-sponsored: #b45309;
   --badge-sponsored-bg: #fffbeb;
 
+  /* Course map parts. One colour per part of a degree (Part A, B, ...), used
+     on the stripe of each unit card and the matching bar in the side panel.
+     Darker than the badge colours so a 0.7rem letter on the tint still passes
+     contrast; part 6 is the grey the free elective part always gets. */
+  --part-1: #00609a;
+  --part-1-bg: #e8f1f8;
+  --part-2: #0d7066;
+  --part-2-bg: #e4f3f0;
+  --part-3: #5b45b0;
+  --part-3-bg: #efecfa;
+  --part-4: #a24a07;
+  --part-4-bg: #fcf0e3;
+  --part-5: #a8174f;
+  --part-5-bg: #fbe9f0;
+  --part-6: #4b5d72;
+  --part-6-bg: #edf0f4;
+
   /* 8px grid */
   --s1: 4px;
   --s2: 8px;

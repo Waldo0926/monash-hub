@@ -101,28 +101,84 @@ export function sanitise(parsed: unknown): PlanState | null {
   }
 }
 
-function write(state: PlanState) {
+/** True when the plan actually reached storage, so the page can say so. */
+function write(state: PlanState): boolean {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(state))
+    return true
   } catch {
     /* a plan that cannot be saved is still a plan that can be used today */
+    return false
   }
 }
+
+/** How many steps undo remembers. A plan is small, so this is cheap. */
+const HISTORY = 50
 
 export function usePlan() {
   const plan = useState<PlanState>('plan', blank)
   const loaded = useState<boolean>('plan-loaded', () => false)
+  const savedAt = useState<number | null>('plan-saved-at', () => null)
+
+  // Undo history, as JSON snapshots of the whole plan. Snapshots rather than
+  // a list of operations because the plan changes through v-model as well
+  // (campus, degree, start year), and diffing every one of those by hand is
+  // how an undo stack ends up skipping a step.
+  const past = useState<string[]>('plan-past', () => [])
+  const future = useState<string[]>('plan-future', () => [])
+  // Set while undo/redo or the first load writes the plan, so that write is
+  // not itself recorded as a step.
+  const replaying = useState<boolean>('plan-replaying', () => false)
 
   onMounted(() => {
     if (!loaded.value) {
-      plan.value = read()
+      const stored = read()
+      // Only flag the write when it will actually change something, or the
+      // flag would sit there and swallow the reader's first real edit.
+      replaying.value = JSON.stringify(stored) !== JSON.stringify(plan.value)
+      plan.value = stored
       loaded.value = true
     }
   })
 
   watch(plan, (value) => {
-    if (loaded.value) write(value)
+    if (loaded.value && write(value)) savedAt.value = Date.now()
   }, { deep: true })
+
+  watch(() => JSON.stringify(plan.value), (now, before) => {
+    if (!loaded.value || replaying.value) {
+      replaying.value = false
+      return
+    }
+    if (now === before) return
+    past.value.push(before)
+    if (past.value.length > HISTORY) past.value.shift()
+    future.value = []
+  })
+
+  function restore(snapshot: string) {
+    const cleaned = sanitise(JSON.parse(snapshot))
+    if (!cleaned) return
+    replaying.value = JSON.stringify(cleaned) !== JSON.stringify(plan.value)
+    plan.value = cleaned
+  }
+
+  function undo() {
+    const previous = past.value.pop()
+    if (previous === undefined) return
+    future.value.push(JSON.stringify(plan.value))
+    restore(previous)
+  }
+
+  function redo() {
+    const next = future.value.pop()
+    if (next === undefined) return
+    past.value.push(JSON.stringify(plan.value))
+    restore(next)
+  }
+
+  const canUndo = computed(() => past.value.length > 0)
+  const canRedo = computed(() => future.value.length > 0)
 
   const yearsList = computed(() =>
     Array.from({ length: plan.value.years }, (_, i) => plan.value.startYear + i)
@@ -154,6 +210,7 @@ export function usePlan() {
   }
 
   function move(entry: PlanEntry, year: number, period: string) {
+    if (entry.year === year && entry.teaching_period === period) return
     remove(entry)
     add(entry.unit_code, year, period)
   }
@@ -199,6 +256,11 @@ export function usePlan() {
     addYear,
     removeYear,
     exported,
-    imported
+    imported,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    savedAt
   }
 }

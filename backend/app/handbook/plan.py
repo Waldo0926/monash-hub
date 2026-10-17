@@ -274,6 +274,10 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
     # the degree does not name - and a unit the degree does not name is a unit
     # the course endpoint knows nothing about.
     each: dict[str, int] = {}
+    # And its name, so a card on the map can say more than a code. The source
+    # title on purpose: a translated one would need its unofficial label next
+    # to it, and a card that small has no room for one.
+    titles: dict[str, str] = {}
     for entry in entries:
         unit = unit_for(entry)
         if unit is None:
@@ -281,6 +285,8 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
                                 "error", "not_in_year",
                                 {"handbook_year": handbook[entry.slot.year]}))
             continue
+
+        titles[entry.unit_code] = unit.title
 
         # The Handbook publishes credit points as a string, and a handful of
         # units publish something that is not a number at all.
@@ -347,6 +353,7 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
         "campus": campus,
         "credit_points": credit_points,
         "unit_credit_points": each,
+        "unit_titles": titles,
         "units": len(entries),
         "issues": [
             {
