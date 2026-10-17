@@ -11,6 +11,14 @@ All notable changes to Monash Hub are documented here.
   the QR codes for following the account and adding the WeChat. All four
   languages.
 
+### Changed (degree type links in two rows)
+
+- The type links above the degree panels are a grid of five equal columns.
+  The first row holds the undergraduate types (specialist, comprehensive,
+  double, Honours, diploma) and the second the vertical double degrees and
+  postgraduate types, so ten types make two even rows. Each count sits in a
+  pill on the right. Phones keep the single sideways-scrolling row.
+
 ### Changed (tools on the first screen of the home page)
 
 - The eight tools (units, guides, unit tree, course map, degrees, WAM/GPA,
