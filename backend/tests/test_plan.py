@@ -272,6 +272,16 @@ def test_the_check_says_what_each_unit_is_worth(client, chain):
     assert sum(body["unit_credit_points"].values()) == body["credit_points"]
 
 
+def test_the_check_names_each_unit_it_found(client, chain):
+    """The map shows a title under each code, and a code the Handbook does not
+    have gets no title rather than a made-up one."""
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "ZZZ9999", "year": 2026, "teaching_period": S2},
+    ])
+    assert body["unit_titles"] == {"AAA1001": "AAA1001"}
+
+
 def test_a_unit_that_is_not_in_the_year_is_worth_nothing_rather_than_guessed(
     client, chain
 ):

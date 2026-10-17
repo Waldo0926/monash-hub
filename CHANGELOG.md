@@ -11,6 +11,32 @@ All notable changes to Monash Hub are documented here.
   "Band" in front. The parser now strips "SCA" as well, and migration
   `a3d7e2b95c41` cleans the rows the first crawl already wrote.
 
+### Changed (the course map is laid out like a map)
+
+- Each year is a dark bar and each teaching period a row: the period's name,
+  unit count and credit points on the left, the units across as cards. Empty
+  slots up to a four-unit load are drawn so a row reads as a semester.
+- A card shows the code, the Handbook title, credit points and which part of
+  the degree it counts towards, as a coloured stripe and a letter that match
+  the bars in the side panel. Problems are written inside the card.
+- The side panel opens with a ring of credit points against the degree, with
+  counts of units, problems and things worth a look.
+- Campus, degree and start year sit at the top of the map with a pill that
+  says whether the plan has problems. The toolbar is icons with labels.
+
+### Added (moving units, undo, CSV, print)
+
+- Drag a card to another teaching period, or use its move menu, a native
+  select that works with a keyboard and on a phone.
+- Undo and redo, from the toolbar or Ctrl/Cmd+Z and Shift+Ctrl/Cmd+Z, for the
+  last 50 changes in this visit. Clear asks first.
+- CSV export (year, period, code, title, credit points, part, issues) and a
+  print layout that keeps each year on one page and drops the site chrome.
+- "Saved on this device" under the map, and a "Plan this degree" button on
+  degree pages that opens the map with that degree and campus picked.
+- `POST /v1/plan/check` returns `unit_titles`, the Handbook title of every
+  unit it found.
+
 ### Changed (the unit page reads faster)
 
 - The header opens with four facts: credit points, when the unit is taught at
