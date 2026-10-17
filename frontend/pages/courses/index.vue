@@ -59,15 +59,22 @@ const campusLabel = computed(() => campusName(campus.value))
  * Two columns, so the whole list fits on about one screen and each type
  * scrolls on its own. Undergraduate types go on the left and postgraduate on
  * the right, most common first, which is the order a student scans in.
- * Honours sits on the right because it is a year taken after the bachelor's.
+ * Honours goes on the left under the double degrees: it is an undergraduate
+ * award, and the postgraduate side is already the longer column.
  */
-const LEFT = ['UG specialist', 'UG comprehensive', 'UG double', 'Vertical double', 'UG diploma']
+const LEFT = [
+  'UG specialist',
+  'UG comprehensive',
+  'UG double',
+  'Honours - 1 yr',
+  'Vertical double',
+  'UG diploma'
+]
 const RIGHT = [
   'PG Masters',
   'Masters by research',
   'Doctorate by research',
   'Higher doctorate',
-  'Honours - 1 yr',
   'PG Grad Cert / Grad Dip',
   'PG coursework double'
 ]
