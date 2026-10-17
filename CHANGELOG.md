@@ -11,6 +11,17 @@ All notable changes to Monash Hub are documented here.
   "Band" in front. The parser now strips "SCA" as well, and migration
   `a3d7e2b95c41` cleans the rows the first crawl already wrote.
 
+### Changed (马莫百科 page)
+
+- Added the 2026-10-17 post on automatic monthly conferral, so all seven posts
+  on the account are listed.
+- The page opens with the account, its stats and a follow box with two QR
+  codes: the 马莫百科 WeChat (MonashGuide) for the group chat, and the official
+  account. Each has a copy button for readers already on their phone.
+- The newest post is shown large with its cover, and the rest sit in a grid of
+  cover cards that can be filtered by topic. Covers are the account's own,
+  resized into `frontend/public/img/mamo/`.
+
 ### Changed (the course map is laid out like a map)
 
 - Each year is a dark bar and each teaching period a row: the period's name,
