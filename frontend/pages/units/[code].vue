@@ -37,9 +37,12 @@ async function ask(text?: string) {
   asking.value = true
   askError.value = ''
   try {
+    // The page's unit and year go with the question. Without them "How good is
+    // this unit?" reached the router with no code in it, and a question asked
+    // on the 2025 page was answered from the current Handbook.
     answer.value = await apiFetch<any>(`/v1/ask?locale=${locale.value}`, {
       method: 'POST',
-      body: { query: q }
+      body: { query: q, unit_code: code.value, year: unit.value?.academic_year }
     })
   } catch (caught) {
     askError.value = apiErrorMessage(caught, $t)
