@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (plainer interface copy)
+
+- Page intros, empty states, notices and error text in all four locales are
+  shorter and plainer. Nothing uses a dash as punctuation any more, and the
+  wording no longer leans on slogans. Meaning and behaviour are unchanged.
+- Chinese degree part titles read "A 部分：基础课程" instead of
+  "A 部分。基础课程", in `structure_zh.py` and in the composed labels. The
+  seed on deploy writes the new wording.
+- The course map status pill says "还没有课程" / "No units yet" without a full
+  stop, and the notification panel no longer joins its two lines with a dash.
+
 ### Added (more than one course plan)
 
 - A browser can keep up to 20 plans. `/plans` lists them as cards: the
