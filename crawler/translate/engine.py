@@ -175,6 +175,13 @@ _PUNCTUATION = {
     "ja": {",": "、", ";": "；", ":": "：", "?": "？", "!": "！", "(": "（", ")": "）"},
 }
 _CJK = r"㐀-䶿一-鿿぀-ヿ가-힯"
+# The scripts that do not space words. Korean does: the version of the rules
+# below that used _CJK took every space out of the Korean FAQ.
+_UNSPACED = r"㐀-䶿一-鿿぀-ヿ"
+
+# Characters that only exist in Simplified Chinese. A Japanese answer holding
+# one has Chinese in it - 缺席 for 欠席 - and the English is better than that.
+_SIMPLIFIED = re.compile("[们这说门为课时际认设计请让给选读须应该还进过对发现关题问员务缺么吗呢]")
 
 # Monash writes the curly apostrophe and the model was trained on the straight
 # one. Measured over the sentences that were failing on the live guides,
@@ -189,6 +196,27 @@ _CURLY = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 # four languages. M6024's "SPECIALISATIONS AVAILABLE" came back as
 # 专业方向 AVALALLILL（兹卡 AVALLLLL）.
 _INVENTED = re.compile(r"兹卡|\b\w*([A-Za-z])\1{3,}\w*\b")
+
+
+def _wrong_script(result: str, locale: str) -> bool:
+    """Whether a Japanese translation slipped into Chinese."""
+    return locale == "ja" and bool(_SIMPLIFIED.search(result))
+
+
+def _undouble(text: str, wordings: Iterable[str]) -> str:
+    """Drop the word the model wrote again after an agreed term.
+
+    The model translates the English around a term as well as the term: "the
+    Malaysia campus" came back as マレーシアキャンパスキャンパス, the agreed
+    マレーシアキャンパス followed by its own キャンパス.
+    """
+    for wording in wordings:
+        for size in range(len(wording) - 1, 1, -1):
+            tail = wording[-size:]
+            if not re.fullmatch(rf"[{_CJK}]+", tail):
+                continue
+            text = re.sub(re.escape(wording) + r"[ \t]?" + re.escape(tail), wording, text)
+    return text
 
 
 def _invented(result: str, source: str) -> bool:
@@ -342,7 +370,11 @@ class Translator:
             direct = self._llm_direct(source)
             if direct:
                 result = _unsigned(_tidy(direct, self.locale).strip(), source)
-                if not _invented(result, source) and result != source:
+                if (
+                    not _invented(result, source)
+                    and not _wrong_script(result, self.locale)
+                    and result != source
+                ):
                     self._cache[source] = result
                     return result
         if is_only_placeholders(masked):
@@ -351,7 +383,7 @@ class Translator:
             # but still something to tidy: the space that separated the English
             # words is left sitting between two Chinese ones, and "Accounting
             # fundamentals" came out as 会计 基础.
-            result = _tidy(restore(masked, terms), self.locale)
+            result = _tidy(_undouble(restore(masked, terms), terms), self.locale)
         elif _CODE.match(source):
             # A grade code on its own. Checked after the glossary, so a term
             # that happens to look like one - WAM - still gets its agreed
@@ -401,10 +433,12 @@ class Translator:
                 # in place the punctuation rules see a Latin character where
                 # the finished sentence has a Chinese one, and leave the comma
                 # alone.
-                result = _tidy(restore(translated, terms, mask), self.locale)
+                result = _tidy(
+                    _undouble(restore(translated, terms, mask), terms), self.locale
+                )
 
         result = _unsigned(result.strip(), source)
-        if _invented(result, source):
+        if _invented(result, source) or _wrong_script(result, self.locale):
             # Better the English than a sentence nobody wrote. An untranslated
             # string stays in English; it is never approximated.
             log.debug("invented output discarded: %s", source[:60])
@@ -429,7 +463,9 @@ class Translator:
         except Exception as exc:  # one bad string must not end a batch of 5,000
             log.debug("direct llm translation failed (%s): %s", exc, source[:60])
             return None
-        return reply if llm.faithful(source, reply, terms) else None
+        if not llm.faithful(source, reply, terms):
+            return None
+        return _undouble(reply, [agreed for _english, agreed in terms])
 
     def _ask(self, text: str) -> str:
         """Hand a string to the model in the punctuation it was trained on."""
@@ -775,16 +811,21 @@ def _tidy(text: str, locale: str) -> str:
     # glossary term back where a placeholder was; Chinese and Japanese do not
     # space words. A space between Latin and CJK is correct and stays
     # ("Monash 大学"), and so is one before a digit ("第 2 级").
-    text = re.sub(rf"(?<=[{_CJK}])[ \t]+(?=[{_CJK}])", "", text)
+    text = re.sub(rf"(?<=[{_UNSPACED}])[ \t]+(?=[{_UNSPACED}])", "", text)
     # A space against CJK punctuation is not - on either side of it. The
     # closing bracket of an agreed term ("WAM（加权平均分）") is the common
     # case: the term goes back in where a Latin word was, and the space that
     # followed the Latin word stays behind.
     text = re.sub(r"[ \t]+(?=[，。、；：？！）])", "", text)
-    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
+    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_UNSPACED}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     text = re.sub(r"[ \t]{2,}", " ", text).strip()
     text = polish_zh(text) if locale == "zh" else text
+    # Year before month. The model wrote "December 2026" as 12月2026年.
+    if locale in ("zh", "ja"):
+        text = re.sub(r"(?<!\d)(\d{1,2})月[ \t]*(\d{4})年", r"\2年\1月", text)
+    elif locale == "ko":
+        text = re.sub(r"(?<!\d)(\d{1,2})월[ \t]*(\d{4})년", r"\2년 \1월", text)
     # A term put back next to the word the model wrote for it: 课程课程.
     text = re.sub(r"(学位课程|课程)\1+", r"\1", text)
     for transliterated, name in _HOUSE.get(locale, {}).items():
