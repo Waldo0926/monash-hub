@@ -9,6 +9,15 @@ const htmlLang = computed(
 )
 useHead({ htmlAttrs: { lang: htmlLang } })
 
+// Every tab reads "Page | Monash Hub", the way most sites name their tabs, so a
+// row of open tabs still says which site each one is. Pages set only their own
+// name. A title that already has the site name in it (the home page, "Search
+// Monash Hub") is left alone, and a page with no title gets just the site name.
+useHead({
+  titleTemplate: (title?: string) =>
+    !title ? 'Monash Hub' : title.includes('Monash Hub') ? title : `${title} | Monash Hub`
+})
+
 /*
  * Link previews - LinkedIn, WhatsApp, WeChat, Slack, X.
  *

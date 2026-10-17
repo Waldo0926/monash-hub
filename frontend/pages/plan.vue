@@ -14,13 +14,14 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
  * why there is no sign-in on this page and why there is an export button.
  */
 import { toCsv } from '~/utils/csv'
+import { handbookYearFor } from '~/composables/useHandbookYear'
 import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 
 const { $t } = useNuxtApp()
 const campusName = useCampusName()
 const {
   plan, yearsList, slotEntries, add, remove, move, reset, addYear, removeYear, exported, imported,
-  undo, redo, canUndo, canRedo, savedAt
+  undo, redo, canUndo, canRedo, savedAt, library
 } = usePlan()
 
 /**
@@ -182,6 +183,16 @@ const chosenCampus = computed(() => plan.value.campus)
 const { locale } = useLocale()
 const course = ref<any>(null)
 
+// Which Handbooks are loaded, for units and for degrees. A plan reads each year
+// from that year's Handbook, and the degree's rules from the year the student
+// started in, because that is the course version they are enrolled in. Left to
+// the API's default both came from the site's current Handbook, 2027 from
+// October 2026, which drops units like FIT1058 that are still taught in 2026.
+const { data: unitYears } = await useApiFetch<any>('/v1/units/filters')
+const { data: courseYears } = await useApiFetch<any>('/v1/courses/filters')
+const unitHandbook = (year: number) => handbookYearFor(year, unitYears.value?.years)
+const courseHandbook = computed(() => handbookYearFor(plan.value.startYear, courseYears.value?.years))
+
 async function loadCourse() {
   if (!chosenCourse.value) {
     course.value = null
@@ -191,6 +202,7 @@ async function loadCourse() {
     campus: chosenCampus.value || '',
     locale: locale.value
   })
+  if (courseHandbook.value) query.set('year', String(courseHandbook.value))
   try {
     course.value = await apiFetch<any>(
       `/v1/courses/${encodeURIComponent(chosenCourse.value)}?${query}`
@@ -203,11 +215,16 @@ async function loadCourse() {
 }
 
 onMounted(loadCourse)
-watch([chosenCourse, chosenCampus, locale], loadCourse)
+watch([chosenCourse, chosenCampus, locale, courseHandbook], loadCourse)
 
 const { data: courseList } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses?limit=200${chosenCampus.value ? `&campus=${chosenCampus.value}` : ''}`,
-  { watch: [chosenCampus] }
+  () => {
+    const params = new URLSearchParams({ limit: '200' })
+    if (chosenCampus.value) params.set('campus', chosenCampus.value)
+    if (courseHandbook.value) params.set('year', String(courseHandbook.value))
+    return `/v1/courses?${params}`
+  },
+  { watch: [chosenCampus, courseHandbook] }
 )
 
 const planned = computed(() => new Set(plan.value.entries.map((e) => e.unit_code)))
@@ -391,7 +408,7 @@ function download() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `monash-hub-plan-${plan.value.startYear}.json`
+  link.download = `${fileStem()}.json`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -547,9 +564,15 @@ function downloadCsv() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `monash-hub-plan-${plan.value.startYear}.csv`
+  link.download = `${fileStem()}.csv`
   link.click()
   URL.revokeObjectURL(url)
+}
+
+/** "monash-hub-plan-2026", or the plan's own name when it has one that survives as a file name. */
+function fileStem(): string {
+  const name = plan.value.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return name ? `monash-hub-${name}` : `monash-hub-plan-${plan.value.startYear}`
 }
 
 function print() {
@@ -669,6 +692,19 @@ useSeoMeta({ title: () => $t('plan.title') })
     <div class="split">
       <section class="board" :aria-label="$t('plan.title')">
         <div class="board-head">
+          <div class="plan-title">
+            <input
+              v-model.lazy.trim="plan.name"
+              class="plan-name"
+              type="text"
+              maxlength="60"
+              :placeholder="$t('plans.untitled')"
+              :aria-label="$t('plans.name')"
+            />
+            <NuxtLink to="/plans" class="plan-all">
+              {{ $t('plans.all', { n: library.plans.length }) }}
+            </NuxtLink>
+          </div>
           <div class="settings">
             <label class="ctl">
               <span class="ctl-label">{{ $t('tree.campus') }}</span>
@@ -938,6 +974,7 @@ useSeoMeta({ title: () => $t('plan.title') })
     <UnitPicker
       v-if="picking"
       :year="picking.year"
+      :handbook-year="unitHandbook(picking.year)"
       :period="picking.period"
       :campus="plan.campus"
       :entries="plan.entries"
@@ -1001,6 +1038,17 @@ useSeoMeta({ title: () => $t('plan.title') })
   display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
   gap: var(--s3); padding: var(--s4) var(--s5);
 }
+.plan-title { display: flex; align-items: center; gap: var(--s3); flex-basis: 100%; min-width: 0; }
+/* The name is an input that looks like a heading until you touch it. */
+.plan-name {
+  flex: 1; min-width: 0; margin-left: -8px; padding: 2px 8px;
+  border: 1px solid transparent; border-radius: 6px; background: none;
+  font: 600 1.15rem var(--font); color: var(--text);
+}
+.plan-name::placeholder { color: var(--text); }
+.plan-name:hover { border-color: var(--border); }
+.plan-name:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px var(--blue-50); }
+.plan-all { flex: none; font-size: 0.82rem; font-weight: 500; }
 /* Named tracks plus min-width: 0. The degree <select> holds 200 long titles,
    which gives it a max-content width in the thousands of pixels; without the
    minmax(0, ...) that width decides the layout instead of the screen. */
@@ -1306,6 +1354,7 @@ select.ctl-input {
   .board, .panel { box-shadow: none; border-color: #c9d2dc; }
   .board-head { padding: 8px 12px; }
   .ctl-input { border: 0; padding: 0; height: auto; background-image: none; }
+  .plan-all { display: none; }
   .year { break-inside: avoid; }
   .year-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .ucard, .ucard::before, .ucard-part, .part-fill, .part-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

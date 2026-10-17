@@ -169,11 +169,9 @@ def _vocabulary(candidate: FaqCandidate) -> tuple[set[str], list[str]]:
     return latin, cjk
 
 
-def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
-    """CJK runs in the query that neither the FAQ's words nor filler explain."""
-    text = re.sub(r"[a-z0-9 ]+", " ", query_norm)
-    # Cover every substring of two or more characters that appears in the
-    # FAQ's own vocabulary, longest first.
+def _covered(text: str, vocabulary: list[str]) -> list[bool]:
+    """Which characters of ``text`` sit in a two-or-more character piece of
+    the FAQ's own vocabulary, longest piece first."""
     covered = [False] * len(text)
     for i in range(len(text)):
         for j in range(len(text), i + 1, -1):
@@ -184,6 +182,13 @@ def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
                 for k in range(i, j):
                     covered[k] = True
                 break
+    return covered
+
+
+def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
+    """CJK runs in the query that neither the FAQ's words nor filler explain."""
+    text = re.sub(r"[a-z0-9 ]+", " ", query_norm)
+    covered = _covered(text, vocabulary)
     left = "".join(ch if not covered[i] else " " for i, ch in enumerate(text))
     for phrase in ZH_FILLER_PHRASES:
         left = left.replace(phrase, " ")
@@ -194,17 +199,18 @@ def _cjk_residue(query_norm: str, vocabulary: list[str]) -> list[str]:
 
 
 def _unknown_concepts(query_norm: str, vocabulary: list[str]) -> list[str]:
-    """Search concepts in the query that the FAQ's own words never use.
+    """Search concepts in the query that the FAQ's own words do not cover.
 
-    The character-by-character cover in :func:`_cjk_residue` can be fooled by
-    a word made of the FAQ's characters: 在读证明 (proof of enrolment) is 在,
-    which is filler, 读, one character, and 证明, a keyword of the SC
-    documents entry - so a question about an enrolment letter was answered
-    with what to attach to a special consideration application. The synonym
-    tables know 在读证明 is one thing, and this FAQ does not mention it.
+    :func:`_cjk_residue` lets a lone character through as grammar, and that
+    can be fooled by a word made of the FAQ's characters: 在读证明 (proof of
+    enrolment) is 在, which is filler, 读, one character, and 证明, a keyword
+    of the SC documents entry - so a question about an enrolment letter was
+    answered with what to attach to a special consideration application. The
+    synonym tables know 在读证明 is one word, so here every character of it
+    has to be covered, the way 马来西亚 and 校区 cover 马来西亚校区.
     """
     return [run for run, _ in concept_runs(query_norm)
-            if not any(run in v for v in vocabulary)]
+            if not all(_covered(run, vocabulary))]
 
 
 def _residue(query_norm: str, query_words: list[str], candidate: FaqCandidate,

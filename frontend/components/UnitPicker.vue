@@ -20,6 +20,11 @@ const props = defineProps<{
   describe: (issue: any) => string
   /** The plan page's short name for a teaching period. */
   periodName: (period: string) => string
+  /**
+   * The Handbook the slot's year is checked against (see handbookYearFor).
+   * Left out, the slot's own year.
+   */
+  handbookYear?: number
 }>()
 const emit = defineEmits<{ add: [code: string]; close: [] }>()
 
@@ -28,6 +33,7 @@ const { locale } = useLocale()
 const campusName = useCampusName()
 
 const slotLabel = computed(() => `${props.periodName(props.period)}, ${props.year}`)
+const handbook = computed(() => props.handbookYear ?? props.year)
 
 // --- search ----------------------------------------------------------------
 
@@ -56,7 +62,12 @@ async function search() {
   searching.value = true
   searchError.value = ''
   try {
-    const params = new URLSearchParams({ q: term, limit: '30', locale: locale.value })
+    const params = new URLSearchParams({
+      q: term,
+      limit: '30',
+      year: String(handbook.value),
+      locale: locale.value
+    })
     if (props.campus) params.set('campus', props.campus)
     const body = await apiFetch<any>(`/v1/units?${params.toString()}`)
     // A slow answer to an older query must not replace a newer one.
@@ -121,7 +132,7 @@ async function loadDetail(code: string) {
   if (details[code]) return
   loadingDetail.value = true
   try {
-    details[code] = await apiFetch<any>(`/v1/units/${code}?year=${props.year}&locale=${locale.value}`)
+    details[code] = await apiFetch<any>(`/v1/units/${code}?year=${handbook.value}&locale=${locale.value}`)
   } catch {
     details[code] = { failed: true }
   } finally {
@@ -156,6 +167,14 @@ watch(active, (code) => {
     loadDetail(code)
     loadVerdict(code)
   }, 120)
+})
+
+// The loaded years can arrive after the dialog opened, and a 2027 answer to a
+// 2026 slot is the bug this year exists to prevent.
+watch(handbook, () => {
+  for (const key of Object.keys(details)) delete details[key]
+  search()
+  if (active.value) loadDetail(active.value)
 })
 
 // A plan that changed (a unit just added) makes every cached verdict stale.
@@ -249,7 +268,7 @@ onBeforeUnmount(() => {
         <div class="list">
           <p v-if="lastAdded && !query" class="added" role="status">{{ $t('picker.added', { code: lastAdded, slot: slotLabel }) }}</p>
           <p v-if="searchError" class="hint bad-text" role="alert">{{ searchError }}</p>
-          <p v-else-if="query.trim().length < 2" class="hint">{{ $t('picker.hint', { campus: campusName(campus) }) }}</p>
+          <p v-else-if="query.trim().length < 2" class="hint">{{ $t('picker.hint', { campus: campusName(campus), year: handbook }) }}</p>
           <p v-else-if="!searching && !results.length" class="hint">{{ $t('plan.noMatches') }}</p>
           <ul v-if="results.length" role="listbox" :aria-label="$t('picker.results')">
             <li

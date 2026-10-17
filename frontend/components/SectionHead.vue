@@ -5,7 +5,7 @@
  * A unit page is a dozen cards of similar shape, and on a long scroll the
  * icon is what lets you find "assessment" again without reading every title.
  * The icons are drawn here as plain strokes rather than pulled from an icon
- * package, so the page does not ship a library for twelve glyphs.
+ * package, so the page does not ship a library for a dozen glyphs.
  */
 defineProps<{ icon: keyof typeof ICONS; title: string; tag?: 'h2' | 'h3' }>()
 </script>
@@ -23,7 +23,8 @@ const ICONS = {
   faq: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6 M12 17.2v.1',
   details: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 11v6 M12 7.4v.1',
   ask: 'M4 5h16v11H9l-5 4z',
-  community: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M2 21a7 7 0 0 1 14 0 M17 3.5a4 4 0 0 1 0 7.5 M22 21a7 7 0 0 0-4-6.3'
+  community: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M2 21a7 7 0 0 1 14 0 M17 3.5a4 4 0 0 1 0 7.5 M22 21a7 7 0 0 0-4-6.3',
+  ratings: 'M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z'
 } as const
 </script>
 

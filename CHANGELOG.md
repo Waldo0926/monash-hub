@@ -32,6 +32,116 @@ All notable changes to Monash Hub are documented here.
 - Two-letter Chinese unit searches skip a trigram scan that never matched
   and took about a second.
 
+### Changed (tab titles)
+
+- Every browser tab reads "Page | Monash Hub", for example "选课规划 | Monash
+  Hub", so a row of open tabs still shows which site each one is. The suffix
+  comes from one title template in `app.vue`; pages set only their own name.
+  The old " — Monash Hub" endings on some pages are gone, the unit tree page
+  and the error page now have a title, and the home page reads
+  "Monash Hub | Handbook, official guides and student community".
+
+### Fixed (some part headings still had a full stop)
+
+- Course translations the crawler stored before the change still read
+  "B 部分。核心课程", so some degrees showed both separators. Stored strings
+  that start with a part heading are now read with the colon.
+
+### Fixed (course map Handbook year)
+
+- The add-a-unit dialog on the course map searches the Handbook of the year
+  the slot is in. It used to search the site's current Handbook, 2027 since
+  October 2026, so a 2026 slot could not find FIT1058, which is taught in 2026
+  but not listed in 2027. A year with no Handbook loaded uses the latest one
+  before it, the same rule the plan check uses, and the hint names the year.
+- The degree picker and the "against your degree" bars read the Handbook of
+  the plan's start year, the course version the student enrolled in.
+
+### Changed (plainer interface copy)
+
+- Page intros, empty states, notices and error text in all four locales are
+  shorter and plainer. Nothing uses a dash as punctuation any more, and the
+  wording no longer leans on slogans. Meaning and behaviour are unchanged.
+- Chinese degree part titles read "A 部分：基础课程" instead of
+  "A 部分。基础课程", in `structure_zh.py` and in the composed labels. The
+  seed on deploy writes the new wording.
+- The course map status pill says "还没有课程" / "No units yet" without a full
+  stop, and the notification panel no longer joins its two lines with a dash.
+
+### Added (student ratings of units)
+
+- Each unit page has a Student ratings section, labelled as community content:
+  the average out of 5, how many students gave each score, and averages for
+  teaching, content and assessment, plus difficulty and workload on their own
+  scale. Below it are the reviews, sortable by newest, highest or lowest.
+- Anyone can rate, signed in or not. One rating per account or per browser
+  for each unit, and rating again edits it. A signed-out rating belongs to a
+  random key the browser keeps, stored only as a keyed hash, and signed-out
+  saves are limited per network address.
+- Ratings can be reported and hidden like posts, and the moderation queue
+  labels them. A hidden rating leaves the average but its author still sees it.
+- The unit header shows the average next to the Handbook chips, unit cards in
+  search show it too, and "Is it hard?" quotes the students' difficulty score.
+- New table `unit_reviews` (migration `e7b3c5a19f42`). `GET /v1/units` results
+  carry `rating`, and the sign-in page returns to the page in `?next=`.
+
+### Changed (unit search)
+
+- Results come in pages of 24 with numbered pages, and the page number is in
+  the URL, so a filtered search can be shared and Back returns to the same
+  page. A new search or filter starts again from page 1.
+- Active filters show as chips above the results, each removable on its own.
+- Campus, level and exam are one-tap pills instead of dropdowns, and there is
+  a new subject filter (FIT, MAT and so on) from the existing `prefix` option.
+- Sort sits next to the result count, and a list view shows one unit per row
+  for scanning codes, with the student rating when a unit has one. The
+  choice of view is remembered in the browser.
+
+### Added (graduation)
+
+- A curated answer to "Do I still need to apply to graduate?" in English and
+  Chinese. It covers Monash's notice that from December 2026 awards are
+  conferred automatically each month, testamurs follow shortly after and
+  graduating in absentia ends, and points Malaysia campus students to their own
+  pages, which still describe applying. Questions such as 还需要申请毕业吗,
+  怎么申请毕业, 自动授予学位, "apply to graduate" and "testamur" now get it.
+- A reviewed Chinese translation of the notice on the Graduations guide, which
+  was shown in machine translation. The notice uses curly apostrophes, so the
+  keys do too.
+
+### Added (more than one course plan)
+
+- A browser can keep up to 20 plans. `/plans` lists them as cards: the
+  plan's name (editable in place), degree, credit points against the degree,
+  problems, last updated, and a small grid of its semesters and unit codes.
+  Each card can be opened on the map, duplicated, deleted (after a prompt) or
+  exported to CSV.
+- The course map shows the plan's name at the top, editable, with a link to
+  all plans. Importing a JSON plan adds it as a new plan instead of replacing
+  the one on screen.
+- "Plan this degree" starts a new plan when the open one already has units
+  for a different degree.
+- Plans are stored under `mh_plans_v1`. A plan saved under the old
+  `mh_plan_v1` key becomes the first plan; the old key is left in place.
+
+### Fixed (the fee band said "Band SCA Band 2")
+
+- The live Handbook labels the band "SCA Band 2", not "Band 2" as the fixture
+  had it, so the parser kept the whole label and the unit page put its own
+  "Band" in front. The parser now strips "SCA" as well, and migration
+  `a3d7e2b95c41` cleans the rows the first crawl already wrote.
+
+### Changed (马莫百科 page)
+
+- Added the 2026-10-17 post on automatic monthly conferral, so all seven posts
+  on the account are listed.
+- The page opens with the account, its stats and a follow box with two QR
+  codes: the 马莫百科 WeChat (MonashGuide) for the group chat, and the official
+  account. Each has a copy button for readers already on their phone.
+- The newest post is shown large with its cover, and the rest sit in a grid of
+  cover cards that can be filtered by topic. Covers are the account's own,
+  resized into `frontend/public/img/mamo/`.
+
 ### Changed (the course map is laid out like a map)
 
 - Each year is a dark bar and each teaching period a row: the period's name,

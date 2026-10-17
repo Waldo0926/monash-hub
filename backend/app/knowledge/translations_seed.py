@@ -655,6 +655,16 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "在读学生可以在 WES 免费看到非正式的分数单；"
         "带认证的正式成绩单是另外的付费申请，有自己的处理时间。",
     ),
+    "automatic-conferral": (
+        "毕业还需要自己申请吗？",
+        "从 2026 年 12 月起，Monash 会自动授予学位（conferral），你不需要再申请毕业"
+        "（apply to graduate）。学院确认你已完成课程后，你会在下一次按月进行的授予中拿到学位，"
+        "并在完成学业后不久收到学位证书（testamur）。新流程是先授予学位，再邀请你参加之后的"
+        "毕业典礼，所以缺席毕业（graduating in absentia）将不再适用。如果你今年已经申请了毕业，"
+        "仍然按官方页面上现在的流程办理。新流程的完整细节会在 12 月公布。"
+        "Monash Malaysia 自己的毕业页面目前还写着需要申请毕业，"
+        "马来西亚校区的同学在那边更新之前也要一起看。",
+    ),
 }
 
 
@@ -1153,6 +1163,25 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "Monash 很荣幸能一同庆祝你的学业成就。",
         "Your graduation journey":
             "你的毕业之路",
+        # The notice Monash added on 2026-10-16. Its apostrophes are U+2019,
+        # unlike the rest of the page, and the lookup is exact.
+        "Upcoming changes to the conferral process":
+            "学位授予流程即将调整",
+        "From December 2026, conferral of awards will be automatic and you "
+        "won’t need to apply to graduate. This means:":
+            "从 2026 年 12 月起，学位将自动授予（conferral），你不需要再申请毕业。也就是说：",
+        "once your faculty confirms you’ve completed your course, you’ll "
+        "be conferred in a monthly cycle":
+            "学院确认你已完成课程后，你会在按月进行的授予中拿到学位",
+        "you’ll receive your testamur shortly after completing your studies":
+            "完成学业后不久，你就会收到学位证书（testamur）",
+        "you’ll be conferred first, then invited to attend an upcoming "
+        "ceremony (graduating in absentia will no longer apply).":
+            "先授予学位，再邀请你参加之后的毕业典礼（缺席毕业 graduating in absentia 将不再适用）。",
+        "This website reflects the current graduation process for students who "
+        "have already applied to graduate this year. Full details on the new "
+        "process will be published in December.":
+            "本网站介绍的是现行毕业流程，适用于今年已经申请毕业的学生。新流程的完整细节将在 12 月公布。",
     },
     "results": {
         "Academic records (transcripts)":

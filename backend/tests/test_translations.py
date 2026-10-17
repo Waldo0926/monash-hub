@@ -37,6 +37,35 @@ def test_an_untranslated_string_stays_in_english(db):
     assert tr.string("Withdrawn fail") == "Withdrawn fail"
 
 
+def test_a_stored_part_heading_is_read_with_a_colon(db):
+    _store(
+        db, target_type=OFFICIAL_PAGE, target_key="c2001", field="body",
+        data={"strings": {
+            "Part B. Core studies": "B 部分。核心课程",
+            "Part 2. Discipline studies": "第 2 部分。学科课程",
+            "Results": "成绩公布。",
+        }},
+    )
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "c2001")
+    assert tr.string("Part B. Core studies") == "B 部分：核心课程"
+    assert tr.string("Part 2. Discipline studies") == "第 2 部分：学科课程"
+    assert tr.string("Results") == "成绩公布。"
+
+
+@pytest.mark.parametrize(
+    ("stored", "shown"),
+    [
+        ("B 部分。核心课程", "B 部分：核心课程"),
+        ("A 部分。核心课程与 B 部分。通识课程", "A 部分：核心课程与 B 部分：通识课程"),
+        ("C 部分：应用课程", "C 部分：应用课程"),
+        ("请完成第 2 部分。", "请完成第 2 部分。"),
+        ("这是学位的一部分。", "这是学位的一部分。"),
+    ],
+)
+def test_only_a_leading_part_heading_changes(stored, shown):
+    assert translations._part_colon(stored) == shown
+
+
 def test_a_page_overrides_the_shared_boilerplate(db):
     _store(
         db, target_type=GLOBAL, target_key="handbook", field="strings",
@@ -655,3 +684,44 @@ def test_a_narrower_pass_does_not_delete_what_a_wider_one_wrote(db):
     assert row.data["strings"]["Overview text"] == "简介译文"
     # and the row still knows it has been through the wider pass
     assert row.note == "fields=all"
+
+
+def test_graduations_conferral_notice_is_translated_by_hand():
+    """Monash's 2026 conferral notice, in the shape the live page ships it.
+
+    The box uses curly apostrophes where the rest of the page does not, and a
+    key with a straight one would leave the notice to the machine.
+    """
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    html = (
+        "<html><body><main><h1>Graduations</h1>"
+        '<div class="blue-box" role="alert"><h3><i class="fa fa-info-circle"></i> '
+        "Upcoming changes to the conferral process</h3>"
+        "<p>From December 2026, conferral of awards will be automatic and you won’t "
+        "need to apply to graduate. This means:</p><ul>"
+        "<li>once your faculty confirms you’ve completed your course, you’ll be "
+        "conferred in a monthly cycle</li>"
+        "<li>you’ll receive your testamur shortly after completing your studies</li>"
+        "<li>you’ll be conferred first, then invited to attend an upcoming ceremony "
+        "(graduating in absentia will no longer apply).</li></ul>"
+        "<p>This website reflects the current graduation process for students who have "
+        "already applied to graduate this year. Full details on the new process will be "
+        "published in December.</p></div></main></body></html>"
+    )
+    blocks = clean_page(html, url="https://www.monash.edu/students/admin/graduations")["blocks"]
+    tr = translations.Translation("zh")
+    tr.strings.update(GUIDE_BODIES["graduations"])
+    out = translations.translate_blocks(blocks, tr)
+
+    texts = []
+    for block in out:
+        if block["type"] == "heading":
+            texts.append(block["text"])
+        elif block["type"] == "paragraph":
+            texts.append("".join(s["text"] for s in block["spans"]))
+        elif block["type"] == "list":
+            texts += ["".join(s["text"] for s in item) for item in block["items"]]
+    notice = [t for t in texts if t != "Graduations"]
+    assert len(notice) == 6
+    assert all(any("一" <= ch <= "鿿" for ch in t) for t in notice)

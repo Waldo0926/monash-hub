@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import requested_locale
 from app.api.serializers import tree_node, unit_brief, unit_detail
+from app.community import ratings
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook import tree
@@ -68,12 +69,18 @@ def list_units(
         db, locale, UNIT, [u.unit_code for u in units],
         source_hashes={u.unit_code: u.content_hash for u in units},
     )
+    # Student ratings ride along so a card can show its stars without a
+    # second request. Null when nobody has rated the unit yet.
+    stars = ratings.summaries(db, [u.unit_code for u in units])
     return {
         "total": total,
         "limit": limit,
         "offset": offset,
         "academic_year": _year(year),
-        "results": [unit_brief(u, unit_translations[u.unit_code]) for u in units],
+        "results": [
+            {**unit_brief(u, unit_translations[u.unit_code]), "rating": stars.get(u.unit_code)}
+            for u in units
+        ],
     }
 
 

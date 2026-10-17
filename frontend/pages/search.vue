@@ -69,7 +69,7 @@ const showAnswer = computed(
 )
 
 useSeoMeta({
-  title: () => (query.value ? `${query.value} — Monash Hub` : $t('search.title')),
+  title: () => (query.value ? query.value : $t('search.title')),
   robots: 'noindex'
 })
 </script>

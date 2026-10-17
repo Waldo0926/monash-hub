@@ -508,13 +508,13 @@ def _yes_no(node: Any) -> bool | None:
 
 
 def _band(node: Any) -> str | None:
-    """The SCA band as published, "Band 2" or a bare 2, without the word."""
+    """The SCA band as published, "SCA Band 2", "Band 2" or a bare 2, without the words."""
     if isinstance(node, int):
         return str(node)
     value = _plain(node, "label", "value")
     if not value:
         return None
-    return re.sub(r"(?i)^band\s*", "", value).strip() or None
+    return re.sub(r"(?i)^(?:sca\s+)?band\s*", "", value).strip() or None
 
 
 def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:

@@ -2,6 +2,14 @@
 const { $t } = useNuxtApp()
 const { user, restore, signIn } = useAuth()
 const { refresh: refreshNotifications } = useNotifications()
+const route = useRoute()
+
+// Back to the page that sent the reader here, such as a unit's ratings. Only
+// a path on this site: "//evil.example" would be a link to someone else's.
+const next = computed(() => {
+  const raw = String(route.query.next || '')
+  return raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/\\') ? raw : '/community'
+})
 
 onMounted(restore)
 
@@ -16,7 +24,7 @@ async function submit() {
   try {
     await signIn(form.email.trim(), form.password)
     await refreshNotifications()
-    navigateTo('/community')
+    navigateTo(next.value)
   } catch (caught: any) {
     message.value = apiErrorMessage(caught, $t)
   } finally {

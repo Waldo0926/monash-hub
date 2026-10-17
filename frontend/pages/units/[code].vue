@@ -30,6 +30,12 @@ function pickYear(y: number) {
 const { data: discussions } = await useApiFetch<any>(
   () => `/v1/community/posts?unit_code=${code.value}&limit=5`
 )
+// Student ratings, averages only. The ratings section fetches its own list
+// and says when it changed, so the header and the questions below follow.
+const { data: ratings, refresh: refreshRatings } = await useApiFetch<any>(
+  () => `/v1/reviews/units/${code.value}?limit=0`
+)
+const rating = computed(() => (ratings.value?.summary?.count ? ratings.value.summary : null))
 
 // The campus the reader planned for, so "not taught at Malaysia" means their
 // campus. A reader with no plan gets the default, Malaysia.
@@ -241,10 +247,16 @@ const faq = computed(() => {
   })
 
   const said = discussions.value?.total ?? discussions.value?.results?.length ?? 0
+  const difficulty = rating.value?.dimensions?.difficulty
   items.push({
     q: $t('faq.hardQ', { code: c }),
     a: [
       $t('faq.hardIntro'),
+      difficulty?.count
+        ? $t(difficulty.count === 1 ? 'faq.hardRatedOne' : 'faq.hardRated', {
+          score: Number(difficulty.average).toFixed(1), count: difficulty.count
+        })
+        : '',
       totalHours.value ? $t('faq.hardHours', { hours: totalHours.value }) : '',
       said ? $t('faq.hardCommunity', { count: said }) : $t('faq.hardNoCommunity')
     ].filter(Boolean).join(' ')
@@ -273,6 +285,7 @@ const sections = computed(() => {
     { id: 'workload', label: $t('unit.workload') },
     u.learning_resources?.length && { id: 'resources', label: $t('unit.resources') },
     u.areas?.length && { id: 'fits', label: $t('unit.whereItFits') },
+    { id: 'reviews', label: $t('reviews.title') },
     { id: 'faq', label: $t('unit.commonQuestions') },
     { id: 'details', label: $t('unit.moreDetails') },
     { id: 'ask', label: $t('unit.askAbout', { code: u.unit_code }) },
@@ -303,7 +316,7 @@ onBeforeUnmount(() => observer?.disconnect())
 // --- head ---------------------------------------------------------------------
 
 useSeoMeta({
-  title: () => (unit.value ? `${unit.value.unit_code} ${unit.value.title} — Monash Hub` : 'Unit — Monash Hub'),
+  title: () => (unit.value ? `${unit.value.unit_code} ${unit.value.title}` : 'Unit'),
   description: () =>
     unit.value
       ? `${unit.value.unit_code} ${unit.value.title}: assessment, requisites, offerings and workload from the ${unit.value.academic_year} Monash Handbook.`
@@ -382,6 +395,12 @@ useHead(() => ({
           <p class="chips">
             <span class="chip">{{ $t('unit.handbookYear', { year: unit.academic_year }) }}</span>
             <span v-if="unit.faculty" class="chip">{{ $term('faculty', unit.faculty) }}</span>
+            <a v-if="rating" href="#reviews" class="chip chip--rating">
+              <StarRating :value="rating.average" size="sm" />
+              <strong>{{ Number(rating.average).toFixed(1) }}</strong>
+              <span>{{ rating.count === 1 ? $t('reviews.countOne') : $t('reviews.count', { count: rating.count }) }}</span>
+              <span class="chip-source">{{ $t('badge.community') }}</span>
+            </a>
           </p>
           <div class="head-meta">
             <LastChecked :value="unit.last_checked" />
@@ -557,6 +576,8 @@ useHead(() => ({
             </div>
           </section>
 
+          <UnitReviews :code="unit.unit_code" :campus="campus" @changed="refreshRatings" />
+
           <section id="faq" class="card section">
             <SectionHead icon="faq" :title="$t('unit.commonQuestions')" />
             <div class="faq">
@@ -694,6 +715,14 @@ useHead(() => ({
 .head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4); }
 .chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; }
 .chip { padding: 2px 10px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: 0.78rem; }
+/* The student rating sits with the chips but is told apart from the Handbook
+   ones by its border and its own "Community" label. */
+.chip--rating {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border-strong);
+}
+.chip--rating:hover { text-decoration: none; border-color: var(--badge-community); }
+.chip-source { color: var(--badge-community); font-weight: 600; }
 
 /* Layout ------------------------------------------------------------------------ */
 .body { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--s5); align-items: start; }
