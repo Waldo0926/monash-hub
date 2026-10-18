@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Check out the commit being deployed
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.DEPLOY_SHA }}
 
