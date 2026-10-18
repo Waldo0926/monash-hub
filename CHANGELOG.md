@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (a release workflow)
+
+- Pushing a tag `v<version>` publishes a GitHub Release. The workflow checks
+  that the tag matches `backend/app/version.py` and that the CHANGELOG has a
+  `## <version>` section, runs CI on the tagged commit, and uses that
+  section as the release notes. Steps are in `docs/RELEASING.md`. Nothing
+  about deployment changes: `main` still deploys on merge.
+- The API version now lives in one place, `backend/app/version.py`, and
+  `/api` reports it. It is set to 1.0.0 to match the tag that already
+  exists; the API used to call itself 0.1.0.
+
 ### Added (a deploy now proves the right commit is live)
 
 - `/api/health` and `/api` report the git commit the API was built from.
