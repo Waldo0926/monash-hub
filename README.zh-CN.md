@@ -112,6 +112,7 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 本 README 面向产品使用者。架构、部署、抓取和本地开发说明请查看：
 
 - [架构说明](docs/ARCHITECTURE.md)
+- [架构决策记录](docs/adr/README.md)
 - [部署说明](docs/DEPLOYMENT.md)
 - [抓取说明](docs/CRAWLING.md)
 - [公开发布检查清单](docs/PUBLIC-RELEASE.md)

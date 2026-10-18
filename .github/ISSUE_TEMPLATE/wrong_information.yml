@@ -1,0 +1,45 @@
+name: Wrong information / 信息有误
+description: A unit, degree, guide or translation says something that is not right. / 某门课、学位、指南或翻译的内容不对。
+labels: [content]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Handbook data and official guides are copied from Monash pages, so first check whether the Monash page itself is wrong. If it is, the fix has to happen there.
+        Handbook 数据和官方指南都是从 Monash 页面抓来的，请先看 Monash 原页面是不是也这样写。如果原页面就错了，只能在那边改。
+  - type: input
+    id: url
+    attributes:
+      label: Page on Monash Hub / Monash Hub 上的页面
+      placeholder: https://monashhub.secureview.tech/units/FIT2102
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Monash page that shows the correct value / 显示正确内容的 Monash 页面
+      placeholder: https://handbook.monash.edu/2026/units/FIT2102
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What the page says / 页面上写的是
+    validations:
+      required: true
+  - type: textarea
+    id: right
+    attributes:
+      label: What it should say / 应该是
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of problem / 问题类型
+      options:
+        - Parsed Handbook field is wrong / Handbook 字段解析错了
+        - Official guide text is wrong or outdated / 官方指南内容错了或过时
+        - Translation is wrong / 翻译错了
+        - Direct answer from the Ask box is wrong / 问答给的直达答案错了
+        - Something else / 其他
+    validations:
+      required: true

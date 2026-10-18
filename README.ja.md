@@ -107,7 +107,7 @@ WeChat 公式アカウント「马莫百科」の記事の索引です。検索�
 
 ## 開発者・コントリビューター向け
 
-この README は製品利用者向けです。プロジェクト作業については、[architecture](docs/ARCHITECTURE.md)、[deployment](docs/DEPLOYMENT.md)、[crawling](docs/CRAWLING.md)、[public-release checklist](docs/PUBLIC-RELEASE.md)、[roadmap](docs/ROADMAP-STATUS.md)、[contribution rules](AGENTS.md)、[changelog](CHANGELOG.md) を確認してください。
+この README は製品利用者向けです。プロジェクト作業については、[architecture](docs/ARCHITECTURE.md)、[decision records](docs/adr/README.md)、[deployment](docs/DEPLOYMENT.md)、[crawling](docs/CRAWLING.md)、[public-release checklist](docs/PUBLIC-RELEASE.md)、[roadmap](docs/ROADMAP-STATUS.md)、[contribution rules](AGENTS.md)、[changelog](CHANGELOG.md) を確認してください。
 
 開発の変更は `feat/*`、`fix/*`、`chore/*` ブランチで行い、Pull Request でレビューしてから `main` にマージします。
 

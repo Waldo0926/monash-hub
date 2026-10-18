@@ -4,6 +4,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (issue templates, Dependabot and decision records)
+
+- Three issue forms: a bug, wrong information on a page (which asks for the
+  Monash page that has it right), and a feature request. Security problems
+  are pointed at SECURITY.md instead of a public issue.
+- Dependabot opens one grouped PR a month per ecosystem (backend and crawler
+  pip, frontend npm, GitHub Actions, the three Dockerfiles). CI audits and
+  tests each one like any other change.
+- `docs/adr/` records five decisions and why: the monolith, search in
+  PostgreSQL, answers without a language model, the glossary in front of
+  machine translation, and accounts without real names.
+
 ### Changed (scroll hint on degree panels)
 
 - A degree panel whose list is taller than its box now shows a small bar at
