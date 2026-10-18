@@ -51,7 +51,7 @@ Review the remaining variables before starting production. Do not commit the res
 ./deployment/deploy.sh
 ```
 
-The deployment script backs up the database, pulls the reviewed `main` branch, rebuilds containers, applies migrations and idempotent seed data, restarts services, and verifies the health endpoint.
+The deployment script backs up the database, pulls the reviewed `main` branch, rebuilds containers, applies migrations and idempotent seed data, restarts services, waits for the health endpoint, and then runs `deployment/smoke.sh` against the new containers: the API must report the commit that was just checked out, a unit and a search must answer, and the home page and a unit page must render in English and Chinese. A failed smoke check rolls back like a failed health check.
 
 ### 4. TLS and nginx
 
@@ -179,7 +179,7 @@ Do not edit application files directly on the production host. A deployment shou
 
 ## Rollback
 
-`deploy.sh` puts the previous `api` and `web` images back on its own when the new API never reports healthy. For anything it did not catch, deploy a previously reviewed commit by its SHA:
+`deploy.sh` puts the previous `api` and `web` images back on its own when the new API never reports healthy or fails the smoke check. For anything it did not catch, deploy a previously reviewed commit by its SHA:
 
 ```bash
 cd /opt/monash-hub/repo
@@ -193,12 +193,17 @@ and restore the matching database backup from `/opt/monash-hub/backups` if a mig
 Useful checks include:
 
 ```bash
+./deployment/smoke.sh --base https://monashhub.secureview.tech --commit "$(git rev-parse HEAD)"
 curl -s https://monashhub.secureview.tech/api/health | python3 -m json.tool
 docker compose -p monash-hub ps
 docker compose -p monash-hub logs --tail 100 api
 ```
 
-`/api/health` reports service/data freshness information without exposing credentials.
+`/api/health` reports service/data freshness information and the commit the
+API was built from (`commit`, baked in by `deploy.sh` through the `APP_COMMIT`
+build argument), without exposing credentials. `smoke.sh` reads only, so it is
+safe to run against production at any time; without `--commit` it skips the
+commit comparison.
 
 ## Isolation checklist
 

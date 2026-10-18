@@ -37,6 +37,11 @@ jobs:
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
 
     steps:
+      - name: Check out the commit being deployed
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
       - name: Validate deployment secrets
         shell: bash
         run: |
@@ -86,15 +91,11 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST" \
             "/opt/monash-hub/repo/deployment/deploy.sh $DEPLOY_SHA"
 
-      - name: Verify public health endpoint
+      - name: Verify the public site serves this commit
         shell: bash
         run: |
           set -euo pipefail
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --retry 6 \
-            --retry-all-errors \
-            --retry-delay 5 \
-            https://monashhub.secureview.tech/api/health
+          # The VPS already ran the same script against the containers. This
+          # run goes through the public hostname and nginx, and checks that the
+          # commit the site reports is the one this workflow deployed.
+          deployment/smoke.sh --base https://monashhub.secureview.tech --commit "$DEPLOY_SHA"

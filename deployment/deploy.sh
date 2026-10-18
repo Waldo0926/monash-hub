@@ -96,6 +96,9 @@ rollback() {
 }
 
 echo "==> Building images"
+# The API reports this commit from /api/health, and the smoke check below
+# refuses to call the deploy done unless the two agree.
+export APP_COMMIT="$DEPLOY_SHA"
 # --profile tools is not optional here: crawler and migrate live behind it, and
 # without it a deploy silently ships yesterday's crawler.
 "${COMPOSE[@]}" --profile tools build
@@ -145,6 +148,23 @@ for attempt in $(seq 1 30); do
   fi
   sleep 2
 done
+
+echo "==> Checking the release answers like the site should"
+# "The API is up" is not "the right commit is live and the pages render". The
+# smoke check asks the API for its commit and a unit, and the web container for
+# a rendered page in both languages. A failure here rolls back the same way a
+# health failure does.
+web_port="$(sed -n 's/^WEB_PORT=//p' .env | tail -1)"
+web_port="${web_port:-8101}"
+if ! "$PROJECT_DIR/deployment/smoke.sh" \
+    --api "http://127.0.0.1:${api_port}" \
+    --web "http://127.0.0.1:${web_port}" \
+    --commit "$DEPLOY_SHA"; then
+  echo "error: the release failed the smoke check. Recent logs:" >&2
+  "${COMPOSE[@]}" logs --tail 50 api web >&2
+  rollback
+  exit 1
+fi
 
 # One-off data repairs do not live here. A deploy must not depend on the
 # Handbook answering, nor on two particular units looking a particular way:
