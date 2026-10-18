@@ -15,6 +15,21 @@ All notable changes to Monash Hub are documented here.
   `/api` reports it. It is set to 1.0.0 to match the tag that already
   exists; the API used to call itself 0.1.0.
 
+### Security (dependency upgrades, and an audit on every build)
+
+- The API moves to Pillow 12.3.0, python-multipart 0.0.31 and PyJWT 2.15.0.
+  Each of the old versions had published advisories (Pillow three,
+  python-multipart six, PyJWT fourteen); pip-audit now reports none.
+- The web app moves to Nuxt 4.6.2, Vue 3.5.44 and Vitest 5. The old lockfile
+  carried 26 advisories, among them an XSS in Vue's server renderer, which
+  is what renders every page here, and others in devalue, undici, svgo and
+  the dev tooling. Two remain, braces and node-forge, which have no fixed
+  release yet; neither is in the server bundle that runs in production, and
+  `frontend/scripts/audit.mjs` lists both with the reason.
+- CI runs pip-audit over the API pins and npm audit over the web lockfile on
+  every push and pull request, so a new advisory fails the build instead of
+  waiting to be noticed.
+
 ### Changed (scroll hint on degree panels)
 
 - A degree panel whose list is taller than its box now shows a small bar at
