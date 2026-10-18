@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Removed (dead Monash Malaysia career pages)
+
+- 19 Monash Malaysia Career Services pages are gone from the seed list.
+  Monash took them down (17 return 404) or moved them behind staff sign-in
+  (2 now redirect to Okta), so every refresh logged them as failures. The
+  next official refresh retires them; the Career Services overview and the
+  jobs board stay.
+
 ### Fixed (Korean particles and a few mistranslated terms)
 
 - Korean particles now match the glossary term in front of them (과목을,
