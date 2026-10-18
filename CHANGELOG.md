@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (scroll hint on degree panels)
+
+- A degree panel whose list is taller than its box now shows a small bar at
+  the bottom, "还有 N 个，下滑查看" (in all four languages). The count drops
+  as you scroll, the bar goes away at the end of the list, and clicking it
+  scrolls the list down. The bottom fade stays.
+
 ### Removed (dead Monash Malaysia career pages)
 
 - 19 Monash Malaysia Career Services pages are gone from the seed list.
