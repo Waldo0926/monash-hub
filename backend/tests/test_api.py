@@ -692,3 +692,10 @@ def test_facet_counts_follow_the_text_query(client, faculties):
         "/api/v1/units/facets", params={"year": 2026, "q": "ENG1001"}
     ).json()["counts"]
     assert counts["faculty"] == {"Faculty of Engineering": 1}
+
+
+def test_api_root_reports_the_version_constant(client):
+    from app.version import __version__
+
+    assert client.get("/api").json()["version"] == __version__
+    assert client.get("/api/openapi.json").json()["info"]["version"] == __version__
