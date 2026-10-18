@@ -45,6 +45,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements-dev.txt
 
+      - name: Audit Python dependencies for known vulnerabilities
+        # The API image's pins, and everything they pull in, looked up in the
+        # PyPI advisory database. A new advisory fails the build until the
+        # package is upgraded or the finding is written down with a reason.
+        # The crawler image adds argostranslate, which pins stanza 1.10.1
+        # (PYSEC-2026-3075) and cannot be moved on its own; that container has
+        # no published port and only sees text it fetched itself.
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt
+
       - name: Lint
         run: ruff check --config ruff.toml backend crawler
 
@@ -83,6 +94,14 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci --no-audit --no-fund
+
+      - name: Audit npm dependencies for known vulnerabilities
+        # The whole lockfile, build tooling included: the web container is
+        # built from it, and Nuxt's server renderer is a production
+        # dependency. A high or critical advisory fails the build unless
+        # scripts/audit.mjs lists it with a reason.
+        working-directory: frontend
+        run: npm run audit
 
       - name: Typecheck
         working-directory: frontend
