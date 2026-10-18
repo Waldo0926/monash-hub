@@ -59,6 +59,17 @@ def test_health_reports_data_counts(client, loaded):
     assert body["data"]["official_pages_ok"] == 1
 
 
+def test_health_reports_the_built_commit(client, monkeypatch):
+    from app.core.config import get_settings
+
+    # Development has no commit baked in, so the field is there but empty.
+    assert client.get("/api/health").json()["commit"] is None
+
+    monkeypatch.setattr(get_settings(), "app_commit", "0123456789abcdef0123456789abcdef01234567")
+    assert client.get("/api/health").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+    assert client.get("/api").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+
+
 def test_unit_detail_carries_source_and_structure(client, loaded):
     body = client.get("/api/v1/units/FIT2102").json()
     assert body["title"] == "Programming paradigms"

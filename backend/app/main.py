@@ -75,6 +75,7 @@ def api_root() -> dict:
     return {
         "name": settings.app_name,
         "version": app.version,
+        "commit": settings.app_commit or None,
         "docs": "/api/docs",
         "disclaimer": (
             "Monash Hub is an independent student information platform and is not "

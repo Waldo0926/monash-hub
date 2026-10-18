@@ -20,6 +20,11 @@ ENV PYTHONPATH=/srv/backend:/srv
 
 WORKDIR /srv/backend
 
+# The commit being built, so /api/health can report it. Compose passes it from
+# APP_COMMIT in the environment; deploy.sh sets that to the SHA it checked out.
+ARG APP_COMMIT=""
+ENV APP_COMMIT=$APP_COMMIT
+
 # Runs unprivileged. Nothing here needs to write to the image.
 RUN useradd --system --create-home --uid 10001 monashhub && chown -R monashhub /srv
 USER monashhub

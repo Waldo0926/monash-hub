@@ -16,9 +16,11 @@ That script remains the single source of truth for production deployment: it
 backs up PostgreSQL, checks out the commit it was given (the one CI tested;
 `origin/main` when run by hand with no argument), keeps the running images
 tagged `:previous`, rebuilds the compose images, applies migrations and curated
-seeds, restarts only the `monash-hub` compose project, and waits for the API
-health check. If the API never reports healthy, the previous `api` and `web`
-images are put back before the script exits non-zero.
+seeds, restarts only the `monash-hub` compose project, waits for the API
+health check, and runs `deployment/smoke.sh` against the new containers (the
+reported commit must be the one checked out, and a unit page must render). If
+the API never reports healthy or the smoke check fails, the previous `api` and
+`web` images are put back before the script exits non-zero.
 
 ## Required GitHub Actions secrets
 
@@ -111,8 +113,10 @@ any commit that is not on `origin/main`.
 
 Deployments are serialized with a `production-deploy` concurrency group so two
 production rebuilds cannot run at the same time. After the VPS script finishes,
-the workflow also checks `https://monashhub.secureview.tech/api/health` from the
-GitHub runner.
+the workflow runs the same `deployment/smoke.sh` against
+`https://monashhub.secureview.tech` from the GitHub runner, so the check goes
+through nginx like a visitor would, and fails the run if the site reports a
+different commit than the one it deployed.
 
 One-off data repairs (the MTH2051 and FIT1055 checks that used to gate every
 deploy) live in `deployment/verify-handbook-parser.sh` and are run by hand
@@ -127,7 +131,7 @@ manual approval.
 Before merging the workflow, confirm that all required secrets are present.
 After merge, the push to `main` runs CI; a successful CI run should then start a
 `Deploy` run automatically. The final logs should show the VPS deployment and a
-successful public health check.
+successful public smoke check ending in `Smoke check passed.`.
 
 If automatic deployment is temporarily unavailable, the manual procedure is
 unchanged:
