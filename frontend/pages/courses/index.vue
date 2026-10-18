@@ -177,6 +177,46 @@ function reveal(type: string) {
   if (details) details.open = true
 }
 
+/**
+ * How many degrees sit below the visible part of each panel. A list that
+ * scrolls inside a card does not look scrollable until you try, so the
+ * panel says how many more there are until the reader reaches the end.
+ */
+const lists = new Map<string, HTMLElement>()
+const below = reactive<Record<string, number>>({})
+
+function bindList(type: string, el: unknown) {
+  if (el instanceof HTMLElement) lists.set(type, el)
+  else lists.delete(type)
+}
+
+function measure(type: string) {
+  const el = lists.get(type)
+  if (!el) return
+  const bottom = el.scrollTop + el.clientHeight
+  let hidden = 0
+  for (const item of el.children as HTMLCollectionOf<HTMLElement>) {
+    if (item.offsetTop + item.offsetHeight > bottom + 1) hidden++
+  }
+  below[type] = hidden
+}
+
+function measureAll() {
+  for (const type of lists.keys()) measure(type)
+}
+
+function scrollDown(type: string) {
+  const el = lists.get(type)
+  el?.scrollBy({ top: el.clientHeight * 0.8, behavior: 'smooth' })
+}
+
+watch(columns, () => nextTick(measureAll))
+onMounted(() => {
+  measureAll()
+  window.addEventListener('resize', measureAll)
+})
+onBeforeUnmount(() => window.removeEventListener('resize', measureAll))
+
 useSeoMeta({ title: () => $t('courses.title') })
 </script>
 
@@ -244,11 +284,24 @@ useSeoMeta({ title: () => $t('courses.title') })
                 </span>
                 <PlanIcon name="chevron" class="caret" />
               </summary>
-              <ul class="panel-list">
+              <ul
+                :ref="(el) => bindList(group.type, el)"
+                class="panel-list"
+                @scroll.passive="measure(group.type)"
+              >
                 <li v-for="course in group.courses" :key="course.course_code">
                   <CourseCard :course="course" compact />
                 </li>
               </ul>
+              <button
+                v-if="below[group.type]"
+                type="button"
+                class="more"
+                @click="scrollDown(group.type)"
+              >
+                {{ $t('courses.moreBelow', { n: below[group.type] ?? 0 }) }}
+                <PlanIcon name="chevron" :size="14" class="more-icon" />
+              </button>
             </details>
           </section>
         </div>
@@ -323,7 +376,8 @@ details[open] .panel-head { border-bottom: 1px solid var(--border); }
    cover the shadows once the list is scrolled to that end, so a shadow only
    shows where there is more to see. */
 .panel-list {
-  list-style: none; margin: 0; padding: var(--s1) 0; max-height: 22.5rem; overflow-y: auto;
+  /* Positioned so each row's offsetTop is measured from the list itself. */
+  position: relative; list-style: none; margin: 0; padding: var(--s1) 0; max-height: 22.5rem; overflow-y: auto;
   overscroll-behavior: contain;
   background:
     linear-gradient(var(--surface) 30%, transparent) top / 100% 28px no-repeat,
@@ -334,6 +388,15 @@ details[open] .panel-head { border-bottom: 1px solid var(--border); }
   background-attachment: local, local, scroll, scroll;
 }
 .panel-list li + li { border-top: 1px solid var(--border); }
+.more {
+  display: flex; align-items: center; justify-content: center; gap: var(--s1);
+  width: 100%; padding: 6px var(--s3); border: 0; border-top: 1px solid var(--border);
+  background: var(--surface-2); color: var(--muted); font: inherit; font-size: 0.8rem;
+  cursor: pointer;
+}
+.more:hover { color: var(--blue); }
+.more:focus-visible { outline-offset: -2px; }
+.more-icon { transform: rotate(90deg); }
 
 @media (max-width: 700px) {
   .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
