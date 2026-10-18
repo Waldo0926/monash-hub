@@ -3,7 +3,7 @@
 # www.monash.edu refuses plain HTTP clients, so the official-page crawler needs
 # a real browser. The API image stays slim by keeping that dependency here - the
 # web service should not be carrying 400MB of Chromium it never uses.
-FROM mcr.microsoft.com/playwright/python:v1.56.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.63.0-noble
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
