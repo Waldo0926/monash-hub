@@ -230,3 +230,6 @@ Three things make that true, and they are the ones to protect:
 Two people are building this. A modular monolith with clear package boundaries
 (`handbook`, `knowledge`, `search`, `community`) can be split later if there is
 ever a reason. Splitting first would buy deployment complexity and nothing else.
+
+The reasons behind this and the other decisions that would be expensive to
+reverse are written down in [docs/adr](adr/README.md).

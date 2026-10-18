@@ -107,7 +107,7 @@ WeChat 공식 계정 「马莫百科」 글의 색인입니다. 검색과 주제
 
 ## 개발자 및 기여자 안내
 
-이 README는 제품 사용자를 위한 문서입니다. 프로젝트 작업은 [architecture](docs/ARCHITECTURE.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md), [changelog](CHANGELOG.md)를 참고하세요.
+이 README는 제품 사용자를 위한 문서입니다. 프로젝트 작업은 [architecture](docs/ARCHITECTURE.md), [decision records](docs/adr/README.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md), [changelog](CHANGELOG.md)를 참고하세요.
 
 개발 변경은 `feat/*`, `fix/*`, `chore/*` 브랜치에서 하고, Pull Request로 리뷰한 뒤 `main`에 병합합니다.
 
