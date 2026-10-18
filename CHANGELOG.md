@@ -16,6 +16,31 @@ All notable changes to Monash Hub are documented here.
   PostgreSQL, answers without a language model, the glossary in front of
   machine translation, and accounts without real names.
 
+### Added (a release workflow)
+
+- Pushing a tag `v<version>` publishes a GitHub Release. The workflow checks
+  that the tag matches `backend/app/version.py` and that the CHANGELOG has a
+  `## <version>` section, runs CI on the tagged commit, and uses that
+  section as the release notes. Steps are in `docs/RELEASING.md`. Nothing
+  about deployment changes: `main` still deploys on merge.
+- The API version now lives in one place, `backend/app/version.py`, and
+  `/api` reports it. It is set to 1.0.0 to match the tag that already
+  exists; the API used to call itself 0.1.0.
+
+### Added (a deploy now proves the right commit is live)
+
+- `/api/health` and `/api` report the git commit the API was built from.
+  `deploy.sh` passes the SHA it checked out as the `APP_COMMIT` build
+  argument.
+- `deployment/smoke.sh` asks a running site what a visitor would: the home
+  page in English and Chinese, a unit page, a unit search, a search for WAM,
+  robots.txt and the sitemap, and 404s for a missing unit and a missing path.
+  With `--commit` it also checks the commit the API reports.
+- `deploy.sh` runs it against the new containers after the health check and
+  rolls back on failure. The Deploy workflow runs it again through the public
+  hostname, so "deployed" now means the public site answers from the commit
+  CI tested, not just that something answered `/api/health`.
+
 ### Security (dependency upgrades, and an audit on every build)
 
 - The API moves to Pillow 12.3.0, python-multipart 0.0.31 and PyJWT 2.15.0.

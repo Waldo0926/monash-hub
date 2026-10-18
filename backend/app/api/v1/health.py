@@ -28,6 +28,7 @@ def health(db: Session = Depends(get_db)) -> dict:
     return {
         "status": "ok",
         "environment": settings.environment,
+        "commit": settings.app_commit or None,
         "academic_year": settings.current_academic_year,
         "data": {
             "units": units,

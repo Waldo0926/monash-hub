@@ -17,6 +17,11 @@ class Settings(BaseSettings):
 
     app_name: str = "Monash Hub API"
     environment: str = "development"
+    # The git commit this build came from, baked in by backend/Dockerfile at
+    # build time (deploy.sh passes the SHA it checked out). Reported by
+    # /api/health so a deploy can check that the commit it meant to ship is the
+    # one answering. Empty in development.
+    app_commit: str = ""
     api_prefix: str = "/api/v1"
 
     # The public origin the browser sees. Same-origin in production, so the list

@@ -38,6 +38,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        # Set by deployment/deploy.sh; reported by /api/health.
+        APP_COMMIT: ${APP_COMMIT:-}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -121,6 +124,8 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        APP_COMMIT: ${APP_COMMIT:-}
     profiles: [tools]
     depends_on:
       postgres:

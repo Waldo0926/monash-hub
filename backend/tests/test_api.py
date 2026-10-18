@@ -59,6 +59,17 @@ def test_health_reports_data_counts(client, loaded):
     assert body["data"]["official_pages_ok"] == 1
 
 
+def test_health_reports_the_built_commit(client, monkeypatch):
+    from app.core.config import get_settings
+
+    # Development has no commit baked in, so the field is there but empty.
+    assert client.get("/api/health").json()["commit"] is None
+
+    monkeypatch.setattr(get_settings(), "app_commit", "0123456789abcdef0123456789abcdef01234567")
+    assert client.get("/api/health").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+    assert client.get("/api").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+
+
 def test_unit_detail_carries_source_and_structure(client, loaded):
     body = client.get("/api/v1/units/FIT2102").json()
     assert body["title"] == "Programming paradigms"
@@ -692,3 +703,10 @@ def test_facet_counts_follow_the_text_query(client, faculties):
         "/api/v1/units/facets", params={"year": 2026, "q": "ENG1001"}
     ).json()["counts"]
     assert counts["faculty"] == {"Faculty of Engineering": 1}
+
+
+def test_api_root_reports_the_version_constant(client):
+    from app.version import __version__
+
+    assert client.get("/api").json()["version"] == __version__
+    assert client.get("/api/openapi.json").json()["info"]["version"] == __version__

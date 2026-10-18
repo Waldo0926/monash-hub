@@ -29,6 +29,7 @@ from app.api.v1 import (
     units,
 )
 from app.core.config import get_settings
+from app.version import __version__
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
@@ -41,7 +42,7 @@ if settings.environment == "production" and (problem := settings.secret_key_prob
 
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version=__version__,
     description=(
         "Structured Monash Handbook data, indexed official pages and a public "
         "student community. No generative AI in this version by design."
@@ -74,6 +75,7 @@ def api_root() -> dict:
     return {
         "name": settings.app_name,
         "version": app.version,
+        "commit": settings.app_commit or None,
         "docs": "/api/docs",
         "disclaimer": (
             "Monash Hub is an independent student information platform and is not "
