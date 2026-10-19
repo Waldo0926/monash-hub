@@ -1,5 +1,5 @@
 # Nuxt SSR build, then a runtime image carrying only .output.
-FROM node:22-slim AS build
+FROM node:26-slim AS build
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY frontend .
 RUN npm run build
 
 
-FROM node:22-slim AS runtime
+FROM node:26-slim AS runtime
 
 ENV NODE_ENV=production \
     NITRO_PORT=3000 \
