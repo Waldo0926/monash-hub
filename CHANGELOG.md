@@ -4,6 +4,12 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (frontend dependencies)
+
+- `vue-router` 5.4 and `@types/node` 26, the versions Nuxt 4.6 already ships
+  with, so the tree has one copy of each. TypeScript stays on 5.9 because
+  `vue-tsc` does not support 7 yet; Dependabot skips that major until it does.
+
 ### Added (issue templates, Dependabot and decision records)
 
 - Three issue forms: a bug, wrong information on a page (which asks for the
