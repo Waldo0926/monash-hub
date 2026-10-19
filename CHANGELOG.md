@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (crawler image)
+
+- The crawler image is built from `python:3.14-slim`, the same Python as the
+  API image, and installs its own Chromium with `playwright install`. The
+  playwright pin no longer waits for a matching prebuilt image, so it is on
+  1.64. A new workflow builds the image and launches the browser whenever the
+  crawler or its requirements change.
+
 ### Changed (frontend dependencies)
 
 - `vue-router` 5.4 and `@types/node` 26, the versions Nuxt 4.6 already ships
