@@ -3,7 +3,7 @@
 # where a real browser does not - see docs/CRAWLING.md.
 # Must match the image tag in crawler/Dockerfile: the browsers in the image are
 # built for exactly this version. v1.64 has no image yet.
-playwright==1.63.0
+playwright==1.64.0
 
 # Offline machine translation: CTranslate2 models, no API key, no per-call cost
 # and no rate limit. See app/knowledge/glossary.py for what it is not allowed to
