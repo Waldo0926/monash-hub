@@ -15,6 +15,7 @@ from typing import Any
 from sqlalchemy import (
     Integer,
     and_,
+    any_,
     case,
     cast,
     distinct,
@@ -762,7 +763,8 @@ def search_courses(
 
     filters = []
     if campus:
-        filters.append(Course.campuses.any(campus))
+        # SQLAlchemy 2.1 retired ARRAY.any(); any_() is the same `= ANY(campuses)`.
+        filters.append(campus == any_(Course.campuses))
     if course_type:
         filters.append(Course.course_type == course_type)
     if faculty:
