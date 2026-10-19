@@ -36,9 +36,9 @@ jobs:
       TEST_DATABASE_URL: postgresql+psycopg://monashhub:testpass@localhost:5432/monashhub_test
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
@@ -85,9 +85,9 @@ jobs:
     name: Frontend typecheck, tests and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
