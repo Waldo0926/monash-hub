@@ -30,6 +30,11 @@ updates:
       npm:
         patterns: ["*"]
     labels: [dependencies]
+    ignore:
+      # vue-tsc (what `nuxi typecheck` runs) does not support TypeScript 7 yet;
+      # the typecheck step fails with it. Drop this once vue-tsc supports 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
