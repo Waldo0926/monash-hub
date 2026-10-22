@@ -57,3 +57,53 @@ def test_lookup_names_its_source_and_ignores_unlisted_codes(client, db):
     assert set(found) == {"FIT2004"}
     assert found["FIT2004"]["entries"][0]["plan"] == "Replace with FIT3234 (S1 and S2)"
     assert found["FIT2004"]["sources"][to.SOURCES[0]]["url"] == "https://www.monash.edu/it/x"
+
+
+MY_ROWS = [
+    ["Unit Code", "Unit Title", "Change", "Course - Specialisation", "Teach out plan"],
+    ["FIT2004", "Algorithms and data structures", "No longer offered",
+     "BCS, BCS in DS, BCS in AI, BSE", "Replace with FIT3234 (S1 and S2)"],
+    ["FIT1043", "Introduction to data science", "Final offering S1 2027", "BCS in DS",
+     "Replace with FIT2132 (S2)"],
+]
+
+
+def _page(db, slug, url, rows, applies_to):
+    from app.knowledge.repository import get_or_create_source, upsert_seed_page
+
+    source = get_or_create_source(db, "monash-students", "Monash University",
+                                  "https://www.monash.edu")
+    page = upsert_seed_page(
+        db, source=source, slug=slug, url=url, title=slug, category="enrolment",
+        tags=[], refresh_tier="dynamic", applies_to=applies_to,
+    )
+    page.blocks = [{"type": "table", "rows": rows}]
+    page.status = "ok"
+    page.content_hash = slug
+    return page
+
+
+def test_each_campus_sees_its_own_faculty_page(client, db):
+    _page(db, to.SOURCES[0], "https://www.monash.edu/it/x", ROWS, "australia")
+    _page(db, to.SOURCES[1], "https://www.monash.edu.my/it/x", MY_ROWS, "malaysia")
+    db.commit()
+
+    here = to.lookup(db, ["FIT2004", "FIT1043", "FIT2014"], "Malaysia")
+    assert set(here) == {"FIT2004", "FIT1043"}
+    assert here["FIT1043"]["entries"][0]["plan"] == "Replace with FIT2132 (S2)"
+    assert list(here["FIT2004"]["sources"]) == [to.SOURCES[1]]
+    assert here["FIT2004"]["entries"][0]["applies_to"] == "malaysia"
+
+    there = to.lookup(db, ["FIT2004", "FIT1043", "FIT2014"], "Clayton")
+    assert set(there) == {"FIT2004", "FIT2014"}
+    assert list(there["FIT2004"]["sources"]) == [to.SOURCES[0]]
+
+    both = to.lookup(db, ["FIT2004"])
+    assert [e["applies_to"] for e in both["FIT2004"]["entries"]] == ["australia", "malaysia"]
+    assert both["FIT2004"]["sources"][to.SOURCES[1]]["applies_to"] == "malaysia"
+
+
+def test_campus_names_map_to_a_faculty_page():
+    assert to.region("Malaysia") == "malaysia"
+    assert to.region("Clayton") == "australia"
+    assert to.region(None) is None

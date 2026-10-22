@@ -227,10 +227,10 @@ SEEDS: tuple[Seed, ...] = (
           "computer science", "课程地图", "修读顺序")),
     # The faculty's own table of closing, renamed and changed units and the
     # approved replacement for each (backend/app/knowledge/teach_out.py reads it).
-    # Marked for the site it is on, not "all": the page speaks for the Faculty of
-    # IT but does not say which campuses, and the notice tells the reader to
-    # confirm that with their faculty. Dynamic tier because it is updated as
-    # teach-out plans are confirmed ("To be confirmed" rows become units).
+    # Marked for the site it is on, not "all": Monash Malaysia keeps its own list
+    # (below), so this one is shown to readers at the Australian campuses.
+    # Dynamic tier because it is updated as teach-out plans are confirmed
+    # ("To be confirmed" rows become units).
     Seed("it-undergraduate-re-enrolment",
          "https://www.monash.edu/it/current-students/courses/re-enrolment/undergraduate",
          "Re-enrolment and unit changes - Information Technology (undergraduate)",
@@ -239,6 +239,18 @@ SEEDS: tuple[Seed, ...] = (
           "2027 course version", "information technology", "computer science",
           "停开", "替代课程", "课程变更"),
          tier="dynamic"),
+    # The same table for Monash Malaysia, kept by the School of IT there. The
+    # rows differ from the Australian page (other degrees, other final
+    # offerings), so a reader in Malaysia is shown this one instead.
+    Seed("it-undergraduate-re-enrolment-malaysia",
+         "https://www.monash.edu.my/it/current-students/Course-Offered/undergraduates"
+         "/re-enrollment",
+         "Undergraduate IT unit and course changes (Monash Malaysia)",
+         "enrolment",
+         ("re-enrolment", "teach out", "teach-out", "replacement units", "unit changes",
+          "information technology", "computer science", "malaysia",
+          "停开", "替代课程", "课程变更", "马来西亚"),
+         tier="dynamic", applies_to="malaysia"),
     Seed("engineering-course-maps",
          "https://www.monash.edu/engineering/current-students/enrolment-and-re-enrolment"
          "/course-information/course-maps",

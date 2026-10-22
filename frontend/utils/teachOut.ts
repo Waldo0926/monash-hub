@@ -21,3 +21,19 @@ export function teachOutLabel(change: string, locale: string): string {
   if (last) return words.last(last[2]!, last[1]!)
   return text
 }
+
+export type TeachOutRegion = 'malaysia' | 'australia'
+
+/**
+ * Which faculty page speaks for a campus. Monash Malaysia's School of IT keeps
+ * its own list; the Faculty of IT's page on monash.edu is for the Australian
+ * campuses. Same rule as region() in backend/app/knowledge/teach_out.py.
+ */
+export function teachOutRegion(campus: string | null | undefined): TeachOutRegion {
+  return campus === 'Malaysia' ? 'malaysia' : 'australia'
+}
+
+/** The entries one campus's page lists. A page for every campus counts for both. */
+export function teachOutFor<T extends { applies_to?: string | null }>(entries: T[], region: TeachOutRegion): T[] {
+  return entries.filter(e => !e.applies_to || e.applies_to === region || e.applies_to === 'all')
+}
