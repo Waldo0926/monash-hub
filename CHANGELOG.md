@@ -4,6 +4,11 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Security
+
+- Pillow 13.0.0, which fixes 24 advisories against 12.3.0 that pip-audit
+  started reporting on 2026-10-22.
+
 ### Added (Malaysia teach-out notices)
 
 - Monash Malaysia's School of IT list of closing and renamed units is indexed
