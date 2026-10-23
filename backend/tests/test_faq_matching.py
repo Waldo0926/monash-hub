@@ -50,6 +50,8 @@ def answer(query: str, **kwargs) -> str | None:
         ("在读证明", "what-documents-for-sc"),
         # A lost testamur is a documents question, not a conferral one.
         ("毕业证丢了怎么补办", "automatic-conferral"),
+        # 变化 is a word of the hurdle-changes entry, not a trigger.
+        ("选课有什么变化", "hurdle-changes"),
     ],
 )
 def test_a_shared_word_is_not_an_answer(query, wrong):
@@ -121,6 +123,35 @@ def test_the_more_specific_entry_wins(query, right):
         ("what is automatic conferral", "automatic-conferral"),
         ("when will I get my testamur", "automatic-conferral"),
         ("can I graduate in absentia", "automatic-conferral"),
+        # Malaysia campus: every name students use for the MPU units.
+        ("通识课", "malaysia-general-studies"),
+        ("MPU要修哪些", "malaysia-general-studies"),
+        ("马莫毕业要修什么通识课", "malaysia-general-studies"),
+        ("General Study", "malaysia-general-studies"),
+        ("26S2入学的国际生要修哪些MPU", "malaysia-general-studies"),
+        ("本地学生通识课要修几门", "malaysia-general-studies"),
+        ("25S1入学MPU有哪些", "malaysia-general-studies"),
+        ("MPU课程每年都不一样吗", "malaysia-general-studies"),
+        ("which general studies units do I need", "malaysia-general-studies"),
+        ("马莫交通", "malaysia-getting-around"),
+        ("马莫校车几点", "malaysia-getting-around"),
+        ("怎么去学校", "malaysia-getting-around"),
+        ("how do I get to campus", "malaysia-getting-around"),
+        ("教室在哪", "malaysia-campus-map"),
+        ("学校地图", "malaysia-campus-map"),
+        ("where is my classroom", "malaysia-campus-map"),
+        # Hurdles: what one is, and what changed, asked the short way.
+        ("hurdle是啥", "what-is-a-hurdle"),
+        ("NH 45是什么意思", "what-is-a-hurdle"),
+        ("hurdle没过还能补考吗", "what-is-a-hurdle"),
+        ("hurdle改了什么", "hurdle-changes"),
+        ("hurdle有啥变化", "hurdle-changes"),
+        ("threshold hurdle还有吗", "hurdle-changes"),
+        ("what changed about hurdles", "hurdle-changes"),
+        # Parents: greetings and 孩子 are not the subject of the question.
+        ("您好，请问孩子毕业要修哪些通识课", "malaysia-general-studies"),
+        ("请问我孩子hurdle没过怎么办", "what-is-a-hurdle"),
+        ("家长想问学校校车", "malaysia-getting-around"),
     ],
 )
 def test_a_question_the_faq_covers_gets_it(query, slug):

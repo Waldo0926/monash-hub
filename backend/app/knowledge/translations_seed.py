@@ -356,6 +356,9 @@ GUIDE_TITLES: dict[str, str] = {
     "malaysia-student-admin": "学生事务",
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
     "malaysia-exam-rules": "eExam（线上考试）规则",
+    "malaysia-general-studies": "通识课 MPU（马来西亚校区）",
+    "hurdles": "考核里的 hurdle（能力门槛和分数门槛）",
+    "malaysia-maps-and-transport": "地图与交通（马来西亚校区）",
 }
 
 
@@ -542,15 +545,25 @@ GPA_PAGE: dict[str, str] = {
 FAQ_ZH: dict[str, tuple[str, str]] = {
     "what-is-a-hurdle": (
         "什么是 hurdle（及格门槛）？没过会怎样？",
-        "Hurdle（及格门槛）是你必须达到的考核要求——没达到，其他分数再高这门课也过不了。"
-        "Monash 正在取消分数及格门槛（threshold hurdle，即某项考核必须拿到最低分）："
-        "2025 年 3 月 1 日起新课程单元不得再设，到 2026 年 12 月 31 日所有课程单元都不再使用。"
-        "保留下来的是能力及格门槛（competency hurdle）。"
-        "如果你完成了某项能力及格门槛考核但没通过，学校必须至少给你一次额外考核"
-        "（additional assessment），要在该教学期结束前完成；额外考核不适用特殊考虑"
-        "（special consideration）。如果最终仍未达到门槛、而你的分数在 45 分或以上，"
-        "成绩会记为 NH（Hurdle Fail）45 分，并且不会因此获得补考。"
-        "每门课程单元有哪些 hurdle、可以尝试几次，写在该单元的 Handbook 页面和 Moodle 上。",
+        "Hurdle（及格门槛）是你必须达到的考核要求，没达到的话，其他分数再高这门课也过不了。"
+        "如果你完成了某项能力门槛（competency hurdle）考核但没通过，主考老师（chief examiner）"
+        "必须至少再给你一次额外考核（additional assessment），考同样的学习目标。"
+        "这个不用自己申请，要在这个教学期结束前完成，不能申请特殊考虑（special consideration）；"
+        "如果这项 hurdle 有权重，额外考核这一项最多只能拿 50%。"
+        "最后还是没达到门槛的话，总分 45 分或以上记为 NH（Hurdle Fail）45 分，"
+        "45 分以下记为 N 和你的实际分数。没过 hurdle 不会给补考（supplementary assessment）。"
+        "每门课有哪些 hurdle、能考几次，写在这门课的 Handbook 页面和 Moodle 上。",
+    ),
+    "hurdle-changes": (
+        "Hurdle 改了什么？",
+        "Monash 正在取消分数门槛（threshold hurdle），也就是某项考核要拿到最低分（45%）才能过这门课的规定。"
+        "2025 年 3 月 1 日起新开的课不能再设；2026 年 1 月 1 日起，考核方式重新审核过的课要去掉；"
+        "到 2026 年 12 月 31 日，所有课都不再有分数门槛。"
+        "留下来的是能力门槛（competency hurdle）：证明你掌握了某项必须的技能的考核，"
+        "可以是通过/不通过，也可以有权重和分数。没过的话学校至少要再给你一次额外考核，"
+        "最终判不通过前还要两个人分别批改。没过 hurdle 而总分 45 分或以上，仍然记为 NH 45，"
+        "也不会给补考。现在的规定在 Assessment Regime Procedure 第 4 节，"
+        "适用于 2026 年 7 月 27 日及以后开始的教学期。",
     ),
     "supplementary-assessment": (
         "我能补考（supplementary assessment）吗？",
@@ -664,6 +677,36 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "仍然按官方页面上现在的流程办理。新流程的完整细节会在 12 月公布。"
         "Monash Malaysia 自己的毕业页面目前还写着需要申请毕业，"
         "马来西亚校区的同学在那边更新之前也要一起看。",
+    ),
+    "malaysia-general-studies": (
+        "马莫毕业要修哪些通识课（MPU）？",
+        "在马来西亚校区，高教部要求你毕业前修完并通过 General Studies 课程，也就是通识课、MPU 课。"
+        "要修哪几门看你哪个学期入学，以及你是马来西亚学生还是国际生；"
+        "2026 年第 2 学期（26S2）入学起，要修的课变多了。"
+        "国际生：26S2 入学修 MPU3143、MPU3172、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3143、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3143、MPU3193、MPU3312。"
+        "马来西亚学生：26S2 入学修 MPU3182、MPU3192、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3183、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3183、MPU3193、MPU3312。"
+        "SPM 马来文没拿到 Credit 或者没考 SPM 的马来西亚学生，还要加修 MPU3212。"
+        "Diploma of Business：国际生修 MPU2143、MPU2313、MPU2412；"
+        "马来西亚学生修 MPU2183、MPU2313、MPU2412，同样按 SPM 的条件加修 MPU2212。"
+        "官网只列了这几个入学批次，其他学期入学的，去问 Monash Connect 你对应哪一组。"
+        "什么时候修都可以，学校建议前三个学期内修完。",
+    ),
+    "malaysia-getting-around": (
+        "怎么去马莫，在双威附近怎么出行？",
+        "免费的 Sunway Shuttle Bus 停 Monash，早上 7 点到晚上 10:15，大约 45 分钟一班。"
+        "学校门口是 BRT 的 SunU-Monash 站：在 Setia Jaya 可以换 KTM 火车，在 USJ 7 可以换 "
+        "Kelana Jaya 线轻轨（LRT），两条都能到 KL Sentral，再坐机场快线去 KLIA。"
+        "学校有带顶棚的走廊直通 Sunway Pyramid，打 Grab 过去不到 RM10。"
+        "校车站点、BRT 各站和停车的地方看官方页面。",
+    ),
+    "malaysia-campus-map": (
+        "教室在哪？马莫有校园地图吗？",
+        "下载 Monash Study app，可以查看、搜索教室和楼在校园里的位置。"
+        "地图与交通页面上也有校园地图和到校路线图。",
     ),
 }
 

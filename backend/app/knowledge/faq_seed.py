@@ -89,23 +89,51 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "what-is-a-hurdle",
         "What is a hurdle, and what happens if I fail one?",
         "A hurdle is an assessment requirement you have to meet to pass the unit, whatever "
-        "your other marks add up to. Monash is phasing out threshold hurdles (a minimum mark "
-        "on a task): no new unit may use one from 1 March 2025, and by 31 December 2026 no "
-        "unit will. What remains are competency hurdles. If you complete and fail a "
-        "competency hurdle you must be offered at least one additional assessment, due by "
-        "the end of the teaching period; special consideration does not apply to it. If you "
-        "still have not met the hurdle and your mark is 45 or more, your result is NH "
-        "(Hurdle Fail) 45, and you will not be given a supplementary assessment for it. Your "
-        "unit's hurdles and the number of attempts are listed in its Handbook entry and on "
-        "Moodle.",
+        "your other marks add up to. If you complete and fail a competency hurdle, the chief "
+        "examiner must give you at least one additional assessment on the same learning "
+        "outcomes; you do not apply for it, and it is due by the end of the teaching period. "
+        "Special consideration does not apply to it, and if the hurdle is weighted the most "
+        "you can get for the task is 50%. If you still have not met the hurdle and your mark "
+        "is 45 or more, your result is NH (Hurdle Fail) 45; below 45 it is N with your mark. "
+        "A failed hurdle does not lead to a supplementary assessment. Your unit's hurdles and "
+        "the number of attempts are listed in its Handbook entry and on Moodle.",
         "assessment",
         ("fail", "failed", "failing", "pass", "unit", "assessment", "task", "exam", "mark",
          "marks", "45", "what happens", "attempt", "挂", "挂了", "挂科", "没过", "不及格",
-         "考核", "考试", "作业", "分数", "怎么办", "什么", "是什么"),
+         "考核", "考试", "作业", "分数", "怎么办", "什么", "是什么", "意思", "补考", "supp",
+         "supplementary", "additional assessment", "额外考核", "重考", "再考", "机会", "几次"),
         ("hurdle", "hurdles", "hurdle requirement", "hurdle requirements", "hurdle fail",
-         "threshold hurdle", "competency hurdle", "及格门槛", "门槛要求"),
+         "competency hurdle", "nh", "及格门槛", "门槛要求"),
         "hurdles",
         priority=95,
+    ),
+    # The 2026 Assessment Regime Procedure (teaching periods from 27 July 2026)
+    # finishes removing threshold hurdles. Students ask what changed as often as
+    # what a hurdle is, so the change has its own entry.
+    FaqSeed(
+        "hurdle-changes",
+        "What has changed about hurdles?",
+        "Monash is removing threshold hurdles, the rule that you needed a minimum mark (45%) "
+        "on a task to pass the unit. No new unit has used one since 1 March 2025, units whose "
+        "assessment was reviewed lost them from 1 January 2026, and by 31 December 2026 no "
+        "unit will have one. What stays are competency hurdles: tasks that show a skill you "
+        "must have, marked pass/fail or with a weighted mark. If you fail one you must be "
+        "given at least one additional assessment, and it is double marked before a final "
+        "fail. Failing a hurdle still means NH 45 if your mark is 45 or more, with no "
+        "supplementary assessment. The current rules are in section 4 of the Assessment "
+        "Regime Procedure, for teaching periods starting on or after 27 July 2026.",
+        "assessment",
+        ("门槛", "及格门槛", "rule", "rules", "policy", "procedure", "2025", "2026", "now",
+         "现在", "以前", "之前", "还有", "还要", "unit", "units", "课", "什么", "哪些",
+         "change", "changes", "changed", "changing", "new", "removed", "变化", "变了",
+         "改了", "改成", "改变", "改动", "更新", "新规", "新规定", "新政策", "取消",
+         "没有了", "不一样", "区别"),
+        ("hurdle", "hurdles", "threshold hurdle", "threshold hurdles", "hurdle changes",
+         "hurdle改", "hurdle变", "hurdle新", "hurdle取消", "hurdle 改", "hurdle 变",
+         "hurdle 新",
+         "分数门槛", "最低分要求"),
+        "hurdles",
+        priority=60,
     ),
     FaqSeed(
         "supplementary-assessment",
@@ -328,5 +356,74 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "毕业需要申请", "毕业要申请"),
         "graduations",
         priority=45,
+    ),
+    # Malaysia campus only. The unit list changes with the intake and differs for
+    # Malaysian and international students, and students ask for their own row,
+    # so every list on the page is spelled out here. Re-check it each semester.
+    FaqSeed(
+        "malaysia-general-studies",
+        "Which MPU (General Studies) units do I need to graduate in Malaysia?",
+        "At the Malaysia campus, the Ministry of Higher Education requires you to pass "
+        "General Studies units, also called MPU units, before you graduate. Which ones depends "
+        "on your intake and on whether you are a Malaysian or an international student, and "
+        "the list got longer from Semester 2, 2026. "
+        "International students: Semester 2, 2026 intake: MPU3143, MPU3172, MPU3222, "
+        "MPU3312, MPU3322, MPU3412. Semester 1, 2025 intake: MPU3143, MPU3193, MPU3312, "
+        "MPU3412. Semester 1, 2024 intake: MPU3143, MPU3193, MPU3312. "
+        "Malaysian students: Semester 2, 2026 intake: MPU3182, MPU3192, MPU3222, MPU3312, "
+        "MPU3322, MPU3412. Semester 1, 2025 intake: MPU3183, MPU3193, MPU3312, MPU3412. "
+        "Semester 1, 2024 intake: MPU3183, MPU3193, MPU3312. Malaysian students without a "
+        "Credit in SPM Bahasa Melayu, or without SPM, also take MPU3212. "
+        "Diploma of Business: international students MPU2143, MPU2313, MPU2412; Malaysian "
+        "students MPU2183, MPU2313, MPU2412, plus MPU2212 under the same SPM rule. "
+        "The page names only these intakes, so if you started in another one, ask Monash "
+        "Connect which list is yours. You can take them at any time, but Monash Malaysia "
+        "suggests finishing them in your first three semesters.",
+        "enrolment",
+        ("malaysia", "马来西亚", "马莫", "graduate", "graduation", "毕业", "need", "required",
+         "requirement", "要", "需要", "必须", "which", "哪些", "什么", "units", "unit", "课",
+         "international", "国际生", "国际学生", "留学生", "malaysian", "本地生", "本地学生",
+         "马来西亚学生", "intake", "入学", "入读", "开学", "take", "修", "上", "学", "几门",
+         "多少门", "几个", "列表", "清单", "semester", "学期", "s1", "s2", "26s2", "25s1",
+         "24s1", "2024", "2025", "2026", "diploma", "文凭", "预科", "spm", "课程", "每年",
+         "每个学期", "每学期", "年份", "change",
+         "changed", "different", "不一样", "不同", "变了", "增加", "新增", "多了"),
+        ("mpu", "mpu units", "general studies", "general study", "通识课", "通识",
+         "马来西亚必修课"),
+        "malaysia-general-studies",
+        priority=50,
+    ),
+    FaqSeed(
+        "malaysia-getting-around",
+        "How do I get to the Malaysia campus and around Sunway?",
+        "The free Sunway Shuttle Bus stops at Monash and runs about every 45 minutes from 7 am "
+        "to 10.15 pm. The BRT station SunU-Monash is in front of the campus: the line connects "
+        "to the KTM train at Setia Jaya and to the Kelana Jaya LRT at USJ 7, both of which reach "
+        "KL Sentral, where the express train goes to KLIA. A covered walkway links the campus "
+        "to Sunway Pyramid, and a Grab there costs under RM10. The official page has the "
+        "shuttle stops, the BRT stations and where to park.",
+        "campus",
+        ("malaysia", "马来西亚", "马莫", "sunway", "双威", "campus", "学校", "校园", "get",
+         "go", "去", "到", "怎么", "how", "pyramid", "金字塔", "kl", "吉隆坡", "klia", "机场",
+         "kl sentral", "around", "附近"),
+        ("transport", "public transport", "shuttle", "shuttle bus", "brt", "lrt", "ktm",
+         "get to campus", "get to the campus", "getting to campus", "交通", "校车", "班车",
+         "公交", "公车", "轻轨", "地铁", "怎么去学校"),
+        "malaysia-maps-and-transport",
+        priority=40,
+    ),
+    FaqSeed(
+        "malaysia-campus-map",
+        "Where is my classroom? Is there a campus map for Monash Malaysia?",
+        "Download the Monash Study app: you can look up and search where a classroom or "
+        "building is on campus. The maps and transport page also has a campus map and a map "
+        "of how to get to the campus.",
+        "campus",
+        ("malaysia", "马来西亚", "马莫", "where", "在哪", "在哪里", "哪里", "find", "找",
+         "room", "building", "楼", "教学楼", "位置", "search", "查", "地图", "map"),
+        ("campus map", "classroom", "lecture theatre", "monash study", "校园地图", "学校地图",
+         "教室", "教室在哪", "找教室", "教室位置", "马莫地图", "校区地图"),
+        "malaysia-maps-and-transport",
+        priority=40,
     ),
 )

@@ -58,6 +58,19 @@ ZH_ADMIN_TERMS: dict[str, tuple[str, ...]] = {
     "医保": ("oshc", "health cover", "health insurance"),
     "保险": ("insurance", "health cover"),
     "全日制": ("full-time",),
+    # --- getting to campus --------------------------------------------------
+    "交通": ("transport",),
+    "校车": ("shuttle bus", "shuttle"),
+    "班车": ("shuttle bus", "shuttle"),
+    "公交": ("bus", "transport"),
+    "公车": ("bus", "transport"),
+    "轻轨": ("lrt", "brt", "transport"),
+    "地铁": ("lrt", "ktm", "transport"),
+    "停车场": ("car park", "parking"),
+    "校园地图": ("campus map",),
+    "学校地图": ("campus map",),
+    "怎么去学校": ("getting to the campus", "transport"),
+    "去机场": ("airport", "klia"),
     # --- enrolment ----------------------------------------------------------
     "选课": ("enrol", "enrolment", "add units"),
     "加课": ("add units", "enrol"),
@@ -89,6 +102,12 @@ ZH_ADMIN_TERMS: dict[str, tuple[str, ...]] = {
     "修读顺序": ("course map", "course progression"),
     "选课顺序": ("course map", "course progression"),
     "必修课": ("core units", "course map"),
+    # Monash Malaysia's MPU units are what most students mean; Australia's
+    # breadth studies are the same idea and the glossary's 通识课程.
+    "通识课程": ("general studies", "breadth studies"),
+    "通识课": ("general studies", "mpu", "breadth studies"),
+    "通识": ("general studies", "mpu", "breadth studies"),
+    "马来西亚必修课": ("general studies", "mpu"),
     "课表": ("timetable",),
     "排课": ("timetable", "allocate"),
     "截止日期": ("deadline", "census", "due date"),
