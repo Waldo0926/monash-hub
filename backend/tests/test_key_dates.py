@@ -5,7 +5,7 @@ final-assessment and principal-dates pages.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -148,7 +148,22 @@ def test_page_that_failed_to_fetch_contributes_nothing():
     assert kd.upcoming(pages, "australia", date(2026, 1, 1), limit=20) == []
 
 
-def test_key_dates_endpoint_names_its_sources(client, db):
+@pytest.fixture
+def on_4_october(monkeypatch):
+    """The endpoint only lists dates still to come, so it is asked on a fixed day.
+
+    The rows above are real 2026 dates. Without this, the endpoint tests broke
+    the day after S2 teaching ended (23 Oct 2026), when nothing was left.
+    """
+    real = kd.collect
+
+    def collect(db, campus, limit=6, now=None):
+        return real(db, campus, limit, now or datetime(2026, 10, 4, tzinfo=UTC))
+
+    monkeypatch.setattr(kd, "collect", collect)
+
+
+def test_key_dates_endpoint_names_its_sources(client, db, on_4_october):
     from app.knowledge.repository import get_or_create_source, upsert_seed_page
 
     source = get_or_create_source(db, "monash-students", "Monash University",
@@ -171,7 +186,7 @@ def test_key_dates_endpoint_names_its_sources(client, db):
     assert client.get("/api/v1/key-dates", params={"campus": "mars"}).status_code == 422
 
 
-def test_key_dates_source_titles_follow_the_language(client, db):
+def test_key_dates_source_titles_follow_the_language(client, db, on_4_october):
     """The card linked "Final assessment dates" in English on a Chinese page."""
     from app.knowledge.repository import get_or_create_source, upsert_seed_page
     from app.models.translation import MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
