@@ -680,10 +680,19 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "malaysia-general-studies": (
         "马莫毕业要修哪些通识课（MPU）？",
-        "在马来西亚校区，高教部要求你毕业前修完并通过一些 General Studies 课程，也就是通识课、"
-        "MPU 课。要修哪几门看你哪个学期入学，以及你是马来西亚学生还是国际生。"
-        "2026 年第 2 学期入学的国际生修 MPU3143、MPU3172、MPU3222、MPU3312、MPU3322 和 MPU3412。"
-        "更早入学的、马来西亚学生和 Diploma of Business 各有自己的列表，看官方页面。"
+        "在马来西亚校区，高教部要求你毕业前修完并通过 General Studies 课程，也就是通识课、MPU 课。"
+        "要修哪几门看你哪个学期入学，以及你是马来西亚学生还是国际生；"
+        "2026 年第 2 学期（26S2）入学起，要修的课变多了。"
+        "国际生：26S2 入学修 MPU3143、MPU3172、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3143、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3143、MPU3193、MPU3312。"
+        "马来西亚学生：26S2 入学修 MPU3182、MPU3192、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3183、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3183、MPU3193、MPU3312。"
+        "SPM 马来文没拿到 Credit 或者没考 SPM 的马来西亚学生，还要加修 MPU3212。"
+        "Diploma of Business：国际生修 MPU2143、MPU2313、MPU2412；"
+        "马来西亚学生修 MPU2183、MPU2313、MPU2412，同样按 SPM 的条件加修 MPU2212。"
+        "官网只列了这几个入学批次，其他学期入学的，去问 Monash Connect 你对应哪一组。"
         "什么时候修都可以，学校建议前三个学期内修完。",
     ),
     "malaysia-getting-around": (

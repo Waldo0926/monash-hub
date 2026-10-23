@@ -357,23 +357,37 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "graduations",
         priority=45,
     ),
-    # Malaysia campus only. The unit list changes with the intake, so the answer
-    # gives the current international list and sends everyone else to the page.
+    # Malaysia campus only. The unit list changes with the intake and differs for
+    # Malaysian and international students, and students ask for their own row,
+    # so every list on the page is spelled out here. Re-check it each semester.
     FaqSeed(
         "malaysia-general-studies",
         "Which MPU (General Studies) units do I need to graduate in Malaysia?",
-        "At the Malaysia campus, the Ministry of Higher Education requires you to pass some "
+        "At the Malaysia campus, the Ministry of Higher Education requires you to pass "
         "General Studies units, also called MPU units, before you graduate. Which ones depends "
-        "on when you started and on whether you are a Malaysian or an international student. "
-        "International students starting in Semester 2, 2026 take MPU3143, MPU3172, MPU3222, "
-        "MPU3312, MPU3322 and MPU3412. Earlier intakes, Malaysian students and the Diploma of "
-        "Business have their own lists on the official page. You can take them at any time, "
-        "but Monash Malaysia suggests finishing them in your first three semesters.",
+        "on your intake and on whether you are a Malaysian or an international student, and "
+        "the list got longer from Semester 2, 2026. "
+        "International students: Semester 2, 2026 intake: MPU3143, MPU3172, MPU3222, "
+        "MPU3312, MPU3322, MPU3412. Semester 1, 2025 intake: MPU3143, MPU3193, MPU3312, "
+        "MPU3412. Semester 1, 2024 intake: MPU3143, MPU3193, MPU3312. "
+        "Malaysian students: Semester 2, 2026 intake: MPU3182, MPU3192, MPU3222, MPU3312, "
+        "MPU3322, MPU3412. Semester 1, 2025 intake: MPU3183, MPU3193, MPU3312, MPU3412. "
+        "Semester 1, 2024 intake: MPU3183, MPU3193, MPU3312. Malaysian students without a "
+        "Credit in SPM Bahasa Melayu, or without SPM, also take MPU3212. "
+        "Diploma of Business: international students MPU2143, MPU2313, MPU2412; Malaysian "
+        "students MPU2183, MPU2313, MPU2412, plus MPU2212 under the same SPM rule. "
+        "The page names only these intakes, so if you started in another one, ask Monash "
+        "Connect which list is yours. You can take them at any time, but Monash Malaysia "
+        "suggests finishing them in your first three semesters.",
         "enrolment",
         ("malaysia", "马来西亚", "马莫", "graduate", "graduation", "毕业", "need", "required",
          "requirement", "要", "需要", "必须", "which", "哪些", "什么", "units", "unit", "课",
-         "international", "国际生", "留学生", "malaysian", "本地生", "intake", "入学", "take",
-         "修", "上"),
+         "international", "国际生", "国际学生", "留学生", "malaysian", "本地生", "本地学生",
+         "马来西亚学生", "intake", "入学", "入读", "开学", "take", "修", "上", "学", "几门",
+         "多少门", "几个", "列表", "清单", "semester", "学期", "s1", "s2", "26s2", "25s1",
+         "24s1", "2024", "2025", "2026", "diploma", "文凭", "预科", "spm", "课程", "每年",
+         "每个学期", "每学期", "年份", "change",
+         "changed", "different", "不一样", "不同", "变了", "增加", "新增", "多了"),
         ("mpu", "mpu units", "general studies", "general study", "通识课", "通识",
          "马来西亚必修课"),
         "malaysia-general-studies",
