@@ -4,6 +4,22 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Security
+
+- Pillow 13.0.0, which fixes 24 advisories against 12.3.0 that pip-audit
+  started reporting on 2026-10-22.
+
+### Added (Malaysia teach-out notices)
+
+- Monash Malaysia's School of IT list of closing and renamed units is indexed
+  next to the Faculty of IT list on monash.edu. The two differ: FIT1043 is gone
+  in Australia but runs once more in Malaysia, and FIT1055 is only on the
+  Malaysian list.
+- A unit page shows the notice for the reader's campus (Malaysia unless their
+  plan says otherwise), with the campus next to the title and a button to see
+  the other campus's list. A degree page tags units from the list for the campus
+  it is showing.
+
 ### Changed (crawler image)
 
 - The crawler image is built from `python:3.14-slim`, the same Python as the

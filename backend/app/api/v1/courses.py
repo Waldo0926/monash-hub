@@ -252,7 +252,7 @@ def _unit_facts(
         source_hashes={c: u.content_hash for c, u in elsewhere.items()},
     )
 
-    notices = teach_out.lookup(db, codes)
+    notices = teach_out.lookup(db, codes, campus)
 
     facts: dict[str, dict] = {}
     for code in codes:
