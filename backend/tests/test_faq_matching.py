@@ -121,6 +121,19 @@ def test_the_more_specific_entry_wins(query, right):
         ("what is automatic conferral", "automatic-conferral"),
         ("when will I get my testamur", "automatic-conferral"),
         ("can I graduate in absentia", "automatic-conferral"),
+        # Malaysia campus: every name students use for the MPU units.
+        ("通识课", "malaysia-general-studies"),
+        ("MPU要修哪些", "malaysia-general-studies"),
+        ("马莫毕业要修什么通识课", "malaysia-general-studies"),
+        ("General Study", "malaysia-general-studies"),
+        ("which general studies units do I need", "malaysia-general-studies"),
+        ("马莫交通", "malaysia-getting-around"),
+        ("马莫校车几点", "malaysia-getting-around"),
+        ("怎么去学校", "malaysia-getting-around"),
+        ("how do I get to campus", "malaysia-getting-around"),
+        ("教室在哪", "malaysia-campus-map"),
+        ("学校地图", "malaysia-campus-map"),
+        ("where is my classroom", "malaysia-campus-map"),
     ],
 )
 def test_a_question_the_faq_covers_gets_it(query, slug):

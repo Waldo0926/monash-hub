@@ -448,6 +448,22 @@ SEEDS: tuple[Seed, ...] = (
          "Course map tool (Monash Malaysia Business)", "malaysia",
          ("malaysia", "course map", "course maps", "business", "commerce", "课程地图", "修读顺序"),
          applies_to="malaysia"),
+    # The MPU units a Malaysia campus student has to pass to graduate - a
+    # Ministry of Higher Education rule, so no Australian page covers it.
+    # Students call them 通识课, MPU or General Studies; the list changes with
+    # the intake, so the page is read whole rather than copied into a FAQ.
+    Seed("malaysia-general-studies",
+         "https://www.monash.edu.my/study/undergraduate/general-studies",
+         "General Studies (MPU units, Monash Malaysia)", "malaysia",
+         ("malaysia", "general studies", "general study", "mpu", "mpu units",
+          "graduation requirement", "通识课", "通识", "马来西亚必修课", "毕业要求"),
+         applies_to="malaysia"),
+    Seed("malaysia-maps-and-transport",
+         "https://www.monash.edu.my/about/maps-and-transport",
+         "Maps and transport (Monash Malaysia)", "malaysia",
+         ("malaysia", "transport", "campus map", "shuttle bus", "brt", "lrt", "ktm",
+          "parking", "grab", "airport", "交通", "校车", "公交", "地图", "停车", "机场"),
+         applies_to="malaysia"),
     Seed("malaysia-exam-rules",
          "https://www.monash.edu.my/student-services/student-admin/examinations-results"
          "/exam-rules",

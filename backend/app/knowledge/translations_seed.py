@@ -356,6 +356,8 @@ GUIDE_TITLES: dict[str, str] = {
     "malaysia-student-admin": "学生事务",
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
     "malaysia-exam-rules": "eExam（线上考试）规则",
+    "malaysia-general-studies": "通识课 MPU（马来西亚校区）",
+    "malaysia-maps-and-transport": "地图与交通（马来西亚校区）",
 }
 
 
@@ -664,6 +666,27 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "仍然按官方页面上现在的流程办理。新流程的完整细节会在 12 月公布。"
         "Monash Malaysia 自己的毕业页面目前还写着需要申请毕业，"
         "马来西亚校区的同学在那边更新之前也要一起看。",
+    ),
+    "malaysia-general-studies": (
+        "马莫毕业要修哪些通识课（MPU）？",
+        "在马来西亚校区，高教部要求你毕业前修完并通过一些 General Studies 课程，也就是通识课、"
+        "MPU 课。要修哪几门看你哪个学期入学，以及你是马来西亚学生还是国际生。"
+        "2026 年第 2 学期入学的国际生修 MPU3143、MPU3172、MPU3222、MPU3312、MPU3322 和 MPU3412。"
+        "更早入学的、马来西亚学生和 Diploma of Business 各有自己的列表，看官方页面。"
+        "什么时候修都可以，学校建议前三个学期内修完。",
+    ),
+    "malaysia-getting-around": (
+        "怎么去马莫，在双威附近怎么出行？",
+        "免费的 Sunway Shuttle Bus 停 Monash，早上 7 点到晚上 10:15，大约 45 分钟一班。"
+        "学校门口是 BRT 的 SunU-Monash 站：在 Setia Jaya 可以换 KTM 火车，在 USJ 7 可以换 "
+        "Kelana Jaya 线轻轨（LRT），两条都能到 KL Sentral，再坐机场快线去 KLIA。"
+        "学校有带顶棚的走廊直通 Sunway Pyramid，打 Grab 过去不到 RM10。"
+        "校车站点、BRT 各站和停车的地方看官方页面。",
+    ),
+    "malaysia-campus-map": (
+        "教室在哪？马莫有校园地图吗？",
+        "下载 Monash Study app，可以查看、搜索教室和楼在校园里的位置。"
+        "地图与交通页面上也有校园地图和到校路线图。",
     ),
 }
 

@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Monash Malaysia General Studies and transport)
+
+- Monash Malaysia's General Studies page (the MPU units a Malaysia campus
+  student must pass to graduate) and its maps and transport page are indexed.
+- Search and the assistant understand 通识课, 通识, MPU and General Study, and
+  交通, 校车, 公交, 轻轨, 停车场 and 校园地图.
+- Three assistant answers: which MPU units to take, how to get to the campus
+  and around Sunway, and where a classroom is (the Monash Study app).
+
 ### Security
 
 - Pillow 13.0.0, which fixes 24 advisories against 12.3.0 that pip-audit

@@ -329,4 +329,59 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "graduations",
         priority=45,
     ),
+    # Malaysia campus only. The unit list changes with the intake, so the answer
+    # gives the current international list and sends everyone else to the page.
+    FaqSeed(
+        "malaysia-general-studies",
+        "Which MPU (General Studies) units do I need to graduate in Malaysia?",
+        "At the Malaysia campus, the Ministry of Higher Education requires you to pass some "
+        "General Studies units, also called MPU units, before you graduate. Which ones depends "
+        "on when you started and on whether you are a Malaysian or an international student. "
+        "International students starting in Semester 2, 2026 take MPU3143, MPU3172, MPU3222, "
+        "MPU3312, MPU3322 and MPU3412. Earlier intakes, Malaysian students and the Diploma of "
+        "Business have their own lists on the official page. You can take them at any time, "
+        "but Monash Malaysia suggests finishing them in your first three semesters.",
+        "enrolment",
+        ("malaysia", "马来西亚", "马莫", "graduate", "graduation", "毕业", "need", "required",
+         "requirement", "要", "需要", "必须", "which", "哪些", "什么", "units", "unit", "课",
+         "international", "国际生", "留学生", "malaysian", "本地生", "intake", "入学", "take",
+         "修", "上"),
+        ("mpu", "mpu units", "general studies", "general study", "通识课", "通识",
+         "马来西亚必修课"),
+        "malaysia-general-studies",
+        priority=50,
+    ),
+    FaqSeed(
+        "malaysia-getting-around",
+        "How do I get to the Malaysia campus and around Sunway?",
+        "The free Sunway Shuttle Bus stops at Monash and runs about every 45 minutes from 7 am "
+        "to 10.15 pm. The BRT station SunU-Monash is in front of the campus: the line connects "
+        "to the KTM train at Setia Jaya and to the Kelana Jaya LRT at USJ 7, both of which reach "
+        "KL Sentral, where the express train goes to KLIA. A covered walkway links the campus "
+        "to Sunway Pyramid, and a Grab there costs under RM10. The official page has the "
+        "shuttle stops, the BRT stations and where to park.",
+        "campus",
+        ("malaysia", "马来西亚", "马莫", "sunway", "双威", "campus", "学校", "校园", "get",
+         "go", "去", "到", "怎么", "how", "pyramid", "金字塔", "kl", "吉隆坡", "klia", "机场",
+         "kl sentral", "around", "附近"),
+        ("transport", "public transport", "shuttle", "shuttle bus", "brt", "lrt", "ktm",
+         "get to campus", "get to the campus", "getting to campus", "交通", "校车", "班车",
+         "公交", "公车", "轻轨", "地铁", "怎么去学校"),
+        "malaysia-maps-and-transport",
+        priority=40,
+    ),
+    FaqSeed(
+        "malaysia-campus-map",
+        "Where is my classroom? Is there a campus map for Monash Malaysia?",
+        "Download the Monash Study app: you can look up and search where a classroom or "
+        "building is on campus. The maps and transport page also has a campus map and a map "
+        "of how to get to the campus.",
+        "campus",
+        ("malaysia", "马来西亚", "马莫", "where", "在哪", "在哪里", "哪里", "find", "找",
+         "room", "building", "楼", "教学楼", "位置", "search", "查", "地图", "map"),
+        ("campus map", "classroom", "lecture theatre", "monash study", "校园地图", "学校地图",
+         "教室", "教室在哪", "找教室", "教室位置", "马莫地图", "校区地图"),
+        "malaysia-maps-and-transport",
+        priority=40,
+    ),
 )
