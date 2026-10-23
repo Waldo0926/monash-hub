@@ -357,6 +357,7 @@ GUIDE_TITLES: dict[str, str] = {
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
     "malaysia-exam-rules": "eExam（线上考试）规则",
     "malaysia-general-studies": "通识课 MPU（马来西亚校区）",
+    "hurdles": "考核里的 hurdle（能力门槛和分数门槛）",
     "malaysia-maps-and-transport": "地图与交通（马来西亚校区）",
 }
 
@@ -544,15 +545,25 @@ GPA_PAGE: dict[str, str] = {
 FAQ_ZH: dict[str, tuple[str, str]] = {
     "what-is-a-hurdle": (
         "什么是 hurdle（及格门槛）？没过会怎样？",
-        "Hurdle（及格门槛）是你必须达到的考核要求——没达到，其他分数再高这门课也过不了。"
-        "Monash 正在取消分数及格门槛（threshold hurdle，即某项考核必须拿到最低分）："
-        "2025 年 3 月 1 日起新课程单元不得再设，到 2026 年 12 月 31 日所有课程单元都不再使用。"
-        "保留下来的是能力及格门槛（competency hurdle）。"
-        "如果你完成了某项能力及格门槛考核但没通过，学校必须至少给你一次额外考核"
-        "（additional assessment），要在该教学期结束前完成；额外考核不适用特殊考虑"
-        "（special consideration）。如果最终仍未达到门槛、而你的分数在 45 分或以上，"
-        "成绩会记为 NH（Hurdle Fail）45 分，并且不会因此获得补考。"
-        "每门课程单元有哪些 hurdle、可以尝试几次，写在该单元的 Handbook 页面和 Moodle 上。",
+        "Hurdle（及格门槛）是你必须达到的考核要求，没达到的话，其他分数再高这门课也过不了。"
+        "如果你完成了某项能力门槛（competency hurdle）考核但没通过，主考老师（chief examiner）"
+        "必须至少再给你一次额外考核（additional assessment），考同样的学习目标。"
+        "这个不用自己申请，要在这个教学期结束前完成，不能申请特殊考虑（special consideration）；"
+        "如果这项 hurdle 有权重，额外考核这一项最多只能拿 50%。"
+        "最后还是没达到门槛的话，总分 45 分或以上记为 NH（Hurdle Fail）45 分，"
+        "45 分以下记为 N 和你的实际分数。没过 hurdle 不会给补考（supplementary assessment）。"
+        "每门课有哪些 hurdle、能考几次，写在这门课的 Handbook 页面和 Moodle 上。",
+    ),
+    "hurdle-changes": (
+        "Hurdle 改了什么？",
+        "Monash 正在取消分数门槛（threshold hurdle），也就是某项考核要拿到最低分（45%）才能过这门课的规定。"
+        "2025 年 3 月 1 日起新开的课不能再设；2026 年 1 月 1 日起，考核方式重新审核过的课要去掉；"
+        "到 2026 年 12 月 31 日，所有课都不再有分数门槛。"
+        "留下来的是能力门槛（competency hurdle）：证明你掌握了某项必须的技能的考核，"
+        "可以是通过/不通过，也可以有权重和分数。没过的话学校至少要再给你一次额外考核，"
+        "最终判不通过前还要两个人分别批改。没过 hurdle 而总分 45 分或以上，仍然记为 NH 45，"
+        "也不会给补考。现在的规定在 Assessment Regime Procedure 第 4 节，"
+        "适用于 2026 年 7 月 27 日及以后开始的教学期。",
     ),
     "supplementary-assessment": (
         "我能补考（supplementary assessment）吗？",

@@ -12,6 +12,12 @@ All notable changes to Monash Hub are documented here.
   交通, 校车, 公交, 轻轨, 停车场 and 校园地图.
 - Three assistant answers: which MPU units to take, how to get to the campus
   and around Sunway, and where a classroom is (the Monash Study app).
+- The hurdle answer follows the Assessment Regime Procedure for teaching periods
+  from 27 July 2026 (additional assessment capped at 50% on a weighted hurdle,
+  N below 45), and a new answer says what changed: threshold hurdles are gone
+  from every unit by 31 December 2026. The hurdles page has a Chinese title.
+- The assistant ignores greetings and words like 您好, 孩子, 家长 and 啥, so a
+  parent's question finds the same answer as a student's.
 
 ### Security
 

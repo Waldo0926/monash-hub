@@ -57,7 +57,7 @@ EN_FILLER = frozenset({
     "wanted", "wants", "was", "way", "ways", "we", "were", "what", "whats", "when",
     "where", "whether", "which", "while", "who", "whom", "why", "will", "with", "would",
     "yes", "yet", "you", "your", "yours", "monash", "uni", "university", "student",
-    "students",
+    "students", "child", "kid", "son", "daughter", "parent", "parents",
 })
 
 # Single characters that are grammar rather than content in a question, and
@@ -74,6 +74,9 @@ ZH_FILLER_PHRASES = tuple(sorted({
     "及", "或", "还", "就", "都", "也", "又", "才", "该", "么", "哪", "谁", "几", "个",
     "嘛", "哦", "喔", "嗯", "请", "帮", "问", "下", "上", "从", "对", "让", "用",
     "做", "办", "呐", "哈",
+    # How parents and the very brief ask: 您好，请问孩子… / 我女儿… / hurdle是啥
+    "您好", "你好", "老师好", "老师", "麻烦", "谢谢", "咨询", "了解", "想问", "打听",
+    "孩子", "小孩", "家长", "我家", "女儿", "儿子", "同学", "您", "啥", "咋",
 }, key=len, reverse=True))
 
 # Latin tokens, keeping the "+" of C++ and the "." in abbreviations out of it.
