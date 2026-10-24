@@ -86,6 +86,8 @@ EN_ADMIN_TERMS: dict[str, tuple[str, ...]] = {
     "change course": ("course transfer",),
     "change my course": ("course transfer",),
     "transfer course": ("course transfer",),
+    # What Malaysia campus students call it. Monash's own pages never use it.
+    "icp": ("internal course transfer",),
     "change campus": ("campus transfer",),
     "switch campus": ("campus transfer",),
     "transfer campus": ("campus transfer",),

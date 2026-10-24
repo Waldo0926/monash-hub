@@ -881,17 +881,17 @@ def search_official(
     them as the official answer to a question about studying accounting.
     """
     query = fold(query)
-    if campus is None:
-        # The campus is who is asking, not what about: "马莫怎么交学费" is a
-        # question about paying fees, from Malaysia. Left in, 马来西亚 found
-        # Malaysia's calendar pages for a question about campus transfer.
-        named, query = campus_in_query(query or "")
-        if named:
-            found = _search_with_fallback(
-                db, query, limit=limit, offset=offset, category=category,
-                strong_only=strong_only, campus=named)
-            if found[1]:
-                return found
+    # The campus is who is asking, not what about: "马莫怎么交学费" is a
+    # question about paying fees, from Malaysia. Left in, 马来西亚 found
+    # Malaysia's calendar pages for a question about campus transfer. A campus
+    # named in the question wins over the one the caller says the reader is at.
+    named, query = campus_in_query(query or "")
+    if named and named != campus:
+        found = _search_with_fallback(
+            db, query, limit=limit, offset=offset, category=category,
+            strong_only=strong_only, campus=named)
+        if found[1]:
+            return found
     return _search_with_fallback(db, query, limit=limit, offset=offset, category=category,
                                  strong_only=strong_only, campus=campus)
 
@@ -1024,12 +1024,17 @@ def _search_official(
     if category:
         stmt = stmt.where(OfficialPage.category == category)
         count_stmt = count_stmt.where(OfficialPage.category == category)
+    own_campus = literal(0)
     if campus in CAMPUSES:
         # A page for every campus belongs to both lists; a page for the other
         # campus belongs to neither reader's.
         here = OfficialPage.applies_to.in_((campus, "all"))
         stmt = stmt.where(here)
         count_stmt = count_stmt.where(here)
+        # Among the pages about the question, the campus's own come first:
+        # 转专业 from Malaysia is Malaysia's internal course transfer page, not
+        # the Australian admissions page that is listed for every campus.
+        own_campus = case((OfficialPage.applies_to == campus, 1), else_=0)
     if term:
         zh_rank = (
             func.coalesce(func.similarity(OfficialPage.search_zh, term), 0)
@@ -1052,6 +1057,16 @@ def _search_official(
                 (func.lower(OfficialPage.title).contains(term.lower()), 1), else_=0)
         else:
             title_phrase = literal(0)
+        # A long question whose topic is in the Chinese title: "转专业是符合
+        # 要求就可以还是择优录取" is about 转专业, and the page titled with it
+        # comes before one that only shares more English words with the
+        # question's expansions.
+        runs = [run for run, _ in concept_runs(term)] if has_cjk(term) else []
+        if translated_title is not None and runs:
+            title_concept = case((or_(*(_contains(translated_title, run) for run in runs)), 1),
+                                 else_=0)
+        else:
+            title_concept = literal(0)
         # Every word of the question, as Monash would write it, in the title -
         # unstemmed, so "accounting" does not count "IT Account" as a match.
         # "supp exam" is answered by "Supplementary assessments", and before
@@ -1073,10 +1088,12 @@ def _search_official(
             _title_is(OfficialPage.title, term).desc(),
             # A page the query is about beats a page that mentions it.
             case((or_(*strong), 1), else_=0).desc(),
+            own_campus.desc(),
             # Then this year's pages before ones a past year names in their title:
             # 考试时间表 led with "Principal dates for Monash University Malaysia (2022)".
             _past_year_title().asc(),
             title_phrase.desc(),
+            title_concept.desc(),
             title_typed.desc(),
             title_words.desc(),
             title_literal.desc(),
