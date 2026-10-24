@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (browser tests)
+
+- Playwright tests for the unit page, the course map and unit ratings, run in
+  CI against PostgreSQL, the API and the production build of the web app, at a
+  desktop and a phone size. See `e2e/README.md`.
+
+### Fixed (course map)
+
+- A unit placed in a semester or campus it is not taught in named the other
+  semesters and campuses in English ("Second semester", "Clayton") inside an
+  otherwise Chinese, Japanese or Korean sentence. They now follow the
+  interface language.
+
 ### Added (Monash Malaysia General Studies and transport)
 
 - Monash Malaysia's General Studies page (the MPU units a Malaysia campus

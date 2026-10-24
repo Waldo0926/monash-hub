@@ -31,6 +31,7 @@ Handbook, 대학 웹사이트, 규정 페이지, 학생 토론을 오갈 필요 
 - **백엔드:** FastAPI와 Python
 - **데이터베이스와 검색:** PostgreSQL 17. `tsvector`, GIN 인덱스, `pg_trgm`으로 전문 검색과 유사 검색
 - **인프라:** Docker Compose, Nginx, HTTPS
+- **테스트:** 실제 PostgreSQL에 연결하는 pytest, Vitest, 데스크톱과 휴대폰 화면 크기에서 도는 Playwright 브라우저 테스트. 모두 배포 전에 CI에서 실행
 - **데이터 파이프라인:** Python 크롤러. 내용 해시 기반 증분 동기화와, 실패 시 기존 데이터를 지키는 저장 처리
 - **운영 환경:** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 

@@ -31,6 +31,7 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 - **后端：** FastAPI、Python
 - **数据库与搜索：** PostgreSQL 17，使用 `tsvector`、GIN 索引和 `pg_trgm` 实现全文检索与模糊匹配
 - **基础设施：** Docker Compose、Nginx、HTTPS
+- **测试：** pytest（连真实 PostgreSQL）、Vitest，以及在桌面和手机尺寸下跑的 Playwright 浏览器测试，部署前都在 CI 里跑
 - **数据同步：** Python 爬虫，采用基于内容哈希的增量同步与失败保护机制
 - **生产环境：** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 
