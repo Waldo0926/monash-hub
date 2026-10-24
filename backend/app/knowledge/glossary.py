@@ -487,6 +487,12 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "コース（学位課程）",
         "ko": "학위 과정",
     },
+    # Longer than "course", so matched first: 学位课程的行动 was on a live page.
+    "course of action": {
+        "zh": "行动方案",
+        "ja": "対応策",
+        "ko": "조치 방안",
+    },
     "courses": {
         "zh": "学位课程",
         "ja": "コース（学位課程）",
@@ -1149,6 +1155,10 @@ TERMS: dict[str, dict[str, str]] = {
     "December round": {"zh": "12 月批次", "ja": "12月ラウンド", "ko": "12월 라운드"},
     "October round": {"zh": "10 月批次", "ja": "10月ラウンド", "ko": "10월 라운드"},
     "Australia": {"zh": "澳大利亚", "ja": "オーストラリア", "ko": "호주"},
+    # glm-4.5-flash dropped the break three times in thirty paragraphs: "the
+    # semester break" came back as 学期.
+    "semester break": {"zh": "学期假期", "ja": "学期休み", "ko": "학기 방학"},
+    "mid-semester break": {"zh": "学期中假期", "ja": "学期中の休み", "ko": "학기 중 방학"},
     "Summer semester": {
         "zh": "夏季学期",
         "ja": "サマーセメスター",
@@ -1158,16 +1168,6 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "冬季学期",
         "ja": "ウィンターセメスター",
         "ko": "겨울 학기",
-    },
-    "On-campus": {
-        "zh": "校内授课",
-        "ja": "対面授業",
-        "ko": "대면 수업",
-    },
-    "Off-campus": {
-        "zh": "校外授课",
-        "ja": "遠隔授業",
-        "ko": "원격 수업",
     },
 
     # --- the words that make a unit title ------------------------------------
@@ -3473,6 +3473,10 @@ STRUCTURE_TERMS: dict[str, dict[str, str]] = {
 HANDBOOK_TERMS: dict[str, dict[str, str]] = {
     "discipline": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
     "disciplinary": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
+    # The Handbook's attendance modes. On a guide the words are ordinary
+    # English: "off-campus accommodation" came back as 校外授课住宿.
+    "On-campus": {"zh": "校内授课", "ja": "対面授業", "ko": "대면 수업"},
+    "Off-campus": {"zh": "校外授课", "ja": "遠隔授業", "ko": "원격 수업"},
 }
 
 #: Scope names accepted by ``protect`` and ``terms_in``.
@@ -3634,6 +3638,16 @@ _CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
 # told to write to when they cannot finish the compulsory module, translated
 # into an address that does not exist. There is no grammar in an address.
 _EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
+# A web address. The glossary keeps "Monash" as written, and matched without
+# regard to case it rewrote www.monash.edu as www.Monash.edu in 1,174 stored
+# translations - and a path such as /mon2750-monash-innovation-guarantee is
+# case-sensitive. Either a scheme or a www., or a bare host on a domain Monash
+# links to; trailing punctuation belongs to the sentence.
+_URL = (
+    r"(?:https?://|www\.)[^\s<>\"'()\[\]]*[^\s<>\"'()\[\].,;:!?。，；：！？]"
+    r"|[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(?:edu|com|org|net|gov)(?:\.(?:my|au))?"
+    r"(?:/[^\s<>\"'()\[\]]*[^\s<>\"'()\[\].,;:!?。，；：！？])?"
+)
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
 # (S2-01, MO-TP1-01).
 _UNIT_CODE = r"[A-Z]{2,4}\d{4}"
@@ -3641,7 +3655,7 @@ _PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
 
 VERBATIM = re.compile(
     r"(?<![A-Za-z0-9])(?:"
-    + "|".join((_EMAIL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + "|".join((_EMAIL, _URL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
     + r")(?![A-Za-z0-9])"
 )
 _SPAN_ONLY = re.compile(rf"^{_SPAN}$")
@@ -3786,8 +3800,26 @@ def terms_in(text: str, locale: str, *, scope: str = GENERAL) -> list[tuple[str,
             found.append((written, agreed))
         return match.group(0)
 
-    pattern.sub(note, text)
+    # Not inside an address: "monash" in www.monash.edu is not a term, and
+    # listing it told the model to write Monash there.
+    pattern.sub(note, VERBATIM.sub(" ", text))
     return found
+
+
+def addresses_kept(source: str, translated: str) -> str:
+    """Put back any address the translation changed only the case of.
+
+    A model, or a term restored inside a link, can turn www.monash.edu into
+    www.Monash.edu. The host still works; the path may not. Also used on
+    stored translations, which were made before addresses were masked.
+    """
+    for found in re.finditer(_URL + "|" + _EMAIL, source):
+        written = found.group(0)
+        translated = re.sub(
+            r"(?<![A-Za-z0-9])" + re.escape(written) + r"(?![A-Za-z0-9])",
+            lambda _match, written=written: written, translated, flags=re.IGNORECASE,
+        )
+    return translated
 
 
 def restore(

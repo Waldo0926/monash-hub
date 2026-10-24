@@ -37,12 +37,17 @@ engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
 locales="$(sed -n 's/^TRANSLATE_LOCALES=//p' .env 2>/dev/null | tail -1)"
 locales="${locales:-zh ja ko}"
 
+# Two strings at a time. Zhipu's free tier answers glm-4.5-flash two at a
+# time: measured from the VPS, 40 requests two in flight all came back, and
+# with three or four in flight 17 to 19 of them were refused with 429.
+workers="$(sed -n 's/^TRANSLATE_WORKERS=//p' .env 2>/dev/null | tail -1)"
+
 # One failed pass (a provider that stops answering, one language the engine
 # cannot do) is logged and the next one still runs, as does the reindex.
 translate() {
   docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub \
     run --rm crawler python -m crawler.translate.run --fields all \
-    --engine "${engine:-argos}" --workers 4 "$@" \
+    --engine "${engine:-argos}" --workers "${workers:-2}" "$@" \
     || echo "translation pass failed: $*"
 }
 
