@@ -178,6 +178,55 @@ def _join(spans: list[dict] | None) -> str:
     return "".join(s.get("text", "") for s in spans or []).strip()
 
 
+#: Longer than this, a bold opening is the start of a sentence, not a label.
+_LABEL_MAX = 40
+
+
+def labelled(spans: list[dict] | None) -> tuple[str, str] | None:
+    """A paragraph that opens with a bold label: (label, the rest), or None.
+
+    Monash Malaysia's study abroad pages write "<strong>How to apply</strong>
+    Visit: ...". Handed over as one string the label ran into the sentence -
+    如何申请访问 (how to apply to visit) - or was dropped. The rest has to
+    start a sentence of its own, so a bold subject ("**All grades** must be")
+    is still one sentence.
+    """
+    if not spans or len(spans) < 2 or not spans[0].get("bold") or spans[1].get("bold"):
+        return None
+    label = (spans[0].get("text") or "").strip()
+    rest = _join(spans[1:])
+    if not label or not rest or len(label) > _LABEL_MAX or label[-1] in ".!?":
+        return None
+    if not (label.endswith(":") or rest[0].isupper() or rest[0].isdigit()):
+        return None
+    return label.rstrip(":").strip(), rest.lstrip(":").strip()
+
+
+def page_labels(page: OfficialPage) -> dict[str, tuple[str, str]]:
+    """The labelled paragraphs of a page, by the string ``page_strings`` lists."""
+    found: dict[str, tuple[str, str]] = {}
+    for block in page.blocks or []:
+        if block.get("type") == "paragraph" and (parts := labelled(block.get("spans"))):
+            found[_join(block.get("spans"))] = parts
+    return found
+
+
+def translate_strings(translator: Translator, wanted: list[str],
+                      labels: dict[str, tuple[str, str]]) -> dict[str, str]:
+    """Translate a page's strings, a labelled paragraph as its two parts."""
+    plain = [s for s in wanted if s not in labels]
+    parts = [part for s in wanted if s in labels for part in labels[s]]
+    done = translator.many(plain + parts)
+    strings = {s: done[s] for s in plain if s in done}
+    colon = {"zh": "：", "ja": "：", "ko": ": "}.get(translator.locale, ": ")
+    for joined in wanted:
+        if joined in labels:
+            label, rest = labels[joined]
+            if label in done and rest in done:
+                strings[joined] = f"{done[label]}{colon}{done[rest]}"
+    return strings
+
+
 # --- writing ---------------------------------------------------------------
 
 # Widest first. "fields=all+resources" is "fields=all" with the learning
@@ -386,7 +435,8 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
                     summary["skipped"] += 1
                     continue
             title = page.title if page.title in wanted else None
-            strings = translator.many([s for s in wanted if s != title])
+            strings = translate_strings(translator, [s for s in wanted if s != title],
+                                        page_labels(page))
             if title and (done := translate_title(translator, title, locale)):
                 strings[title] = done
             store(db, locale=locale, target_type=OFFICIAL_PAGE, target_key=page.slug,
@@ -514,7 +564,7 @@ def main() -> None:
         help="argos: offline model (default). "
              "google-cloud: the paid Cloud Translation API, "
              "key in GOOGLE_TRANSLATE_API_KEY. llm: any OpenAI-compatible chat model "
-             "(default Zhipu glm-4-flash, free) - see crawler/translate/llm.py",
+             "(default Zhipu glm-4.5-flash, free) - see crawler/translate/llm.py",
     )
     parser.add_argument(
         "--workers", type=int, default=1,

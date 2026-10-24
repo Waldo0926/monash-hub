@@ -4,6 +4,39 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (Chinese translation)
+
+- The chat-model translator defaults to Zhipu's free `glm-4.5-flash`. Read
+  against the English over 70 paragraphs of the guides, `glm-4-flash` turned
+  conditions around ("provided you have one semester left") and
+  `glm-4.7-flash` was refused with 429 37 times in 30 paragraphs on the free
+  tier; `glm-4.5-flash` was the fastest and the most accurate.
+  `TRANSLATE_LLM_MODEL` still overrides it. The scheduled passes send two
+  strings at a time instead of four, since the free tier refused 17 of 40
+  requests with three in flight and none with two; `TRANSLATE_WORKERS` in
+  `.env` changes it.
+- Web addresses are kept as written. The glossary keeps "Monash" in English
+  and matched it inside addresses too, so 1,174 stored translations read
+  `www.Monash.edu`, and a path such as `mon2750-monash-innovation-guarantee`
+  is case-sensitive. Stored strings are repaired when a pass reuses them.
+- A paragraph that opens with a bold label ("**How to apply** Visit: …") is
+  translated as the label and the sentence, joined with a colon. Whole, it
+  came back as 如何申请访问 (how to apply to visit), or without the label.
+- A reply that repeats the prompt's GLOSSARY or TEXT lines is rejected. The
+  check was skipped whenever the prompt carried a glossary, and one stored
+  string had another string's prompt appended to it.
+- "course of action" is 行动方案, not 学位课程的行动; "semester break" and
+  "mid-semester break" keep the break (学期假期, 学期中假期).
+- On-campus and Off-campus are pinned only on Handbook pages, where they are
+  attendance modes. On a guide "off-campus accommodation" came back as
+  校外授课住宿.
+- The prompt no longer says an award is always a degree, so a scholarship
+  award is a scholarship.
+- A reply carrying an abbreviation the English did not have is rejected:
+  LKM, the Malaysian qualifications agency's form, came back once as LLM.
+- `python -m crawler.translate.compare` puts several models side by side on
+  stored paragraphs, without writing anything, for the next time.
+
 ### Fixed (a crawl that goes wrong costs less)
 
 - One failed fetch of an official page no longer takes it off the site. It

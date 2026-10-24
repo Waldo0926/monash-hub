@@ -29,6 +29,7 @@ from app.knowledge import degrees, structure, titles
 from app.knowledge.glossary import (
     GENERAL,
     MASKS,
+    addresses_kept,
     has_verbatim,
     is_critical,
     is_only_placeholders,
@@ -334,9 +335,14 @@ class Translator:
             key = (source or "").strip()
             if not key or not target or key in self._cache:
                 continue
+            if "GLOSSARY:" in target or "TEXT:" in target:
+                # A reply that carried the prompt with it, stored before the
+                # reply check looked past the glossary. Translate it again.
+                continue
             if self.locale == "zh" and (STRUCTURE_ZH.get(key) or structure.compose(key, "zh")):
                 continue
-            self._cache[key] = target
+            # Stored before addresses were masked, some with www.Monash.edu.
+            self._cache[key] = addresses_kept(key, target)
 
     @property
     def cached(self) -> int:
@@ -420,6 +426,7 @@ class Translator:
                     and not _wrong_script(result, self.locale)
                     and result != source
                 ):
+                    result = addresses_kept(source, result)
                     self._cache[source] = result
                     return result
         if is_only_placeholders(masked):
@@ -494,6 +501,7 @@ class Translator:
         if result == source:
             self._cache[source] = ""
             return None
+        result = addresses_kept(source, result)
         self._cache[source] = result
         return result
 
