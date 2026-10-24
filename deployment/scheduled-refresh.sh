@@ -79,6 +79,31 @@ case "${1:-}" in
     ;;
 esac
 
+# Mail a person when the run failed or too many targets did - at most once a
+# day for each kind, since the official refresh runs four times a day and
+# Cloudflare refusing the VPS tends to last. crawler.sync.alert prints nothing
+# when the last runs look fine.
+case "$1" in
+  official) job_types=(official) ;;
+  handbook) job_types=(handbook handbook_course handbook_aos) ;;
+esac
+problems="$("${COMPOSE[@]}" run --rm crawler python -m crawler.sync.alert "${job_types[@]}" \
+  2>/dev/null || echo "could not read crawl_jobs")"
+if [[ -z "$problems" && "$failed" -ne 0 ]]; then
+  problems="a crawl step exited with an error before it recorded a run"
+fi
+marker="$STATE_DIR/alerted-$1-$(date +%F)"
+if [[ -n "$problems" && ! -f "$marker" ]]; then
+  echo "$problems"
+  touch "$marker"
+  "${COMPOSE[@]}" exec -T api python -m app.core.notify \
+    "Monash Hub: the $1 refresh needs a look" \
+    "$problems
+
+journalctl -u monash-hub-refresh@$1 has the full log; /api/health shows
+the last run of each kind." || true
+fi
+
 # Is next year's Handbook out? One request. When it first is, say so once -
 # loading a new year and switching to it is a decision for a person, and the
 # faculties' course maps for that year are already up months before.

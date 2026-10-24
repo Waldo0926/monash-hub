@@ -42,7 +42,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from crawler.handbook.discover import discover_aos_codes, discover_course_codes
 from crawler.handbook.fetch import HandbookFetcher
 from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates, withdrawal_cap
-from crawler.sync.pipeline import crawl_job, record
+from crawler.sync.pipeline import MAX_FAILED_IN_A_ROW, crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
 log = logging.getLogger("crawler.courses")
@@ -104,7 +104,8 @@ def crawl(kind: str, codes: list[str], year: int, *, min_interval: float,
     with (
         SessionLocal() as db,
         HandbookFetcher(throttle) as fetcher,
-        crawl_job(db, f"handbook_{kind}", targets=len(codes), transport="httpx") as job,
+        crawl_job(db, f"handbook_{kind}", targets=len(codes), transport="httpx",
+                  stop_after_failures=MAX_FAILED_IN_A_ROW) as job,
     ):
         for index, code in enumerate(codes, start=1):
             url = spec["url"](code, year)
