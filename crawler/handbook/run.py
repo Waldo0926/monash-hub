@@ -33,7 +33,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from crawler.handbook.discover import discover_unit_codes
 from crawler.handbook.fetch import HandbookFetcher
 from crawler.handbook.seeds import FIXTURE_CODES
-from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates
+from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates, withdrawal_cap
 from crawler.sync.pipeline import crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -58,9 +58,11 @@ def _already_fresh(codes: list[str], year: int, hours: float) -> set[str]:
     return set(rows)
 
 
-def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]:
+def crawl(codes: list[str], year: int, *, min_interval: float,
+          max_withdrawals: int | None = None) -> dict[str, int]:
     throttle = Throttle(RateLimit(min_interval=min_interval))
     summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0, "withdrawn": 0}
+    cap = withdrawal_cap(len(codes)) if max_withdrawals is None else max_withdrawals
     started_at = time.monotonic()
 
     with (
@@ -73,6 +75,17 @@ def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]
             started = time.monotonic()
             result = fetcher.fetch(url)
             elapsed = int((time.monotonic() - started) * 1000)
+
+            if not result.ok and result.status == 404 and summary["withdrawn"] >= cap:
+                # Too many 404s for one run to be Monash retiring units - see
+                # withdrawn.py. Keep the unit active and say so.
+                summary["failed"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="failed", http_status=404, transport=result.transport,
+                       duration_ms=elapsed,
+                       message=f"404 not acted on: {cap} withdrawals already this run")
+                log.error("%s: 404, kept active (withdrawal cap of %d reached)", code, cap)
+                continue
 
             if not result.ok and result.status == 404:
                 # The Handbook says the unit is gone - see withdrawn.py.
@@ -157,6 +170,12 @@ def main() -> None:
         help="minimum seconds between requests (floor: 1.0)",
     )
     parser.add_argument(
+        "--max-withdrawals",
+        type=int,
+        default=None,
+        help="404s this run may mark inactive (default: 25, or 2%% of the units if more)",
+    )
+    parser.add_argument(
         "--fail-on-errors",
         action="store_true",
         help="exit non-zero when any target failed, for verified repair/backfill jobs",
@@ -202,7 +221,7 @@ def main() -> None:
     log.info("crawling %d units at >= %.1fs apart (about %d min)",
              len(codes), interval, len(codes) * (interval + 0.75) / 60)
 
-    summary = crawl(codes, year, min_interval=interval)
+    summary = crawl(codes, year, min_interval=interval, max_withdrawals=args.max_withdrawals)
     log.info("summary: %s", summary)
     if args.fail_on_errors and summary["failed"]:
         raise SystemExit(f"{summary['failed']} Handbook target(s) failed")

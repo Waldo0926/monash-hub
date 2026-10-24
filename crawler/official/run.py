@@ -120,7 +120,8 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
 
             if not result.ok:
                 summary["failed"] += 1
-                record_failure(db, page, result.error or "fetch failed")
+                record_failure(db, page, result.error or "fetch failed",
+                               gone=result.status in (404, 410))
                 db.commit()
                 record(db, job, target_type="official_page", target_key=seed.slug,
                        url=seed.url, outcome="failed", http_status=result.status,

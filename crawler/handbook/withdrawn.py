@@ -7,12 +7,25 @@ E7003 was one, found by the first scheduled refresh on 27 Sep 2026.
 Only a 404 counts. A timeout or a DNS failure says nothing about the page, and
 the rule that a failed crawl never overwrites good data still holds: the row is
 kept exactly as it was, only marked inactive, and a later 200 makes it active
-again through the normal upsert.
+again through the normal upsert. Past ``withdrawal_cap`` a run stops acting
+on 404s at all: the rest are recorded as failed and the rows stay active.
 """
 from __future__ import annotations
 
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+
+#: Fewest withdrawals one run may make, and the share of its targets above that.
+#: Monash retires a handful of units a year; a run that sees hundreds of 404s is
+#: looking at a Handbook outage or a changed URL scheme, and believing it would
+#: take every unit off the site until the next week's crawl put them back.
+WITHDRAWAL_FLOOR = 25
+WITHDRAWAL_SHARE = 0.02
+
+
+def withdrawal_cap(targets: int) -> int:
+    """How many 404s one run of ``targets`` pages may act on."""
+    return max(WITHDRAWAL_FLOOR, int(targets * WITHDRAWAL_SHARE))
 
 
 def mark_withdrawn(db: Session, model, code_column: str, code: str, year: int) -> bool:

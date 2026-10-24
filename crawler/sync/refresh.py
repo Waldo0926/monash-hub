@@ -19,7 +19,9 @@ DEFAULT_INTERVAL = REFRESH_INTERVALS["medium"]
 
 
 def is_due(page: OfficialPage, *, now: datetime | None = None) -> bool:
-    if page.last_checked is None or page.status != "ok":
+    if page.last_checked is None or page.status != "ok" or page.fetch_error:
+        # A failed attempt leaves last_checked at the last good read, so the
+        # error is what makes it due again.
         return True
     now = now or datetime.now(UTC)
     interval = REFRESH_INTERVALS.get(page.refresh_tier, DEFAULT_INTERVAL)

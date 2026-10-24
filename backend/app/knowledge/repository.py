@@ -141,9 +141,28 @@ def record_fetch(db: Session, page: OfficialPage, cleaned: dict,
     return "new" if previous_hash is None else "changed"
 
 
-def record_failure(db: Session, page: OfficialPage, message: str) -> None:
-    """Note a failed fetch without touching the last good copy."""
-    page.last_checked = datetime.now(UTC)
-    page.status = "error"
+def record_failure(db: Session, page: OfficialPage, message: str, *,
+                   gone: bool = False) -> None:
+    """Note a failed fetch without touching the last good copy.
+
+    A page that has a good copy keeps serving it. Setting ``status='error'``
+    on every failure took the page off the guides, search and the assistant
+    until a later fetch worked, so one timeout or one bot challenge hid a page
+    whose text was still right. ``last_checked`` is left alone too: it is the
+    date readers are shown, and it should be the last time the page was read.
+    ``fetch_error`` says the last attempt failed, which makes the page due on
+    the next run.
+
+    ``gone`` is for the answers that are about the page itself - a 404 or
+    410 - and those still take it down: Monash removed it, so the copy is no
+    longer something to quote.
+    """
     page.fetch_error = message[:2000]
+    if gone or not page.content_hash:
+        page.status = "error"
+        page.last_checked = datetime.now(UTC)
+    elif page.status == "error":
+        # Hidden by a transient failure before this rule; the copy is still
+        # the last good one.
+        page.status = "ok"
     db.flush()
