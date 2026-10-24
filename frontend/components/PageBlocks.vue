@@ -106,10 +106,38 @@ function wraps(cell: string): boolean {
 function hasHeader(block: Block): boolean {
   return (block.columns || []).some(c => c.trim() !== '')
 }
+
+/**
+ * Mark the tables that are wider than their box.
+ *
+ * On a phone the fee table's last two columns - the fees - start off the right
+ * edge, and nothing said there was more to see: the table looked like a list
+ * of courses. A wide table gets a shadow at the edge it continues past and a
+ * line under it saying to swipe. Measured, not guessed from the column count,
+ * because a three-column table of dates fits and a two-column one of
+ * sentences may not.
+ */
+const root = ref<HTMLElement | null>(null)
+let watcher: ResizeObserver | null = null
+
+function measure() {
+  for (const box of root.value?.querySelectorAll<HTMLElement>('.scroll-x') || []) {
+    box.toggleAttribute('data-wide', box.scrollWidth > box.clientWidth + 1)
+  }
+}
+
+onMounted(() => {
+  measure()
+  if (typeof ResizeObserver === 'undefined' || !root.value) return
+  watcher = new ResizeObserver(measure)
+  watcher.observe(root.value)
+})
+onBeforeUnmount(() => watcher?.disconnect())
+watch(blocks, () => nextTick(measure))
 </script>
 
 <template>
-  <div v-if="blocks.length" class="blocks">
+  <div v-if="blocks.length" ref="root" class="blocks">
     <template v-for="(block, i) in blocks" :key="i">
       <component
         :is="`h${block.level || 2}`"
@@ -196,6 +224,7 @@ function hasHeader(block: Block): boolean {
             </tfoot>
           </table>
         </div>
+        <p class="scroll-hint tiny muted" aria-hidden="true">{{ $t('guides.tableScroll') }}</p>
         <ul v-if="block.links?.length" class="block-list table-links">
           <li v-for="(link, j) in block.links" :key="j">
             <template v-for="(span, k) in link" :key="k">
@@ -256,8 +285,18 @@ function hasHeader(block: Block): boolean {
      page - widened the table, the card and the page, and every paragraph on a
      phone ran off the right edge. */
   overflow-x: auto;
+  /* Shadows that say the table goes on: the covers scroll with the table and
+     hide a shadow once its edge is reached. */
+  background:
+    linear-gradient(to right, var(--surface) 40%, transparent) left / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 40%, transparent) right / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(15 23 42 / 0.16), transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(15 23 42 / 0.16), transparent) right / 12px 100% no-repeat scroll,
+    var(--surface);
 }
 .block-table table { min-width: 100%; }
+.scroll-hint { display: none; margin: var(--s2) 0 0; }
+.scroll-x[data-wide] + .scroll-hint { display: block; }
 /* Dates and codes must not be broken across lines, so cells do not wrap by
    default. A cell holding a sentence is a different thing and says so - see
    `wraps` in the script: nowrap there is 2,000px nobody can read. */

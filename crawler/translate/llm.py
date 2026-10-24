@@ -118,6 +118,11 @@ _PREFACE = re.compile(
     r"|Here is|Translation:)"
 )
 
+# English that itself introduces what follows, and so is rightly 以下是….
+_INTRODUCES = re.compile(
+    r"^\s*(?:Here(?:'s|\u2019s|\s+is|\s+are)|The following|Below|These are)\b", re.IGNORECASE
+)
+
 # The prompt's own scaffolding. A one-word source such as "Next" sometimes comes
 # back as the whole prompt, "GLOSSARY:\n\nTEXT:\nNext", and that is not a
 # translation of anything.
@@ -174,12 +179,15 @@ def acceptable_reply(source: str, reply: str) -> bool:
     """Whether the reply is a translation of ``source`` and not something else."""
     if not reply or not reply.strip():
         return False
-    if _PREFACE.match(reply):
-        return False
     # The text the model was given, not the prompt around it: with a glossary
     # in front, the prompt always has the scaffold, so the check never fired
     # and a reply with another string's prompt appended to it was stored.
     text = source.rsplit("TEXT:\n", 1)[-1] if source.startswith(("GLOSSARY:", "TEXT:")) else source
+    # "Here's what you need to know while you're on intermission" is 以下是…
+    # in Chinese, which is also how a model introduces a translation. The
+    # English decides which it is.
+    if _PREFACE.match(reply) and not _INTRODUCES.match(text):
+        return False
     if _SCAFFOLD.search(reply) and not _SCAFFOLD.search(text):
         return False
     # An abbreviation the source never had is one the model made up or

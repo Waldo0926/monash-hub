@@ -65,10 +65,18 @@ JUNK_TEXT = re.compile(
     # standalone body paragraphs such as "View / Close / ▾".
     r"view|close|go back|choose a topic|select a topic|"
     r"what would you like help with\??|no banners found|▾|"
+    # A sign-in widget's placeholder. It sits above the real text of
+    # students/admin, /dates, /timetables and the other hubs, and reads to a
+    # student as if the page were locked.
+    r"content cannot be accessed\.?|"
     # The CMS's own note to whoever writes the page. It reached the results
     # legend as the description of five grades, and was then translated.
     r"need description)\s*$",
     re.IGNORECASE,
+)
+# A consent banner that no selector caught: short, and about cookies.
+COOKIE_NOTICE = re.compile(
+    r"^\s*(?=.{0,400}$)(?:this (?:web)?site |we )uses? cookies\b", re.IGNORECASE | re.DOTALL
 )
 # Monash templates wrap the real content in these; dropping them stops every
 # page from hashing differently just because a nav item changed.
@@ -84,6 +92,11 @@ DROP_SELECTORS = (
     ".skip-link",
     ".cookie",
     "#onetrust-consent-sdk",
+    "[id*=cookie-banner]",
+    "[class*=cookie-banner]",
+    "[class*=cookie-notice]",
+    "[class*=cookie-consent]",
+    "[id*=cookie-consent]",
     # The same content as the desktop tabs beside it. See the module docstring.
     ".desktop-hidden",
     # A search widget, not content: it extracts to "Search / Top FAQs / Chat".
@@ -183,6 +196,10 @@ def _rich(node: Tag) -> list[dict[str, Any]]:
             elif isinstance(child, Tag):
                 if child.name == "br":
                     push("\n", bold, url)
+                elif child.name in ("p", "div") and spans:
+                    # Two paragraphs in one list item ran together as one.
+                    push("\n", bold, url)
+                    walk(child, bold, url)
                 elif child.name in ("ul", "ol"):
                     continue  # a nested list is a block of its own
                 elif child.name in ("strong", "b"):
@@ -248,6 +265,16 @@ def _cell_text(cell: Tag) -> str:
     return "\n".join(line for line in lines if line)
 
 
+def _skip_covered(cells: list[str], below: dict[int, int]) -> bool:
+    """Leave blanks where a cell from a row above reaches into this one."""
+    covered = False
+    while below.get(len(cells), 0) > 0:
+        below[len(cells)] -= 1
+        cells.append("")
+        covered = True
+    return covered
+
+
 def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
     """Cells as plain strings on a regular grid, and the merged cells.
 
@@ -266,15 +293,8 @@ def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
         covered = False
         starts: list[list[int]] = []
 
-        def skip_covered() -> None:
-            nonlocal covered
-            while below.get(len(cells), 0) > 0:
-                below[len(cells)] -= 1
-                cells.append("")
-                covered = True
-
         for cell in row.find_all(["td", "th"], recursive=False):
-            skip_covered()
+            covered |= _skip_covered(cells, below)
             colspan, rowspan = _span(cell, "colspan"), _span(cell, "rowspan")
             if colspan > 1 or rowspan > 1:
                 starts.append([len(out), len(cells), rowspan, colspan])
@@ -286,7 +306,7 @@ def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
         # Columns past the last cell that a cell above still covers.
         for column in sorted(c for c, left in below.items() if left > 0 and c >= len(cells)):
             cells.extend([""] * (column - len(cells)))
-            skip_covered()
+            covered |= _skip_covered(cells, below)
         if any(cells) or covered:
             out.append(cells)
             merged.extend(starts)
@@ -420,7 +440,7 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
         for child in node.children:
             if isinstance(child, NavigableString):
                 text = _clean(str(child)).strip()
-                if text and node.name in CONTAINERS:
+                if text and (node.name in CONTAINERS or node.name == "li"):
                     add_paragraph([{"text": text}])
                 continue
             if not isinstance(child, Tag):
@@ -433,6 +453,9 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
                 add_heading(_flat(child), int(name[1]))
             elif name in ("p", "blockquote"):
                 add_paragraph(_rich(child))
+            elif name in ("ul", "ol") and _holds_sections(child):
+                for item in child.find_all("li", recursive=False):
+                    walk(item)
             elif name in ("ul", "ol"):
                 # A list item holding a table is a section, not a bullet. The
                 # results legend keeps three years of grading tables inside one
@@ -447,7 +470,8 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
                     lifted_block = _table_block(lifted_table)
                     if lifted_block:
                         blocks.append(lifted_block)
-                for nested in child.select("li > ul, li > ol"):
+                # Any depth: "li > div > ul" was a list nobody saw.
+                for nested in child.select("li ul, li ol"):
                     nested_block = _list_block(nested)
                     if nested_block:
                         blocks.append(nested_block)
@@ -540,7 +564,7 @@ def _drop_junk(blocks: list[dict]) -> list[dict]:
     for block in blocks:
         if block.get("type") == "paragraph":
             text = "".join(span.get("text", "") for span in block.get("spans") or [])
-            if JUNK_TEXT.match(text):
+            if JUNK_TEXT.match(text) or COOKIE_NOTICE.match(text):
                 continue
         elif block.get("type") == "heading":
             text = block.get("text") or ""
@@ -571,6 +595,42 @@ def _drop_junk(blocks: list[dict]) -> list[dict]:
     return kept
 
 
+def _accordion_questions(soup: BeautifulSoup) -> None:
+    """Turn each accordion toggle into the heading it is.
+
+    The question of a collapsed Q&A is the text of a ``<button>`` that opens
+    the answer, and buttons are dropped as page controls - so the student pass
+    page kept 75 answers and not one of the questions they answer ("Can I work
+    while studying?"). A toggle inside a heading leaves its text in the
+    heading; one on its own becomes a heading. The answers were never the
+    problem: they are in the HTML, collapsed only by a stylesheet.
+    """
+    for button in soup.select("button[aria-controls], button[aria-expanded]"):
+        text = _clean(button.get_text(" ", strip=True)).strip()
+        if not text or JUNK_TEXT.match(text):
+            continue
+        if button.find_parent(list(HEADINGS)):
+            button.replace_with(text)
+            continue
+        heading = soup.new_tag("h4")
+        heading.string = text
+        button.replace_with(heading)
+
+
+def _holds_sections(node: Tag) -> bool:
+    """A list used as a page layout - an accordion of questions - not a list.
+
+    Read as bullets, each item was flattened to its first paragraph and lost
+    its heading, its other paragraphs, its own lists and the tables in it.
+    """
+    if any("accordion" in c for c in node.get("class") or []):
+        return True
+    return any(
+        item.find(list(HEADINGS)) is not None
+        for item in node.find_all("li", recursive=False)
+    )
+
+
 def clean_page(html: str, *, url: str) -> dict:
     """Return ``{title, headings, blocks, clean_text, summary, content_hash}``."""
     soup = BeautifulSoup(html, "lxml")
@@ -583,6 +643,7 @@ def clean_page(html: str, *, url: str) -> dict:
     for comment in soup.find_all(string=lambda node: isinstance(node, Comment)):
         comment.extract()
 
+    _accordion_questions(soup)
     for tag in soup(list(DROP_TAGS)):
         tag.decompose()
     for selector in DROP_SELECTORS:
@@ -600,14 +661,13 @@ def clean_page(html: str, *, url: str) -> dict:
     title = re.sub(r"\s*\|\s*Monash University\s*$", "", title).strip()
     title = re.sub(r"\s*-\s*Current students\s*$", "", title).strip()
 
-    body = None
-    for selector in CONTENT_SELECTORS:
-        found = soup.select_one(selector)
-        if found and len(found.get_text(strip=True)) > 200:
-            body = found
-            break
+    # The most specific selector with real text in it. A page whose article is
+    # only a title keeps its short article: falling back to the whole body made
+    # 314 near-empty pages read "We use cookies to improve your experience".
+    matched = [found for selector in CONTENT_SELECTORS if (found := soup.select_one(selector))]
+    body = next((found for found in matched if len(found.get_text(strip=True)) > 200), None)
     if body is None:
-        body = soup.body or soup
+        body = matched[0] if matched else soup.body or soup
 
     # Before the outline and the search text are derived from them, so all
     # three agree about what is on the page.

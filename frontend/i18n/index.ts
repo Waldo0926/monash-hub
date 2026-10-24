@@ -604,7 +604,8 @@ const en: Messages = {
   'guides.covers': 'What this page covers',
   'guides.pageText': 'Page text',
   'guides.pageTextNote':
-    'Text taken from the official page so it can be searched. Formatting, images and forms are not copied, so open the original page when you need to apply or submit something.',
+    'Text and tables taken from the official page, with collapsed sections opened, so it can be read and searched here. Images and forms are not copied, so open the original page when you need to apply or submit something.',
+  'guides.tableScroll': 'Swipe the table sideways to see every column →',
   'guides.viewOfficial': 'View the official Monash page ↗',
   'guides.signIn.label': 'Sign-in required',
   'guides.signIn.title': 'Behind Monash sign-in',
@@ -1639,7 +1640,8 @@ const zh: Messages = {
   'guides.covers': '这个页面包含什么',
   'guides.pageText': '页面正文',
   'guides.pageTextNote':
-    '这是从官方页面提取的正文，方便搜索。排版、图片和表单没有保留，要办事请打开原页面。',
+    '这是从官方页面提取的正文和表格，折叠的内容已全部展开，方便阅读和搜索。图片和表单没有保留，要办事请打开原页面。',
+  'guides.tableScroll': '表格可以左右滑动，查看全部列 →',
   'guides.viewOfficial': '打开 Monash 官方页面 ↗',
   'guides.signIn.label': '需登录',
   'guides.signIn.title': '此页需要 Monash 账号登录',
@@ -2670,7 +2672,8 @@ const ja: Messages = {
   'guides.covers': 'このページに含まれる内容',
   'guides.pageText': 'ページ本文',
   'guides.pageTextNote':
-    '検索のために公式ページから抽出した本文です。書式・画像・フォームは再現していません。実際の手続きは元のページで行ってください。',
+    '公式ページから抽出した本文と表です（折りたたまれた内容も展開済み）。画像・フォームは再現していません。実際の手続きは元のページで行ってください。',
+  'guides.tableScroll': '表は左右にスクロールできます →',
   'guides.viewOfficial': 'Monash 公式ページを開く ↗',
   'guides.signIn.label': 'ログインが必要',
   'guides.signIn.title': 'Monash へのログインが必要なページ',
@@ -3706,7 +3709,8 @@ const ko: Messages = {
   'guides.covers': '이 페이지에 담긴 내용',
   'guides.pageText': '페이지 본문',
   'guides.pageTextNote':
-    '검색을 위해 공식 페이지에서 추출한 본문입니다. 서식, 이미지, 양식은 재현하지 않았으므로 실제 처리는 원문에서 진행하세요.',
+    '공식 페이지에서 추출한 본문과 표입니다(접힌 내용도 모두 펼침). 이미지와 양식은 재현하지 않았으므로 실제 처리는 원문에서 진행하세요.',
+  'guides.tableScroll': '표를 좌우로 밀어 모든 열을 볼 수 있습니다 →',
   'guides.viewOfficial': 'Monash 공식 페이지 열기 ↗',
   'guides.signIn.label': '로그인 필요',
   'guides.signIn.title': 'Monash 로그인이 필요한 페이지',
