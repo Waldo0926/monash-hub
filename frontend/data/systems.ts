@@ -2,8 +2,8 @@
  * The Monash systems a student actually logs into, and which campus each is for.
  *
  * The URLs were given by the site's author; they are not guessed and not
- * shortened. `.monash.edu.my` hosts are Malaysia's own - SORS, Attendance,
- * AskMira and the Helpdesk have no Australian equivalent here - so they carry
+ * shortened. `.monash.edu.my` links are Malaysia's own - SORS, Attendance,
+ * MoVA (Monash Connect Malaysia) and the Helpdesk - so they carry
  * the campus label the guide pages use, for the same reason: a reader should
  * not have to work out from a hostname whether a link is meant for them.
  */
@@ -29,7 +29,11 @@ export const MONASH_SYSTEMS: MonashSystem[] = [
     url: 'https://attendance.monash.edu.my/student/',
     appliesTo: 'malaysia'
   },
-  { name: 'AskMira', url: 'https://askmira.monash.edu.my/', appliesTo: 'malaysia' },
+  {
+    name: 'MoVA',
+    url: 'https://www.monash.edu.my/student-services/connect?chatbot=open',
+    appliesTo: 'malaysia'
+  },
   {
     name: 'MUM Helpdesk',
     url: 'https://helpdesk.monash.edu.my/',
