@@ -42,8 +42,8 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "form is used for a short extension and for an extension through special "
         "consideration. You can't ask your chief examiner for an extension. Apply as soon as "
         "you can, no later than 11.55pm on the day the assessment is due or scheduled, and "
-        "attach supporting documents. Check the official page for the exact rules before you "
-        "apply.",
+        "attach supporting documents. Deferring a final assessment is a separate application. "
+        "Check the official page for the exact rules before you apply.",
         "assessment",
         ("assessment", "assignment", "apply", "deadline", "due date", "form", "申请",
          "作业", "截止", "考核", "medical", "illness", "missed", "miss", "online"),
@@ -55,13 +55,15 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     FaqSeed(
         "what-documents-for-sc",
         "What documents do I need for special consideration?",
-        "You need supporting documents that show how your circumstances affected your "
-        "assessment, and when and for how long. For illness this is usually a medical "
-        "certificate or letter from a doctor or other appropriate health professional, signed "
-        "and dated. Which documents are accepted depends on your circumstance, and some are "
-        "not accepted at all, such as a statutory declaration alone for a medical condition. "
-        "Documents not in English must be professionally translated. The official page lists "
-        "the documents for each circumstance; check it before you apply.",
+        "It depends on your circumstance, and the official page lists the documents for each "
+        "one. For a medical condition you need a medical certificate on the practitioner's "
+        "letterhead, signed, stamped and dated; the page says what you can give instead if you "
+        "could not get one. A statutory declaration alone is not accepted for a medical "
+        "condition, and photographs and medical images are not accepted. At a campus outside "
+        "Australia, such as Malaysia, the practitioner must be fully registered in the "
+        "country you are enrolled in. Documents not in English need a translation by a "
+        "NAATI-accredited translator. You also write an impact statement on the application "
+        "form saying how you were affected, from when and for how long.",
         "assessment",
         ("special consideration", "sc", "特殊考虑", "need", "required", "evidence",
          "需要", "提交", "申请"),
@@ -73,10 +75,12 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     FaqSeed(
         "defer-a-final-assessment",
         "Can I defer my final exam?",
-        "You ask to defer a final assessment through special consideration - there is no "
-        "separate form. If it is approved, you sit the assessment later, in the deferred "
-        "assessment period. The official page explains when a deferral applies, how "
-        "rescheduling works and when the deferred period runs; check it before you apply.",
+        "Deferring a final assessment has its own form, separate from the short extension and "
+        "special consideration form. Apply by 11.55pm on the day the assessment is set and "
+        "attach your supporting documents. If it is approved, you sit the assessment in the "
+        "deferred assessment period, unless your faculty offers you an alternative assessment. "
+        "The official page explains when a deferral applies and how rescheduling works; check "
+        "it before you apply.",
         "assessment",
         ("special consideration", "sc", "特殊考虑", "final", "exam", "assessment", "期末",
          "考试", "申请", "can", "my", "miss", "missed", "sick", "ill", "illness",
@@ -147,9 +151,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "to apply for. Not every unit offers one; its Handbook entry says. It is optional and "
         "it is your last chance to pass the unit: pass it and your result becomes 50 (P), "
         "which is the most you can get; fail it or skip it and you keep your original mark. "
-        "It is held on a set date within 90 days of results release, and special "
-        "arrangements are the only way to move it. Retaking the unit instead can earn a "
-        "higher mark for your WAM, but costs another enrolment.",
+        "It is held on a set date within 90 days of results release. You can't reschedule "
+        "it; special arrangements only cover a time-zone clash. Retaking the unit instead "
+        "can earn a higher mark for your WAM, but costs another enrolment.",
         "assessment",
         ("fail", "failed", "unit", "exam", "assessment", "45", "49", "ns", "can", "get",
          "eligible", "挂科", "挂了", "不及格", "考试", "能", "可以", "有没有", "资格"),

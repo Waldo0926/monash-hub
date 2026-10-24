@@ -14,7 +14,14 @@ All notable changes to Monash Hub are documented here.
 - The supporting documents answer named a Monash Health Professional Report,
   which the official page no longer mentions, and said screenshots are not
   accepted (they are, with timestamps, for technical problems). It now says
-  what the page says in general terms and points to it for each circumstance.
+  what the page says: a medical certificate for a medical condition, what is
+  not accepted, the NAATI translation rule, the impact statement and the rule
+  for campuses outside Australia.
+- The deferred final assessment answer said there is no separate form. Deferral
+  has its own form (deferred and rescheduled assessments), due by 11.55pm on
+  the day the assessment is set.
+- The supplementary assessment answer said special arrangements can move it.
+  It cannot be rescheduled; special arrangements only cover a time-zone clash.
 
 ### Added (browser tests)
 
