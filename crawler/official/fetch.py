@@ -257,11 +257,11 @@ def _retry_after(header: str | None) -> float | None:
 
 
 def _allowed_redirect(source: str, target: str) -> bool:
-    original, destination = urlsplit(source), urlsplit(target)
-    hosts = {original.hostname}
-    if original.hostname in {"www.monash.edu", "www.monash.edu.my"}:
-        hosts = {"www.monash.edu", "www.monash.edu.my"}
     try:
+        original, destination = urlsplit(source), urlsplit(target)
+        hosts = {original.hostname}
+        if original.hostname in {"www.monash.edu", "www.monash.edu.my"}:
+            hosts = {"www.monash.edu", "www.monash.edu.my"}
         return (
             destination.scheme == "https" and destination.hostname in hosts
             and destination.port in (None, 443) and not destination.username

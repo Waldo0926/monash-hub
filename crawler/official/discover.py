@@ -167,10 +167,10 @@ def discover(site_name: str, *, max_pages: int, max_depth: int, out: str,
             for url, overrides in EXTRA.items():
                 result = fetcher.fetch(url)
                 if result.ok:
-                    page, _ = _describe(url, result.html, 0)
+                    page, _ = _describe(result.final_url or url, result.html, 0)
                     found.append({**page, "keep": True, "prio": 1, **overrides})
                 else:
-                    found.append({"url": url, "status": result.status})
+                    found.append({"url": url, "status": result.status, "error": result.error})
             _save(found, out)
             return found
 

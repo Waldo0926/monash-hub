@@ -115,7 +115,7 @@ After review and deployment through the normal PR/main workflow:
 ## Validation receipt
 
 - Backend suite against an isolated PostgreSQL 17: 1,253 passed. Subsequent
-  targeted source/parser/translation checks after the final guards: 147 passed,
+  targeted source/parser/translation checks after the final guards: 149 passed,
   23 database-dependent cases skipped in that targeted run (covered by the full
   database suite before those guard-only changes).
 - Frontend typecheck, 48 unit tests and production build passed.

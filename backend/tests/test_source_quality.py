@@ -13,7 +13,7 @@ from app.knowledge.cleaner import clean_page
 from crawler.handbook.fetch import HandbookFetcher
 from crawler.official.audit import audit, inventory, link_inventory
 from crawler.official.discover import SITES, _wanted
-from crawler.official.fetch import OfficialFetcher, PageResult, Robots
+from crawler.official.fetch import OfficialFetcher, PageResult, Robots, _allowed_redirect
 from crawler.response import html_error, retry_after
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -141,6 +141,11 @@ def test_non_html_bodies_are_never_read_and_foreign_redirects_are_not_followed()
         fetcher._client = httpx.Client(transport=httpx.MockTransport(respond))
         assert not fetcher.fetch("https://www.monash.edu/document").ok
         assert "redirect" in fetcher.fetch("https://www.monash.edu/foreign").error
+
+
+@pytest.mark.parametrize("target", ["https://[broken", "https://www.monash.edu:bad/x"])
+def test_invalid_redirect_metadata_is_rejected(target):
+    assert not _allowed_redirect("https://www.monash.edu/students", target)
 
 
 def test_handbook_retry_after_is_honoured_and_last_http_status_survives():
