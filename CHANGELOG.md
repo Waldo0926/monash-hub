@@ -30,6 +30,24 @@ All notable changes to Monash Hub are documented here.
 - `scheduled-refresh.sh` runs every step even when one fails, and still exits
   non-zero so systemd shows the run as failed.
 
+### Added (a crawl that goes wrong is reported)
+
+- A Handbook run stops after 30 units, degrees or areas of study fail in a
+  row and records why. A Handbook that was down used to cost three attempts
+  for each of 5,000 units, far past the 10 hours systemd allows. The official
+  run has no such stop, since one site refusing says nothing about the next.
+- A run stopped by systemd is recorded as failed, and a job left "running"
+  by an older run is closed when the next one of its kind starts.
+- `scheduled-refresh.sh` mails `ALERT_EMAIL` when the last run of that kind
+  failed, is still marked running, or more than 5% of its targets (and at
+  least five) failed. At most one email a day for each kind.
+- `/api/health` shows the last run of each kind under `crawls` and says
+  whether the weekly Handbook refresh is more than eight days old
+  (`handbook_overdue`). `last_crawl` is still there.
+- The browser transport opens a new page when Chromium's page crashes, up
+  to twice a run. It used to keep the dead page, so every page after it
+  failed.
+
 ### Fixed (course transfer for Malaysia students)
 
 - 转专业 from a Monash Malaysia student was answered with the Australian

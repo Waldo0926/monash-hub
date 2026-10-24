@@ -115,10 +115,19 @@ sign-in, soft-404 and access-error shells are failures even when they return 200
 | Partial, repeated or wrong-year Handbook index | Fail discovery instead of returning an apparently complete list |
 | Non-HTML body | Do not ingest it; keep document links on their source pages |
 | Extraction under 200 characters | Treated as a template change, not as deleted content. Keep the last valid version |
+| 30 Handbook targets fail in a row | The run stops with `UpstreamDown` and the job is recorded `failed`. Not used for official pages, which span several hosts |
+| Browser page crashes | Close it and open a new one on the next fetch, at most twice a run |
+| systemd stops the run (SIGTERM) | The job is recorded `failed`. A job of the same kind still `running` after 12 hours is closed as failed when the next run starts |
 
 A failed official page keeps being served from its last good copy, with the
 date it was last read. Only a 404 or 410 takes it off the site. The failure is
 in `official_pages.fetch_error`, and the page is retried on the next run.
+
+After each scheduled run, `python -m crawler.sync.alert <job types>` prints
+what needs a person: a failed run, one still marked running, or more than 5%
+of targets (and at least five) failed. `scheduled-refresh.sh` mails that to
+`ALERT_EMAIL`, at most once a day for each kind. `/api/health` has the last run
+of each kind under `data.crawls` and `data.handbook_overdue`.
 
 ## What never enters the repository
 

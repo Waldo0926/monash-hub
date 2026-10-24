@@ -17,6 +17,7 @@ a few dozen public pages a day, not to be fast.
 """
 from __future__ import annotations
 
+import contextlib
 import logging
 import urllib.robotparser
 from dataclasses import dataclass
@@ -32,6 +33,9 @@ log = logging.getLogger(__name__)
 BROWSER_TRANSPORT = "playwright"
 HTTP_TRANSPORT = "httpx"
 AUTO_TRANSPORT = "auto"
+#: How many times one run may replace a page that crashed before it gives up
+#: and lets the rest of the run fail, which the alert then reports.
+MAX_BROWSER_RESTARTS = 2
 
 
 @dataclass(slots=True)
@@ -134,6 +138,7 @@ class OfficialFetcher:
         self._playwright = None
         self._browser = None
         self._page = None
+        self._restarts = 0
 
     # -- transports ---------------------------------------------------------
 
@@ -176,11 +181,13 @@ class OfficialFetcher:
 
     def _browser_page(self):
         if self._page is None:
-            from playwright.sync_api import sync_playwright
+            if self._playwright is None:
+                from playwright.sync_api import sync_playwright
 
-            log.info("starting browser transport")
-            self._playwright = sync_playwright().start()
-            self._browser = self._playwright.chromium.launch()
+                log.info("starting browser transport")
+                self._playwright = sync_playwright().start()
+            if self._browser is None or not self._browser.is_connected():
+                self._browser = self._playwright.chromium.launch()
             context = self._browser.new_context(user_agent=USER_AGENT, locale="en-AU")
             self._page = context.new_page()
             # Nothing here needs images or fonts, and not requesting them is
@@ -259,6 +266,8 @@ class OfficialFetcher:
             page = self._browser_page()
             response = page.goto(url, wait_until="domcontentloaded", timeout=self.timeout * 1000)
         except Exception as exc:
+            if self._page_broken(exc):
+                self._reset_browser_page()
             return PageResult(url, None, None, BROWSER_TRANSPORT, f"{type(exc).__name__}: {exc}")
         status = response.status if response else None
         if status != 200:
@@ -274,6 +283,30 @@ class OfficialFetcher:
         error = html_error(html)
         return PageResult(url, 200, None if error else html, BROWSER_TRANSPORT,
                           error, final_url=page.url)
+
+    def _page_broken(self, exc: Exception) -> bool:
+        """Did this failure take the page (or the whole browser) with it?
+
+        A timeout or a refused connection leaves the page usable. A renderer
+        that ran out of memory does not, and the page used to be kept anyway,
+        so every page after it in the run failed the same way.
+        """
+        if self._page is None or self._restarts >= MAX_BROWSER_RESTARTS:
+            return False
+        if "crash" in str(exc).lower():
+            return True
+        try:
+            return self._page.is_closed() or not self._browser.is_connected()
+        except Exception:
+            return True
+
+    def _reset_browser_page(self) -> None:
+        page, self._page = self._page, None
+        self._restarts += 1
+        log.warning("browser page broke - opening a new one (%d of %d)",
+                    self._restarts, MAX_BROWSER_RESTARTS)
+        with contextlib.suppress(Exception):
+            page.context.close()
 
     # -- lifecycle ----------------------------------------------------------
 
