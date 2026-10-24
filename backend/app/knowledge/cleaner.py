@@ -35,6 +35,7 @@ us before they were handled:
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import unicodedata
 from typing import Any
@@ -45,7 +46,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 6
+EXTRACTOR_VERSION = 7
 
 DROP_TAGS = (
     "script", "style", "noscript", "svg", "iframe", "form", "button",
@@ -282,6 +283,20 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
             block["caption"] = text
     if foot_rows:
         block["foot"] = [r + [""] * (width - len(r)) for r in foot_rows]
+    # Policy Bank publishes document addresses inside tables, often labelled
+    # only "[PDF]". Keep a labelled link index alongside the original cells;
+    # links are text/metadata only, never requests for the documents themselves.
+    links = []
+    for row in table.find_all("tr"):
+        label = _flat(row)
+        for anchor in row.find_all("a", href=True):
+            href = anchor["href"].strip()
+            if _is_linkable(href):
+                spans = [{"text": label, "url": href}]
+                if spans not in links:
+                    links.append(spans)
+    if links:
+        block["links"] = links
     return block
 
 
@@ -405,7 +420,7 @@ def _block_key(block: dict[str, Any]) -> str | None:
         # Short lines ("Delivery times are:") legitimately repeat.
         return f"p:{text}" if len(text) >= 60 else None
     if block["type"] == "table":
-        return f"t:{block.get('caption', '')}:{block['columns']}:{block['rows']}"
+        return "t:" + json.dumps(block, sort_keys=True, ensure_ascii=False)
     if block["type"] == "list":
         return f"l:{[rich_to_text(i) for i in block['items']]}"
     return None
@@ -548,7 +563,7 @@ def clean_page(html: str, *, url: str) -> dict:
         "blocks": blocks,
         "clean_text": clean_text,
         "summary": summary,
-        "content_hash": content_hash(title, clean_text),
+        "content_hash": content_hash(title, clean_text, blocks=blocks),
     }
 
 
@@ -562,7 +577,7 @@ def _first_meaningful_paragraph(blocks: list[dict[str, Any]]) -> str | None:
     return None
 
 
-def content_hash(title: str, clean_text: str) -> str:
+def content_hash(title: str, clean_text: str, *, blocks: list[dict] | None = None) -> str:
     """Hash the extracted content, so template churn does not read as a change.
 
     ``EXTRACTOR_VERSION`` is part of the input on purpose: when the extraction
@@ -570,4 +585,6 @@ def content_hash(title: str, clean_text: str) -> str:
     against text produced by code that no longer exists.
     """
     payload = f"{EXTRACTOR_VERSION}\n{title.strip()}\n{clean_text.strip()}"
+    if blocks is not None:
+        payload += "\n" + json.dumps(blocks, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

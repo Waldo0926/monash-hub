@@ -274,6 +274,8 @@ def _about_malaysia(url: str) -> bool:
 
 def category(url: str) -> str:
     path = urlparse(url).path.lower()
+    if "/policy-bank/" in path:
+        return "academic-rules"
     if "study-abroad" in path or "global-study" in path \
             or "exchange" in path.rsplit("/", 1)[-1] or "intercampus" in path:
         return "exchange"

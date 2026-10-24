@@ -167,6 +167,7 @@ def page_strings(page: OfficialPage) -> list[str]:
             strings += [_join(item) for item in block.get("items") or []]
         elif kind == "table":
             strings.append(block.get("caption"))
+            strings += [_join(link) for link in block.get("links") or []]
             strings += list(block.get("columns") or [])
             for row in (block.get("rows") or []) + (block.get("foot") or []):
                 strings += list(row)

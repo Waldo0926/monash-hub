@@ -128,7 +128,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
                 log.error("%s: %s", seed.slug, result.error)
                 continue
 
-            cleaned = clean_page(result.html, url=seed.url)
+            cleaned = clean_page(result.html, url=result.final_url or seed.url)
             if len(cleaned["clean_text"] or "") < 200:
                 # A page that suddenly extracts to almost nothing means the
                 # template changed, not that Monash deleted the content.

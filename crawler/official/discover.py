@@ -66,6 +66,25 @@ SITES: dict[str, dict] = {
         )],
         "prefixes": ("/student-services", "/study/apply", "/study/fees", "/study/scholarships"),
     },
+    "my-study": {
+        "hosts": (MY,),
+        "hubs": [f"https://{MY}/{p}" for p in (
+            "about/welcome", "about/top-university-in-malaysia",
+            "study/entry-requirements", "study/undergraduate", "study/postgraduate-and-research",
+            "student-services/financial-assistance",
+        )],
+        "prefixes": ("/about/welcome", "/about/top-university-in-malaysia",
+                     "/study/entry-requirements", "/study/undergraduate",
+                     "/study/postgraduate-and-research", "/student-services/financial-assistance"),
+    },
+    "policies": {
+        "hosts": (AU,),
+        "hubs": [f"https://{AU}/policy-bank/policies-and-procedures/{p}" for p in (
+            "academic/education", "academic/research", "academic/graduate-education",
+            "management/governance", "management/its",
+        )],
+        "prefixes": ("/policy-bank/policies-and-procedures/",),
+    },
     # The schools' own current-student pages: course rules, FAQs on transfer,
     # completion and special consideration that the central site leaves to them.
     "myfac": {
@@ -76,9 +95,9 @@ SITES: dict[str, dict] = {
             "pharmacy/current-students", "sass/current", "sass/current/undergraduate",
             "medicine/current-students", "accommodation", "its",
         )],
-        "prefixes": ("/business/current", "/it/current", "/science/current",
-                     "/engineering/current", "/pharmacy/current", "/sass/current",
-                     "/medicine/current", "/accommodation", "/its"),
+        "prefixes": ("/business/current", "/it/current-students", "/science/current",
+                     "/engineering/current-students", "/pharmacy/current-students",
+                     "/sass/current", "/medicine/current-students", "/accommodation", "/its"),
         "max_slashes": 6,
     },
     "abroad": {
@@ -116,13 +135,16 @@ def normalise(url: str) -> str:
 
 def _wanted(site: dict, url: str) -> bool:
     parsed = urlparse(url)
-    if parsed.netloc not in site["hosts"] or SKIP.search(parsed.path):
+    if (parsed.scheme != "https" or parsed.netloc not in site["hosts"]
+            or SKIP.search(parsed.path)):
         return False
     if (skip := site.get("skip")) and skip.search(parsed.path):
         return False
     if parsed.path.count("/") > site.get("max_slashes", 99):
         return False
-    return parsed.path.lower().startswith(tuple(p.lower() for p in site["prefixes"]))
+    path = parsed.path.lower().rstrip("/")
+    return any(path == p.lower().rstrip("/") or path.startswith(p.lower().rstrip("/") + "/")
+               for p in site["prefixes"])
 
 
 def _describe(url: str, html: str, depth: int) -> tuple[dict, list[str]]:
@@ -145,10 +167,10 @@ def discover(site_name: str, *, max_pages: int, max_depth: int, out: str,
             for url, overrides in EXTRA.items():
                 result = fetcher.fetch(url)
                 if result.ok:
-                    page, _ = _describe(url, result.html, 0)
+                    page, _ = _describe(result.final_url or url, result.html, 0)
                     found.append({**page, "keep": True, "prio": 1, **overrides})
                 else:
-                    found.append({"url": url, "status": result.status})
+                    found.append({"url": url, "status": result.status, "error": result.error})
             _save(found, out)
             return found
 
@@ -159,9 +181,10 @@ def discover(site_name: str, *, max_pages: int, max_depth: int, out: str,
             url, depth = queue.popleft()
             result = fetcher.fetch(url)
             if not result.ok:
-                found.append({"url": url, "status": result.status, "depth": depth})
+                found.append({"url": url, "status": result.status, "depth": depth,
+                              "error": result.error})
                 continue
-            page, links = _describe(url, result.html, depth)
+            page, links = _describe(result.final_url or url, result.html, depth)
             found.append(page)
             for link in links:
                 if link not in seen and depth < max_depth and _wanted(site, link):

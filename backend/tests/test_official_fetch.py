@@ -68,7 +68,7 @@ def test_a_rule_for_this_bot_by_name_wins_over_the_general_one():
 def test_a_missing_robots_file_means_no_rules_and_an_unreadable_one_means_closed():
     assert Scripted([(200, None)], robots_status=404).fetch("https://a.example/x").ok
     closed = Scripted([(200, None)], robots_status=503).fetch("https://b.example/x")
-    assert closed.status is None and closed.error == "disallowed by robots.txt"
+    assert closed.status is None and "permission unknown" in closed.error
     broken = Scripted([(200, None)], robots_status=OSError("reset")).fetch("https://c.example/x")
     assert broken.status is None
 
