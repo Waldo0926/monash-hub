@@ -46,6 +46,12 @@ translate() {
     || echo "translation pass failed: $*"
 }
 
+# A step that fails is remembered, not fatal: a unit crawl that could not read
+# the Handbook index used to end the script there, so degrees, the search
+# reindex and the week's translation were all skipped with it. The exit
+# status still says something failed, so systemd shows the run as failed.
+failed=0
+
 exec 9>"$STATE_DIR/scheduled-refresh.lock"
 if ! flock -n 9; then
   echo "another scheduled refresh is running; skipping this one"
@@ -56,16 +62,16 @@ case "${1:-}" in
   official)
     # Only pages whose tier says they are due, so running this often costs a
     # handful of requests, not the whole seed list.
-    "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run
+    "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run || failed=1
     ;;
 
   handbook)
     # Units crawled in the last six days are skipped, so a run interrupted by
     # a deploy or a reboot resumes rather than starting over next week.
     "${COMPOSE[@]}" run --rm crawler \
-      python -m crawler.handbook.run --all --skip-fresh 144 --min-interval 2
+      python -m crawler.handbook.run --all --skip-fresh 144 --min-interval 2 || failed=1
     "${COMPOSE[@]}" run --rm crawler \
-      python -m crawler.handbook.run_courses --all --skip-fresh 144 --min-interval 2
+      python -m crawler.handbook.run_courses --all --skip-fresh 144 --min-interval 2 || failed=1
     ;;
   *)
     echo "usage: $0 {official|handbook}" >&2
@@ -106,7 +112,7 @@ if [[ "$1" == official ]]; then
   # to the next one rather than queueing behind it.
   if ! flock -n 8; then
     echo "a translation pass is running; changed pages wait for the next refresh"
-    exit 0
+    exit "$failed"
   fi
   # A page that changed keeps its old translation, flagged stale, until it
   # is translated again. Only changed or new pages are sent, and a person's
@@ -126,3 +132,4 @@ else
   done
 fi
 "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh
+exit "$failed"

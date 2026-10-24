@@ -35,6 +35,11 @@ closed for that run. Only 404/410 mean no robots file. A 401/403, 429, redirect,
 or HTML challenge instead means crawl permission is unknown; the page is not
 requested. Robots requests use the same throttle as page requests.
 
+The one exception is a 403 to `httpx` on an official site in `auto` mode. The
+WAF refuses the HTTP client whatever it asks for, so the official fetcher asks
+for `robots.txt` once more with the browser, the same way it would read the
+pages, and goes by that answer. A refusal there still closes the host.
+
 ## Backfilling a whole year
 
 ```bash
@@ -99,14 +104,21 @@ sign-in, soft-404 and access-error shells are failures even when they return 200
 | Case | What happens |
 | --- | --- |
 | Network error / timeout | Retry with backoff, then record `failed`, keep the last good row |
+| Handbook index page fails | Retried like a unit page. Only after the last attempt does the run stop, since without the index it does not know what to crawl |
 | HTTP 404 | Recorded immediately, not retried. A missing page is an answer |
+| HTTP 404 on the Handbook, past the withdrawal cap | Recorded `failed`, the row stays active. One run marks at most 25 units, degrees or areas of study inactive (or 2% of its targets if that is more); `--max-withdrawals` raises it after a person has checked |
 | HTTP 403 | Latch to the browser transport, back off, retry |
 | HTTP 429 | Stay on the same transport, wait as long as `Retry-After` says (up to 10 minutes), retry |
+| Official page redirected to the section above it, or the home page | Not stored, not retried. Recorded `failed` with the address it went to; the last good copy stays up until the seed is updated. A page that moved sideways is still followed |
 | Parse error | Keep the last valid record, log it loudly, record `failed` |
 | Wrong Handbook code/year | Parse failure; never substitute another item's data |
 | Partial, repeated or wrong-year Handbook index | Fail discovery instead of returning an apparently complete list |
 | Non-HTML body | Do not ingest it; keep document links on their source pages |
 | Extraction under 200 characters | Treated as a template change, not as deleted content. Keep the last valid version |
+
+A failed official page keeps being served from its last good copy, with the
+date it was last read. Only a 404 or 410 takes it off the site. The failure is
+in `official_pages.fetch_error`, and the page is retried on the next run.
 
 ## What never enters the repository
 

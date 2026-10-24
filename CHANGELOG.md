@@ -4,6 +4,32 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (a crawl that goes wrong costs less)
+
+- One failed fetch of an official page no longer takes it off the site. It
+  used to be marked as an error, which hid it from the guides, search, key
+  dates and the assistant until a later fetch worked, so a single timeout or
+  bot challenge hid text that was still right. The last good copy now stays
+  up with the date it was last read, and only a 404 or 410 takes a page down.
+  Pages already hidden this way come back on their next attempt.
+- An official page that now redirects to the section above it, or to the
+  home page, is not stored. That is what a removed page usually does, and the
+  landing page reads fine, so it would replace the seed's text without anyone
+  noticing. It is recorded as failed with the new address.
+- A `robots.txt` that the WAF refuses over `httpx` is read again with the
+  browser in `auto` mode. Since unreadable robots files close the host, a
+  monash.edu.my that refuses `httpx` everything would otherwise never be
+  crawled again.
+- A Handbook index page that fails is retried like a unit page. One timeout
+  in the roughly 180 index requests of a weekly refresh used to end the run,
+  and the degree crawl, search reindex and translation after it.
+- One run marks at most 25 units, degrees or areas of study inactive (or 2%
+  of its targets if that is more). A Handbook answering 404 for everything
+  would otherwise have taken every unit off the site for a week.
+  `--max-withdrawals` raises the cap after a person has checked.
+- `scheduled-refresh.sh` runs every step even when one fails, and still exits
+  non-zero so systemd shows the run as failed.
+
 ### Fixed (course transfer for Malaysia students)
 
 - 转专业 from a Monash Malaysia student was answered with the Australian

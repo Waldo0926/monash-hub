@@ -50,6 +50,25 @@ class PageResult:
         return self.status == 200 and bool(self.html)
 
 
+def redirected_up(requested: str, final: str | None) -> bool:
+    """True when a page now redirects to the section above it, or the home page.
+
+    That is what Monash does with a page it has removed or merged, and the
+    section page reads fine and is long enough, so storing it would quietly
+    answer this seed's questions with a landing page. A page that moved
+    sideways (``/old`` to ``/new/page``) is still followed. The host, a www
+    prefix, a trailing slash or index.html, the query and case are ignored.
+    """
+    if not final:
+        return False
+
+    def path(url: str) -> str:
+        return urlsplit(url).path.lower().removesuffix("index.html").rstrip("/")
+
+    asked, landed = path(requested), path(final)
+    return landed != asked and (landed == "" or asked.startswith(landed + "/"))
+
+
 class Robots:
     """One ``robots.txt`` per host, read once, with the crawler's own name."""
 
@@ -133,8 +152,27 @@ class OfficialFetcher:
 
     def _robots_text(self, url: str) -> tuple[int, str]:
         self.throttle.wait()
+        if self._mode == BROWSER_TRANSPORT:
+            return self._robots_browser(url)
         response = self._http().get(url)
+        if response.status_code == 403 and self._requested == AUTO_TRANSPORT:
+            # The WAF that refuses httpx a page refuses it robots.txt too, and
+            # that says nothing about the rules. Treating it as a closed host
+            # stopped every monash.edu.my page from being read. Ask again the
+            # way the pages would be read; a refusal there still closes it.
+            log.warning("%s refused over httpx - reading it with the browser", url)
+            self._mode = BROWSER_TRANSPORT
+            self.throttle.wait()
+            return self._robots_browser(url)
         return response.status_code, response.text
+
+    def _robots_browser(self, url: str) -> tuple[int, str]:
+        response = self._browser_page().goto(url, wait_until="domcontentloaded",
+                                             timeout=self.timeout * 1000)
+        if response is None:
+            raise RuntimeError("no response")
+        # The response body, not the page: Chromium wraps a text file in HTML.
+        return response.status, response.text() if response.status == 200 else ""
 
     def _browser_page(self):
         if self._page is None:
@@ -166,6 +204,12 @@ class OfficialFetcher:
         for attempt in range(1, self.throttle.limit.max_attempts + 1):
             self.throttle.wait()
             result = self._fetch_once(url)
+            if result.ok and redirected_up(url, result.final_url):
+                # Keep the last copy and let a person update the seed.
+                log.warning("%s redirected to %s, not stored", url, result.final_url)
+                return PageResult(url, result.status, None, result.transport,
+                                  f"redirected to {result.final_url}",
+                                  final_url=result.final_url)
             if result.ok or result.status == 404:
                 return result
             last = result

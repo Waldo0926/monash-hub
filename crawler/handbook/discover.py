@@ -15,6 +15,7 @@ import logging
 
 import httpx
 
+from crawler.response import retry_after
 from crawler.throttling.limiter import Throttle
 
 log = logging.getLogger(__name__)
@@ -43,7 +44,8 @@ def discover_aos_codes(year: int, throttle: Throttle | None = None) -> list[str]
     return _discover(year, "aos", throttle)
 
 
-def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[str]:
+def _discover(year: int, kind: str, throttle: Throttle | None = None,
+              *, transport: httpx.BaseTransport | None = None) -> list[str]:
     """One walk of the index, keeping the entries under ``/<year>/<kind>/``.
 
     The index is one list of everything the Handbook publishes, so the three
@@ -59,24 +61,10 @@ def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[st
     total: int | None = None
     seen_pages: set[tuple[str, ...]] = set()
 
-    with httpx.Client(timeout=45.0, headers={"User-Agent": _user_agent()}) as client:
+    with httpx.Client(timeout=45.0, headers={"User-Agent": _user_agent()},
+                      transport=transport) as client:
         while total is None or offset < total:
-            throttle.wait()
-            params = {
-                "query": "",
-                "searchType": "advanced",
-                "siteId": SITE_ID,
-                "siteYear": str(year),
-                "from": offset,
-                "size": PAGE_SIZE,
-            }
-            try:
-                response = client.get(SEARCH_URL, params=params)
-                response.raise_for_status()
-                payload = response.json()["data"]
-            except (httpx.HTTPError, KeyError, ValueError) as exc:
-                raise DiscoveryError(f"unit index unreadable at offset {offset}: {exc}") from exc
-
+            payload = _index_page(client, throttle, year, offset)
             if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
                 raise DiscoveryError(f"index shape changed at offset {offset}")
             reported_total = payload.get("total")
@@ -123,6 +111,43 @@ def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[st
     if not codes:
         raise DiscoveryError(f"no {kind} found for {year} - the index shape may have changed")
     return codes
+
+
+def _index_page(client: httpx.Client, throttle: Throttle, year: int, offset: int):
+    """One page of the index, tried as often as a unit page is.
+
+    A walk is about sixty pages, three walks a week. Giving up on the first
+    timeout threw away the whole weekly crawl - units, degrees, and the
+    translation pass that follows them - over one slow answer. Only reading
+    the page is retried; a page that reads but has the wrong shape is checked
+    by the caller and still ends discovery.
+    """
+    params = {
+        "query": "",
+        "searchType": "advanced",
+        "siteId": SITE_ID,
+        "siteYear": str(year),
+        "from": offset,
+        "size": PAGE_SIZE,
+    }
+    attempts = throttle.limit.max_attempts
+    error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        throttle.wait()
+        pause = 0.0
+        try:
+            response = client.get(SEARCH_URL, params=params)
+            pause = retry_after(response.headers.get("retry-after")) or 0.0
+            response.raise_for_status()
+            return response.json()["data"]
+        except (httpx.HTTPError, KeyError, ValueError) as exc:
+            error = exc
+            log.warning("index page at offset %d failed (%s)", offset, exc)
+        if attempt < attempts:
+            throttle.backoff(attempt, at_least=pause)
+    raise DiscoveryError(
+        f"index unreadable at offset {offset} after {attempts} attempts: {error}"
+    ) from error
 
 
 def _user_agent() -> str:
