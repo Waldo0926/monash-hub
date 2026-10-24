@@ -102,8 +102,9 @@ The panel adds two things the router does not know about, both plain word
 matching in `frontend/utils/assistant.ts`: the site's own tools a question
 names (WAM calculator, course map, unit tree and so on) and 马莫百科 posts that
 share at least two pairs of Chinese characters with it. When nothing matches
-it says so and links to the community and AskMira. The chat is kept in
-`sessionStorage`, so it survives a page change and is gone with the tab.
+it says so and links to the community and MoVA (Monash Connect Malaysia).
+The chat is kept in `sessionStorage`, so it survives a page change and is
+gone with the tab.
 Requests go through the same nginx limit as the rest of `/api/`.
 
 ## Trust boundaries in the UI

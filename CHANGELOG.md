@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (AskMira is gone)
+
+- Monash Malaysia replaced AskMira with MoVA, the Monash Connect virtual
+  assistant, and the Student Hub counter with Monash Connect. The footer's
+  Malaysia links and the assistant's "ask Monash" link now go to
+  monash.edu.my/student-services/connect with the chat open, and the link
+  text says you can also visit Monash Connect on campus.
+
 ### Added (browser tests)
 
 - Playwright tests for the unit page, the course map and unit ratings, run in
