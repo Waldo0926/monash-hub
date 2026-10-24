@@ -225,26 +225,72 @@ def _slug(text: str, taken: set[str]) -> str:
     return candidate
 
 
-def _table_rows(rows: list[Tag]) -> list[list[str]]:
-    """Cells as plain strings, with ``colspan`` expanded into blank neighbours.
+def _span(cell: Tag, attribute: str) -> int:
+    try:
+        return max(1, min(int(str(cell.get(attribute, 1)).strip()), 50))
+    except (TypeError, ValueError):
+        return 1
 
-    Merged cells are rare here and only ever appear in a totals row, so the
-    simple expansion keeps every row the same width without the block format
-    having to carry a span for each cell.
+
+#: Inside a cell these start a new line: a cell holding two paragraphs or a
+#: short list is two lines on monash.edu, not one run-on sentence.
+_CELL_BREAKS = ("p", "li", "div", "h2", "h3", "h4", "h5", "h6", "dt", "dd")
+
+
+def _cell_text(cell: Tag) -> str:
+    """A cell's text, keeping the line breaks the cell itself has."""
+    for br in cell.find_all("br"):
+        br.replace_with("\n")
+    for part in cell.find_all(_CELL_BREAKS):
+        part.insert_before("\n")
+        part.insert_after("\n")
+    lines = (_clean(line).strip() for line in cell.get_text(" ").split("\n"))
+    return "\n".join(line for line in lines if line)
+
+
+def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
+    """Cells as plain strings on a regular grid, and the merged cells.
+
+    A cell that spans columns or rows keeps its text in its first position and
+    leaves blanks in the positions it covers, so every row is the same width
+    and a cell's column is its index. The merges come back as
+    ``[row, column, rowspan, colspan]`` so the page can draw them as merged.
+    Without the rows a ``rowspan`` covers, every cell below it moved one
+    column to the left - a fee under the wrong year.
     """
-    out = []
+    out: list[list[str]] = []
+    merged: list[list[int]] = []
+    below: dict[int, int] = {}  # column -> rows a cell above still covers
     for row in rows:
         cells: list[str] = []
+        covered = False
+        starts: list[list[int]] = []
+
+        def skip_covered() -> None:
+            nonlocal covered
+            while below.get(len(cells), 0) > 0:
+                below[len(cells)] -= 1
+                cells.append("")
+                covered = True
+
         for cell in row.find_all(["td", "th"], recursive=False):
-            try:
-                span = max(1, int(str(cell.get("colspan", 1)).strip()))
-            except (TypeError, ValueError):
-                span = 1
-            cells.append(_flat(cell))
-            cells.extend([""] * (span - 1))
-        if any(cells):
+            skip_covered()
+            colspan, rowspan = _span(cell, "colspan"), _span(cell, "rowspan")
+            if colspan > 1 or rowspan > 1:
+                starts.append([len(out), len(cells), rowspan, colspan])
+            if rowspan > 1:
+                for column in range(len(cells), len(cells) + colspan):
+                    below[column] = rowspan - 1
+            cells.append(_cell_text(cell))
+            cells.extend([""] * (colspan - 1))
+        # Columns past the last cell that a cell above still covers.
+        for column in sorted(c for c, left in below.items() if left > 0 and c >= len(cells)):
+            cells.extend([""] * (column - len(cells)))
+            skip_covered()
+        if any(cells) or covered:
             out.append(cells)
-    return out
+            merged.extend(starts)
+    return out, merged
 
 
 def _table_block(table: Tag) -> dict[str, Any] | None:
@@ -253,36 +299,53 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
     body = table.find("tbody")
     foot = table.find("tfoot")
 
-    header_rows = _table_rows(head.find_all("tr")) if head else []
-    columns = header_rows[0] if header_rows else []
+    header_rows, head_merged = _table_rows(head.find_all("tr")) if head else ([], [])
 
     container = body or table
-    body_rows = _table_rows(
+    body_rows, body_merged = _table_rows(
         [tr for tr in container.find_all("tr") if tr.find_parent(["thead", "tfoot"]) is None]
     )
     if not head and body_rows:
         # No <thead>: if the first row is all <th>, it is the header anyway.
         first = container.find("tr")
         if first is not None and first.find("td") is None and first.find("th") is not None:
-            columns, body_rows = body_rows[0], body_rows[1:]
+            header_rows, body_rows = body_rows[:1], body_rows[1:]
+            head_merged = [m for m in body_merged if m[0] == 0]
+            body_merged = [[r - 1, *rest] for r, *rest in body_merged if r > 0]
 
-    foot_rows = _table_rows(foot.find_all("tr")) if foot else []
+    foot_rows, foot_merged = _table_rows(foot.find_all("tr")) if foot else ([], [])
+    columns = header_rows[0] if header_rows else []
 
     if not body_rows and not columns:
         return None
 
-    width = max(len(columns), *(len(r) for r in body_rows + foot_rows), 0)
+    width = max(len(columns), *(len(r) for r in header_rows + body_rows + foot_rows), 0)
+
+    def pad(rows: list[list[str]]) -> list[list[str]]:
+        return [r + [""] * (width - len(r)) for r in rows]
+
     block: dict[str, Any] = {
         "type": "table",
         "columns": columns + [""] * (width - len(columns)),
-        "rows": [r + [""] * (width - len(r)) for r in body_rows],
+        "rows": pad(body_rows),
     }
+    # A second header row ("Domestic | International" under "Fee") used to be
+    # dropped. It is kept apart so ``columns`` still means the first one.
+    if len(header_rows) > 1:
+        block["head"] = pad(header_rows[1:])
+    merged = (
+        [["head", *m] for m in head_merged]
+        + [["body", *m] for m in body_merged]
+        + [["foot", *m] for m in foot_merged]
+    )
+    if merged:
+        block["merged"] = merged
     if caption:
         text = _flat(caption)
         if text:
             block["caption"] = text
     if foot_rows:
-        block["foot"] = [r + [""] * (width - len(r)) for r in foot_rows]
+        block["foot"] = pad(foot_rows)
     # Policy Bank publishes document addresses inside tables, often labelled
     # only "[PDF]". Keep a labelled link index alongside the original cells;
     # links are text/metadata only, never requests for the documents themselves.

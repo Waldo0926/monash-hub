@@ -26,7 +26,43 @@ interface Block {
   columns?: string[]
   rows?: string[][]
   foot?: string[][]
+  head?: string[][]
+  /** [part, row, column, rowspan, colspan]; part is head, body or foot. */
+  merged?: [string, number, number, number, number][]
   links?: Span[][]
+}
+
+type Part = 'head' | 'body' | 'foot'
+interface Cell { text: string; rowspan?: number; colspan?: number }
+
+/**
+ * One section of a table as the cells to draw. The rows arrive as a regular
+ * grid with blanks where a merged cell reaches; those blanks are left out
+ * and the merged cell carries its rowspan and colspan, so the table looks as
+ * it does on monash.edu instead of a grid of half-empty rows.
+ */
+function cellsOf(block: Block, part: Part, rows: string[][]): Cell[][] {
+  const starts = new Map<string, [number, number]>()
+  const covered = new Set<string>()
+  for (const [where, row, column, rowspan, colspan] of block.merged || []) {
+    if (where !== part) continue
+    starts.set(`${row}:${column}`, [rowspan, colspan])
+    for (let r = row; r < row + rowspan; r++) {
+      for (let c = column; c < column + colspan; c++) {
+        if (r !== row || c !== column) covered.add(`${r}:${c}`)
+      }
+    }
+  }
+  return rows.map((row, r) => row.flatMap((text, c) => {
+    if (covered.has(`${r}:${c}`)) return []
+    const span = starts.get(`${r}:${c}`)
+    return [span ? { text, rowspan: span[0], colspan: span[1] } : { text }]
+  }))
+}
+
+function headRows(block: Block): Cell[][] {
+  const rows = hasHeader(block) ? [block.columns || [], ...(block.head || [])] : []
+  return cellsOf(block, 'head', rows)
 }
 
 const props = defineProps<{ blocks?: Block[] | null; fallback?: string | null }>()
@@ -123,25 +159,39 @@ function hasHeader(block: Block): boolean {
         <div class="scroll-x">
           <table>
             <thead v-if="hasHeader(block)">
-              <tr>
+              <tr v-for="(row, j) in headRows(block)" :key="j">
                 <th
-                  v-for="(column, j) in block.columns || []"
-                  :key="j"
-                  scope="col"
-                  :class="{ wraps: wraps(column) }"
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :scope="cell.colspan && cell.colspan > 1 ? 'colgroup' : 'col'"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text) }"
                 >
-                  {{ column }}
+                  {{ cell.text }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, j) in block.rows || []" :key="j">
-                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
+              <tr v-for="(row, j) in cellsOf(block, 'body', block.rows || [])" :key="j">
+                <td
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text), lines: cell.text.includes('\n') }"
+                >{{ cell.text }}</td>
               </tr>
             </tbody>
             <tfoot v-if="block.foot?.length">
-              <tr v-for="(row, j) in block.foot" :key="j">
-                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
+              <tr v-for="(row, j) in cellsOf(block, 'foot', block.foot)" :key="j">
+                <td
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text), lines: cell.text.includes('\n') }"
+                >{{ cell.text }}</td>
               </tr>
             </tfoot>
           </table>
@@ -215,6 +265,13 @@ function hasHeader(block: Block): boolean {
 .block-table td { white-space: nowrap; }
 .block-table td.wraps,
 .block-table th.wraps { white-space: normal; min-width: 22ch; max-width: 46ch; }
+/* A cell with its own line breaks (two paragraphs, a short list) keeps them. */
+.block-table tr td.lines { white-space: pre; }
+.block-table tr td.wraps.lines,
+.block-table tr td.lines:first-child { white-space: pre-line; }
+/* A merged cell sits at the top of the rows it spans, as it does on monash.edu. */
+.block-table td[rowspan],
+.block-table th[rowspan] { vertical-align: top; }
 /* The first column is usually the label and is the one that may be long. */
 .block-table td:first-child,
 .block-table th:first-child { white-space: normal; min-width: 12ch; }
