@@ -22,7 +22,7 @@ from app.models.knowledge import FaqEntry
 from app.models.translation import HUMAN, PUBLISHED, ContentTranslation
 from app.models.user import User
 
-from crawler.official.seeds import SEEDS
+from crawler.official.seeds import SEEDS, SEEDS_BY_SLUG
 
 
 @pytest.fixture
@@ -379,6 +379,37 @@ def test_a_campus_in_the_question_finds_that_campuss_page(client, seeded, query,
     body = ask(client, query, "zh")
     assert body["answer_type"] == "official_search"
     assert slug in page_slugs(body)[:3]
+
+
+@pytest.mark.parametrize(
+    "query", ["转专业", "转专业是符合转的要求就可以还是择优录取啊", "ICP"])
+def test_a_malaysia_reader_gets_malaysias_course_transfer_page(client, seeded, query):
+    """The Malaysia group chat bot passes campus=malaysia. Before it could, 转专业
+    from a Malaysia student was answered with the Australian admissions page."""
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"}, json={"query": query, "campus": "malaysia"},
+    ).json()
+    assert body["answer_type"] == "official_search"
+    slugs = page_slugs(body)
+    assert "malaysia-apply-internal-course-transfer" in slugs[:2]
+    assert "study-options-internal-transfer" not in slugs[:2]
+
+
+def test_a_malaysia_reader_never_gets_australia_only_pages(client, seeded):
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"}, json={"query": "转校区", "campus": "malaysia"},
+    ).json()
+    slugs = page_slugs(body)
+    assert slugs
+    assert all(SEEDS_BY_SLUG[slug].applies_to in ("malaysia", "all") for slug in slugs)
+
+
+def test_a_campus_in_the_question_beats_the_one_passed(client, seeded):
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"},
+        json={"query": "马莫转专业", "campus": "australia"},
+    ).json()
+    assert page_slugs(body)[0] == "malaysia-apply-internal-course-transfer"
 
 
 def test_a_page_titled_with_the_whole_query_comes_first(client, seeded):

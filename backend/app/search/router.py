@@ -473,6 +473,7 @@ def answer(
     year: int,
     locale: str | None = None,
     context_unit: str | None = None,
+    campus: str | None = None,
 ) -> dict[str, Any]:
     """Route one question. Always returns a payload - never raises on a miss.
 
@@ -481,6 +482,9 @@ def answer(
     and before this the router saw no code at all, so the question fell through
     to the official pages search. A code typed in the question still wins over
     the page it was typed on.
+
+    ``campus`` is where the reader studies, when the caller knows it. It only
+    narrows and orders the official pages; see ``service.search_official``.
     """
     typed = (query or "").strip()
     # Full-width and Traditional folded to what the index holds; see
@@ -615,7 +619,8 @@ def answer(
     # page that mentions one of its words somewhere in the body. A FAQ that was
     # triggered but does not cover the question is offered, honestly, as a
     # related question rather than drawn as the answer.
-    pages, total = service.search_official(db, query, limit=5, strong_only=True)
+    pages, total = service.search_official(
+        db, query, limit=5, strong_only=True, campus=campus)
     if pages:
         base.update(_official_answer(pages, total))
         _localise_pages(db, base, locale)

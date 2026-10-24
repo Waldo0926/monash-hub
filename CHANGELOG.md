@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (course transfer for Malaysia students)
+
+- 转专业 from a Monash Malaysia student was answered with the Australian
+  admissions page. `POST /v1/ask` now takes an optional `campus`
+  (`malaysia` or `australia`); that campus's own official pages come before
+  the ones listed for every campus, and a campus named in the question still
+  wins. The Malaysia group chat bot can pass `campus: "malaysia"`.
+- Malaysia's Internal Course Transfer page and the university's Course or
+  campus transfer page have reviewed Chinese titles with 转专业 in them; the
+  machine title 转学位课程 never matched what students type.
+- A long Chinese question ranks the page whose Chinese title names its topic
+  first, so 转专业是符合要求就可以还是择优录取 behaves like 转专业.
+- ICP, what Malaysia students call an internal course transfer, finds those
+  pages. Monash's own pages do not use the abbreviation.
+
 ### Changed (AskMira is gone)
 
 - Monash Malaysia replaced AskMira with MoVA, the Monash Connect virtual

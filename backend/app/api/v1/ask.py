@@ -4,6 +4,8 @@ No model is called here and no key is needed. See app/search/router.py for why.
 """
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -23,6 +25,10 @@ class AskRequest(BaseModel):
     # question itself does not name, so "How good is this unit?" on the FIT2102
     # page is a question about FIT2102.
     unit_code: str | None = Field(default=None, max_length=16)
+    # The campus the reader is at, when the caller knows it (a group chat bot
+    # for Monash Malaysia does). Official pages for that campus come first; a
+    # campus named in the question still wins.
+    campus: Literal["australia", "malaysia"] | None = None
 
 
 @router.post("/ask")
@@ -33,4 +39,5 @@ def ask(
 ) -> dict:
     year = payload.year or get_settings().current_academic_year
     return query_router.answer(
-        db, payload.query, year=year, locale=locale, context_unit=payload.unit_code)
+        db, payload.query, year=year, locale=locale, context_unit=payload.unit_code,
+        campus=payload.campus)
