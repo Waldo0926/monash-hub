@@ -4,6 +4,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (special consideration answers)
+
+- The special consideration answer gave a deadline of two university working
+  days after the assessment and said short extensions go through the teaching
+  team. Monash's page says to apply by 11.55pm on the day the assessment is due
+  or scheduled, that one form covers a short extension and an extension through
+  special consideration, and that you can't ask your chief examiner for one.
+- The supporting documents answer named a Monash Health Professional Report,
+  which the official page no longer mentions, and said screenshots are not
+  accepted (they are, with timestamps, for technical problems). It now says
+  what the page says in general terms and points to it for each circumstance.
+
 ### Added (browser tests)
 
 - Playwright tests for the unit page, the course map and unit ratings, run in

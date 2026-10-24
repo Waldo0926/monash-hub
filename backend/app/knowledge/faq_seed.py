@@ -38,11 +38,12 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "how-to-apply-special-consideration",
         "How do I apply for special consideration?",
         "Special consideration covers short-term circumstances outside your control that "
-        "affected an assessment. Apply through the special consideration form in your student "
-        "portal, normally within two university working days of the assessment due date or "
-        "scheduled sitting, and attach supporting documentation. Short extensions for "
-        "coursework are handled separately by your unit's teaching team. Check the official "
-        "page for the current deadline and the exact evidence required before you apply.",
+        "affected an assessment. Apply online with the special consideration form; the same "
+        "form is used for a short extension and for an extension through special "
+        "consideration. You can't ask your chief examiner for an extension. Apply as soon as "
+        "you can, no later than 11.55pm on the day the assessment is due or scheduled, and "
+        "attach supporting documents. Check the official page for the exact rules before you "
+        "apply.",
         "assessment",
         ("assessment", "assignment", "apply", "deadline", "due date", "form", "申请",
          "作业", "截止", "考核", "medical", "illness", "missed", "miss", "online"),
@@ -54,15 +55,18 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     FaqSeed(
         "what-documents-for-sc",
         "What documents do I need for special consideration?",
-        "You need third-party evidence covering the dates you were affected - most commonly a "
-        "medical certificate or a Monash Health Professional Report. Screenshots, self-written "
-        "statements and undated letters are generally not accepted. The official page lists "
-        "which document type applies to which circumstance.",
+        "You need supporting documents that show how your circumstances affected your "
+        "assessment, and when and for how long. For illness this is usually a medical "
+        "certificate or letter from a doctor or other appropriate health professional, signed "
+        "and dated. Which documents are accepted depends on your circumstance, and some are "
+        "not accepted at all, such as a statutory declaration alone for a medical condition. "
+        "Documents not in English must be professionally translated. The official page lists "
+        "the documents for each circumstance; check it before you apply.",
         "assessment",
         ("special consideration", "sc", "特殊考虑", "need", "required", "evidence",
          "需要", "提交", "申请"),
         ("documents", "document", "supporting documents", "medical certificate",
-         "health professional report", "证明", "证明材料", "材料", "医生证明", "病假条"),
+         "health professional", "证明", "证明材料", "材料", "医生证明", "病假条"),
         "supporting-documents",
         priority=70,
     ),
