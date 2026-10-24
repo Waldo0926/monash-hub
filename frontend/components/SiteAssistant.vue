@@ -30,7 +30,7 @@ interface Turn {
 
 const STORAGE_KEY = 'monashhub.assistant.v1'
 const MAX_TURNS = 12
-const ASKMIRA = 'https://askmira.monash.edu.my/'
+const MOVA = 'https://www.monash.edu.my/student-services/connect?chatbot=open'
 
 const { $t } = useNuxtApp()
 const { locale } = useLocale()
@@ -343,7 +343,7 @@ onBeforeUnmount(() => {
               </NuxtLink>
               <template v-if="!routerAnswered(turn)">
                 <NuxtLink to="/community" class="tiny">{{ $t('units.askCommunity') }}</NuxtLink>
-                <a :href="ASKMIRA" class="tiny" rel="noopener external" target="_blank">{{ $t('assistant.askMira') }}</a>
+                <a :href="MOVA" class="tiny" rel="noopener external" target="_blank">{{ $t('assistant.askMova') }}</a>
               </template>
             </div>
           </div>
