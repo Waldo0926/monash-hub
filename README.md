@@ -31,6 +31,7 @@ The current production stack is:
 - **Backend:** FastAPI and Python
 - **Database and search:** PostgreSQL 17, using `tsvector`, GIN indexes and `pg_trgm` for full-text and fuzzy search
 - **Infrastructure:** Docker Compose, Nginx and HTTPS
+- **Testing:** pytest against a real PostgreSQL, Vitest, and Playwright browser tests at desktop and phone sizes, all run in CI before a deploy
 - **Data pipeline:** Python crawlers with hash-based incremental synchronisation and failure-safe persistence
 - **Production:** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 

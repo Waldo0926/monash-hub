@@ -31,6 +31,7 @@ Handbook、大学ウェブサイト、規程ページ、学生の議論を行き
 - **バックエンド：** FastAPI と Python
 - **データベースと検索：** PostgreSQL 17。`tsvector`、GIN インデックス、`pg_trgm` による全文検索とあいまい検索
 - **インフラ：** Docker Compose、Nginx、HTTPS
+- **テスト：** 実際の PostgreSQL に接続する pytest、Vitest、デスクトップとスマートフォンの画面サイズで動く Playwright のブラウザテスト。どれもデプロイ前に CI で実行
 - **データパイプライン：** Python クローラー。内容ハッシュによる差分同期と、失敗時に既存データを守る保存処理
 - **本番環境：** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 

@@ -136,14 +136,16 @@ function issueText(issue: any): string {
   switch (issue.kind) {
     case 'not_in_year':
       return $t('plan.issue.notInYear', { year: d.handbook_year ?? '' })
+    // The API sends the Handbook's English names; the sentence around them is
+    // already in the reader's language, so the names follow it.
     case 'not_offered_at_campus':
       return $t('plan.issue.notHere', {
-        campus: d.campus,
-        elsewhere: (d.elsewhere || []).join('、') || '—'
+        campus: campusName(d.campus),
+        elsewhere: (d.elsewhere || []).map(campusName).join('、') || '—'
       })
     case 'not_offered_in_period':
       return (d.offered_in || []).length
-        ? $t('plan.issue.notThen', { periods: (d.offered_in || []).join('、') })
+        ? $t('plan.issue.notThen', { periods: (d.offered_in || []).map(shortPeriod).join('、') })
         : $t('plan.issue.notThenAtAll')
     case 'missing_prerequisite': {
       if (d.any_of?.length) return $t('plan.issue.needAny', { units: d.any_of.join(' / ') })
