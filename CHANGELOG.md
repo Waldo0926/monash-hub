@@ -18,6 +18,10 @@ All notable changes to Monash Hub are documented here.
   from every unit by 31 December 2026. The hurdles page has a Chinese title.
 - The assistant ignores greetings and words like 您好, 孩子, 家长 and 啥, so a
   parent's question finds the same answer as a student's.
+- 怎么去机场 and other airport questions get the Malaysia transport answer
+  (KL Sentral, then the express train to KLIA).
+- The hurdles page headings have a checked Chinese translation. The first one
+  had been machine translated into a sentence about course codes.
 
 ### Security
 

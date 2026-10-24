@@ -9095,6 +9095,16 @@ GUIDE_REVIEWED_HEADINGS: dict[str, dict[str, str]] = {
         "WAM calculator": "WAM 计算器",
     },
     "working-on-a-student-visa": {"Exceptions": "例外情况"},
+    # Machine translation turned the first heading into a sentence about
+    # course codes. The jump list repeats the headings, so pin both forms.
+    "hurdles": {
+        "What is a competency hurdle?": "什么是能力门槛（competency hurdle）？",
+        "What is a competency hurdle": "什么是能力门槛（competency hurdle）",
+        "How to design a competency hurdle": "如何设计能力门槛",
+        "Failed competency hurdle attempt": "能力门槛没通过",
+        "Use of grading schema": "评分方案的使用",
+        "Jump to these sections:": "跳转到以下部分：",
+    },
 }
 for _guide_slug, _headings in GUIDE_REVIEWED_HEADINGS.items():
     GUIDE_AUDIT_OVERRIDES.setdefault(_guide_slug, {}).update(_headings)
