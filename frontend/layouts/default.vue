@@ -3,6 +3,10 @@
     <a href="#main" class="skip">{{ $t('nav.skipToContent') }}</a>
     <AppHeader />
     <main id="main" class="main">
+      <ClientOnly>
+        <OfflineNotice />
+        <InstallHint />
+      </ClientOnly>
       <slot />
     </main>
     <AppFooter />

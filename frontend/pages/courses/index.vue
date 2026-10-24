@@ -28,10 +28,13 @@ const query = computed(() => {
   return params.toString()
 })
 
-const { data, pending } = await useLocalisedApiFetch<any>(
+const { data, pending, error } = await useLocalisedApiFetch<any>(
   () => `/v1/courses?${query.value}`,
   { watch: [q, campus, year] }
 )
+// A list that failed to load answers 503, so the installed app keeps its last
+// good copy instead of saving an empty page over it.
+useErrorStatus(error)
 
 watch([q, campus], () => {
   router.replace({

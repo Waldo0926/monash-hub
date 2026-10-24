@@ -4,6 +4,28 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (add to home screen)
+
+- The site can be added to a phone's home screen and opens full screen like an
+  app, with its own icon. The manifest's description and shortcuts (units,
+  degrees, guides, course map) follow the interface language.
+- Unit, degree and guide pages, the home page and the course map, tree and
+  marks pages open with no network once they have been read. Pages and the API
+  still come from the network first; a saved copy is used only when there is
+  no connection, and the page then says it may be out of date. Only successful
+  answers are saved, and ratings, community, accounts, notifications, search
+  and the assistant are never saved.
+- A page that was never saved shows an offline page in the reader's language,
+  listing the pages that are.
+- An app left open picks up a new deploy: it checks when it comes back to the
+  front and reloads on the next link.
+- On phones, after a few pages, a one-line hint explains how to add the site
+  for iPhone Safari, Android browsers (including Huawei, Xiaomi, OPPO and vivo)
+  and WeChat. "Don't show again" hides it for good; the same steps are in the
+  footer.
+- The unit, degree and guide lists answer 503 when the API is down, like the
+  detail pages, so an error is never saved over a good copy.
+
 ### Fixed (special consideration answers)
 
 - The special consideration answer gave a deadline of two university working
