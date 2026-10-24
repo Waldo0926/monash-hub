@@ -76,6 +76,9 @@ const requestPath = computed(() => {
 const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(() => requestPath.value, {
   watch: [requestPath]
 })
+// A list that failed to load answers 503, so the installed app keeps its last
+// good copy instead of saving an error card over it.
+useErrorStatus(error)
 
 // The numbers beside each checkbox. Fetched on the client after the list, so
 // a slow count never holds up the results, and a failed one just hides them.

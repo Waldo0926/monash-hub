@@ -25,6 +25,9 @@ const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
   () => path.value,
   { watch: [path] }
 )
+// A list that failed to load answers 503, so the installed app keeps its last
+// good copy instead of saving an error card over it.
+useErrorStatus(error)
 
 watch([query, category, campus], () => {
   limit.value = PAGE

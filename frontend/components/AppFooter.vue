@@ -12,6 +12,9 @@ const { $t } = useNuxtApp()
 // search for in WeChat.
 const wechatParts = computed(() => $t('footer.wechat').split('{name}'))
 
+const standalone = ref(true)
+onMounted(() => { standalone.value = isStandalone() })
+
 const featuresHeading = computed(() => {
   if (locale.value === 'zh') return '功能导航'
   if (locale.value === 'en') return 'Features'
@@ -39,6 +42,14 @@ const featuresHeading = computed(() => {
           </span>
         </p>
         <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
+        <!-- Always here, for anyone who closed the hint at the top of the page.
+             Not shown inside the installed app, where it has nothing to do. -->
+        <ClientOnly>
+          <details v-if="!standalone" class="install">
+            <summary class="small">{{ $t('pwa.footerTitle') }}</summary>
+            <InstallSteps />
+          </details>
+        </ClientOnly>
       </div>
 
       <nav class="col explore-col" :aria-label="featuresHeading">
@@ -147,6 +158,15 @@ const featuresHeading = computed(() => {
 .credit { line-height: 1.45; }
 .credit :deep(a) { font-weight: 600; }
 .disclaimer { margin: 0; color: var(--muted); }
+.install { margin-top: var(--s4); color: var(--footer-heading); }
+.install summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.install :deep(.install-steps) { margin-top: var(--s2); }
 .footer-bottom {
   grid-column: 1 / -1;
   display: grid;
