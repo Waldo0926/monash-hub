@@ -57,6 +57,7 @@ def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[st
     prefix = f"/{year}/{kind}/"
     offset = 0
     total: int | None = None
+    seen_pages: set[tuple[str, ...]] = set()
 
     with httpx.Client(timeout=45.0, headers={"User-Agent": _user_agent()}) as client:
         while total is None or offset < total:
@@ -76,12 +77,32 @@ def _discover(year: int, kind: str, throttle: Throttle | None = None) -> list[st
             except (httpx.HTTPError, KeyError, ValueError) as exc:
                 raise DiscoveryError(f"unit index unreadable at offset {offset}: {exc}") from exc
 
-            results = payload.get("results") or []
+            if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+                raise DiscoveryError(f"index shape changed at offset {offset}")
+            reported_total = payload.get("total")
+            if (isinstance(reported_total, bool) or not isinstance(reported_total, int)
+                    or reported_total < 0):
+                raise DiscoveryError(f"invalid index total at offset {offset}")
+            results = payload["results"]
             if total is None:
-                total = int(payload.get("total") or 0)
+                total = reported_total
                 log.info("Handbook %s index reports %d entries", year, total)
+            elif reported_total != total:
+                raise DiscoveryError("index total changed during discovery; retry the inventory")
             if not results:
+                if offset < total:
+                    raise DiscoveryError(f"incomplete index: stopped at {offset} of {total}")
                 break
+            if offset + len(results) > total:
+                raise DiscoveryError("index returned more entries than its reported total")
+
+            if any(not isinstance(item, dict) or not isinstance(item.get("uri"), str)
+                   or not item["uri"].startswith(f"/{year}/") for item in results):
+                raise DiscoveryError(f"index returned a malformed or wrong-year item at {offset}")
+            page_identity = tuple(item["uri"] for item in results)
+            if page_identity in seen_pages:
+                raise DiscoveryError(f"index repeated a page at offset {offset}")
+            seen_pages.add(page_identity)
 
             for item in results:
                 uri = item.get("uri") or ""

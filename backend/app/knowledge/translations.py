@@ -313,6 +313,10 @@ def translate_blocks(blocks: list[dict[str, Any]], tr: Translation) -> list[dict
                 "columns": [tr.string(c) or c for c in block.get("columns") or []],
                 "rows": [[tr.string(c) or c for c in row] for row in block.get("rows") or []],
                 **(
+                    {"links": [_translate_spans(link, tr) for link in block["links"]]}
+                    if block.get("links") else {}
+                ),
+                **(
                     {"foot": [[tr.string(c) or c for c in row] for row in block["foot"]]}
                     if block.get("foot")
                     else {}

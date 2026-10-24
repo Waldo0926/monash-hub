@@ -26,6 +26,7 @@ interface Block {
   columns?: string[]
   rows?: string[][]
   foot?: string[][]
+  links?: Span[][]
 }
 
 const props = defineProps<{ blocks?: Block[] | null; fallback?: string | null }>()
@@ -145,6 +146,14 @@ function hasHeader(block: Block): boolean {
             </tfoot>
           </table>
         </div>
+        <ul v-if="block.links?.length" class="block-list table-links">
+          <li v-for="(link, j) in block.links" :key="j">
+            <template v-for="(span, k) in link" :key="k">
+              <a v-if="span.url" :href="span.url" target="_blank" rel="noopener external">{{ spaced(span.text) }}</a>
+              <template v-else>{{ spaced(span.text) }}</template>
+            </template>
+          </li>
+        </ul>
       </figure>
     </template>
   </div>
@@ -188,6 +197,7 @@ function hasHeader(block: Block): boolean {
 
 .block-table { margin: 0 0 var(--s5); }
 .block-table figcaption { margin-bottom: var(--s2); }
+.table-links { margin-top: var(--s3); }
 .block-table .scroll-x {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

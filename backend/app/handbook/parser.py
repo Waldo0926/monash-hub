@@ -18,11 +18,10 @@ import json
 import re
 from html import unescape
 from typing import Any
+from urllib.parse import unquote, urlsplit
 
-NEXT_DATA_RE = re.compile(
-    r'<script id="__NEXT_DATA__" type="application/json">(?P<json>.*?)</script>',
-    re.DOTALL,
-)
+from bs4 import BeautifulSoup
+
 TAG_RE = re.compile(r"<[^>]+>")
 WS_RE = re.compile(r"[ \t\r\f\v ]+")
 # Not ``\b``: it treats CJK characters as word characters, and language-unit
@@ -46,13 +45,34 @@ class ParseError(ValueError):
 
 
 def extract_next_data(html: str) -> dict[str, Any]:
-    match = NEXT_DATA_RE.search(html)
-    if not match:
+    # Attribute order, whitespace and a CSP nonce are presentation details.
+    script = BeautifulSoup(html, "lxml").find("script", id="__NEXT_DATA__")
+    if script is None:
         raise ParseError("no __NEXT_DATA__ payload in page")
     try:
-        return json.loads(match.group("json"))
+        data = json.loads(script.string or script.get_text())
     except json.JSONDecodeError as exc:  # pragma: no cover - malformed upstream
         raise ParseError(f"__NEXT_DATA__ is not valid JSON: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ParseError("__NEXT_DATA__ is not an object")
+    node = data
+    for key in ("props", "pageProps", "pageContent"):
+        node = node.get(key, {})
+        if not isinstance(node, dict):
+            raise ParseError(f"__NEXT_DATA__.{key} is not an object")
+    return data
+
+
+def validate_identity(source_url: str, kind: str, code: str, year: int) -> None:
+    """A fallback/redirect to another year or item must never overwrite this one."""
+    parts = unquote(urlsplit(source_url).path).strip("/").split("/")
+    if len(parts) != 3 or not parts[0].isdigit():
+        raise ParseError(f"not a Handbook item URL: {source_url}")
+    asked_year, asked_kind, asked_code = parts
+    # Some courses publish two codes on one page (M6011 M6019).
+    asked_code = asked_code.split()[0].upper()
+    if asked_kind != kind or int(asked_year) != year or asked_code != code.upper():
+        raise ParseError(f"payload identity {year}/{kind}/{code} does not match {source_url}")
 
 
 def html_to_text(value: str | None) -> str | None:
@@ -530,6 +550,7 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
     academic_year = _as_int(content.get("implementation_year"))
     if academic_year is None:
         raise ParseError(f"no implementation_year for {unit_code}")
+    validate_identity(source_url, "units", unit_code, academic_year)
 
     assessments = _parse_assessments(content.get("assessments"))
     assessment_summary = html_to_text(content.get("handbook_assessment_summary"))

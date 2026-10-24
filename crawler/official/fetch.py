@@ -20,10 +20,11 @@ from __future__ import annotations
 import logging
 import urllib.robotparser
 from dataclasses import dataclass
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
 
+from crawler.response import html_error, is_html, retry_after
 from crawler.throttling.limiter import USER_AGENT, Throttle
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class PageResult:
     error: str | None = None
     #: Seconds the server asked us to wait, when it said.
     retry_after: float | None = None
+    final_url: str | None = None
 
     @property
     def ok(self) -> bool:
@@ -75,15 +77,23 @@ class Robots:
             return None
         parser = urllib.robotparser.RobotFileParser()
         if status == 200:
+            if text.lstrip().startswith("<"):
+                log.warning("%s returned HTML instead of robots rules; treating host as closed",
+                            robots_url)
+                return None
             parser.parse(text.splitlines())
-        elif 400 <= status < 500:
-            # No file, or one we may not read: the convention is that the host
-            # has no rules.
+        elif status in (404, 410):
             parser.parse([])
         else:
             log.warning("%s answered HTTP %s; treating the host as closed", robots_url, status)
             return None
         return parser
+
+    def denial_reason(self, url: str) -> str:
+        parts = urlsplit(url)
+        if self._parsers.get(f"{parts.scheme}://{parts.netloc}") is None:
+            return "robots.txt unavailable - crawl permission unknown"
+        return "disallowed by robots.txt"
 
 
 class OfficialFetcher:
@@ -112,7 +122,7 @@ class OfficialFetcher:
         if self._client is None:
             self._client = httpx.Client(
                 timeout=self.timeout,
-                follow_redirects=True,
+                follow_redirects=False,
                 headers={
                     "User-Agent": USER_AGENT,
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -122,6 +132,7 @@ class OfficialFetcher:
         return self._client
 
     def _robots_text(self, url: str) -> tuple[int, str]:
+        self.throttle.wait()
         response = self._http().get(url)
         return response.status_code, response.text
 
@@ -148,8 +159,9 @@ class OfficialFetcher:
 
     def fetch(self, url: str) -> PageResult:
         if not self.robots.allowed(url):
-            log.info("%s: disallowed by robots.txt, not fetched", url)
-            return PageResult(url, None, None, self._mode, "disallowed by robots.txt")
+            reason = self.robots.denial_reason(url)
+            log.info("%s: %s, not fetched", url, reason)
+            return PageResult(url, None, None, self._mode, reason)
         last: PageResult | None = None
         for attempt in range(1, self.throttle.limit.max_attempts + 1):
             self.throttle.wait()
@@ -170,15 +182,33 @@ class OfficialFetcher:
     def _fetch_once(self, url: str) -> PageResult:
         if self._mode == BROWSER_TRANSPORT:
             return self._fetch_browser(url)
+        current = url
         try:
-            response = self._http().get(url)
+            for _ in range(6):
+                with self._http().stream("GET", current) as response:
+                    status = response.status_code
+                    if response.is_redirect:
+                        target = urljoin(current, response.headers.get("location", ""))
+                        if not _allowed_redirect(url, target) or not self.robots.allowed(target):
+                            return PageResult(url, status, None, HTTP_TRANSPORT,
+                                              "redirect outside approved public pages")
+                        current = target
+                    elif status == 200:
+                        if not is_html(response.headers.get("content-type", "")):
+                            return PageResult(url, status, None, HTTP_TRANSPORT,
+                                              "non-HTML response, kept as link only")
+                        response.read()
+                        html = response.text
+                        error = html_error(html)
+                        return PageResult(url, status, None if error else html, HTTP_TRANSPORT,
+                                          error, final_url=current)
+                    else:
+                        return PageResult(url, status, None, HTTP_TRANSPORT, f"HTTP {status}",
+                                          retry_after=retry_after(response.headers.get("retry-after")))
+                self.throttle.wait()
         except httpx.HTTPError as exc:
             return PageResult(url, None, None, HTTP_TRANSPORT, f"{type(exc).__name__}: {exc}")
-        if response.status_code == 200:
-            return PageResult(url, 200, response.text, HTTP_TRANSPORT)
-        return PageResult(url, response.status_code, None, HTTP_TRANSPORT,
-                          f"HTTP {response.status_code}",
-                          retry_after=_retry_after(response.headers.get("retry-after")))
+        return PageResult(url, None, None, HTTP_TRANSPORT, "too many redirects")
 
     def _fetch_browser(self, url: str) -> PageResult:
         try:
@@ -191,7 +221,15 @@ class OfficialFetcher:
             header = response.headers.get("retry-after") if response else None
             return PageResult(url, status, None, BROWSER_TRANSPORT, f"HTTP {status}",
                               retry_after=_retry_after(header))
-        return PageResult(url, 200, page.content(), BROWSER_TRANSPORT)
+        if not _allowed_redirect(url, page.url):
+            return PageResult(url, status, None, BROWSER_TRANSPORT,
+                              "redirect outside approved pages")
+        if not is_html(response.headers.get("content-type", "")):
+            return PageResult(url, status, None, BROWSER_TRANSPORT, "non-HTML response")
+        html = page.content()
+        error = html_error(html)
+        return PageResult(url, 200, None if error else html, BROWSER_TRANSPORT,
+                          error, final_url=page.url)
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -215,10 +253,20 @@ class OfficialFetcher:
 
 
 def _retry_after(header: str | None) -> float | None:
-    """Seconds from a Retry-After header, when it is a number of seconds."""
-    if not header:
-        return None
+    return retry_after(header)
+
+
+def _allowed_redirect(source: str, target: str) -> bool:
+    original, destination = urlsplit(source), urlsplit(target)
+    hosts = {original.hostname}
+    if original.hostname in {"www.monash.edu", "www.monash.edu.my"}:
+        hosts = {"www.monash.edu", "www.monash.edu.my"}
     try:
-        return max(0.0, float(header.strip()))
+        return (
+            destination.scheme == "https" and destination.hostname in hosts
+            and destination.port in (None, 443) and not destination.username
+            and not destination.password
+            and not destination.path.lower().endswith((".pdf", ".doc", ".docx", ".zip"))
+        )
     except ValueError:
-        return None
+        return False

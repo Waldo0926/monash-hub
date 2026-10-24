@@ -28,6 +28,7 @@ from app.handbook.parser import (
     compute_content_hash,
     extract_next_data,
     html_to_text,
+    validate_identity,
 )
 
 # The Handbook's word for what a requirement points at, mapped to ours. Anything
@@ -154,6 +155,7 @@ def parse_course_page(html: str, source_url: str) -> dict[str, Any]:
     academic_year = _as_int(content.get("implementation_year"))
     if academic_year is None:
         raise ParseError(f"no implementation_year for {code}")
+    validate_identity(source_url, "courses", code, academic_year)
 
     record: dict[str, Any] = {
         "course_code": code,
@@ -194,6 +196,7 @@ def parse_aos_page(html: str, source_url: str) -> dict[str, Any]:
     academic_year = _as_int(content.get("implementation_year"))
     if academic_year is None:
         raise ParseError(f"no implementation_year for {code}")
+    validate_identity(source_url, "aos", code, academic_year)
 
     record: dict[str, Any] = {
         "aos_code": code,
