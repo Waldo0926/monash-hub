@@ -7,6 +7,9 @@
 #   deployment/crawl.sh handbook --all --min-interval 1.5   # every 2026 unit
 #   deployment/crawl.sh official            # only seed pages that are due
 #   deployment/crawl.sh official --all      # every seed page, ignoring intervals
+#   deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
+#                                           # store pages read on another machine
+#                                           # (crawler.official.harvest)
 #   deployment/crawl.sh seed                # curated FAQ rows
 #   deployment/crawl.sh reindex-zh          # make the stored Chinese searchable
 #   deployment/crawl.sh reindex-zh --stats  # coverage only, writes nothing
@@ -36,6 +39,14 @@ case "$target" in
   official)
     "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run "$@"
     ;;
+  official-harvest)
+    # monash.edu.my refuses this server's address; its pages are read on a
+    # member's computer and copied here. The file's folder is mounted read-only.
+    file="${1:?usage: $0 official-harvest /path/to/file.jsonl.gz}"; shift
+    dir="$(cd "$(dirname "$file")" && pwd)"
+    "${COMPOSE[@]}" run --rm -v "$dir:/harvest:ro" crawler \
+      python -m crawler.official.run --harvest "/harvest/$(basename "$file")" "$@"
+    ;;
   seed)
     "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
     ;;
@@ -46,7 +57,7 @@ case "$target" in
     "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh "$@"
     ;;
   *)
-    echo "usage: $0 {handbook|official|seed|reindex-zh} [args]" >&2
+    echo "usage: $0 {handbook|official|official-harvest|seed|reindex-zh} [args]" >&2
     exit 2
     ;;
 esac

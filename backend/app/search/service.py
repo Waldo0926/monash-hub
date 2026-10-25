@@ -1094,6 +1094,11 @@ def _search_official(
             _past_year_title().asc(),
             title_phrase.desc(),
             title_concept.desc(),
+            # Then the pages picked by hand over the long tail the sitemaps
+            # added: the study load page before a faculty FAQ that asks about
+            # part-time honours, Malaysia's course transfer page before a
+            # school's postgraduate copy of it.
+            case((OfficialPage.curated, 1), else_=0).desc(),
             title_typed.desc(),
             title_words.desc(),
             title_literal.desc(),

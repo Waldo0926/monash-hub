@@ -394,6 +394,51 @@ def _list_block(node: Tag) -> dict[str, Any] | None:
     return {"type": "list", "ordered": node.name == "ol", "items": items}
 
 
+def _has_loose_text(node: Tag) -> bool:
+    """A list with text outside its items: ``<ul><p>April ceremony</p><li>...``."""
+    return any(
+        (isinstance(child, Tag) and child.name != "li" and child.get_text(strip=True))
+        or (isinstance(child, NavigableString) and not isinstance(child, Comment)
+            and _clean(str(child)).strip())
+        for child in node.children
+    )
+
+
+def _list_runs(node: Tag, add_paragraph) -> list[dict[str, Any]]:
+    """The items of a list with the text between them kept, in order.
+
+    Monash's graduation FAQ writes one ``<ul>`` per question with a paragraph
+    before each group of items ("April 2026 ceremony in Malaysia, you'll get
+    tickets in total:"). Only the ``<li>`` were read, so the items lost the
+    ceremony they belong to.
+    """
+    out: list[dict[str, Any]] = []
+    run: list[list[dict[str, Any]]] = []
+
+    def flush() -> None:
+        if run:
+            out.append({"type": "list", "ordered": node.name == "ol", "items": list(run)})
+            run.clear()
+
+    for child in node.children:
+        if isinstance(child, Tag) and child.name == "li":
+            spans = _rich(child)
+            if spans:
+                run.append(spans)
+        elif isinstance(child, Tag):
+            spans = _rich(child)
+            if spans and rich_to_text(spans):
+                flush()
+                out.append({"type": "paragraph", "spans": spans})
+        elif isinstance(child, NavigableString) and not isinstance(child, Comment):
+            text = _clean(str(child)).strip()
+            if text:
+                flush()
+                out.append({"type": "paragraph", "spans": [{"text": text}]})
+    flush()
+    return out
+
+
 def _is_tab_group(node: Tag) -> bool:
     classes = set(node.get("class") or [])
     return "tabs" in classes and node.select_one(".tabs__target") is not None
@@ -463,9 +508,12 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
                 # codes, mark ranges - into a single run of text with no row
                 # left in it. Lift them out before the item is flattened.
                 lifted = [t.extract() for t in child.find_all("table")]
-                block = _list_block(child)
-                if block:
-                    blocks.append(block)
+                if _has_loose_text(child):
+                    blocks.extend(_list_runs(child, add_paragraph))
+                else:
+                    block = _list_block(child)
+                    if block:
+                        blocks.append(block)
                 for lifted_table in lifted:
                     lifted_block = _table_block(lifted_table)
                     if lifted_block:

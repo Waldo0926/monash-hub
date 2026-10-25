@@ -34,6 +34,8 @@ class Seed:
     #: Such a page is never fetched. It is listed with this description and its
     #: link, so a student can find it, and its text stays where Monash put it.
     sign_in: str | None = None
+    #: Picked by hand, as opposed to a row of seeds_coverage.py.
+    curated: bool = True
 
 
 CATEGORIES = {
@@ -532,7 +534,7 @@ SEEDS: tuple[Seed, ...] = (
 
 # The long tail: every other content page on the student sites, Malaysia first.
 SEEDS = SEEDS + tuple(
-    Seed(slug, url, title, category, tags, tier=tier, applies_to=applies_to)
+    Seed(slug, url, title, category, tags, tier=tier, applies_to=applies_to, curated=False)
     for slug, url, title, category, tags, tier, applies_to in COVERAGE
 )
 

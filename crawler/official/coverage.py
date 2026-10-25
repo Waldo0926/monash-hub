@@ -26,6 +26,7 @@ Malaysia students.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import re
 import sys
@@ -53,6 +54,9 @@ EXTRA: dict[str, dict] = {
     "https://www.monash.edu/business/current-students/global-study-experiences"
     "/global-summer-and-winter-programs": {},
     "https://www.monash.edu.my/science/current/undergraduate/exchange-program": {},
+    # Printing on campus and in the library: short pages that fell under
+    # MIN_LENGTH in the walk, and a question students ask every semester.
+    "https://www.monash.edu.my/its/our-services/students/printing-services": {"keep": True},
     "https://www.monash.edu.my/sass/current/undergraduate/monash-study-abroad-program": {},
 }
 
@@ -76,7 +80,16 @@ SCOPE_OVERRIDES: dict[str, tuple[str, str]] = {
         ("australia", "an Australian statement; the page does not say Malaysia issues it"),
 }
 
-MIN_LENGTH = 450
+#: A 200 whose title says it is not there.
+NOT_FOUND = re.compile(r"^\s*(?:404\b|page not found\b|page cannot be found\b)", re.IGNORECASE)
+
+#: A near-empty page read before the cleaner stopped falling back to the
+#: whole body: its "text" is the cookie banner.
+COOKIE_ONLY = re.compile(r"^\s*(?:this (?:web)?site |we )uses? cookies\b", re.IGNORECASE)
+
+#: Shorter than this and a page is a menu or a landing tile. 450 also dropped
+#: real short answers (printing, opening hours); the crawl itself stops at 200.
+MIN_LENGTH = 250
 LEAVE_OUT = re.compile(
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
@@ -88,9 +101,51 @@ LEAVE_OUT = re.compile(
     # dates, not guidance. The project and events overviews stay.
     r"third-year-research-project/|/career-events/|"
     # Partner programs belong to monash-abroad-tracker; Prato is Monash's own.
-    r"program-search/(?!.*prato)|program-search$",
+    r"program-search/(?!.*prato)|program-search$|"
+    # Not guidance: the site search, the 404 page, feedback forms, tracking
+    # and verification files the sitemaps list.
+    # A feedback form sits at the top of a section; ".../results/feedback" is
+    # how to get feedback on a mark and stays.
+    r"(?:^|/)(?:search|page-not-found|analytics)(?:/|$)|^/(?:[^/]+/)?feedback$|google-tag-manager|"
+    r"/google[0-9a-f]*\.html$|\.txt$|\.xml$|"
+    # The rest of a whole-site sitemap that is not for students or parents:
+    # research groups, news and seminars, staff lists and profiles, alumni
+    # and student testimonials, job ads, conference and campaign microsites,
+    # and the CMS's own fragments and drafts. The 2026-10-25 build added about
+    # 890 of these, filed under enrolment or support by default.
+    # A school's research section, not a page about research rules deeper in
+    # (students/support/disability/services/research).
+    # Research scholarships are for applicants and stay.
+    r"^/(?:[^/]+/)?research(?:/(?!support-and-scholarships)|$)|"
+    r"(?:^|/)(?:researchers-say|our-research|research-areas|research-centres?|"
+    r"research-facilities|monashrise|all-staff|our-people|our-staff|staff-directory|"
+    r"our-alumni|testimonials|what-they-say|gallery|mockup|for-review|"
+    r"nested-content|right-hand-side-bar|rhs-modules|engage-with-us)(?:/|$)|"
+    r"^/(?:rhs2|paced|mipo|net-zero-future-centre|optical-imaging|future-conversations|"
+    r"life-capsule|education-excellence)(?:/|$)|^/about/career(?:/|$)|"
+    # Conferences and expos. Not every segment with a year in it: "fees-2027"
+    # is exactly what a parent is looking for.
+    r"(?:^|/)(?:[a-z-]*-)?(?:expo|icamr|tbcg|eepm)[a-z0-9-]*(?:/|$)|"
+    r"(?:^|/)[^/]*(?:symposium|colloquium|mockup|spotlight|staff-only)[^/]*(?:/|$)|"
+    # Research platforms and centres with sites of their own, a staging copy,
+    # and sidebar fragments ("rhs" is the right-hand side bar).
+    r"^/(?:mdp|jcsmhs/gph|ohse/information-test)(?:/|$)|(?:^|/)rhs(?:-[^/]*)?(?:/|$)|-custom/|"
+    # Event sign-ups and their thank-you pages, recruitment events for agents
+    # and applicants, and the COVID-19 notices of 2020-22.
+    r"(?:^|/)thank(?:-[^/]*)?(?:/|$)|^/(?:application-day|agent-familiarisation-visit|"
+    r"infoday[^/]*|sir-john-monash-lecture|event-attendance|covid19-updates|mena)(?:/|$)|"
+    # Single research projects and PhD positions, employer and staff pages.
+    r"undergraduate-research-opportunity/|phd-studentship|(?:^|/)employers(?:/|$)|"
+    r"welcome-new-staff|organisational-chart|library-exhibitions|"
+    r"[^/]*testimonial[^/]*(?:/|$)",
     re.IGNORECASE,
 )
+
+#: Discovery answers that say an address is gone or has moved. Any other
+#: failure - a 403, a timeout - says nothing about the page, and a page the
+#: coverage list already has stays on it: the 2026-10-25 build dropped five
+#: Malaysia eExam pages because the walk was refused on them that night.
+GONE = re.compile(r"\b(?:404|410)\b|soft 404|redirect", re.IGNORECASE)
 CATEGORY_ORDER = ["assessment", "enrolment", "graduation", "fees-dates", "international",
                   "academic-rules", "exchange", "support", "malaysia"]
 SCHOOL = re.compile(r"monash\.edu\.my/(business|it|science|engineering|pharmacy|sass|medicine)/",
@@ -103,12 +158,20 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"ceremon|graduation day|graduations/guides", ["毕业典礼"], ["ceremony"]),
     (r"all.dates|graduation dates", ["毕业时间", "毕业典礼日期"], ["graduation dates"]),
     (r"course.completion|eligib", ["完成学业", "毕业资格"], ["course completion"]),
-    (r"transfer", ["转专业", "转课程", "转校区", "转学"], ["transfer", "course transfer"]),
+    # A credit transfer moves credit, not the student.
+    (r"(?<!credit )(?<!credit-)transfer", ["转专业", "转课程", "转校区", "转学"],
+     ["transfer", "course transfer"]),
     (r"campus.transfer|clayton.transfer|intercampus|campus-transfer",
      ["转校区", "澳洲校区", "马来西亚校区"], ["campus transfer"]),
     (r"\bfees?\b|payment|\bpay\b", ["学费", "缴费"], ["fees"]),
     (r"refund", ["退款", "退费"], ["refund"]),
     (r"discount", ["学费折扣", "优惠"], ["discount"]),
+    (r"instal+ment", ["分期付款", "分期"], ["instalment"]),
+    (r"\bepf\b", ["公积金", "EPF 提取"], ["epf"]),
+    (r"\bsst\b", ["服务税", "SST"], ["sst"]),
+    (r"e-invoic", ["电子发票"], ["e-invoice"]),
+    (r"encumbrance", ["欠费限制", "欠费"], ["encumbrance"]),
+    (r"fee statement", ["学费账单", "账单"], ["fee statement"]),
     (r"loan|hecs|fee-help|sa-help", ["贷款"], ["loan"]),
     (r"scholarship|award", ["奖学金"], ["scholarship"]),
     (r"visa|student pass|emgs|immigration", ["签证", "学生签证", "学生准证"], ["visa"]),
@@ -136,7 +199,8 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"exchange|abroad|overseas|intercampus|global (summer|winter)|summer program|"
      r"winter program|short.term",
      ["交换", "海外学习"], ["exchange"]),
-    (r"credit|exemption|advanced standing", ["学分减免"], ["credit"]),
+    # "12 credit points" is a unit's size, not credit for earlier study.
+    (r"credit(?![- ]?points?)|exemption|advanced standing", ["学分减免", "学分转换"], ["credit"]),
     (r"policy|policies|procedure", ["政策", "规定"], ["policy"]),
     (r"global summer|summer program",
      ["暑期项目", "Global Summer Program"], ["global summer program"]),
@@ -287,8 +351,9 @@ def category(url: str) -> str:
         return "enrolment"
     if "examinations-results" in path or "/assessments" in path:
         return "assessment"
-    if any(k in path for k in ("/fees", "fee-payment", "financial-assistance", "scholarship",
-                               "/government-support", "principal-dates", "/dates", "jompay")):
+    if any(k in path for k in ("/fees", "/finance", "fee-payment", "financial-assistance",
+                               "scholarship", "/government-support", "principal-dates",
+                               "/dates", "jompay")):
         return "fees-dates"
     if "international" in path or "student-pass" in path or "insurance" in path:
         return "international"
@@ -347,44 +412,137 @@ def slugify(url: str, taken: set[str], known: dict[str, str] | None = None) -> s
     return slug
 
 
+#: The pages that change with the semester: admin, fees, applying, visas.
+SEMESTERLY = re.compile(
+    r"/students/admin|student-services/(student-admin|international|financial)|"
+    r"/finance|/fees|/study/apply|/admissions/|/student-pass",
+    re.IGNORECASE,
+)
+
+
 def tier(url: str) -> str:
     if re.search(r"dates|timetable", url):
         return "dynamic"
-    return "stable" if re.search(r"polic|procedure|glossary|rules", url) else "medium"
+    if re.search(r"polic|procedure|glossary|rules", url):
+        return "stable"
+    # With every page of both sites listed, re-reading the faculty, library
+    # and support pages every two days would keep the crawler busy all day
+    # for text that changes a few times a year.
+    return "medium" if SEMESTERLY.search(url) else "stable"
+
+
+def _same_text_kept(text: str, kept: dict[str, dict]) -> str | None:
+    """The kept page with this text, if any: length within 3 per cent and the
+    opening (discovery keeps the first 300 characters) nearly the same."""
+    head = re.sub(r"\s+", " ", text[:300]).strip()
+    for url, page in kept.items():
+        size = page.get("len") or 0
+        if not size or abs(size - len(text)) > 0.03 * size:
+            continue
+        other = re.sub(r"\s+", " ", page.get("head") or "").strip()
+        if other and difflib.SequenceMatcher(None, head, other).ratio() >= 0.85:
+            return url
+    return None
 
 
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
-          known: dict[str, str] | None = None) -> list[dict]:
+          known: dict[str, str] | None = None, previous: tuple = ()) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
-    ``known`` maps the addresses already in seeds_coverage.py to their slugs."""
-    listed_urls = {seed.url.rstrip("/") for seed in existing}
+    ``known`` maps the addresses already in seeds_coverage.py to their slugs;
+    ``previous`` is that file's rows, kept when discovery could not read them."""
+    listed_urls = {seed.url.rstrip("/").lower() for seed in existing}
     listed_hashes = {t["hash"] for t in texts.values() if t.get("hand_picked") and t.get("hash")}
     taken = {seed.slug for seed in existing}
     kept: dict[str, dict] = {}
     by_hash: dict[str, str] = {}
+
+    known = known or {}
+    known_urls = {u.rstrip("/").lower() for u in known}
+
+    def rank(url: str) -> tuple:
+        # The same text at two addresses: keep the shorter one, and of the
+        # study-abroad mirrors the /outbound address students are given. An
+        # address already in seeds_coverage.py wins, so a page keeps its slug
+        # and its translations from one build to the next; then a student
+        # services page over the same text in the prospective-student section
+        # (Malaysia's sibling discount is at both). A "home-old" copy is the
+        # last choice: student-services/home-old/m-pass is the old M-Pass page.
+        path = urlparse(url).path.lower()
+        services = path.startswith(("/student-services/", "/students/"))
+        return (url.lower() not in known_urls, "/home-old/" in path, not services, len(url),
+                "/overseas" in url)
+
+    spelled: dict[str, str] = {}  # lower-cased address -> the spelling kept
     for page in pages:
         url = page["url"].rstrip("/")
-        if page.get("status") != 200 or url in listed_urls or url in kept:
+        # Monash serves an address in any capitalisation, and the sitemaps
+        # list some twice; it is one page.
+        if page.get("status") != 200 or url.lower() in listed_urls or url.lower() in spelled:
             continue
-        if LEAVE_OUT.search(urlparse(url).path):
+        if LEAVE_OUT.search(urlparse(url).path) or NOT_FOUND.match(page.get("title") or ""):
             continue
         if page.get("len", 0) < MIN_LENGTH and not page.get("keep"):
+            continue
+        if page.get("len", 0) < 450 and COOKIE_ONLY.match(page.get("head") or ""):
             continue
         digest = page.get("hash")
         if digest and digest in listed_hashes:
             continue
         if digest and digest in by_hash:
-            # The same text at two addresses: keep the shorter one, and of the
-            # study-abroad mirrors the /outbound address students are given.
             other = by_hash[digest]
-            if (len(url), "/overseas" in url) >= (len(other), "/overseas" in other):
+            if rank(url) >= rank(other):
                 continue
             del kept[other]
+            del spelled[other.lower()]
         if digest:
             by_hash[digest] = url
         kept[url] = page
+        spelled[url.lower()] = url
 
     rows = []
+    moved: dict[str, str] = {}  # live address -> the slug it had at its old one
+    failed = {page["url"].rstrip("/").lower(): page for page in pages
+              if page.get("status") != 200 or page.get("error")}
+    seen = {page["url"].rstrip("/").lower() for page in pages}
+    for slug, url, title, cat, tag_list, refresh, applies_to in previous:
+        key = url.rstrip("/").lower()
+        page = failed.get(key)
+        if url.lower() in spelled or url.lower() in listed_urls \
+                or LEAVE_OUT.search(urlparse(url).path):
+            continue
+        if page is None:
+            # Not in any sitemap and linked from nowhere discovery walked - the
+            # five Malaysia eExam pages - but production holds its text, so
+            # it is still there; a 404 on the next crawl takes it down.
+            stored = texts.get(url.rstrip("/")) or {}
+            if key in seen or len(stored.get("text") or "") < MIN_LENGTH:
+                continue
+            # The same page at the address the sitemap gives now: IT's
+            # Course-Offered/postgraduates pages moved under current-students.
+            # Hashes cannot tell: the stored one was made by an older
+            # extractor and covers the title too. The text can.
+            # The live address is kept, under the old slug so the page keeps
+            # its translations: Monash lists the old one nowhere and may drop
+            # its redirect. Unless the live one is a school's copy of a central
+            # page - Malaysia's student-admin re-enrol page, not the School of
+            # Science's.
+            twin = _same_text_kept(stored.get("text") or "", kept)
+            if twin and SCHOOL.search(twin) and not SCHOOL.search(url):
+                del kept[twin]
+                del spelled[twin.lower()]
+            elif twin:
+                if twin not in moved and twin.lower() not in known_urls:
+                    moved[twin] = slug
+                continue
+        elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
+            continue
+        spelled[url.lower()] = url
+        rows.append({
+            "slug": slug, "url": url, "title": title, "category": cat, "tags": tuple(tag_list),
+            "tier": refresh, "applies_to": applies_to, "depth": 9, "prio": 0,
+            "reason": "kept: listed before, not read this time",
+        })
+        taken.add(slug)
     for url, page in kept.items():
         title = clean_title(page.get("title"), url)
         cat = category(url)
@@ -396,8 +554,13 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             applies_to, reason = page["applies_to"], "set by hand"
         if url in SCOPE_OVERRIDES:
             applies_to, reason = SCOPE_OVERRIDES[url]
+        slug = moved.get(url)
+        if slug and slug not in taken:
+            taken.add(slug)
+        else:
+            slug = slugify(url, taken, known)
         rows.append({
-            "slug": slugify(url, taken, known), "url": url, "title": title, "category": cat,
+            "slug": slug, "url": url, "title": title, "category": cat,
             "tags": tags(title, url, cat), "tier": tier(url), "applies_to": applies_to,
             "reason": reason, "depth": page.get("depth", 9), "prio": page.get("prio", 0),
         })
@@ -468,6 +631,11 @@ def main() -> None:
     parser.add_argument("--texts", help="stored page text, from --export-texts")
     parser.add_argument("--out", default="crawler/official/seeds_coverage.py")
     parser.add_argument("--export-texts", metavar="PATH", help="write stored page text and stop")
+    parser.add_argument("--previous", metavar="PATH",
+                        help="the seeds_coverage.py that production runs (default: this "
+                             "checkout's). Its slugs are kept, and its rows that discovery "
+                             "could not read stay listed - pass main's copy when rebuilding "
+                             "on a branch that already holds a rebuild")
     args = parser.parse_args()
     if args.export_texts:
         export_texts(args.export_texts)
@@ -476,7 +644,13 @@ def main() -> None:
     from crawler.official.seeds import SEEDS
     from crawler.official.seeds_coverage import COVERAGE
 
-    generated = {row[0] for row in COVERAGE}
+    current = COVERAGE
+    if args.previous:
+        import runpy
+
+        COVERAGE = runpy.run_path(args.previous)["COVERAGE"]
+
+    generated = {row[0] for row in current}
     hand_picked = [seed for seed in SEEDS if seed.slug not in generated]
     pages: list[dict] = []
     for path in args.inputs:
@@ -486,7 +660,7 @@ def main() -> None:
     if args.texts:
         with open(args.texts, encoding="utf-8") as handle:
             texts = json.load(handle)
-    rows = build(pages, texts, hand_picked, {row[1]: row[0] for row in COVERAGE})
+    rows = build(pages, texts, hand_picked, {row[1]: row[0] for row in COVERAGE}, COVERAGE)
     with open(args.out, "w", encoding="utf-8") as handle:
         handle.write(render(rows))
     for row in rows:

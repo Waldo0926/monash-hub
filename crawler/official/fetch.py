@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import re
 import urllib.robotparser
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -36,6 +37,11 @@ AUTO_TRANSPORT = "auto"
 #: How many times one run may replace a page that crashed before it gives up
 #: and lets the rest of the run fail, which the alert then reports.
 MAX_BROWSER_RESTARTS = 2
+#: Refusals over httpx in a row before a run stops trying httpx at all. One
+#: refused page used to switch the whole run to the browser, which on a
+#: machine the WAF lets through costs three seconds a page for nothing; a host
+#: that refuses everything (the VPS, monash.edu.my) is still latched quickly.
+LATCH_AFTER = 3
 
 
 @dataclass(slots=True)
@@ -139,6 +145,7 @@ class OfficialFetcher:
         self._browser = None
         self._page = None
         self._restarts = 0
+        self._refusals = 0
 
     # -- transports ---------------------------------------------------------
 
@@ -166,10 +173,13 @@ class OfficialFetcher:
             # stopped every monash.edu.my page from being read. Ask again the
             # way the pages would be read; a refusal there still closes it.
             log.warning("%s refused over httpx - reading it with the browser", url)
-            self._mode = BROWSER_TRANSPORT
             self.throttle.wait()
             return self._robots_browser(url)
         return response.status_code, response.text
+
+    def text_file(self, url: str) -> tuple[int, str]:
+        """A text resource such as a sitemap: status and body, read like robots.txt."""
+        return self._robots_text(url)
 
     def _robots_browser(self, url: str) -> tuple[int, str]:
         response = self._browser_page().goto(url, wait_until="domcontentloaded",
@@ -207,28 +217,45 @@ class OfficialFetcher:
             reason = self.robots.denial_reason(url)
             log.info("%s: %s, not fetched", url, reason)
             return PageResult(url, None, None, self._mode, reason)
+        return self._attempts(url)
+
+    def _attempts(self, url: str) -> PageResult:
         last: PageResult | None = None
-        for attempt in range(1, self.throttle.limit.max_attempts + 1):
-            self.throttle.wait()
-            result = self._fetch_once(url)
-            if result.ok and redirected_up(url, result.final_url):
-                # Keep the last copy and let a person update the seed.
-                log.warning("%s redirected to %s, not stored", url, result.final_url)
-                return PageResult(url, result.status, None, result.transport,
-                                  f"redirected to {result.final_url}",
-                                  final_url=result.final_url)
-            if result.ok or result.status == 404:
-                return result
-            last = result
-            if (result.status == 403 and self._mode == HTTP_TRANSPORT
-                    and self._requested == AUTO_TRANSPORT):
-                # Latch, and let the next attempt use the browser. Switching on
-                # the *next* attempt means the crawl delay is never spent twice.
-                log.warning("HTTP 403 on %s - switching to browser transport", url)
-                self._mode = BROWSER_TRANSPORT
-            if attempt < self.throttle.limit.max_attempts:
-                self.throttle.backoff(attempt, at_least=result.retry_after or 0.0)
-        return last or PageResult(url, None, None, self._mode, "no attempt made")
+        borrowed = False
+        try:
+            for attempt in range(1, self.throttle.limit.max_attempts + 1):
+                self.throttle.wait()
+                result = self._fetch_once(url)
+                if result.ok and redirected_up(url, result.final_url):
+                    # Keep the last copy and let a person update the seed.
+                    log.warning("%s redirected to %s, not stored", url, result.final_url)
+                    return PageResult(url, result.status, None, result.transport,
+                                      f"redirected to {result.final_url}",
+                                      final_url=result.final_url)
+                if result.ok and result.transport == HTTP_TRANSPORT:
+                    self._refusals = 0
+                if result.ok or result.status == 404 or _final(result):
+                    return result
+                last = result
+                if (result.status == 403 and self._mode == HTTP_TRANSPORT
+                        and self._requested == AUTO_TRANSPORT):
+                    # The next attempt uses the browser, with no backoff: the
+                    # WAF refusing httpx is not the server asking us to wait.
+                    self._refusals += 1
+                    self._mode = BROWSER_TRANSPORT
+                    if self._refusals >= LATCH_AFTER:
+                        log.warning("HTTP 403 on %s, %d in a row - browser from now on",
+                                    url, self._refusals)
+                    else:
+                        log.info("HTTP 403 on %s - reading this page with the browser", url)
+                        borrowed = True
+                    continue
+                if attempt < self.throttle.limit.max_attempts:
+                    self.throttle.backoff(attempt, at_least=result.retry_after or 0.0)
+            return last or PageResult(url, None, None, self._mode, "no attempt made")
+        finally:
+            if borrowed and self._refusals < LATCH_AFTER:
+                self._mode = HTTP_TRANSPORT
 
     def _fetch_once(self, url: str) -> PageResult:
         if self._mode == BROWSER_TRANSPORT:
@@ -279,6 +306,12 @@ class OfficialFetcher:
                               "redirect outside approved pages")
         if not is_html(response.headers.get("content-type", "")):
             return PageResult(url, status, None, BROWSER_TRANSPORT, "non-HTML response")
+        # The DOM is there at domcontentloaded, but tabs and accordions are
+        # often filled in after it, which is how a page with eighteen thousand
+        # characters came back "too short". A page that keeps polling never
+        # goes idle, and still has its text.
+        with contextlib.suppress(Exception):
+            page.wait_for_load_state("networkidle", timeout=10_000)
         html = page.content()
         error = html_error(html)
         return PageResult(url, 200, None if error else html, BROWSER_TRANSPORT,
@@ -347,3 +380,29 @@ def _allowed_redirect(source: str, target: str) -> bool:
         )
     except ValueError:
         return False
+
+
+def _final(result: PageResult) -> bool:
+    """An answer that asking again will not change.
+
+    A redirect off the approved pages, a file where a page was expected, or an
+    error page served with 200 is the same on the third try, and each retry
+    cost the backoff - fifteen seconds a page across a whole sitemap.
+    """
+    return (
+        (result.status is not None and 300 <= result.status < 400)
+        or (result.status == 200 and result.error is not None)
+        # The browser was refused too: a third try is refused the same way.
+        or (result.status == 403 and result.transport == BROWSER_TRANSPORT)
+        or (result.status is None and bool(_HOPELESS.search(result.error or "")))
+    )
+
+
+#: Failures that are a property of the address, not of the moment: a link to a
+#: file, a host that does not exist, a certificate that is wrong, a redirect
+#: the browser will not follow. 150 retry chains cost an hour of one sitemap.
+_HOPELESS = re.compile(
+    r"Download is starting|ERR_NAME_NOT_RESOLVED|ERR_UNSAFE_REDIRECT|ERR_CERT|SSL"
+    r"|ERR_INVALID_RESPONSE|Name or service not known|nodename nor servname",
+    re.IGNORECASE,
+)

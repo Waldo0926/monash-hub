@@ -8,7 +8,7 @@ classes for 3 or more consecutive days".
 """
 from __future__ import annotations
 
-from app.knowledge.cleaner import clean_page
+from app.knowledge.cleaner import clean_page, rich_to_text
 
 GRAPHITE = """
 <html><body><main><div class="content-inner__main">
@@ -88,3 +88,21 @@ def test_a_list_deeper_inside_an_item_is_not_lost():
     </main></body></html>"""
     text = clean_page(html, url="https://www.monash.edu.my/docs")["clean_text"]
     assert "form IM12" in text and "your passport" in text
+
+
+def test_a_paragraph_written_inside_a_list_is_kept_before_its_items():
+    html = (
+        "<html><body><main><h2>How many guest tickets do I get?</h2><ul>"
+        "<p><strong>April 2026</strong> ceremony in Malaysia, you'll get tickets in total:</p>"
+        "<li>entry ticket for you</li><li>two guest tickets</li>"
+        "<p><strong>November 2026</strong> ceremony in Malaysia, you'll get:</p>"
+        "<li>three guest tickets</li></ul>"
+        "<p>" + "Tickets are sent by email two weeks before the ceremony. " * 5 + "</p>"
+        "</main></body></html>"
+    )
+    blocks = clean_page(html, url="https://www.monash.edu.my/x")["blocks"]
+    shape = [(b["type"], rich_to_text(b["spans"]) if b["type"] == "paragraph" else
+              [rich_to_text(i) for i in b.get("items", [])]) for b in blocks[1:4]]
+    assert shape[0][0] == "paragraph" and shape[0][1].startswith("April 2026 ceremony")
+    assert shape[1] == ("list", ["entry ticket for you", "two guest tickets"])
+    assert shape[2][0] == "paragraph" and shape[2][1].startswith("November 2026")

@@ -24,8 +24,10 @@ university is monash-abroad-tracker's data; the Hub keeps the rules.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import logging
+import os
 import re
 from collections import deque
 from urllib.parse import urldefrag, urljoin, urlparse
@@ -33,7 +35,7 @@ from urllib.parse import urldefrag, urljoin, urlparse
 from app.knowledge.cleaner import clean_page
 from bs4 import BeautifulSoup
 
-from crawler.official.coverage import EXTRA
+from crawler.official.coverage import EXTRA, LEAVE_OUT
 from crawler.official.fetch import OfficialFetcher
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -63,8 +65,13 @@ SITES: dict[str, dict] = {
             "student-services/student-admin/examinations-results",
             "student-services/support-services",
             "study/apply/application-form/fee-payment-methods", "study/apply",
+            # The Finance office's own section: fee statements, instalment
+            # plans, EPF withdrawal, SST, e-invoicing and the encumbrance rules.
+            # Nothing under it had been indexed.
+            "finance",
         )],
-        "prefixes": ("/student-services", "/study/apply", "/study/fees", "/study/scholarships"),
+        "prefixes": ("/student-services", "/study/apply", "/study/fees", "/study/scholarships",
+                     "/finance"),
     },
     "my-study": {
         "hosts": (MY,),
@@ -94,10 +101,14 @@ SITES: dict[str, dict] = {
             "science/current/undergraduate", "engineering/current-students",
             "pharmacy/current-students", "sass/current", "sass/current/undergraduate",
             "medicine/current-students", "accommodation", "its",
+            # /accommodation now redirects here, and the library's own pages
+            # (hours, borrowing, study spaces) were never walked.
+            "student-life/accommodation", "library",
         )],
         "prefixes": ("/business/current", "/it/current-students", "/science/current",
                      "/engineering/current-students", "/pharmacy/current-students",
-                     "/sass/current", "/medicine/current-students", "/accommodation", "/its"),
+                     "/sass/current", "/medicine/current-students", "/accommodation", "/its",
+                     "/student-life", "/library"),
         "max_slashes": 6,
     },
     "abroad": {
@@ -120,8 +131,116 @@ SITES: dict[str, dict] = {
     },
 }
 
+# Faculties outside the IT, Business, Engineering and Science sitemaps keep their
+# current-student pages under their own sections; these are walked.
+SITES["aufac"] = {
+    "hosts": (AU,),
+    "hubs": [f"https://{AU}/{p}/current-students" for p in (
+        "arts", "law", "medicine", "pharm", "mada", "education",
+    )],
+    "prefixes": tuple(f"/{p}/current-students" for p in (
+        "arts", "law", "medicine", "pharm", "mada", "education",
+    )),
+}
+
+#: Sites read from their own sitemaps rather than walked: every address they
+#: list, less what is not for students. Walking from a few hubs found the
+#: section front pages and some of what they link to; the sitemap is the whole
+#: site, including pages no menu points at.
+NOT_FOR_STUDENTS = re.compile(
+    r"(^|/)(news|news-and-events|events?|latest|articles|alumni|staff|people|profiles?|"
+    r"timeline|media|featured-items|__data|seaco|education-training-academy)(/|$)|"
+    r"^/(openday|intake|apday|pg-|peak-)|"
+    # Files and pages the sitemaps list that are not guidance: the site search,
+    # verification files, the 404 page, sign-in and feedback forms, tracking.
+    r"(^|/)(search|feedback|page-not-found|login|log-in|analytics|archive)(/|$)|"
+    r"google-tag-manager|/google[0-9a-f]*\.html$|/robots\d*\.txt$|sitemap[^/]*\.xml$|"
+    r"\.(pdf|docx?|xlsx?|pptx?|zip|jpe?g|png|gif|mp4)$",
+    re.IGNORECASE,
+)
+LOC = re.compile(r"<loc>\s*(.*?)\s*</loc>", re.DOTALL)
+SITEMAPS: dict[str, dict] = {
+    "my-all": {
+        "sitemaps": [f"https://{MY}/sitemap.xml"],
+        "hosts": (MY,),
+        "include": None,
+    },
+    "au-students": {
+        "sitemaps": [f"https://{AU}/{p}/sitemap.xml" for p in (
+            "students", "admissions", "it", "business", "engineering", "science",
+        )],
+        "hosts": (AU,),
+        # The faculty sitemaps are the faculties' whole sites; only their
+        # current-student sections are for this index.
+        "include": re.compile(r"^/(students|admissions)(/|$)|^/[a-z-]+/current-students(/|$)",
+                              re.IGNORECASE),
+    },
+}
+
+
+def sitemap_urls(fetcher: OfficialFetcher, name: str) -> list[str]:
+    """Every page a site's sitemaps list that is for students, in sitemap order."""
+    spec = SITEMAPS[name]
+    queue = list(spec["sitemaps"])
+    seen_maps: set[str] = set()
+    urls: list[str] = []
+    seen: set[str] = set()
+    while queue:
+        sitemap = queue.pop(0)
+        if sitemap in seen_maps:
+            continue
+        seen_maps.add(sitemap)
+        status, text = fetcher.text_file(sitemap)
+        if status != 200 or "<loc>" not in text:
+            log.warning("%s: HTTP %s, no sitemap read", sitemap, status)
+            continue
+        locs = [html.unescape(loc.strip()) for loc in LOC.findall(text)]
+        if "<sitemapindex" in text:
+            queue += locs
+            continue
+        for loc in locs:
+            url = normalise(loc)
+            path = urlparse(url).path
+            # One address however the sitemap capitalises it: Monash serves
+            # /Semester-in-Australia and /semester-in-australia as one page.
+            if (urlparse(url).netloc not in spec["hosts"] or url.lower() in seen
+                    or NOT_FOR_STUDENTS.search(path) or SKIP.search(path) or LEAVE_OUT.search(path)
+                    or (spec["include"] and not spec["include"].search(path))):
+                continue
+            seen.add(url.lower())
+            urls.append(url)
+        log.info("%s: %d addresses kept so far", sitemap, len(urls))
+    return urls
+
+
+def discover_sitemap(name: str, *, max_pages: int, out: str, min_interval: float) -> list[dict]:
+    """Read every page a sitemap lists, once. Resumes from ``out`` if it exists."""
+    found: list[dict] = []
+    if os.path.exists(out):
+        with open(out, encoding="utf-8") as handle:
+            found = json.load(handle)
+    done = {page["url"] for page in found}
+    with OfficialFetcher(Throttle(RateLimit(min_interval=min_interval))) as fetcher:
+        urls = [u for u in sitemap_urls(fetcher, name) if u not in done][:max_pages]
+        log.info("%s: %d pages to read, %d already read", name, len(urls), len(done))
+        for index, url in enumerate(urls, start=1):
+            result = fetcher.fetch(url)
+            if result.ok:
+                page, _ = _describe(result.final_url or url, result.html, 1)
+                found.append({**page, "url": url})
+            else:
+                found.append(_failure(url, result, 1))
+            if index % 20 == 0:
+                _save(found, out)
+                log.info("%d/%d read", index, len(urls))
+    _save(found, out)
+    return found
+
+
 # Never worth following: page fragments, files, and things that are not pages.
-SKIP = re.compile(r"/accordion|/__data/|\.pdf$|\.docx?$|/news|/events|/_|/tabs?/|/print",
+# "/print" is the print view of a page; "/printing" is how to print on campus,
+# and matching both kept every printing page out of the index.
+SKIP = re.compile(r"/accordion|/__data/|\.pdf$|\.docx?$|/news|/events|/_|/tabs?/|/print(/|$)",
                   re.IGNORECASE)
 
 
@@ -147,6 +266,14 @@ def _wanted(site: dict, url: str) -> bool:
                for p in site["prefixes"])
 
 
+def _failure(url: str, result, depth: int) -> dict:
+    """A page that was not read. A 200 that was not a page - a PDF, a soft 404,
+    a redirect off the approved sites - is a failure too, not a 200 row."""
+    status = None if result.status == 200 else result.status
+    return {"url": url, "status": status, "http": result.status, "depth": depth,
+            "error": result.error}
+
+
 def _describe(url: str, html: str, depth: int) -> tuple[dict, list[str]]:
     cleaned = clean_page(html, url=url)
     text = cleaned["clean_text"] or ""
@@ -170,25 +297,24 @@ def discover(site_name: str, *, max_pages: int, max_depth: int, out: str,
                     page, _ = _describe(result.final_url or url, result.html, 0)
                     found.append({**page, "keep": True, "prio": 1, **overrides})
                 else:
-                    found.append({"url": url, "status": result.status, "error": result.error})
+                    found.append(_failure(url, result, 0))
             _save(found, out)
             return found
 
         site = SITES[site_name]
-        seen = {normalise(h) for h in site["hubs"]}
+        seen = {normalise(h).lower() for h in site["hubs"]}
         queue = deque((normalise(h), 0) for h in site["hubs"])
         while queue and len(found) < max_pages:
             url, depth = queue.popleft()
             result = fetcher.fetch(url)
             if not result.ok:
-                found.append({"url": url, "status": result.status, "depth": depth,
-                              "error": result.error})
+                found.append(_failure(url, result, depth))
                 continue
             page, links = _describe(result.final_url or url, result.html, depth)
             found.append(page)
             for link in links:
-                if link not in seen and depth < max_depth and _wanted(site, link):
-                    seen.add(link)
+                if link.lower() not in seen and depth < max_depth and _wanted(site, link):
+                    seen.add(link.lower())
                     queue.append((link, depth + 1))
             log.info("%4d found, %4d queued, d%d %6d chars %s",
                      len(found), len(queue), depth, page["len"], url)
@@ -205,15 +331,20 @@ def _save(found: list[dict], out: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Find official student pages to index")
-    parser.add_argument("--site", required=True, choices=[*SITES, "extra"])
+    parser.add_argument("--site", required=True, choices=[*SITES, *SITEMAPS, "extra"])
     parser.add_argument("--out", required=True)
     parser.add_argument("--max", type=int, default=600, help="stop after this many pages")
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--min-interval", type=float, default=3.0)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    found = discover(args.site, max_pages=args.max, max_depth=args.depth, out=args.out,
-                     min_interval=max(args.min_interval, 2.0))
+    interval = max(args.min_interval, 2.0)
+    if args.site in SITEMAPS:
+        found = discover_sitemap(args.site, max_pages=args.max, out=args.out,
+                                 min_interval=interval)
+    else:
+        found = discover(args.site, max_pages=args.max, max_depth=args.depth, out=args.out,
+                         min_interval=interval)
     log.info("done: %d pages", len(found))
 
 

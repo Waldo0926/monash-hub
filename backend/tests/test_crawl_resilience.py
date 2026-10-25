@@ -18,7 +18,6 @@ from crawler.handbook import discover
 from crawler.handbook.withdrawn import withdrawal_cap
 from crawler.official.fetch import (
     AUTO_TRANSPORT,
-    BROWSER_TRANSPORT,
     HTTP_TRANSPORT,
     OfficialFetcher,
     PageResult,
@@ -189,7 +188,9 @@ def test_a_robots_file_the_waf_refuses_is_read_with_the_browser():
         assert fetcher.robots.allowed("https://www.monash.edu.my/finance")
         assert not fetcher.robots.allowed("https://www.monash.edu.my/private/x")
         assert fetcher.browser_asked == "https://www.monash.edu.my/robots.txt"
-        assert fetcher.transport == BROWSER_TRANSPORT
+        # The file was read with the browser; the pages are still tried over
+        # httpx first, since on most machines most of them are answered.
+        assert fetcher.transport == HTTP_TRANSPORT
 
 
 def test_a_robots_file_refused_with_an_explicit_transport_still_closes_the_host():
@@ -249,3 +250,14 @@ def test_a_page_whose_last_attempt_failed_is_due_again():
     assert not is_due(_page_row(), now=now)
     assert is_due(_page_row(fetch_error="HTTP 403"), now=now)
     assert is_due(_page_row(last_checked=now - timedelta(days=15)), now=now)
+
+
+def test_a_redirect_off_the_approved_pages_is_not_asked_again():
+    class Away(Scripted):
+        def _fetch_once(self, url):
+            self.asked.append((self._mode, url))
+            return PageResult(url, 302, None, self._mode, "redirect outside approved public pages")
+
+    fetcher = Away([])
+    result = fetcher.fetch("https://www.monash.edu.my/student-services/redirects/career-fair-2017")
+    assert result.status == 302 and len(fetcher.asked) == 1

@@ -4,6 +4,7 @@
     python -m crawler.official.run --all             # fetch every seed
     python -m crawler.official.run                   # fetch only pages that are due
     python -m crawler.official.run --slugs wam,gpa
+    python -m crawler.official.run --harvest my.jsonl.gz   # store pages read elsewhere
 
 Default behaviour is "only what is due": a page whose refresh interval has not
 elapsed is not requested at all, and a page whose content hash is unchanged is
@@ -72,6 +73,7 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
                 tags=list(seed.tags),
                 refresh_tier=seed.tier,
                 applies_to=seed.applies_to,
+                curated=seed.curated,
             )
             if seed.sign_in:
                 list_behind_sign_in(db, page, title=seed.title, description=seed.sign_in)
@@ -89,7 +91,14 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
     return len(seeds)
 
 
-def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> dict[str, int]:
+def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
+          fetcher=None, force: bool = False) -> dict[str, int]:
+    """Fetch, clean and store each seed that is due, or every seed with ``force``.
+
+    ``fetcher`` replaces the network: a ``HarvestedFetcher`` answers from pages
+    read on another machine (see ``crawler.official.harvest``), and everything
+    after the fetch is the same.
+    """
     from app.models.knowledge import OfficialPage
     from sqlalchemy import select
 
@@ -98,7 +107,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
 
     with (
         SessionLocal() as db,
-        OfficialFetcher(throttle, transport=transport) as fetcher,
+        fetcher or OfficialFetcher(throttle, transport=transport) as fetcher,
         crawl_job(db, "official", targets=len(seeds), transport=transport) as job,
     ):
         for seed in seeds:
@@ -109,7 +118,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
             if page is None:
                 log.warning("%s is not registered - run --register first", seed.slug)
                 continue
-            if not is_due(page):
+            if not force and not is_due(page):
                 summary["not_due"] += 1
                 log.debug("%s: not due yet (tier=%s)", seed.slug, page.refresh_tier)
                 continue
@@ -160,6 +169,8 @@ def main() -> None:
     parser.add_argument("--register", action="store_true", help="register seeds, do not fetch")
     parser.add_argument("--all", action="store_true", help="ignore refresh intervals")
     parser.add_argument("--slugs", help="comma separated seed slugs")
+    parser.add_argument("--harvest", metavar="PATH",
+                        help="store the pages in this harvest file instead of fetching")
     parser.add_argument("--transport", default="auto", choices=["auto", "httpx", "playwright"])
     parser.add_argument("--min-interval", type=float, default=4.0)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -178,24 +189,25 @@ def main() -> None:
         if missing:
             parser.error(f"unknown slugs: {', '.join(sorted(missing))}")
 
-    register(seeds, retire_others=not args.slugs)
+    fetcher = None
+    if args.harvest:
+        from crawler.official.harvest import HarvestedFetcher
+
+        fetcher = HarvestedFetcher(args.harvest)
+        seeds = tuple(s for s in seeds if s.url in fetcher.urls)
+        log.info("%d seed pages in %s", len(seeds), args.harvest)
+
+    # Only a run over the whole list may retire what is not on it.
+    register(seeds, retire_others=not (args.slugs or args.harvest))
     if args.register:
         return
 
-    if args.all:
-        # Clear the "checked recently" gate for this run only.
-        from app.models.knowledge import OfficialPage
-        from sqlalchemy import update
-
-        with SessionLocal() as db:
-            db.execute(
-                update(OfficialPage)
-                .where(OfficialPage.canonical_url.in_([s.url for s in seeds]))
-                .values(last_checked=None)
-            )
-            db.commit()
-
-    summary = crawl(seeds, min_interval=max(args.min_interval, 2.0), transport=args.transport)
+    # --all skips the "checked recently" gate for this run only. It used to
+    # clear last_checked instead, so every page the run then failed to read
+    # lost the date of its last good read.
+    summary = crawl(seeds, min_interval=max(args.min_interval, 2.0),
+                    transport="relayed" if args.harvest else args.transport, fetcher=fetcher,
+                    force=bool(args.all or args.harvest))
     log.info("summary: %s", summary)
 
 
