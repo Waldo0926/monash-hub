@@ -30,6 +30,7 @@ import difflib
 import json
 import re
 import sys
+from datetime import date
 from urllib.parse import urlparse
 
 from crawler.official.scope import ALL, AUSTRALIA, MALAYSIA, scope
@@ -168,6 +169,33 @@ LEAVE_OUT = re.compile(
     r"(?:^|/)(?:talent-)?release-form(?:/|$)|^/finance/fees/fees-calculator(?:/|$)",
     re.IGNORECASE,
 )
+
+#: A year in an address or title. Not a course code (C2001, S2000), and not
+#: the year a rule starts from ("students who commenced from 2014").
+YEAR = re.compile(r"(?<![a-z0-9])(?<!from[- ])(?<!before[- ])(?<!since[- ])(20[0-3]\d)(?![0-9])",
+                  re.IGNORECASE)
+#: Pages for the students who started in a given year: a student follows the
+#: course map of the year they commenced until they finish.
+BY_COMMENCEMENT = re.compile(r"course[- ]?maps?|commenced|enrolment[- ]guide|past-course",
+                             re.IGNORECASE)
+#: Five years covers the longest double degree; one more for a semester off.
+COMMENCEMENT_YEARS = 6
+
+
+def outdated(url: str, title: str, year: int | None = None) -> bool:
+    """A page about a year that is over: 2020 re-enrolment, the 2017 OSHC
+    price list, past intakes and principal dates, discontinuation dates and
+    timetables, events. On the guides page on 2026-10-25 next to this year's.
+    A course map stays while students who started that year can still be
+    studying."""
+    year = year or date.today().year
+    years = [int(found) for found in YEAR.findall(f"{urlparse(url).path} {title}")]
+    if not years:
+        return False
+    if BY_COMMENCEMENT.search(f"{url} {title}"):
+        return max(years) <= year - COMMENCEMENT_YEARS
+    return max(years) < year
+
 
 #: Discovery answers that say an address is gone or has moved. Any other
 #: failure - a 403, a timeout - says nothing about the page, and a page the
@@ -482,7 +510,8 @@ def _same_text_kept(text: str, kept: dict[str, dict]) -> str | None:
 
 
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
-          known: dict[str, str] | None = None, previous: tuple = ()) -> list[dict]:
+          known: dict[str, str] | None = None, previous: tuple = (),
+          year: int | None = None) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
     ``known`` maps the addresses already in seeds_coverage.py to their slugs;
     ``previous`` is that file's rows, kept when discovery could not read them."""
@@ -517,6 +546,8 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             continue
         if LEAVE_OUT.search(urlparse(url).path) or NOT_FOUND.match(page.get("title") or ""):
             continue
+        if outdated(url, clean_title(page.get("title"), url), year):
+            continue
         if page.get("len", 0) < MIN_LENGTH and not page.get("keep"):
             continue
         if page.get("len", 0) < 450 and COOKIE_ONLY.match(page.get("head") or ""):
@@ -544,7 +575,7 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
         key = url.rstrip("/").lower()
         page = failed.get(key)
         if url.lower() in spelled or url.lower() in listed_urls \
-                or LEAVE_OUT.search(urlparse(url).path):
+                or LEAVE_OUT.search(urlparse(url).path) or outdated(url, title, year):
             continue
         if page is None:
             # Not in any sitemap and linked from nowhere discovery walked - the
