@@ -577,6 +577,11 @@ def main() -> None:
     parser.add_argument("--texts", help="stored page text, from --export-texts")
     parser.add_argument("--out", default="crawler/official/seeds_coverage.py")
     parser.add_argument("--export-texts", metavar="PATH", help="write stored page text and stop")
+    parser.add_argument("--previous", metavar="PATH",
+                        help="the seeds_coverage.py that production runs (default: this "
+                             "checkout's). Its slugs are kept, and its rows that discovery "
+                             "could not read stay listed - pass main's copy when rebuilding "
+                             "on a branch that already holds a rebuild")
     args = parser.parse_args()
     if args.export_texts:
         export_texts(args.export_texts)
@@ -585,7 +590,13 @@ def main() -> None:
     from crawler.official.seeds import SEEDS
     from crawler.official.seeds_coverage import COVERAGE
 
-    generated = {row[0] for row in COVERAGE}
+    current = COVERAGE
+    if args.previous:
+        import runpy
+
+        COVERAGE = runpy.run_path(args.previous)["COVERAGE"]
+
+    generated = {row[0] for row in current}
     hand_picked = [seed for seed in SEEDS if seed.slug not in generated]
     pages: list[dict] = []
     for path in args.inputs:
