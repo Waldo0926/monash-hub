@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 from app.core.db import SessionLocal
 from app.handbook.parser import compute_content_hash
 from app.handbook.repository import upsert_unit
+from app.knowledge import teach_out
+from app.knowledge.repository import get_or_create_source, upsert_seed_page
 from sqlalchemy import text
 
 YEAR = 2026
@@ -111,11 +113,46 @@ UNITS = [
 ]
 
 
+HEADER = ["Unit Code", "Unit Title", "Change", "Course", "Teach out plan"]
+
+#: The two faculty teach-out tables, one per campus, with invented replacements.
+#: They disagree on purpose: FIT2004 closes on different dates, and FIT2102 is on
+#: the Australian list only.
+TEACH_OUT = [
+    (teach_out.SOURCES[0], "https://www.monash.edu/it/e2e-teach-out", "australia", [
+        HEADER,
+        ["FIT2004", "Synthetic algorithms", "No longer offered", "BCS",
+         "Replace with FIT3901 (S1 and S2)"],
+        ["FIT2102", "Synthetic paradigms", "Final offering S2 2026", "BCS",
+         "Replace with FIT3902 from 2027"],
+    ]),
+    (teach_out.SOURCES[1], "https://www.monash.edu.my/it/e2e-teach-out", "malaysia", [
+        HEADER,
+        ["FIT2004", "Synthetic algorithms", "Final offering S2 2026", "BCS",
+         "Replace with FIT3901 from 2027 (S1)"],
+    ]),
+]
+
+
+def seed_teach_out(db) -> None:
+    for slug, url, campus, rows in TEACH_OUT:
+        source = get_or_create_source(db, "monash-students", "Monash University",
+                                      "https://www.monash.edu")
+        page = upsert_seed_page(
+            db, source=source, slug=slug, url=url, title=f"IT teach-out ({campus})",
+            category="enrolment", tags=[], refresh_tier="dynamic", applies_to=campus,
+        )
+        page.blocks = [{"type": "table", "rows": rows}]
+        page.status = "ok"
+        page.content_hash = f"e2e-{slug}"
+
+
 def main() -> None:
     with SessionLocal() as db:
         db.execute(text("TRUNCATE units, unit_reviews RESTART IDENTITY CASCADE"))
         for record in UNITS:
             upsert_unit(db, record)
+        seed_teach_out(db)
         db.commit()
     print(f"seeded {len(UNITS)} units for {YEAR}")
 

@@ -20,10 +20,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.knowledge import translations
+from app.knowledge import teach_out, translations
 from app.knowledge.faq_seed import MALAYSIA_PAGES
 from app.models.handbook import Unit
 from app.models.knowledge import OfficialPage
@@ -359,6 +359,19 @@ def _unit_title(db: Session, unit, locale: str | None) -> str:
     return tr.field("title", unit.title) or unit.title
 
 
+def _teach_out_sources(notice: dict | None) -> list[dict[str, Any]]:
+    """Every campus's teach-out page, whether or not it lists the unit: the
+    campuses change units on different dates, and each page lists every unit
+    that is changing, not just the one asked about."""
+    notice = notice or {}
+    pages = notice.get("pages") or notice.get("sources", {})
+    return [
+        {"kind": "official", "label": source["title"], "url": source["url"],
+         "last_checked": source["last_checked"]}
+        for source in pages.values()
+    ]
+
+
 def _known_prefix(db: Session, code: str, year: int) -> bool:
     """Whether ``code`` looks like a real unit code rather than "year 2026".
 
@@ -602,12 +615,49 @@ def answer(
             }
         )
         base["sources"] = [_unit_source(unit)]
+        # A unit still running that its faculty is closing or replacing
+        # (FIT1043: final offering S1 2027 at Monash Malaysia): the notice goes
+        # above the link, since it is the thing a student planning next year
+        # needs to see.
+        notice = teach_out.lookup(db, [unit.unit_code]).get(unit.unit_code)
+        if notice:
+            base["blocks"].insert(0, {"type": "teach_out", **notice})
+            base["sources"] += _teach_out_sources(notice)
         base["suggestions"] = _unit_suggestions(unit.unit_code, locale)
         return base
 
     # A real-looking code the Handbook does not have this year. Saying so beats
     # answering a question about ABC1234 with pages about something else.
+    # A unit an earlier Handbook had has usually been closed or renumbered:
+    # the faculty's teach-out notice, word for word, says what replaces it
+    # (FIT1008 became FIT2115 in 2027 - searched for on 2026-10-25).
     if codes and _known_prefix(db, codes[0], year):
+        code = codes[0].upper()
+        last = db.scalar(select(func.max(Unit.academic_year)).where(
+            Unit.unit_code == code, Unit.academic_year < year))
+        notice = teach_out.lookup(db, [code]).get(code)
+        if last is not None:
+            blocks = [_verdict(
+                "unitClosed.verdict" if notice else "unitClosed.noNotice",
+                f"{code} is in the {last} Handbook but not in the {year} one. "
+                + ("Its faculty's notice below says what replaces it."
+                   if notice else
+                   "Monash may have closed it or changed its code: check with your faculty."),
+                code=code, year=year, last=last)]
+            if notice:
+                blocks.append({"type": "teach_out", **notice})
+            blocks.append({"type": "link", "to": f"/units/{code}", "label": code})
+            base.update(
+                {
+                    "answer_type": "unit_closed",
+                    **_title("unitClosed.title", f"{code} is not offered in {year}",
+                             code=code, year=year),
+                    "blocks": blocks,
+                    "caveat": None,
+                }
+            )
+            base["sources"] = _teach_out_sources(notice)
+            return base
         base.update(
             {
                 "answer_type": "unit_not_found",
