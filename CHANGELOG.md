@@ -23,6 +23,13 @@ All notable changes to Monash Hub are documented here.
   pages can be read on another computer (`crawler.official.harvest`) and
   stored by the server with its own code (`deployment/crawl.sh
   official-harvest FILE`).
+- A harvest stopped mid-write no longer loses the pages after it. Each page
+  is now its own gzip member, and a file torn by an earlier stop is read up
+  to each tear and on from the next member; before, reading stopped at the
+  first tear, so the server loaded none of 680 pages and a resumed run read
+  them again. The server reads a harvest one page at a time and keeps each
+  compressed until it is stored; 723 pages held whole took more than the
+  crawler's 2 GB.
 - A page that is short on Monash's site too - a hub of links such as
   Malaysia's enrol and re-enrol page, or a short answer - is stored when
   there is no longer copy to keep. A long page that suddenly reads short
