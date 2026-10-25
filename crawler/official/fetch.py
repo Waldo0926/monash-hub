@@ -221,7 +221,7 @@ class OfficialFetcher:
                 return PageResult(url, result.status, None, result.transport,
                                   f"redirected to {result.final_url}",
                                   final_url=result.final_url)
-            if result.ok or result.status == 404:
+            if result.ok or result.status == 404 or _final(result):
                 return result
             last = result
             if (result.status == 403 and self._mode == HTTP_TRANSPORT
@@ -357,3 +357,14 @@ def _allowed_redirect(source: str, target: str) -> bool:
         )
     except ValueError:
         return False
+
+
+def _final(result: PageResult) -> bool:
+    """An answer that asking again will not change.
+
+    A redirect off the approved pages, a file where a page was expected, or an
+    error page served with 200 is the same on the third try, and each retry
+    cost the backoff - fifteen seconds a page across a whole sitemap.
+    """
+    return (result.status is not None and 300 <= result.status < 400) or (
+        result.status == 200 and result.error is not None)

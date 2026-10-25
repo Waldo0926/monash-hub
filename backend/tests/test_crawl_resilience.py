@@ -249,3 +249,14 @@ def test_a_page_whose_last_attempt_failed_is_due_again():
     assert not is_due(_page_row(), now=now)
     assert is_due(_page_row(fetch_error="HTTP 403"), now=now)
     assert is_due(_page_row(last_checked=now - timedelta(days=15)), now=now)
+
+
+def test_a_redirect_off_the_approved_pages_is_not_asked_again():
+    class Away(Scripted):
+        def _fetch_once(self, url):
+            self.asked.append((self._mode, url))
+            return PageResult(url, 302, None, self._mode, "redirect outside approved public pages")
+
+    fetcher = Away([])
+    result = fetcher.fetch("https://www.monash.edu.my/student-services/redirects/career-fair-2017")
+    assert result.status == 302 and len(fetcher.asked) == 1
