@@ -16,6 +16,11 @@ All notable changes to Monash Hub are documented here.
   gives now, unless that address is a school's copy of a central page.
 - A page Monash writes as a paragraph inside a list ("April 2026 ceremony in
   Malaysia, you'll get:" before its items) keeps the paragraph.
+- A list inside a list item stays under that item, indented, and the outer
+  list goes on below it with its numbering. It came after the whole outer
+  list, so Monash Malaysia's work rules showed the allowed places and banned
+  jobs under the last rule. The page text numbers an ordered list 1, 2, 3
+  instead of 1, 1, 1. Pages with such lists show as changed once.
 - Among pages that match a question equally, the hand-picked ones come first.
   With the long tail listed, 全日制 found a science honours FAQ before the
   study load page.

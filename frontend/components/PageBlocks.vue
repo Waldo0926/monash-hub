@@ -22,6 +22,10 @@ interface Block {
   spans?: Span[]
   ordered?: boolean
   items?: Span[][]
+  /** An ordered list that goes on after a list inside one of its items. */
+  start?: number
+  /** How far in a list inside another list's item sits. */
+  depth?: number
   caption?: string
   columns?: string[]
   rows?: string[][]
@@ -165,6 +169,9 @@ watch(blocks, () => nextTick(measure))
         :is="block.ordered ? 'ol' : 'ul'"
         v-else-if="block.type === 'list'"
         class="block-list"
+        :class="{ 'block-list--nested': block.depth }"
+        :start="block.ordered && block.start ? block.start : undefined"
+        :style="block.depth ? { marginLeft: `${block.depth * 1.5}em` } : undefined"
       >
         <li v-for="(item, j) in block.items || []" :key="j">
           <template v-for="(span, k) in item" :key="k">
@@ -273,6 +280,8 @@ watch(blocks, () => nextTick(measure))
 
 .block-list { margin: 0 0 var(--s4); padding-left: var(--s5); }
 .block-list li + li { margin-top: var(--s2); }
+/* Under the item it belongs to, not a paragraph's width away from it. */
+.block-list--nested { margin-top: calc(var(--s2) - var(--s4)); }
 
 .block-table { margin: 0 0 var(--s5); }
 .block-table figcaption { margin-bottom: var(--s2); }

@@ -394,6 +394,46 @@ def _list_block(node: Tag) -> dict[str, Any] | None:
     return {"type": "list", "ordered": node.name == "ol", "items": items}
 
 
+def _list_blocks(node: Tag, depth: int = 0) -> list[dict[str, Any]]:
+    """A list and the lists inside its items, in reading order.
+
+    A list inside an item used to come out after the whole outer list, so
+    Monash Malaysia's work rules read "restaurants, petrol kiosks..." under
+    the last rule instead of under "only in these places". The outer list is
+    cut after the item and goes on below the inner one: ``start`` keeps the
+    numbering of an ordered list, ``depth`` says how far in a list sits.
+    """
+    ordered = node.name == "ol"
+    out: list[dict[str, Any]] = []
+    run: list[list[dict[str, Any]]] = []
+    done = 0
+
+    def flush() -> None:
+        nonlocal done
+        if not run:
+            return
+        block: dict[str, Any] = {"type": "list", "ordered": ordered, "items": list(run)}
+        if ordered and done:
+            block["start"] = done + 1
+        if depth:
+            block["depth"] = depth
+        out.append(block)
+        done += len(run)
+        run.clear()
+
+    for item in node.find_all("li", recursive=False):
+        spans = _rich(item)
+        if spans:
+            run.append(spans)
+        inner = [lst for lst in item.find_all(["ul", "ol"]) if lst.find_parent("li") is item]
+        if inner:
+            flush()
+            for lst in inner:
+                out.extend(_list_blocks(lst, depth + 1))
+    flush()
+    return out
+
+
 def _has_loose_text(node: Tag) -> bool:
     """A list with text outside its items: ``<ul><p>April ceremony</p><li>...``."""
     return any(
@@ -510,19 +550,17 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
                 lifted = [t.extract() for t in child.find_all("table")]
                 if _has_loose_text(child):
                     blocks.extend(_list_runs(child, add_paragraph))
+                    # Any depth: "li > div > ul" was a list nobody saw.
+                    for nested in child.select("li ul, li ol"):
+                        nested_block = _list_block(nested)
+                        if nested_block:
+                            blocks.append(nested_block)
                 else:
-                    block = _list_block(child)
-                    if block:
-                        blocks.append(block)
+                    blocks.extend(_list_blocks(child))
                 for lifted_table in lifted:
                     lifted_block = _table_block(lifted_table)
                     if lifted_block:
                         blocks.append(lifted_block)
-                # Any depth: "li > div > ul" was a list nobody saw.
-                for nested in child.select("li ul, li ol"):
-                    nested_block = _list_block(nested)
-                    if nested_block:
-                        blocks.append(nested_block)
             elif name == "table":
                 block = _table_block(child)
                 if block:
@@ -592,8 +630,10 @@ def blocks_to_text(blocks: list[dict[str, Any]]) -> str:
         elif kind == "paragraph":
             lines.append(rich_to_text(block["spans"]))
         elif kind == "list":
-            marker = "1." if block["ordered"] else "•"
-            lines.extend(f"{marker} {rich_to_text(item)}" for item in block["items"])
+            indent = "  " * block.get("depth", 0)
+            for number, item in enumerate(block["items"], block.get("start", 1)):
+                marker = f"{number}." if block["ordered"] else "•"
+                lines.append(f"{indent}{marker} {rich_to_text(item)}")
         elif kind == "table":
             if block.get("caption"):
                 lines.append(block["caption"])
