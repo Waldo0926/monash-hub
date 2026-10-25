@@ -167,3 +167,26 @@ def test_a_schools_about_pages_competitions_and_old_posts_are_not_guidance():
     au = "/business/current-students/course-advice-and-planning/helpful-links/course-maps/" \
          "assets/2022/ug/asset-listing"
     assert len(build([page(f"https://www.monash.edu{au}", au)], {}, [])) == 1
+
+
+def test_pages_checked_by_hand_on_2026_10_25():
+    """A consent form and the fee calculator's forwarding page are left out;
+    the exam pages Monash Malaysia closed even to signed-in students are gone;
+    the calculator itself is listed as a link."""
+    from crawler.official.seeds import SEEDS
+
+    left_out = ["/release-form", "/talent-release-form/subscribe", "/finance/fees/fees-calculator"]
+    assert urls(build([page(f"{MY}{path}", path) for path in left_out], {}, [])) == []
+
+    by_slug = {seed.slug: seed for seed in SEEDS}
+    exams = f"{MY}/student-services/student-admin/examinations-results"
+    assert not [seed.slug for seed in SEEDS if seed.url.startswith(f"{exams}/") and any(
+        name in seed.url for name in ("exam-rules", "device-and-system-set-up", "eexams-with",
+                                      "preparing-for-your-exams", "remote-eexams",
+                                      "troubleshooting-and-tips"))]
+    assert "malaysia-special-consideration" not in by_slug
+    calculator = by_slug["malaysia-fees-fees-calculator"]
+    assert calculator.url.startswith("https://fin-feescalc.monash.edu.my/")
+    assert calculator.sign_in and calculator.title == "Fee calculator (Monash Malaysia)"
+    # The public eExam guide answers instead.
+    assert "malaysia-our-services-online-assessment-eexams" in by_slug

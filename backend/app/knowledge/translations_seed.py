@@ -357,6 +357,7 @@ GUIDE_TITLES: dict[str, str] = {
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
     "malaysia-exam-rules": "eExam（线上考试）规则",
     "malaysia-general-studies": "通识课 MPU（马来西亚校区）",
+    "malaysia-fees-fees-calculator": "学费计算器（马来西亚校区）",
     # Students say 转专业, and the machine title 转学位课程 never matched it.
     "malaysia-apply-internal-course-transfer": "马来西亚校区转专业（Internal Course Transfer）",
     "study-options-internal-transfer": "转专业或转校区（Course or campus transfer）",

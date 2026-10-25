@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (Malaysia pages checked by hand)
+
+- Monash Malaysia's exam rules and its five eExam pages under
+  examinations-results answer "Access Denied" even to a signed-in student, so
+  they leave the guides instead of keeping their old text. eExam questions are
+  answered from Monash Malaysia IT services' public Online assessment (eExams)
+  pages.
+- The fee calculator is listed as a link to the calculator app
+  (fin-feescalc.monash.edu.my), which needs a Monash sign-in, under its own
+  title. It used to be stored as "Student association".
+- The Malaysia special consideration page is empty and the Malaysia menu now
+  links to the University-wide page, so the home page's Malaysia list shows
+  that page and the Malaysia copy is retired.
+- The talent release form (a photo and video consent form) leaves the guides.
+
 ### Fixed (guides that are not guidance)
 
 - 174 pages from the Monash Malaysia schools' sites leave the guides: their
