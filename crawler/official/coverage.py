@@ -431,18 +431,25 @@ def tier(url: str) -> str:
     return "medium" if SEMESTERLY.search(url) else "stable"
 
 
-def _same_text_kept(text: str, kept) -> bool:
-    """Whether a kept page has this text: length within 3 per cent and the
+def _same_text_kept(text: str, kept: dict[str, dict]) -> str | None:
+    """The kept page with this text, if any: length within 3 per cent and the
     opening (discovery keeps the first 300 characters) nearly the same."""
     head = re.sub(r"\s+", " ", text[:300]).strip()
-    for page in kept:
+    for url, page in kept.items():
         size = page.get("len") or 0
         if not size or abs(size - len(text)) > 0.03 * size:
             continue
         other = re.sub(r"\s+", " ", page.get("head") or "").strip()
         if other and difflib.SequenceMatcher(None, head, other).ratio() >= 0.85:
-            return True
-    return False
+            return url
+    return None
+
+
+def _central(url: str) -> tuple[int, int]:
+    """Fewer path segments, then a shorter address: the student-admin page
+    before a faculty's copy of it."""
+    path = urlparse(url).path.strip("/")
+    return (path.count("/"), len(path))
 
 
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
@@ -514,8 +521,14 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             # Course-Offered/postgraduates pages moved under current-students.
             # Hashes cannot tell: the stored one was made by an older
             # extractor and covers the title too. The text can.
-            if _same_text_kept(stored.get("text") or "", kept.values()):
+            # Of the two, the more central address is kept: Malaysia's
+            # student-admin re-enrol page, not the School of Science's copy.
+            twin = _same_text_kept(stored.get("text") or "", kept)
+            if twin and _central(twin) <= _central(url):
                 continue
+            if twin:
+                del kept[twin]
+                del spelled[twin.lower()]
         elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
             continue
         spelled[url.lower()] = url

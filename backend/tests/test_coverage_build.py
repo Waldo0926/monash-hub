@@ -112,3 +112,14 @@ def test_a_listed_page_now_at_another_address_is_kept_once():
     moved = {**page(new, "new hash"), "len": len(text) + 4, "head": text[:300]}
     rows = build([moved], texts, [], {old: "my-old-transfers"}, previous)
     assert urls(rows) == [new]
+
+
+def test_of_two_addresses_with_the_same_text_the_central_one_is_kept():
+    central = f"{MY}/student-services/student-admin/re-enrol"
+    copy = f"{MY}/science/current/current/re-enrol"
+    previous = (("malaysia-re-enrol", central, "Re-enrol", "enrolment", (), "medium", "malaysia"),)
+    text = "Re-enrolment for next year opens in October for continuing students. " * 20
+    texts = {central: {"text": text}}
+    twin = {**page(copy, "h"), "len": len(text), "head": text[:300]}
+    rows = build([twin], texts, [], {central: "malaysia-re-enrol"}, previous)
+    assert [(row["url"], row["slug"]) for row in rows] == [(central, "malaysia-re-enrol")]
