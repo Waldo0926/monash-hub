@@ -150,17 +150,17 @@ const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 const marketing = computed(() => locale.value === 'en' || locale.value === 'zh')
 
 // The tools sit under the search box, so a first visit sees what the site does
-// without scrolling past the dates. Three get a tile: the ones students come
-// back for every semester. The rest are one line of links, still a tap away and
-// all in the header too. 马莫百科 has its own block below. Labels come from the
+// without scrolling past the dates. Three get a tile: units, the course map and
+// the official guides. The rest are one line of links, still a tap away and all
+// in the header too. 马莫百科 has its own block below. Labels come from the
 // header navigation; the icons are the line set the header and the plan page
 // already use.
 const PRIMARY_TOOLS = [
   { to: '/units', key: 'units', icon: 'book' },
   { to: '/plan', key: 'plan', icon: 'columns' },
-  { to: '/marks', key: 'marks', icon: 'percent' }
+  { to: '/guides', key: 'guides', icon: 'page' }
 ]
-const MORE_TOOLS = ['/guides', '/courses', '/tree', '/community']
+const MORE_TOOLS = ['/courses', '/tree', '/marks', '/community']
 const directory = computed(() =>
   PRIMARY_TOOLS.flatMap(({ to, key, icon }) => {
     const item = sectionItems.value.find(i => i.to === to)

@@ -12,9 +12,13 @@ All notable changes to Monash Hub are documented here.
   hint says to long-press the code inside WeChat or copy the name, since a
   phone cannot scan its own screen. Tapping the code opens it full size to zoom
   or save. No pop-up, nothing gates the rest of the site.
-- Units, the course map and the WAM/GPA calculator get a tile each. Guides,
-  degrees, the unit tree and the community are one line of links under them.
-  The header is unchanged.
+- Units, the course map and the official guides get a tile each. Degrees, the
+  unit tree, the WAM/GPA calculator and the community are one line of links
+  under them. The header keeps its shape.
+- In Chinese, 学位 is now 专业与学位 in the header, footer, page title and
+  assistant. Families in China say 专业 for what Monash calls a course, and
+  专业方向 already means a major or specialisation on this site, so the plain
+  专业 would have been ambiguous.
 - The community section, which had one post, is a single line under the
   assessment guides.
 - The key-dates card no longer lists its headline date twice. The big number
