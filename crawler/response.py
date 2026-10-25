@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import re
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
@@ -25,6 +26,9 @@ def retry_after(header: str | None, *, now: datetime | None = None) -> float | N
             return None
 
 
+SOFT_404 = re.compile(r"(?:404\b|page not found\b|page cannot be found\b)")
+
+
 def html_error(html: str) -> str | None:
     """Recognise error shells without matching policy prose about access/login."""
     soup = BeautifulSoup(html, "lxml")
@@ -36,7 +40,9 @@ def html_error(html: str) -> str | None:
         return "upstream challenge page"
     if title.startswith(("error: the request could not be satisfied", "access denied")):
         return "upstream access error page"
-    if title in {"404", "404 not found", "page not found", "page not found - monash university"}:
+    # "Page Not Found | Monash University Malaysia" is served with a 200 at
+    # /page-not-found and wherever Malaysia's CMS has lost a page.
+    if SOFT_404.match(title):
         return "upstream soft 404"
     if soup.select_one('input[type="password"]') and any(
         word in title for word in ("sign in", "log in", "login")

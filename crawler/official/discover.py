@@ -151,6 +151,10 @@ NOT_FOR_STUDENTS = re.compile(
     r"(^|/)(news|news-and-events|events?|latest|articles|alumni|staff|people|profiles?|"
     r"timeline|media|featured-items|__data|seaco|education-training-academy)(/|$)|"
     r"^/(openday|intake|apday|pg-|peak-)|"
+    # Files and pages the sitemaps list that are not guidance: the site search,
+    # verification files, the 404 page, sign-in and feedback forms, tracking.
+    r"(^|/)(search|feedback|page-not-found|login|log-in|analytics|archive)(/|$)|"
+    r"google-tag-manager|/google[0-9a-f]*\.html$|/robots\d*\.txt$|sitemap[^/]*\.xml$|"
     r"\.(pdf|docx?|xlsx?|pptx?|zip|jpe?g|png|gif|mp4)$",
     re.IGNORECASE,
 )
@@ -197,11 +201,13 @@ def sitemap_urls(fetcher: OfficialFetcher, name: str) -> list[str]:
         for loc in locs:
             url = normalise(loc)
             path = urlparse(url).path
-            if (urlparse(url).netloc not in spec["hosts"] or url in seen
+            # One address however the sitemap capitalises it: Monash serves
+            # /Semester-in-Australia and /semester-in-australia as one page.
+            if (urlparse(url).netloc not in spec["hosts"] or url.lower() in seen
                     or NOT_FOR_STUDENTS.search(path) or SKIP.search(path)
                     or (spec["include"] and not spec["include"].search(path))):
                 continue
-            seen.add(url)
+            seen.add(url.lower())
             urls.append(url)
         log.info("%s: %d addresses kept so far", sitemap, len(urls))
     return urls
@@ -223,8 +229,7 @@ def discover_sitemap(name: str, *, max_pages: int, out: str, min_interval: float
                 page, _ = _describe(result.final_url or url, result.html, 1)
                 found.append({**page, "url": url})
             else:
-                found.append({"url": url, "status": result.status, "depth": 1,
-                              "error": result.error})
+                found.append(_failure(url, result, 1))
             if index % 20 == 0:
                 _save(found, out)
                 log.info("%d/%d read", index, len(urls))
@@ -261,6 +266,14 @@ def _wanted(site: dict, url: str) -> bool:
                for p in site["prefixes"])
 
 
+def _failure(url: str, result, depth: int) -> dict:
+    """A page that was not read. A 200 that was not a page - a PDF, a soft 404,
+    a redirect off the approved sites - is a failure too, not a 200 row."""
+    status = None if result.status == 200 else result.status
+    return {"url": url, "status": status, "http": result.status, "depth": depth,
+            "error": result.error}
+
+
 def _describe(url: str, html: str, depth: int) -> tuple[dict, list[str]]:
     cleaned = clean_page(html, url=url)
     text = cleaned["clean_text"] or ""
@@ -284,25 +297,24 @@ def discover(site_name: str, *, max_pages: int, max_depth: int, out: str,
                     page, _ = _describe(result.final_url or url, result.html, 0)
                     found.append({**page, "keep": True, "prio": 1, **overrides})
                 else:
-                    found.append({"url": url, "status": result.status, "error": result.error})
+                    found.append(_failure(url, result, 0))
             _save(found, out)
             return found
 
         site = SITES[site_name]
-        seen = {normalise(h) for h in site["hubs"]}
+        seen = {normalise(h).lower() for h in site["hubs"]}
         queue = deque((normalise(h), 0) for h in site["hubs"])
         while queue and len(found) < max_pages:
             url, depth = queue.popleft()
             result = fetcher.fetch(url)
             if not result.ok:
-                found.append({"url": url, "status": result.status, "depth": depth,
-                              "error": result.error})
+                found.append(_failure(url, result, depth))
                 continue
             page, links = _describe(result.final_url or url, result.html, depth)
             found.append(page)
             for link in links:
-                if link not in seen and depth < max_depth and _wanted(site, link):
-                    seen.add(link)
+                if link.lower() not in seen and depth < max_depth and _wanted(site, link):
+                    seen.add(link.lower())
                     queue.append((link, depth + 1))
             log.info("%4d found, %4d queued, d%d %6d chars %s",
                      len(found), len(queue), depth, page["len"], url)

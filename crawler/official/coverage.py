@@ -79,6 +79,13 @@ SCOPE_OVERRIDES: dict[str, tuple[str, str]] = {
         ("australia", "an Australian statement; the page does not say Malaysia issues it"),
 }
 
+#: A 200 whose title says it is not there.
+NOT_FOUND = re.compile(r"^\s*(?:404\b|page not found\b|page cannot be found\b)", re.IGNORECASE)
+
+#: A near-empty page read before the cleaner stopped falling back to the
+#: whole body: its "text" is the cookie banner.
+COOKIE_ONLY = re.compile(r"^\s*(?:this (?:web)?site |we )uses? cookies\b", re.IGNORECASE)
+
 #: Shorter than this and a page is a menu or a landing tile. 450 also dropped
 #: real short answers (printing, opening hours); the crawl itself stops at 200.
 MIN_LENGTH = 250
@@ -93,7 +100,11 @@ LEAVE_OUT = re.compile(
     # dates, not guidance. The project and events overviews stay.
     r"third-year-research-project/|/career-events/|"
     # Partner programs belong to monash-abroad-tracker; Prato is Monash's own.
-    r"program-search/(?!.*prato)|program-search$",
+    r"program-search/(?!.*prato)|program-search$|"
+    # Not guidance: the site search, the 404 page, feedback forms, tracking
+    # and verification files the sitemaps list.
+    r"(?:^|/)(?:search|feedback|page-not-found|analytics)(?:/|$)|google-tag-manager|"
+    r"/google[0-9a-f]*\.html$|\.txt$|\.xml$",
     re.IGNORECASE,
 )
 CATEGORY_ORDER = ["assessment", "enrolment", "graduation", "fees-dates", "international",
@@ -382,32 +393,48 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
           known: dict[str, str] | None = None) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
     ``known`` maps the addresses already in seeds_coverage.py to their slugs."""
-    listed_urls = {seed.url.rstrip("/") for seed in existing}
+    listed_urls = {seed.url.rstrip("/").lower() for seed in existing}
     listed_hashes = {t["hash"] for t in texts.values() if t.get("hand_picked") and t.get("hash")}
     taken = {seed.slug for seed in existing}
     kept: dict[str, dict] = {}
     by_hash: dict[str, str] = {}
+
+    known = known or {}
+    known_urls = {u.rstrip("/").lower() for u in known}
+
+    def rank(url: str) -> tuple:
+        # The same text at two addresses: keep the shorter one, and of the
+        # study-abroad mirrors the /outbound address students are given. An
+        # address already in seeds_coverage.py wins, so a page keeps its slug
+        # and its translations from one build to the next.
+        return (url.lower() not in known_urls, len(url), "/overseas" in url)
+
+    spelled: dict[str, str] = {}  # lower-cased address -> the spelling kept
     for page in pages:
         url = page["url"].rstrip("/")
-        if page.get("status") != 200 or url in listed_urls or url in kept:
+        # Monash serves an address in any capitalisation, and the sitemaps
+        # list some twice; it is one page.
+        if page.get("status") != 200 or url.lower() in listed_urls or url.lower() in spelled:
             continue
-        if LEAVE_OUT.search(urlparse(url).path):
+        if LEAVE_OUT.search(urlparse(url).path) or NOT_FOUND.match(page.get("title") or ""):
             continue
         if page.get("len", 0) < MIN_LENGTH and not page.get("keep"):
+            continue
+        if page.get("len", 0) < 450 and COOKIE_ONLY.match(page.get("head") or ""):
             continue
         digest = page.get("hash")
         if digest and digest in listed_hashes:
             continue
         if digest and digest in by_hash:
-            # The same text at two addresses: keep the shorter one, and of the
-            # study-abroad mirrors the /outbound address students are given.
             other = by_hash[digest]
-            if (len(url), "/overseas" in url) >= (len(other), "/overseas" in other):
+            if rank(url) >= rank(other):
                 continue
             del kept[other]
+            del spelled[other.lower()]
         if digest:
             by_hash[digest] = url
         kept[url] = page
+        spelled[url.lower()] = url
 
     rows = []
     for url, page in kept.items():

@@ -80,3 +80,45 @@ def test_only_semester_pages_and_dates_are_checked_often():
     assert tier(f"{AU}/students/admin/fees/payment-options") == "medium"
     assert tier(f"{MY}/library/services-facilities/printing") == "stable"
     assert tier(f"{AU}/policy-bank/policies-and-procedures/academic") == "stable"
+
+
+def test_search_verification_tracking_and_404_addresses_are_not_read():
+    fetcher = Sitemaps({f"{MY}/sitemap.xml": urlset(
+        f"{MY}/search",
+        f"{MY}/it/archive/search",
+        f"{MY}/google1a2b3c4d5e.html",
+        f"{MY}/robots2.txt",
+        f"{MY}/sitemap.xml",
+        f"{MY}/analytics/google-tag-manager2",
+        f"{MY}/student-services/feedback",
+        f"{MY}/page-not-found",
+        f"{MY}/medicine/login",
+        f"{MY}/pharmacy/archive/he/programme",
+        f"{MY}/study-abroad/outbound/Semester-in-Australia",
+        f"{MY}/study-abroad/outbound/semester-in-australia/",
+        f"{MY}/student-services/student-admin",
+    )})
+    assert discover.sitemap_urls(fetcher, "my-all") == [
+        f"{MY}/study-abroad/outbound/Semester-in-Australia",
+        f"{MY}/student-services/student-admin",
+    ]
+
+
+class Result:
+    def __init__(self, status, error):
+        self.status, self.error = status, error
+
+
+def test_a_200_that_was_not_a_page_is_recorded_as_a_failure():
+    row = discover._failure(f"{MY}/guide", Result(200, "not HTML: application/pdf"), 1)
+    assert row["status"] is None and row["http"] == 200
+    assert discover._failure(f"{MY}/gone", Result(404, "HTTP 404"), 1)["status"] == 404
+
+
+def test_the_page_not_found_page_is_a_soft_404():
+    from crawler.response import html_error
+
+    for title in ("Page Not Found | Monash University Malaysia", "404 - Monash University",
+                  "page not found"):
+        assert html_error(f"<html><title>{title}</title><p>x</p></html>") == "upstream soft 404"
+    assert html_error("<html><title>Lost and found | Monash</title></html>") is None
