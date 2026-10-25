@@ -59,3 +59,22 @@ test('the plan stays in this browser across a reload, removals included', async 
   await expect(card(page, 'FIT1008')).toBeVisible()
   await expect(card(page, 'FIT2004')).toHaveCount(0)
 })
+
+test('an empty plan says what to do first, and the problem count leads to the unit', async ({ page }) => {
+  const steps = page.locator('.start')
+  await expect(steps).toContainText('选校区和专业与学位')
+  await expect(page.locator('.plan-title')).toContainText('只保存在这个浏览器')
+
+  await addUnit(page, '第一学期, 2026', 'FIT2004')
+  await expect(steps).toHaveCount(0)
+
+  await page.getByRole('button', { name: /有问题：1 处/ }).click()
+  await expect(card(page, 'FIT2004').getByRole('link', { name: 'FIT2004', exact: true })).toBeFocused()
+})
+
+test('export and print sit in the More menu', async ({ page }) => {
+  // The phone's bottom bar has its own 更多, so the menu is found by where it is.
+  await page.getByRole('toolbar').getByText('更多', { exact: true }).click()
+  await expect(page.getByRole('button', { name: '导出' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '打印' })).toBeVisible()
+})
