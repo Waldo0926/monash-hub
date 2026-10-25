@@ -4,6 +4,26 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (course map: first steps, local-only note, More menu)
+
+- An empty plan opens with three numbered steps: choose campus and degree,
+  set the start year (and what that year decides), then add a unit. They go
+  once the first unit is on the map.
+- "Saved in this browser only" sits next to the plan name, so the plan is not
+  taken for something saved to an account.
+- CSV, export, import and print are in a "More" menu. Undo, teaching periods
+  and clear stay on the bar, which now fits one row on a phone instead of
+  scrolling sideways.
+- The problem count is a button that scrolls to the first unit with a problem
+  and focuses it.
+- Under the degree box, the plan says which Handbook year the degree rules come
+  from.
+- The privacy note said the plan is "not uploaded", but checking it sends the
+  unit codes, teaching periods and campus to `/v1/plan/check`. It now says
+  that, and that the server does not keep them.
+- In Chinese the first steps and the progress panel say 专业与学位, matching
+  the rest of the site.
+
 ### Removed (a staff tool listed as a guide)
 
 - "Welcome to the Connect Tutor" is Monash Connect's tool for officers to check

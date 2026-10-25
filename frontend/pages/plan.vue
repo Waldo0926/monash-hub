@@ -581,6 +581,44 @@ function print() {
   window.print()
 }
 
+/**
+ * CSV, export, import and print live in one "More" menu: they are used once in
+ * a while, and four buttons for them pushed undo and the teaching periods off
+ * a phone's first screen. A <details> needs no script to open and works with
+ * a keyboard; it is closed again after each action.
+ */
+const moreMenu = ref<HTMLDetailsElement | null>(null)
+function fromMenu(action: (event?: any) => void) {
+  return (event?: any) => {
+    action(event)
+    if (moreMenu.value) moreMenu.value.open = false
+  }
+}
+function closeMoreOutside(event: MouseEvent) {
+  if (moreMenu.value?.open && !moreMenu.value.contains(event.target as Node)) moreMenu.value.open = false
+}
+onMounted(() => document.addEventListener('click', closeMoreOutside))
+onBeforeUnmount(() => document.removeEventListener('click', closeMoreOutside))
+
+// The first step on an empty plan points at the degree box.
+const degreeSelect = ref<HTMLSelectElement | null>(null)
+function focusDegree() {
+  degreeSelect.value?.focus()
+}
+
+/**
+ * The verdict pill says how many problems there are; clicking it goes to the
+ * first card that has one, so a student does not scan four years of cards
+ * looking for the red one.
+ */
+function jumpToIssue() {
+  const card = document.querySelector<HTMLElement>('.ucard--error, .ucard--warn')
+  if (!card) return
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  card.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' })
+  card.querySelector<HTMLElement>('.ucard-code')?.focus({ preventScroll: true })
+}
+
 /** Ctrl/Cmd+Z and Shift+Ctrl/Cmd+Z (or Ctrl+Y), except while typing in a field. */
 function onKey(event: KeyboardEvent) {
   if (!(event.ctrlKey || event.metaKey)) return
@@ -669,19 +707,24 @@ useSeoMeta({ title: () => $t('plan.title') })
             :aria-expanded="showOptional"
             @click="showOptional = !showOptional"
           ><PlanIcon name="calendar" />{{ $t('plan.periods') }}</button>
-          <button class="tool" type="button" @click="downloadCsv">
-            <PlanIcon name="download" />CSV
-          </button>
-          <button class="tool" type="button" @click="download">
-            <PlanIcon name="download" />{{ $t('plan.export') }}
-          </button>
-          <label class="tool file">
-            <PlanIcon name="upload" />{{ $t('plan.import') }}
-            <input type="file" accept="application/json" @change="upload" />
-          </label>
-          <button class="tool" type="button" @click="print">
-            <PlanIcon name="print" />{{ $t('plan.print') }}
-          </button>
+          <details ref="moreMenu" class="more">
+            <summary class="tool">{{ $t('plan.more') }}<PlanIcon name="chevron-down" :size="14" /></summary>
+            <div class="more-list">
+              <button class="tool" type="button" @click="fromMenu(downloadCsv)()">
+                <PlanIcon name="download" />CSV
+              </button>
+              <button class="tool" type="button" @click="fromMenu(download)()">
+                <PlanIcon name="download" />{{ $t('plan.export') }}
+              </button>
+              <label class="tool file">
+                <PlanIcon name="upload" />{{ $t('plan.import') }}
+                <input type="file" accept="application/json" @change="fromMenu(upload)($event)" />
+              </label>
+              <button class="tool" type="button" @click="fromMenu(print)()">
+                <PlanIcon name="print" />{{ $t('plan.print') }}
+              </button>
+            </div>
+          </details>
         </div>
         <button class="tool tool--danger" type="button" @click="confirmReset">
           <PlanIcon name="trash" />{{ $t('plan.reset') }}
@@ -706,6 +749,9 @@ useSeoMeta({ title: () => $t('plan.title') })
             <NuxtLink to="/plans" class="plan-all">
               {{ $t('plans.all', { n: library.plans.length }) }}
             </NuxtLink>
+            <!-- Next to the name, so nobody takes the plan for something saved
+                 to an account. The side panel says the same at length. -->
+            <span class="local"><PlanIcon name="lock" :size="13" />{{ $t('plan.localOnly') }}</span>
           </div>
           <div class="settings">
             <label class="ctl">
@@ -718,12 +764,15 @@ useSeoMeta({ title: () => $t('plan.title') })
 
             <label class="ctl ctl--wide">
               <span class="ctl-label">{{ $t('plan.course') }}</span>
-              <select v-model="plan.courseCode" class="ctl-input">
+              <select ref="degreeSelect" v-model="plan.courseCode" class="ctl-input">
                 <option value="">{{ $t('plan.noCourse') }}</option>
                 <option v-for="c in courseList?.results || []" :key="c.course_code" :value="c.course_code">
                   {{ c.course_code }} {{ c.title }}
                 </option>
               </select>
+              <span v-if="plan.courseCode && courseHandbook" class="ctl-note">
+                {{ $t('plan.courseHandbook', { year: courseHandbook }) }}
+              </span>
             </label>
 
             <label class="ctl ctl--narrow">
@@ -734,15 +783,47 @@ useSeoMeta({ title: () => $t('plan.title') })
 
           <!-- The verdict on the whole plan, where the eye already is. The
                side panel has the numbers; this only says whether to look. -->
-          <p class="pill" :class="`pill--${status}`" role="status" aria-live="polite">
-            <template v-if="status === 'empty'">{{ $t('plan.empty') }}</template>
-            <template v-else-if="status === 'checking'"><PlanIcon name="spinner" :size="14" />{{ $t('plan.checking') }}</template>
-            <template v-else-if="status === 'failed'"><PlanIcon name="alert" :size="14" />{{ $t('plan.checkFailed') }}</template>
-            <template v-else-if="status === 'error'"><PlanIcon name="alert" :size="14" />{{ $t('plan.errors', { n: errorCount }) }}</template>
-            <template v-else-if="status === 'warn'"><PlanIcon name="alert" :size="14" />{{ $t('plan.warnings', { n: warningCount }) }}</template>
-            <template v-else><PlanIcon name="check" :size="14" />{{ $t('plan.allClear') }}</template>
+          <p class="pill-wrap" role="status" aria-live="polite">
+            <button
+              v-if="status === 'error' || status === 'warn'"
+              class="pill pill--jump"
+              :class="`pill--${status}`"
+              type="button"
+              :title="$t('plan.jumpToIssue')"
+              @click="jumpToIssue"
+            >
+              <PlanIcon name="alert" :size="14" />
+              {{ status === 'error' ? $t('plan.errors', { n: errorCount }) : $t('plan.warnings', { n: warningCount }) }}
+              <span class="visually-hidden">. {{ $t('plan.jumpToIssue') }}</span>
+            </button>
+            <span v-else class="pill" :class="`pill--${status}`">
+              <template v-if="status === 'empty'">{{ $t('plan.empty') }}</template>
+              <template v-else-if="status === 'checking'"><PlanIcon name="spinner" :size="14" />{{ $t('plan.checking') }}</template>
+              <template v-else-if="status === 'failed'"><PlanIcon name="alert" :size="14" />{{ $t('plan.checkFailed') }}</template>
+              <template v-else><PlanIcon name="check" :size="14" />{{ $t('plan.allClear') }}</template>
+            </span>
           </p>
         </div>
+
+        <!-- An empty plan opens with what to do first, in order. It goes as
+             soon as the first unit is on the map. -->
+        <ol v-if="!plan.entries.length" class="start">
+          <li>
+            <span class="start-n">1</span>
+            <span class="start-text">
+              {{ $t('plan.start.degree') }}
+              <button v-if="!plan.courseCode" type="button" class="start-link" @click="focusDegree">{{ $t('plan.start.pickDegree') }}</button>
+            </span>
+          </li>
+          <li>
+            <span class="start-n">2</span>
+            <span class="start-text">{{ $t('plan.start.year') }}</span>
+          </li>
+          <li>
+            <span class="start-n">3</span>
+            <span class="start-text">{{ $t('plan.start.add') }}</span>
+          </li>
+        </ol>
 
         <div v-if="showOptional" class="periods">
           <span class="periods-label">{{ $t('plan.periodsHelp') }}</span>
@@ -1023,6 +1104,17 @@ useSeoMeta({ title: () => $t('plan.title') })
 .tool--danger:hover { color: var(--danger); border-color: #f1c4c4; background: var(--danger-bg) !important; }
 .file { position: relative; overflow: hidden; }
 .file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.more { position: relative; }
+.more > summary { list-style: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.more[open] > summary { background: var(--surface-2); }
+.more-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+  display: grid; min-width: 150px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+.more-list .tool { justify-content: flex-start; width: 100%; }
 
 .banner { margin: 0 0 var(--s3); padding: var(--s2) var(--s3); border-radius: var(--radius-sm); font-size: 0.85rem; }
 .banner--bad { background: var(--danger-bg); color: var(--danger); }
@@ -1051,6 +1143,10 @@ useSeoMeta({ title: () => $t('plan.title') })
 .plan-name:hover { border-color: var(--border); }
 .plan-name:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px var(--blue-50); }
 .plan-all { flex: none; font-size: 0.82rem; font-weight: 500; }
+.local {
+  display: inline-flex; flex: none; align-items: center; gap: 4px;
+  color: var(--muted); font-size: 0.78rem; white-space: nowrap;
+}
 /* Named tracks plus min-width: 0. The degree <select> holds 200 long titles,
    which gives it a max-content width in the thousands of pixels; without the
    minmax(0, ...) that width decides the layout instead of the screen. */
@@ -1075,6 +1171,7 @@ select.ctl-input {
   background-repeat: no-repeat; background-position: right 12px center;
 }
 .ctl-input:hover { border-color: var(--muted-2); }
+.ctl-note { color: var(--muted-2); font-size: 0.74rem; }
 
 .pill {
   display: inline-flex; align-items: center; gap: 6px; margin: 0;
@@ -1085,6 +1182,26 @@ select.ctl-input {
 .pill--ok { color: var(--success); background: var(--success-bg); border-color: #b7e4d0; }
 .pill--error, .pill--failed { color: var(--danger); background: var(--danger-bg); border-color: #f1c4c4; }
 .pill--warn { color: var(--warning); background: var(--warning-bg); border-color: #f5dcae; }
+.pill-wrap { margin: 0; }
+.pill--jump { font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.pill--jump:hover { text-decoration: underline; }
+
+.start {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3);
+  margin: 0; padding: var(--s4) var(--s5); list-style: none;
+  background: var(--blue-50); border-top: 1px solid var(--border);
+}
+.start li { display: flex; gap: var(--s3); align-items: flex-start; font-size: 0.86rem; line-height: 1.55; }
+.start-n {
+  display: grid; flex: none; place-items: center; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--brand); color: var(--text-inverse);
+  font-size: 0.78rem; font-weight: 600;
+}
+.start-text:lang(ko) { word-break: keep-all; }
+.start-link {
+  padding: 0; border: 0; background: none; color: var(--brand-700);
+  font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer;
+}
 
 .periods {
   display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center;
@@ -1274,7 +1391,7 @@ select.ctl-input {
 .ring-big { font-size: 2.2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--text); }
 .ring-big small { font-size: 1rem; font-weight: 600; margin-left: 1px; color: var(--muted); }
 .ring-small { margin-top: 6px; font-size: 0.76rem; color: var(--muted); }
-.panel-note { margin: var(--s3) 0 0; font-size: 0.8rem; color: var(--muted); }
+.panel-note { margin: var(--s3) 0 0; font-size: 0.8rem; color: var(--muted); text-wrap: balance; }
 
 .stats {
   display: grid; grid-template-columns: repeat(3, 1fr); width: 100%;
@@ -1316,19 +1433,18 @@ select.ctl-input {
 
 @media (max-width: 760px) {
   .page { padding: var(--s4) var(--s4) var(--s6); }
-  /* One row that scrolls sideways, rather than three rows of buttons above
-     the plan itself. */
-  .tools {
-    width: calc(100% + 2 * var(--s4)); margin: 0 calc(-1 * var(--s4)); padding: 2px var(--s4) 4px;
-    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
-  }
-  .tools::-webkit-scrollbar { display: none; }
+  /* With the occasional tools in "More" the rest fit on one row, and the row
+     must not scroll: a scrolling row would clip the menu that opens from it. */
+  .tools { width: 100%; }
   .tool-group, .tool--danger { flex: none; }
+  .tool--danger { margin-left: auto; }
   .board { border-radius: var(--radius); margin: 0 calc(-1 * var(--s2)); }
   .board-head { padding: var(--s4); }
   .settings { grid-template-columns: minmax(0, 1fr) 96px; flex-basis: 100%; }
   .ctl--wide { grid-column: 1 / -1; grid-row: 1; }
   .periods { padding: var(--s3) var(--s4); }
+  .plan-title { flex-wrap: wrap; row-gap: var(--s1); }
+  .start { grid-template-columns: minmax(0, 1fr); padding: var(--s4); }
   .year-bar { padding: 10px var(--s4); }
   .term { grid-template-columns: minmax(0, 1fr); }
   .term-label {
@@ -1351,7 +1467,7 @@ select.ctl-input {
  * from its own heading. */
 @media print {
   .page { max-width: none; padding: 0; }
-  .tools, .periods, .slot-li, .add-year, .board-foot, .ucard-tools, .term-add, .panel--quiet, .lede { display: none !important; }
+  .tools, .periods, .slot-li, .add-year, .board-foot, .ucard-tools, .term-add, .panel--quiet, .lede, .start, .local { display: none !important; }
   .split { grid-template-columns: minmax(0, 1fr); }
   .board, .panel { box-shadow: none; border-color: #c9d2dc; }
   .board-head { padding: 8px 12px; }
