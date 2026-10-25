@@ -26,7 +26,43 @@ interface Block {
   columns?: string[]
   rows?: string[][]
   foot?: string[][]
+  head?: string[][]
+  /** [part, row, column, rowspan, colspan]; part is head, body or foot. */
+  merged?: [string, number, number, number, number][]
   links?: Span[][]
+}
+
+type Part = 'head' | 'body' | 'foot'
+interface Cell { text: string; rowspan?: number; colspan?: number }
+
+/**
+ * One section of a table as the cells to draw. The rows arrive as a regular
+ * grid with blanks where a merged cell reaches; those blanks are left out
+ * and the merged cell carries its rowspan and colspan, so the table looks as
+ * it does on monash.edu instead of a grid of half-empty rows.
+ */
+function cellsOf(block: Block, part: Part, rows: string[][]): Cell[][] {
+  const starts = new Map<string, [number, number]>()
+  const covered = new Set<string>()
+  for (const [where, row, column, rowspan, colspan] of block.merged || []) {
+    if (where !== part) continue
+    starts.set(`${row}:${column}`, [rowspan, colspan])
+    for (let r = row; r < row + rowspan; r++) {
+      for (let c = column; c < column + colspan; c++) {
+        if (r !== row || c !== column) covered.add(`${r}:${c}`)
+      }
+    }
+  }
+  return rows.map((row, r) => row.flatMap((text, c) => {
+    if (covered.has(`${r}:${c}`)) return []
+    const span = starts.get(`${r}:${c}`)
+    return [span ? { text, rowspan: span[0], colspan: span[1] } : { text }]
+  }))
+}
+
+function headRows(block: Block): Cell[][] {
+  const rows = hasHeader(block) ? [block.columns || [], ...(block.head || [])] : []
+  return cellsOf(block, 'head', rows)
 }
 
 const props = defineProps<{ blocks?: Block[] | null; fallback?: string | null }>()
@@ -70,10 +106,38 @@ function wraps(cell: string): boolean {
 function hasHeader(block: Block): boolean {
   return (block.columns || []).some(c => c.trim() !== '')
 }
+
+/**
+ * Mark the tables that are wider than their box.
+ *
+ * On a phone the fee table's last two columns - the fees - start off the right
+ * edge, and nothing said there was more to see: the table looked like a list
+ * of courses. A wide table gets a shadow at the edge it continues past and a
+ * line under it saying to swipe. Measured, not guessed from the column count,
+ * because a three-column table of dates fits and a two-column one of
+ * sentences may not.
+ */
+const root = ref<HTMLElement | null>(null)
+let watcher: ResizeObserver | null = null
+
+function measure() {
+  for (const box of root.value?.querySelectorAll<HTMLElement>('.scroll-x') || []) {
+    box.toggleAttribute('data-wide', box.scrollWidth > box.clientWidth + 1)
+  }
+}
+
+onMounted(() => {
+  measure()
+  if (typeof ResizeObserver === 'undefined' || !root.value) return
+  watcher = new ResizeObserver(measure)
+  watcher.observe(root.value)
+})
+onBeforeUnmount(() => watcher?.disconnect())
+watch(blocks, () => nextTick(measure))
 </script>
 
 <template>
-  <div v-if="blocks.length" class="blocks">
+  <div v-if="blocks.length" ref="root" class="blocks">
     <template v-for="(block, i) in blocks" :key="i">
       <component
         :is="`h${block.level || 2}`"
@@ -123,29 +187,44 @@ function hasHeader(block: Block): boolean {
         <div class="scroll-x">
           <table>
             <thead v-if="hasHeader(block)">
-              <tr>
+              <tr v-for="(row, j) in headRows(block)" :key="j">
                 <th
-                  v-for="(column, j) in block.columns || []"
-                  :key="j"
-                  scope="col"
-                  :class="{ wraps: wraps(column) }"
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :scope="cell.colspan && cell.colspan > 1 ? 'colgroup' : 'col'"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text) }"
                 >
-                  {{ column }}
+                  {{ cell.text }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, j) in block.rows || []" :key="j">
-                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
+              <tr v-for="(row, j) in cellsOf(block, 'body', block.rows || [])" :key="j">
+                <td
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text), lines: cell.text.includes('\n') }"
+                >{{ cell.text }}</td>
               </tr>
             </tbody>
             <tfoot v-if="block.foot?.length">
-              <tr v-for="(row, j) in block.foot" :key="j">
-                <td v-for="(cell, k) in row" :key="k" :class="{ wraps: wraps(cell) }">{{ cell }}</td>
+              <tr v-for="(row, j) in cellsOf(block, 'foot', block.foot)" :key="j">
+                <td
+                  v-for="(cell, k) in row"
+                  :key="k"
+                  :rowspan="cell.rowspan"
+                  :colspan="cell.colspan"
+                  :class="{ wraps: wraps(cell.text), lines: cell.text.includes('\n') }"
+                >{{ cell.text }}</td>
               </tr>
             </tfoot>
           </table>
         </div>
+        <p class="scroll-hint tiny muted" aria-hidden="true">{{ $t('guides.tableScroll') }}</p>
         <ul v-if="block.links?.length" class="block-list table-links">
           <li v-for="(link, j) in block.links" :key="j">
             <template v-for="(span, k) in link" :key="k">
@@ -206,8 +285,18 @@ function hasHeader(block: Block): boolean {
      page - widened the table, the card and the page, and every paragraph on a
      phone ran off the right edge. */
   overflow-x: auto;
+  /* Shadows that say the table goes on: the covers scroll with the table and
+     hide a shadow once its edge is reached. */
+  background:
+    linear-gradient(to right, var(--surface) 40%, transparent) left / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 40%, transparent) right / 32px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(15 23 42 / 0.16), transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(15 23 42 / 0.16), transparent) right / 12px 100% no-repeat scroll,
+    var(--surface);
 }
 .block-table table { min-width: 100%; }
+.scroll-hint { display: none; margin: var(--s2) 0 0; }
+.scroll-x[data-wide] + .scroll-hint { display: block; }
 /* Dates and codes must not be broken across lines, so cells do not wrap by
    default. A cell holding a sentence is a different thing and says so - see
    `wraps` in the script: nowrap there is 2,000px nobody can read. */
@@ -215,6 +304,13 @@ function hasHeader(block: Block): boolean {
 .block-table td { white-space: nowrap; }
 .block-table td.wraps,
 .block-table th.wraps { white-space: normal; min-width: 22ch; max-width: 46ch; }
+/* A cell with its own line breaks (two paragraphs, a short list) keeps them. */
+.block-table tr td.lines { white-space: pre; }
+.block-table tr td.wraps.lines,
+.block-table tr td.lines:first-child { white-space: pre-line; }
+/* A merged cell sits at the top of the rows it spans, as it does on monash.edu. */
+.block-table td[rowspan],
+.block-table th[rowspan] { vertical-align: top; }
 /* The first column is usually the label and is the one that may be long. */
 .block-table td:first-child,
 .block-table th:first-child { white-space: normal; min-width: 12ch; }

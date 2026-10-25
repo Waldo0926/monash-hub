@@ -4,6 +4,23 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (official pages)
+
+- Tables keep their shape. A cell that spans rows or columns is drawn merged,
+  as on monash.edu, instead of moving every cell below it one column left; a
+  second header row ("Malaysian / International" under "Tuition fees") and a
+  table's footer row are kept; a cell with its own line breaks keeps them.
+- Collapsed content is read in full. The question of each accordion item was
+  the text of its toggle button and was dropped with the other page controls,
+  so the student pass page had 75 answers and no questions. An accordion is
+  now read as sections, so an answer keeps its paragraphs, lists and tables.
+- On a phone, a table wider than the screen shows a shadow at the edge it
+  continues past and a line saying to swipe it sideways.
+- A page whose article is only a title no longer shows the cookie banner as
+  its text, and "Content cannot be accessed", a sign-in widget's placeholder
+  at the top of students/admin, /dates and /timetables, is left out.
+- Every official page is re-extracted on its next fetch (extractor version 7).
+
 ### Changed (Chinese translation)
 
 - The chat-model translator defaults to Zhipu's free `glm-4.5-flash`. Read

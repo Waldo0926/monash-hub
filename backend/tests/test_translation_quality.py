@@ -160,3 +160,9 @@ def test_a_label_and_its_sentence_are_translated_apart_and_joined():
         "Eligibility", "Open to students across all Schools.")})
     assert out == {joined: "申请条件：所有学院学生均可申请。"}
     assert joined not in asked
+
+
+def test_english_that_says_here_is_may_be_translated_as_yixia_shi():
+    source = "TEXT:\nHere's what you need to know while you're on intermission."
+    assert llm.acceptable_reply(source, "以下是你在休学期间需要了解的信息。")
+    assert not llm.acceptable_reply("TEXT:\nRead this before you go.", "以下是翻译：出发前请阅读。")

@@ -321,6 +321,11 @@ def translate_blocks(blocks: list[dict[str, Any]], tr: Translation) -> list[dict
                     if block.get("foot")
                     else {}
                 ),
+                **(
+                    {"head": [[tr.string(c) or c for c in row] for row in block["head"]]}
+                    if block.get("head")
+                    else {}
+                ),
             })
         else:
             out.append(block)

@@ -169,7 +169,8 @@ def page_strings(page: OfficialPage) -> list[str]:
             strings.append(block.get("caption"))
             strings += [_join(link) for link in block.get("links") or []]
             strings += list(block.get("columns") or [])
-            for row in (block.get("rows") or []) + (block.get("foot") or []):
+            for row in ((block.get("head") or []) + (block.get("rows") or [])
+                        + (block.get("foot") or [])):
                 strings += list(row)
     return [s for s in strings if s and s.strip()]
 
@@ -434,6 +435,10 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
                 if not wanted:
                     summary["skipped"] += 1
                     continue
+            if not refresh:
+                # A page whose hash moved because the extractor did, or because
+                # one sentence changed, still has every other sentence stored.
+                translator.prime(_stored_strings(db, locale, OFFICIAL_PAGE, page.slug))
             title = page.title if page.title in wanted else None
             strings = translate_strings(translator, [s for s in wanted if s != title],
                                         page_labels(page))
