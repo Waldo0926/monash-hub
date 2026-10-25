@@ -99,10 +99,14 @@ SITES: dict[str, dict] = {
             "science/current/undergraduate", "engineering/current-students",
             "pharmacy/current-students", "sass/current", "sass/current/undergraduate",
             "medicine/current-students", "accommodation", "its",
+            # /accommodation now redirects here, and the library's own pages
+            # (hours, borrowing, study spaces) were never walked.
+            "student-life/accommodation", "library",
         )],
         "prefixes": ("/business/current", "/it/current-students", "/science/current",
                      "/engineering/current-students", "/pharmacy/current-students",
-                     "/sass/current", "/medicine/current-students", "/accommodation", "/its"),
+                     "/sass/current", "/medicine/current-students", "/accommodation", "/its",
+                     "/student-life", "/library"),
         "max_slashes": 6,
     },
     "abroad": {
