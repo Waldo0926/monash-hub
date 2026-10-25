@@ -74,6 +74,9 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 - Check campuses, teaching periods, assessments, exams, requisites, learning outcomes and workload
 - Verify details through the Handbook link and last-checked date
 
+<p align="center"><img src="./docs/images/unit-en.webp" alt="Unit page for FIT2004: faculty notice, credit points, campus, assessment, offerings and the Handbook source link" width="900" /></p>
+<p align="center"><sub>The screenshots on this page come from the browser-test stack, which runs the real site on three invented units (FIT1008, FIT2004, FIT2102) and an invented degree. Names, marks and plans are made up; the live site shows the Handbook.</sub></p>
+
 ### Find official Monash information
 
 - Search WAM, Special Consideration, census dates, visas, exchange and campus services
@@ -94,12 +97,16 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 
 A plan is stored only in your own browser and is never saved to an account. Each check sends the plan to the API so it can be compared with the Handbook, and nothing is kept once the answer comes back. A plan does not follow you to another device, so use Export to move it.
 
+<p align="center"><img src="./docs/images/plan-en.webp" alt="Course map: four units placed in semesters, each checked against the campus, teaching period and prerequisites, with progress against the degree on the right" width="900" /></p>
+
 ### Work out your WAM / GPA
 
 - Type a unit code and the credit points and level come from the Handbook; you do not have to remember the level weighting
 - Malaysia uses CGPA, which is a different scale, so you can switch between them
 - You can also upload a screenshot of your WES results or paste the text, and have it read into the table
 - Marks are worked out in your browser and never stored on your account. Only the unit codes you type are sent to the API, to look up credit points and level; the marks themselves stay on your device
+
+<p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA calculator: three units with marks, grouped by level, WAM and CGPA on the right" width="900" /></p>
 
 ### Join the student community
 
@@ -140,6 +147,20 @@ See [Public release checklist](docs/PUBLIC-RELEASE.md) for the repository's priv
 This README is for product users. See [architecture](docs/ARCHITECTURE.md), [decision records](docs/adr/README.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md) and the [changelog](CHANGELOG.md) for project work.
 
 Development changes should use `feat/*`, `fix/*` or `chore/*` branches, with a Pull Request reviewed before merging into `main`.
+
+### Run it locally
+
+The browser tests ship with everything needed to run the real stack on synthetic data: PostgreSQL, the API, the production build of the frontend and a small proxy that puts them on one origin, as nginx does in production.
+
+```sh
+createdb monashhub_e2e
+pip install -r backend/requirements.txt
+(cd frontend && npm ci && npm run build)
+(cd e2e && npm ci && npx playwright install chromium)
+cd e2e && DATABASE_URL=postgresql+psycopg://USER:PASSWORD@localhost:5432/monashhub_e2e npx playwright test
+```
+
+Playwright migrates the database, loads `e2e/seed.py`, starts the three servers on ports 8100, 3101 and 3100, runs the tests and stops them. To keep the site up for a look, start the same commands yourself; they are listed in [e2e/README.md](e2e/README.md). Real Handbook and official-page data comes from the crawler, see [crawling](docs/CRAWLING.md). Backend tests run with `pytest` in `backend/`, frontend tests with `npm test` in `frontend/`.
 
 ## License and copyright
 
