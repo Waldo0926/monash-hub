@@ -312,6 +312,11 @@ class OfficialFetcher:
         # goes idle, and still has its text.
         with contextlib.suppress(Exception):
             page.wait_for_load_state("networkidle", timeout=10_000)
+        if not _allowed_redirect(url, page.url):
+            # Sent on by script while it settled: cms-academic/checkmk went to
+            # the Okta sign-in page, and its form was stored as the page.
+            return PageResult(url, status, None, BROWSER_TRANSPORT,
+                              "redirect outside approved pages", final_url=page.url)
         html = page.content()
         error = html_error(html)
         return PageResult(url, 200, None if error else html, BROWSER_TRANSPORT,

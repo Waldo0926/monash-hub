@@ -137,7 +137,12 @@ LEAVE_OUT = re.compile(
     # Single research projects and PhD positions, employer and staff pages.
     r"undergraduate-research-opportunity/|phd-studentship|(?:^|/)employers(?:/|$)|"
     r"welcome-new-staff|organisational-chart|library-exhibitions|"
-    r"[^/]*testimonial[^/]*(?:/|$)",
+    r"[^/]*testimonial[^/]*(?:/|$)|"
+    # Read from the harvest on 2026-10-25: CMS link reports ("This report has
+    # not been generated"), a backup copy of a section, a list of safety video
+    # titles, a sign-in tool, and open-day pages that are an events iframe.
+    r"^/ohse/(?:about/)?report\d*$|-backup(?:/|$)|^/ohse/information-for/safety-videos|"
+    r"^/cms-academic(?:/|$)|^/open-day(?:/|$)",
     re.IGNORECASE,
 )
 

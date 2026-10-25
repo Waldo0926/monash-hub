@@ -23,6 +23,15 @@ All notable changes to Monash Hub are documented here.
   pages can be read on another computer (`crawler.official.harvest`) and
   stored by the server with its own code (`deployment/crawl.sh
   official-harvest FILE`).
+- A page that is short on Monash's site too - a hub of links such as
+  Malaysia's enrol and re-enrol page, or a short answer - is stored when
+  there is no longer copy to keep. A long page that suddenly reads short
+  still keeps its last good copy (Malaysia's special consideration page now
+  holds only its title and a link to the central page).
+- A page that a script sends on to another site while it loads is not
+  stored: cms-academic/checkmk was stored as the Okta sign-in form. Link
+  reports, a backup copy, a safety-video list and the open-day event pages
+  are left out of coverage (3,102 rows).
 - A full re-crawl (`--all`) no longer clears the date a page was last read
   before fetching it. On 2026-10-25 the 359 Malaysia pages it was refused on
   lost their "last checked" date; a page now keeps it until a read works.
