@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (guide pages broken into short lines)
+
+- Text, links and bold written side by side in a `<div>` became one block
+  each, so the misconduct page's tiles read "impartial and fair to" / "all
+  parties" and the IT re-enrolment page split "Check the handbook for units on
+  offer" into three lines and lost the link. A run of inline content is now one
+  paragraph.
+- A `<br>` in the middle of a phrase ("fair to<br>all parties") is a space. One
+  after a full stop or a colon, or before a capital, a number or a lettered
+  item ("b) continuing ..."), still breaks the line.
+- `<li>` written with no list around it becomes a list.
+- `EXTRACTOR_VERSION` is 8, so each page is re-extracted the next time it is
+  fetched.
 ### Fixed (searching a unit that has closed)
 
 - Searching a unit code that an earlier Handbook has but this year's does not
