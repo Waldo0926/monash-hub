@@ -41,8 +41,20 @@ MAX_AGE = timedelta(days=3)
 GZIP_MAGIC = b"\x1f\x8b\x08"
 
 
+RECORD_KEYS = {"url", "status", "html", "transport", "error", "final_url", "fetched_at"}
+
 #: Decompressed bytes taken at a time: one page's HTML runs to 2.5 MB.
 STEP = 1 << 20
+
+
+def _starts_record(data: memoryview, at: int) -> bool:
+    """Whether a gzip member of this file starts at ``at``: the header bytes
+    can occur inside compressed data by chance, a record cannot."""
+    try:
+        head = zlib.decompressobj(wbits=31).decompress(data[at:at + 4096], 16)
+    except zlib.error:
+        return False
+    return head.startswith(b'{"url"')
 
 
 def _gzip_lines(data: bytes) -> Iterator[bytes]:
@@ -50,10 +62,12 @@ def _gzip_lines(data: bytes) -> Iterator[bytes]:
 
     A run stopped mid-write tears the member it was writing, and the next run
     appends a new one. ``gzip.open`` raises at the tear and loses the rest.
-    Worse, a decoder carried past a tear can read the next member as more of
-    the torn one and give garbage without an error. So a member that does not
-    end cleanly is read only as far as it goes, and reading starts again at
-    the next place a member header could be. Lines that are not whole records
+    Worse, a decoder carried past a tear reads the next member as more of the
+    torn one, often without an error: its literal bytes come out right and its
+    back-references point into the wrong text, so whole lines can come out as
+    valid JSON with the wrong fields. So a member is never read across a
+    place where another member visibly starts; a torn one is read as far as
+    it goes, and reading starts again there. Lines that are not whole records
     are dropped by the caller.
     """
     cuts = []
@@ -69,6 +83,8 @@ def _gzip_lines(data: bytes) -> Iterator[bytes]:
         piece, end, pending = first, None, bytearray()
         try:
             while piece < len(cuts) - 1 and end is None:
+                if piece > first and _starts_record(view, cuts[piece]):
+                    break  # torn before here: this is the next member
                 chunk = view[cuts[piece]:cuts[piece + 1]]
                 while not reader.eof:
                     out = reader.decompress(chunk, STEP)
@@ -85,7 +101,7 @@ def _gzip_lines(data: bytes) -> Iterator[bytes]:
         except zlib.error:
             pass
         if end is None:
-            first += 1  # torn: the next header, if any, starts the next member
+            first = max(piece, first + 1)  # torn: go on at the next member
         else:
             if pending:
                 yield bytes(pending)
@@ -110,7 +126,7 @@ def _records(path: str) -> Iterator[dict]:
                 record = json.loads(line)
             except (json.JSONDecodeError, UnicodeDecodeError):
                 continue
-            if isinstance(record, dict) and "url" in record:
+            if isinstance(record, dict) and record.keys() >= RECORD_KEYS:
                 yield record
 
 
