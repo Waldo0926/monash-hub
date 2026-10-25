@@ -190,3 +190,42 @@ def test_pages_checked_by_hand_on_2026_10_25():
     assert calculator.sign_in and calculator.title == "Fee calculator (Monash Malaysia)"
     # The public eExam guide answers instead.
     assert "malaysia-our-services-online-assessment-eexams" in by_slug
+
+
+def test_a_page_about_a_year_that_is_over_is_left_out():
+    """Next to this year's on the guides page on 2026-10-25: old OSHC price
+    lists, re-enrolment, discontinuation dates, intakes and events."""
+    au = "https://www.monash.edu"
+    left_out = [
+        (f"{au}/students/admin/fees/other-costs/overseas-health-cover/2017-oshc-price-list",
+         "2017 Monash OSHC price list"),
+        (f"{au}/students/admin/fees/other-costs/overseas-health-cover/oshc-price-list",
+         "2024 Monash OSHC price list"),
+        (f"{au}/law/current-students/re-enrolment-year/2020-re-enrolment", "2020 Re-enrolment"),
+        (f"{MY}/study/apply/intake-periods/july-2024-intake", "July 2024 intake"),
+        (f"{MY}/student-services/student-admin/semester-principal-dates/principal-dates-2025",
+         "Principal dates 2025"),
+        (f"{au}/it/current-students/courses/maps/2019",
+         "Course maps for students commenced in 2019"),
+    ]
+    pages = [{**page(url, url, title=title)} for url, title in left_out]
+    assert urls(build(pages, {}, [], year=2026)) == []
+    kept = [
+        (f"{au}/students/admin/fees/other-costs/overseas-health-cover/2026-oshc-price-list",
+         "2026 Monash OSHC price list"),
+        # Students who started in 2021 can still be in a double degree.
+        (f"{au}/it/current-students/courses/maps/2021",
+         "Course maps for students commenced in 2021"),
+        # The year a rule starts from, and course codes, are not dates.
+        (f"{au}/law/honours-weighted-average/students-who-commenced-from-2014",
+         "Students who commenced from 2014"),
+        (f"{MY}/it/current-students/undergraduates/bachelor-of-computer-science-c2001",
+         "Bachelor of Computer Science (C2001)"),
+        (f"{MY}/study/S2000", "Bachelor of Science"),
+    ]
+    pages = [{**page(url, url, title=title)} for url, title in kept]
+    assert len(build(pages, {}, [], year=2026)) == len(kept)
+    # A listed row goes too, without being read again.
+    previous = (("my-pd-2025", left_out[4][0], "Principal dates 2025", "fees-dates", (), "stable",
+                 "malaysia"),)
+    assert build([], {left_out[4][0]: {"text": "x" * 2000}}, [], {}, previous, year=2026) == []

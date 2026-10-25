@@ -4,6 +4,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (pages about past years)
+
+- 152 pages about a year that is over leave the guides: OSHC price lists
+  and SSAF from 2016-2025, past re-enrolment, unit discontinuation and
+  non-standard dates, timetables and results release dates, past intakes and
+  principal dates, and past events and student representatives. Course maps
+  stay for students who started in the last five years (2021 on, in 2026),
+  since a student follows the map of the year they commenced; older ones go.
+  Course codes such as C2001 and "students who commenced from 2014" are not
+  read as years. The rule runs on every coverage build, so each January the
+  previous year's pages drop out.
+
 ### Fixed (Malaysia pages checked by hand)
 
 - Monash Malaysia's exam rules and its five eExam pages under
