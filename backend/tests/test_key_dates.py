@@ -184,6 +184,9 @@ def test_key_dates_endpoint_names_its_sources(client, db, on_4_october):
     assert {i["source"] for i in body["items"]} <= set(body["sources"])
     assert all(body["sources"][s]["url"].startswith("https://") for s in body["sources"])
     assert client.get("/api/v1/key-dates", params={"campus": "mars"}).status_code == 422
+    # /dates asks for the whole list; the cap is still there.
+    assert client.get("/api/v1/key-dates", params={"limit": 60}).status_code == 200
+    assert client.get("/api/v1/key-dates", params={"limit": 61}).status_code == 422
 
 
 def test_key_dates_source_titles_follow_the_language(client, db, on_4_october):

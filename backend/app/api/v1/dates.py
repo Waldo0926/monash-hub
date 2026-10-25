@@ -17,7 +17,7 @@ router = APIRouter(tags=["guides"])
 @router.get("/key-dates")
 def list_key_dates(
     campus: str = Query("malaysia", pattern="^(australia|malaysia)$"),
-    limit: int = Query(6, ge=1, le=20),
+    limit: int = Query(6, ge=1, le=60),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:

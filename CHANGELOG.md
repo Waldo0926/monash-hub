@@ -4,6 +4,46 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (home page: 马莫百科 block, three main tools, quieter community)
+
+- 马莫百科 has its own block under the search: what the account covers, its
+  three latest posts with links, the account's real QR code, a copy button for
+  the name and a link to /mamo#follow for the group chat. On a touch screen the
+  hint says to long-press the code inside WeChat or copy the name, since a
+  phone cannot scan its own screen. Tapping the code opens it full size to zoom
+  or save. No pop-up, nothing gates the rest of the site.
+- Units, the course map and the official guides get a tile each. Degrees, the
+  unit tree, the WAM/GPA calculator and the community are one line of links
+  under them. The header keeps its shape.
+- In Chinese, 学位 is now 专业与学位 in the header, footer, page title and
+  assistant. Families in China say 专业 for what Monash calls a course, and
+  专业方向 already means a major or specialisation on this site, so the plain
+  专业 would have been ambiguous.
+- The community section, which had one post, is a single line under the
+  assessment guides.
+- The header lists 马莫百科 before the community, which is now last. On phones
+  the bottom bar's community slot goes to 马莫百科; the community stays in the
+  More menu.
+- The example searches under the search box were labelled "Often searched" and
+  热门搜索, but they are a fixed list and the site does not log searches. They
+  are now labelled Try / 试试搜 / 検索例 / 검색 예시.
+- The key-dates card no longer lists its headline date twice. The big number
+  is the next academic date (census, withdrawal, swot vac, exams, results)
+  rather than a public holiday, a date already underway says so at the same
+  size, and the list under it is four rows with a link to all dates.
+
+### Added (all key dates)
+
+- /dates lists every upcoming key date for the chosen campus by month, with
+  public holidays on by default and a switch to hide them. It names the
+  teaching periods it covers and links the official pages for the rest. The
+  campus choice is shared with the home page.
+- `/v1/key-dates` takes `limit` up to 60 (was 20) so the page gets the full
+  list. The card and the page share their wording through
+  `frontend/utils/keyDates.ts`.
+- The site assistant offers /dates for questions about key dates, swot vac,
+  exam weeks, results and public holidays.
+
 ### Changed (owner name)
 
 - The footer, READMEs and COPYRIGHT.md name the owner as Waldo instead of a
