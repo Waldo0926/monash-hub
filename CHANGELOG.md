@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (searching a unit that has closed)
+
+- Searching a unit code that an earlier Handbook has but this year's does not
+  (FIT1008, gone from 2027) used to say only that the Handbook has no such
+  unit. It now says which Handbook last had it, shows the faculty's teach-out
+  notice word for word (Monash Malaysia's and the Australian campuses' lists,
+  the reader's campus first), cites both faculty pages and links to the unit's
+  last page. A code in no Handbook at all is still treated as a typo.
+
 ### Fixed (pages about past years)
 
 - 152 pages about a year that is over leave the guides: OSHC price lists
