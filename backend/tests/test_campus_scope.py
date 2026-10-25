@@ -110,6 +110,11 @@ def test_titles_and_categories():
     # An undergraduate page is not about graduating.
     assert category("https://www.monash.edu.my/sass/current/undergraduate/faq") == "enrolment"
     assert category("https://www.monash.edu/study-abroad/outbound/exchange") == "exchange"
+    # A school's page is under enrolment only when its address is about courses.
+    assert category("https://www.monash.edu.my/business/current/course-map-planning-guide") \
+        == "enrolment"
+    assert category("https://www.monash.edu.my/engineering/enhanced-learning/mentoring") \
+        == "support"
 
 
 def test_a_title_that_says_nothing_gets_its_section():

@@ -142,7 +142,27 @@ LEAVE_OUT = re.compile(
     # not been generated"), a backup copy of a section, a list of safety video
     # titles, a sign-in tool, and open-day pages that are an events iframe.
     r"^/ohse/(?:about/)?report\d*$|-backup(?:/|$)|^/ohse/information-for/safety-videos|"
-    r"^/cms-academic(?:/|$)|^/open-day(?:/|$)",
+    r"^/cms-academic(?:/|$)|^/open-day(?:/|$)|"
+    # A school's own "about" section (leadership, staff lists, departments,
+    # vision and mission, rankings; accreditation stays), its competitions and their galleries,
+    # past study-trip posts, lab services and industry pitches: on the
+    # guides page under 选课 on 2026-10-25, and none of it is guidance.
+    # The study-trips overview stays; the posts are "2005-bangkok-thailand".
+    r"^/(?:business|it|science|engineering|pharmacy|sass|jcsmhs|medicine)(?:/[^/]+)?/"
+    r"about(?:-us)?(?:-new)?(?:/(?!accreditation(?:/|$))|$)|accreditation-and-ranking|"
+    r"challenge-cup|chem-e-car|freescale-cup|external-design-competitions|unwaste-20\d\d|"
+    r"rceuc-20\d\d|ifrc-20\d\d|(?:^|/)(?:event-details|hall-of-fame|photo-gallery)"
+    r"(?:/|$)|/study-trips/\d{4}-|/analytical-services(?:/|$)|"
+    r"/industry-and-partnerships(?:/|$)|/assets/images/|test-discipline|"
+    r"monash-little-food-festival|mydispensemum|alumni-community|"
+    # Lab and research team pages, CMS listings and site maps, news posts,
+    # and test copies of pages, also found under the schools.
+    r"our-research(?:_\d+)?(?:/|$)|^/(?:[^/]+/)?(?:asset-)?listing$|site-map(?:/|$)|"
+    r"new-and-events-listing|news-and-events|/past-events(?:/|$)|/e?c?announcements(?:/|$)|"
+    r"accouncements|external-report|/redirect/|home-test|engage-with-us-test|itex-20\d\d|"
+    r"alumni-(?:dinner|roundtable)|sciencecup20\d\d|volatevssummit|research-areas-|"
+    r"/geron(?:/|$)|structures-20\d\d|innovative-technologies|/all-disciplines/[^/]+/20\d\d$|"
+    r"[^/]*(?:-won-|-recipient-|site-visit-to-|students-excel-again)[^/]*$",
     re.IGNORECASE,
 )
 
@@ -153,6 +173,10 @@ LEAVE_OUT = re.compile(
 GONE = re.compile(r"\b(?:404|410)\b|soft 404|redirect", re.IGNORECASE)
 CATEGORY_ORDER = ["assessment", "enrolment", "graduation", "fees-dates", "international",
                   "academic-rules", "exchange", "support", "malaysia"]
+COURSE_WORDS = re.compile(
+    r"enrol|course|unit|major|minor|specialis|timetable|study-plan|study-load|handbook|"
+    r"current|commencing|orientation|undergrad|postgrad|program|degree|credit|transfer|"
+    r"/study(?:/|$)|/admissions/|faq|frequently-asked", re.IGNORECASE)
 SCHOOL = re.compile(r"monash\.edu\.my/(business|it|science|engineering|pharmacy|sass|medicine)/",
                     re.IGNORECASE)
 
@@ -365,11 +389,15 @@ def category(url: str) -> str:
     if any(k in path for k in ("/admin/policies", "/academic-progress", "/unsatisfactory-progress",
                                "/misconduct", "/complaints", "/academic-integrity")):
         return "academic-rules"
-    if SCHOOL.search(url):
-        return "enrolment"
-    if "/students/" in path or "student-services" in path or "monash.edu.my" in url:
+    if "/students/" in path or "student-services" in path \
+            or ("monash.edu.my" in url and not SCHOOL.search(url)):
         return "support"
-    return "enrolment"
+    # A school's page is about courses only when its address says so. Every
+    # other faculty page was filed under enrolment, which made it the biggest
+    # category on the guides page and the home of staff lists and rankings.
+    if COURSE_WORDS.search(path):
+        return "enrolment"
+    return "support"
 
 
 def tags(title: str, url: str, cat: str) -> tuple[str, ...]:

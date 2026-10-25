@@ -136,3 +136,34 @@ def test_an_old_home_copy_is_the_last_choice():
     rows = build([page(f"{MY}/student-services/home-old/m-pass", "m"),
                   page(f"{MY}/m-pass", "m")], {}, [])
     assert urls(rows) == [f"{MY}/m-pass"]
+
+
+def test_a_schools_about_pages_competitions_and_old_posts_are_not_guidance():
+    """On the guides page under 选课 on 2026-10-25: leadership and staff lists,
+    rankings, competitions, 2005 study-trip posts, lab pages, CMS listings."""
+    left_out = [
+        "/business/about-us/leadership-team", "/business/about-us/prof-staff",
+        "/business/about-us/wip-accreditation-and-ranking/ranking-qs",
+        "/pharmacy/about-us/academic-staff", "/science/about-us-new/program-coordinators",
+        "/IT/welcome/about-us", "/sass/about/vision-and-mission",
+        "/engineering/enhanced-learning/external-design-competitions/the-freescale-cup",
+        "/IT/monash-ai-challenge-cup-maicc/photo-gallery",
+        "/engineering/all-disciplines/chemical-engineering/unwaste-2022",
+        "/sass/student-experience/extra-curricular-activities/study-trips/2005-bangkok-thailand",
+        "/engineering/analytical-services/civil-department",
+        "/engineering/all-disciplines/mechanical-engineering/our-research_3/thermofluidics",
+        "/science/listing", "/business/asset-listing", "/sass/site-map",
+        "/science/home/itex-2018-winners", "/science/MScienceCup2026",
+    ]
+    assert urls(build([page(f"{MY}{path}", path) for path in left_out], {}, [])) == []
+    kept = [
+        "/jcsmhs/about/accreditation",
+        "/sass/student-experience/extra-curricular-activities/study-trips",
+        "/business/current/course-map-planning-guide",
+        "/it/industry-partnerships/industry-scholarship",
+    ]
+    assert len(build([page(f"{MY}{path}", path) for path in kept], {}, [])) == len(kept)
+    # Course map listings are content, not a CMS listing page.
+    au = "/business/current-students/course-advice-and-planning/helpful-links/course-maps/" \
+         "assets/2022/ug/asset-listing"
+    assert len(build([page(f"https://www.monash.edu{au}", au)], {}, [])) == 1
