@@ -135,7 +135,7 @@ LEAVE_OUT = re.compile(
     r"infoday[^/]*|sir-john-monash-lecture|event-attendance|covid19-updates|mena)(?:/|$)|"
     # Single research projects and PhD positions, employer and staff pages.
     r"undergraduate-research-opportunity/|phd-studentship|(?:^|/)employers(?:/|$)|"
-    r"welcome-new-staff|organisational-chart|work-from-home|library-exhibitions|"
+    r"welcome-new-staff|organisational-chart|library-exhibitions|"
     r"[^/]*testimonial[^/]*(?:/|$)",
     re.IGNORECASE,
 )
@@ -481,17 +481,27 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
     rows = []
     failed = {page["url"].rstrip("/").lower(): page for page in pages
               if page.get("status") != 200 or page.get("error")}
+    seen = {page["url"].rstrip("/").lower() for page in pages}
     for slug, url, title, cat, tag_list, refresh, applies_to in previous:
-        page = failed.get(url.rstrip("/").lower())
-        if (url.lower() in spelled or url.lower() in listed_urls or page is None
-                or GONE.search(f"{page.get('status')} {page.get('error') or ''}")
-                or LEAVE_OUT.search(urlparse(url).path)):
+        key = url.rstrip("/").lower()
+        page = failed.get(key)
+        if url.lower() in spelled or url.lower() in listed_urls \
+                or LEAVE_OUT.search(urlparse(url).path):
+            continue
+        if page is None:
+            # Not in any sitemap and linked from nowhere discovery walked - the
+            # five Malaysia eExam pages - but production holds its text, so
+            # it is still there; a 404 on the next crawl takes it down.
+            stored = (texts.get(url.rstrip("/")) or {}).get("text") or ""
+            if key in seen or len(stored) < MIN_LENGTH:
+                continue
+        elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
             continue
         spelled[url.lower()] = url
         rows.append({
             "slug": slug, "url": url, "title": title, "category": cat, "tags": tuple(tag_list),
             "tier": refresh, "applies_to": applies_to, "depth": 9, "prio": 0,
-            "reason": "kept: discovery could not read it",
+            "reason": "kept: listed before, not read this time",
         })
         taken.add(slug)
     for url, page in kept.items():

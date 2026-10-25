@@ -88,3 +88,16 @@ def test_a_page_already_listed_stays_when_discovery_was_refused_on_it():
     ]
     rows = build(pages, {}, [], {row[1]: row[0] for row in previous}, previous)
     assert [(row["url"], row["slug"]) for row in rows] == [(exam, "my-remote-eexams")]
+
+
+def test_a_listed_page_no_sitemap_names_stays_while_production_has_its_text():
+    exam = f"{MY}/student-services/student-admin/examinations-results/remote-eexams"
+    empty = f"{MY}/student-services/empty"
+    previous = (
+        ("my-remote-eexams", exam, "Remote eExams", "assessment", ("考试",), "daily", "malaysia"),
+        ("my-empty", empty, "Empty", "support", (), "weekly", "malaysia"),
+    )
+    texts = {exam: {"text": "x" * 2000}, empty: {"text": "short"}}
+    rows = build([page(f"{MY}/student-services/student-admin", "w")], texts, [],
+                 {row[1]: row[0] for row in previous}, previous)
+    assert sorted(urls(rows)) == sorted([f"{MY}/student-services/student-admin", exam])
