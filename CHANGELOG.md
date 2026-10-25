@@ -24,6 +24,11 @@ All notable changes to Monash Hub are documented here.
 - In Chinese the first steps and the progress panel say 专业与学位, matching
   the rest of the site.
 
+### Removed (a staff tool listed as a guide)
+
+- "Welcome to the Connect Tutor" is Monash Connect's tool for officers to check
+  an email reply before sending it. It was listed among the support guides;
+  it is now left out of coverage and retired at the next full registration.
 ### Changed (home page: 马莫百科 block, three main tools, quieter community)
 
 - 马莫百科 has its own block under the search: what the account covers, its
