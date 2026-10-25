@@ -361,3 +361,37 @@ def test_links_are_absolute_and_only_ever_web_addresses():
     assert urls["clever"] is None
     assert urls["data link"] is None
     assert urls["an address"] is None
+
+
+def test_a_list_inside_an_item_stays_under_that_item():
+    """Monash Malaysia's work rules: the places and the banned jobs are lists
+    inside two of the rules, and came out after the last rule."""
+    html = """
+    <html><body><main>
+      <h1>Can I work while studying?</h1>
+      <ol>
+        <li>Only allowed to work during semester breaks.</li>
+        <li>Only allowed to work in:
+          <ul><li>restaurants</li><li>hotels</li></ul>
+        </li>
+        <li>Not allowed to work as:
+          <div><ul><li>cashiers</li></ul></div>
+        </li>
+        <li>Not allowed to work more than 20 hours per week.</li>
+      </ol>
+    </main></body></html>
+    """
+    result = clean_page(html, url="u")
+    lists = [b for b in result["blocks"] if b["type"] == "list"]
+    texts = [[i[0]["text"].strip() for i in b["items"]] for b in lists]
+    assert texts == [
+        ["Only allowed to work during semester breaks.", "Only allowed to work in:"],
+        ["restaurants", "hotels"],
+        ["Not allowed to work as:"],
+        ["cashiers"],
+        ["Not allowed to work more than 20 hours per week."],
+    ]
+    assert [b.get("start") for b in lists] == [None, None, 3, None, 4]
+    assert [b.get("depth", 0) for b in lists] == [0, 1, 0, 1, 0]
+    assert "2. Only allowed to work in:\n\n  • restaurants" in result["clean_text"]
+    assert "4. Not allowed to work more than 20 hours" in result["clean_text"]
