@@ -27,7 +27,7 @@ from app.knowledge.repository import (
     upsert_seed_page,
 )
 
-from crawler.official.fetch import OfficialFetcher
+from crawler.official.fetch import OfficialFetcher, PageResult, _allowed_redirect
 from crawler.official.seeds import SEEDS, Seed
 from crawler.sync.pipeline import crawl_job, record
 from crawler.sync.refresh import is_due
@@ -91,6 +91,17 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
     return len(seeds)
 
 
+def _short_on_monash(cleaned: dict, page) -> bool:
+    """A page that is short on monash.edu.my as well: a hub of links (the
+    Malaysia enrol and re-enrol page is six of them), a short answer (paying
+    fees by credit card). It is taken only when the copy it would replace is
+    no longer: a long page that suddenly reads short means the template
+    changed, and the last good copy stays."""
+    text = cleaned["clean_text"] or ""
+    title = cleaned.get("title") or ""
+    return len(text) >= 60 and len(text) - len(title) >= 40 and len(page.clean_text or "") < 200
+
+
 def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
           fetcher=None, force: bool = False) -> dict[str, int]:
     """Fetch, clean and store each seed that is due, or every seed with ``force``.
@@ -127,6 +138,12 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
             result = fetcher.fetch(seed.url)
             elapsed = int((time.monotonic() - started) * 1000)
 
+            if result.ok and result.final_url and not _allowed_redirect(seed.url, result.final_url):
+                # The fetcher checks this too; a harvest read before it did
+                # holds cms-academic/checkmk as the Okta sign-in form.
+                result = PageResult(seed.url, result.status, None, result.transport,
+                                    "redirect outside approved pages",
+                                    final_url=result.final_url)
             if not result.ok:
                 summary["failed"] += 1
                 record_failure(db, page, result.error or "fetch failed",
@@ -139,7 +156,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
                 continue
 
             cleaned = clean_page(result.html, url=result.final_url or seed.url)
-            if len(cleaned["clean_text"] or "") < 200:
+            if len(cleaned["clean_text"] or "") < 200 and not _short_on_monash(cleaned, page):
                 # A page that suddenly extracts to almost nothing means the
                 # template changed, not that Monash deleted the content.
                 # Keep the last good version and shout about it.
