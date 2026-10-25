@@ -23,6 +23,7 @@ import gzip
 import json
 import logging
 import os
+import zlib
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
@@ -36,22 +37,66 @@ log = logging.getLogger("crawler.official.harvest")
 MAX_AGE = timedelta(days=3)
 
 
+GZIP_MAGIC = b"\x1f\x8b\x08"
+
+
+def _gzip_text(data: bytes) -> str:
+    """The text of every gzip member, as far as each one goes.
+
+    A run stopped mid-write tears the member it was writing, and the next run
+    appends a new one. ``gzip.open`` raises at the tear and loses the rest.
+    Worse, a decoder carried past a tear can read the next member as more of
+    the torn one and give garbage without an error. So a member that does not
+    end cleanly is read only as far as it goes, and reading starts again at
+    the next place a member header could be. Lines that are not whole records
+    are dropped by the caller.
+    """
+    cuts = []
+    at = data.find(GZIP_MAGIC)
+    while at != -1:
+        cuts.append(at)
+        at = data.find(GZIP_MAGIC, at + 1)
+    cuts.append(len(data))
+    parts: list[bytes] = []
+    first = 0
+    while first < len(cuts) - 1:
+        reader = zlib.decompressobj(wbits=31)
+        piece, end = first, None
+        while piece < len(cuts) - 1:
+            try:
+                parts.append(reader.decompress(data[cuts[piece]:cuts[piece + 1]]))
+            except zlib.error:
+                break
+            piece += 1
+            if reader.eof:
+                end = cuts[piece] - len(reader.unused_data)
+                break
+        parts.append(b"\n")
+        if end is None:
+            first += 1  # torn: the next header, if any, starts the next member
+        else:
+            first = next((k for k in range(first + 1, len(cuts)) if cuts[k] >= end),
+                         len(cuts) - 1)
+    return b"".join(parts).decode("utf-8", errors="replace")
+
+
 def _records(path: str) -> list[dict]:
     """Every whole line in a harvest file. A run stopped mid-write leaves a
-    torn last line, or a torn gzip member; what came before it still counts."""
+    torn last line, or a torn gzip member; every whole line around it still
+    counts."""
     if not os.path.exists(path):
         return []
-    opener = gzip.open if path.endswith(".gz") else open
+    with open(path, "rb") as handle:
+        data = handle.read()
+    text = _gzip_text(data) if path.endswith(".gz") else data.decode("utf-8", errors="replace")
     records = []
-    try:
-        with opener(path, "rt", encoding="utf-8") as handle:
-            for line in handle:
-                try:
-                    records.append(json.loads(line))
-                except json.JSONDecodeError:
-                    break
-    except (EOFError, gzip.BadGzipFile):
-        pass
+    for line in text.splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(record, dict) and "url" in record:
+            records.append(record)
     return records
 
 
@@ -68,16 +113,18 @@ def harvest(host: str, out: str, *, min_interval: float, transport: str = "auto"
     summary = {"ok": 0, "failed": 0}
     fetcher = fetcher or OfficialFetcher(Throttle(RateLimit(min_interval=min_interval)),
                                          transport=transport)
-    opener = gzip.open if out.endswith(".gz") else open
-    with fetcher, opener(out, "at", encoding="utf-8") as handle:
+    with fetcher, open(out, "ab") as handle:
         for index, seed in enumerate(seeds, start=1):
             result = fetcher.fetch(seed.url)
-            handle.write(json.dumps({
+            line = json.dumps({
                 "url": seed.url, "status": result.status, "html": result.html,
                 "transport": result.transport, "error": result.error,
                 "final_url": result.final_url,
                 "fetched_at": datetime.now(UTC).isoformat(),
-            }, ensure_ascii=False) + "\n")
+            }, ensure_ascii=False).encode("utf-8") + b"\n"
+            # One gzip member per page: a run stopped mid-write loses only
+            # the page it was writing.
+            handle.write(gzip.compress(line) if out.endswith(".gz") else line)
             handle.flush()
             summary["ok" if result.ok else "failed"] += 1
             if not result.ok:

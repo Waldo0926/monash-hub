@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import zlib
 from datetime import UTC, datetime, timedelta
 
 from crawler.official import harvest
@@ -135,3 +136,38 @@ def test_a_forced_run_that_cannot_read_a_page_keeps_its_last_good_date(db, engin
     db.expire_all()
     page = db.scalar(select(OfficialPage).where(OfficialPage.slug == "my-pass"))
     assert page.last_checked == read_at and page.status == "ok"
+
+
+def test_a_run_stopped_mid_write_loses_only_that_page(tmp_path):
+    """2026-10-25: the harvest was stopped twice mid-write. Each stop tore the
+    gzip member being written, and reading stopped at the first tear, so the
+    server loaded nothing and the next run thought 39 of 680 pages were read."""
+    now = datetime.now(UTC)
+    first = b"".join(json.dumps(_record(f"{MY}/a{i}", now)).encode() + b"\n" for i in range(30))
+    second = b"".join(json.dumps(_record(f"{MY}/b{i}", now)).encode() + b"\n" for i in range(30))
+    torn_first = gzip.compress(first)[:-30]
+    torn_second = gzip.compress(second)[:-30]
+    whole = gzip.compress(json.dumps(_record(f"{MY}/c", now)).encode() + b"\n")
+    path = tmp_path / "h.jsonl.gz"
+    path.write_bytes(torn_first + torn_second + whole)
+    urls = harvest.HarvestedFetcher(str(path)).urls
+    assert f"{MY}/c" in urls
+    # Each torn member gives every line that came out before its tear.
+    for torn, prefix in ((torn_first, "/a"), (torn_second, "/b")):
+        whole_lines = zlib.decompressobj(wbits=31).decompress(torn).count(b"\n")
+        assert whole_lines > 0
+        assert len([u for u in urls if u.startswith(f"{MY}{prefix}")]) == whole_lines
+
+
+def test_each_page_is_its_own_gzip_member(tmp_path, monkeypatch):
+    monkeypatch.setattr(harvest, "SEEDS", SEEDS)
+    out = tmp_path / "my.jsonl.gz"
+    harvest.harvest("www.monash.edu.my", str(out), min_interval=0, fetcher=Scripted())
+    data = out.read_bytes()
+    assert data.count(b"\x1f\x8b\x08") >= 2
+    # Cut into the last page: the first is still there, and a rerun reads
+    # only the cut one again.
+    out.write_bytes(data[:-50])
+    again = Scripted()
+    harvest.harvest("www.monash.edu.my", str(out), min_interval=0, fetcher=again)
+    assert again.asked == [SEEDS[1].url]
