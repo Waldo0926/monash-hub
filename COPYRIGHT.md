@@ -1,6 +1,6 @@
 # Copyright and permitted access
 
-Copyright © 2026 Shuoxun Wen. All rights reserved.
+Copyright © 2026 Waldo (github.com/Waldo0926). All rights reserved.
 
 Monash Hub is **publicly visible source code, not open-source software**.
 
@@ -35,7 +35,7 @@ See [NOTICE.md](NOTICE.md) for the third-party-content boundary.
 
 # 版权与允许的访问方式
 
-Copyright © 2026 Shuoxun Wen. All rights reserved.
+Copyright © 2026 Waldo (github.com/Waldo0926). All rights reserved.
 
 Monash Hub 属于**公开可见源码，但不是开源软件**。
 

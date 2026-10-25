@@ -116,7 +116,7 @@ Development changes should use `feat/*`, `fix/*` or `chore/*` branches, with a P
 
 **Public visibility does not make this project open source.**
 
-Copyright © 2026 Shuoxun Wen. All rights reserved.
+Copyright © 2026 Waldo. All rights reserved.
 
 The source code in this repository is made publicly visible for portfolio presentation, educational review and code inspection. Unless you have prior written permission from the copyright holder, no permission is granted to copy, modify, distribute, sublicense, sell, commercially use, deploy as a competing service, or create derivative products from this software.
 

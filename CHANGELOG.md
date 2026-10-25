@@ -4,6 +4,11 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (owner name)
+
+- The footer, READMEs and COPYRIGHT.md name the owner as Waldo instead of a
+  full name.
+
 ### Fixed (guide pages broken into short lines)
 
 - Text, links and bold written side by side in a `<div>` became one block
