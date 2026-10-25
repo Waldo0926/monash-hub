@@ -103,10 +103,48 @@ LEAVE_OUT = re.compile(
     r"program-search/(?!.*prato)|program-search$|"
     # Not guidance: the site search, the 404 page, feedback forms, tracking
     # and verification files the sitemaps list.
-    r"(?:^|/)(?:search|feedback|page-not-found|analytics)(?:/|$)|google-tag-manager|"
-    r"/google[0-9a-f]*\.html$|\.txt$|\.xml$",
+    # A feedback form sits at the top of a section; ".../results/feedback" is
+    # how to get feedback on a mark and stays.
+    r"(?:^|/)(?:search|page-not-found|analytics)(?:/|$)|^/(?:[^/]+/)?feedback$|google-tag-manager|"
+    r"/google[0-9a-f]*\.html$|\.txt$|\.xml$|"
+    # The rest of a whole-site sitemap that is not for students or parents:
+    # research groups, news and seminars, staff lists and profiles, alumni
+    # and student testimonials, job ads, conference and campaign microsites,
+    # and the CMS's own fragments and drafts. The 2026-10-25 build added about
+    # 890 of these, filed under enrolment or support by default.
+    # A school's research section, not a page about research rules deeper in
+    # (students/support/disability/services/research).
+    # Research scholarships are for applicants and stay.
+    r"^/(?:[^/]+/)?research(?:/(?!support-and-scholarships)|$)|"
+    r"(?:^|/)(?:researchers-say|our-research|research-areas|research-centres?|"
+    r"research-facilities|monashrise|all-staff|our-people|our-staff|staff-directory|"
+    r"our-alumni|testimonials|what-they-say|gallery|mockup|for-review|"
+    r"nested-content|right-hand-side-bar|rhs-modules|engage-with-us)(?:/|$)|"
+    r"^/(?:rhs2|paced|mipo|net-zero-future-centre|optical-imaging|future-conversations|"
+    r"life-capsule|education-excellence)(?:/|$)|^/about/career(?:/|$)|"
+    # Conferences and expos. Not every segment with a year in it: "fees-2027"
+    # is exactly what a parent is looking for.
+    r"(?:^|/)(?:[a-z-]*-)?(?:expo|icamr|tbcg|eepm)[a-z0-9-]*(?:/|$)|"
+    r"(?:^|/)[^/]*(?:symposium|colloquium|mockup|spotlight|staff-only)[^/]*(?:/|$)|"
+    # Research platforms and centres with sites of their own, a staging copy,
+    # and sidebar fragments ("rhs" is the right-hand side bar).
+    r"^/(?:mdp|jcsmhs/gph|ohse/information-test)(?:/|$)|(?:^|/)rhs(?:-[^/]*)?(?:/|$)|-custom/|"
+    # Event sign-ups and their thank-you pages, recruitment events for agents
+    # and applicants, and the COVID-19 notices of 2020-22.
+    r"(?:^|/)thank(?:-[^/]*)?(?:/|$)|^/(?:application-day|agent-familiarisation-visit|"
+    r"infoday[^/]*|sir-john-monash-lecture|event-attendance|covid19-updates|mena)(?:/|$)|"
+    # Single research projects and PhD positions, employer and staff pages.
+    r"undergraduate-research-opportunity/|phd-studentship|(?:^|/)employers(?:/|$)|"
+    r"welcome-new-staff|organisational-chart|work-from-home|library-exhibitions|"
+    r"[^/]*testimonial[^/]*(?:/|$)",
     re.IGNORECASE,
 )
+
+#: Discovery answers that say an address is gone or has moved. Any other
+#: failure - a 403, a timeout - says nothing about the page, and a page the
+#: coverage list already has stays on it: the 2026-10-25 build dropped five
+#: Malaysia eExam pages because the walk was refused on them that night.
+GONE = re.compile(r"\b(?:404|410)\b|soft 404|redirect", re.IGNORECASE)
 CATEGORY_ORDER = ["assessment", "enrolment", "graduation", "fees-dates", "international",
                   "academic-rules", "exchange", "support", "malaysia"]
 SCHOOL = re.compile(r"monash\.edu\.my/(business|it|science|engineering|pharmacy|sass|medicine)/",
@@ -390,9 +428,10 @@ def tier(url: str) -> str:
 
 
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
-          known: dict[str, str] | None = None) -> list[dict]:
+          known: dict[str, str] | None = None, previous: tuple = ()) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
-    ``known`` maps the addresses already in seeds_coverage.py to their slugs."""
+    ``known`` maps the addresses already in seeds_coverage.py to their slugs;
+    ``previous`` is that file's rows, kept when discovery could not read them."""
     listed_urls = {seed.url.rstrip("/").lower() for seed in existing}
     listed_hashes = {t["hash"] for t in texts.values() if t.get("hand_picked") and t.get("hash")}
     taken = {seed.slug for seed in existing}
@@ -437,6 +476,21 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
         spelled[url.lower()] = url
 
     rows = []
+    failed = {page["url"].rstrip("/").lower(): page for page in pages
+              if page.get("status") != 200 or page.get("error")}
+    for slug, url, title, cat, tag_list, refresh, applies_to in previous:
+        page = failed.get(url.rstrip("/").lower())
+        if (url.lower() in spelled or url.lower() in listed_urls or page is None
+                or GONE.search(f"{page.get('status')} {page.get('error') or ''}")
+                or LEAVE_OUT.search(urlparse(url).path)):
+            continue
+        spelled[url.lower()] = url
+        rows.append({
+            "slug": slug, "url": url, "title": title, "category": cat, "tags": tuple(tag_list),
+            "tier": refresh, "applies_to": applies_to, "depth": 9, "prio": 0,
+            "reason": "kept: discovery could not read it",
+        })
+        taken.add(slug)
     for url, page in kept.items():
         title = clean_title(page.get("title"), url)
         cat = category(url)
@@ -538,7 +592,7 @@ def main() -> None:
     if args.texts:
         with open(args.texts, encoding="utf-8") as handle:
             texts = json.load(handle)
-    rows = build(pages, texts, hand_picked, {row[1]: row[0] for row in COVERAGE})
+    rows = build(pages, texts, hand_picked, {row[1]: row[0] for row in COVERAGE}, COVERAGE)
     with open(args.out, "w", encoding="utf-8") as handle:
         handle.write(render(rows))
     for row in rows:

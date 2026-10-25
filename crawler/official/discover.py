@@ -35,7 +35,7 @@ from urllib.parse import urldefrag, urljoin, urlparse
 from app.knowledge.cleaner import clean_page
 from bs4 import BeautifulSoup
 
-from crawler.official.coverage import EXTRA
+from crawler.official.coverage import EXTRA, LEAVE_OUT
 from crawler.official.fetch import OfficialFetcher
 from crawler.throttling.limiter import RateLimit, Throttle
 
@@ -204,7 +204,7 @@ def sitemap_urls(fetcher: OfficialFetcher, name: str) -> list[str]:
             # One address however the sitemap capitalises it: Monash serves
             # /Semester-in-Australia and /semester-in-australia as one page.
             if (urlparse(url).netloc not in spec["hosts"] or url.lower() in seen
-                    or NOT_FOR_STUDENTS.search(path) or SKIP.search(path)
+                    or NOT_FOR_STUDENTS.search(path) or SKIP.search(path) or LEAVE_OUT.search(path)
                     or (spec["include"] and not spec["include"].search(path))):
                 continue
             seen.add(url.lower())
