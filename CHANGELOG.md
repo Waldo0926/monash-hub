@@ -4,6 +4,36 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (home page: 马莫百科 block, three main tools, quieter community)
+
+- 马莫百科 has its own block under the search: what the account covers, its
+  three latest posts with links, the account's real QR code, a copy button for
+  the name and a link to /mamo#follow for the group chat. On a touch screen the
+  hint says to long-press the code inside WeChat or copy the name, since a
+  phone cannot scan its own screen. Tapping the code opens it full size to zoom
+  or save. No pop-up, nothing gates the rest of the site.
+- Units, the course map and the WAM/GPA calculator get a tile each. Guides,
+  degrees, the unit tree and the community are one line of links under them.
+  The header is unchanged.
+- The community section, which had one post, is a single line under the
+  assessment guides.
+- The key-dates card no longer lists its headline date twice. The big number
+  is the next academic date (census, withdrawal, swot vac, exams, results)
+  rather than a public holiday, a date already underway says so at the same
+  size, and the list under it is four rows with a link to all dates.
+
+### Added (all key dates)
+
+- /dates lists every upcoming key date for the chosen campus by month, with
+  public holidays on by default and a switch to hide them. It names the
+  teaching periods it covers and links the official pages for the rest. The
+  campus choice is shared with the home page.
+- `/v1/key-dates` takes `limit` up to 60 (was 20) so the page gets the full
+  list. The card and the page share their wording through
+  `frontend/utils/keyDates.ts`.
+- The site assistant offers /dates for questions about key dates, swot vac,
+  exam weeks, results and public holidays.
+
 ### Fixed (guide pages broken into short lines)
 
 - Text, links and bold written side by side in a `<div>` became one block

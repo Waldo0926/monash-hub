@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
  * Home answers four questions above the fold: what is this, where do I search,
- * what else can I do here, and what is coming up for me. Everything below is a
- * way in: one example unit per faculty, the guides most used at this point in
- * the semester, and the community.
+ * what else can I do here, and what is coming up for me. Right under that is
+ * 马莫百科, the WeChat account for Monash Malaysia students, as a block of its
+ * own. Below it: one example unit per faculty and the guides most used at this
+ * point in the semester. The community is a line under the guides until it has
+ * enough posts to be worth a section.
  *
  * For a signed-in reader it also carries the notification list, because the
  * point of being told your question was answered is that you see it without
@@ -78,10 +80,7 @@ const guidesFetch = useLocalisedApiFetch<any>(
   () => `/v1/guides?slugs=${GUIDE_SLUGS[campus.value].join(',')}`,
   { watch: [campus] }
 )
-const postsFetch = useApiFetch<any>('/v1/community/posts?limit=4')
-const [{ data: units }, { data: guides }, { data: posts }] = await Promise.all([
-  unitsFetch, guidesFetch, postsFetch
-])
+const [{ data: units }, { data: guides }] = await Promise.all([unitsFetch, guidesFetch])
 
 const unitRows = computed(() => {
   const byCode = new Map<string, any>((units.value?.results ?? []).map((u: any) => [u.unit_code, u]))
@@ -115,9 +114,6 @@ const COPY = {
     guidesTitle: 'Assessment and results',
     guidesLead: 'Extensions, special consideration, exam timetables and results.',
     checked: 'checked',
-    community: 'Community',
-    communityLead: 'Ask what official pages cannot answer: workload, exams, which units pair well.',
-    ask: 'Ask a question',
     trust: [
       ['Weekly', 'Every unit and degree re-synced from handbook.monash.edu'],
       ['Every 6 hours', 'Official Monash pages checked for changes'],
@@ -142,9 +138,6 @@ const COPY = {
     guidesTitle: '考核与成绩',
     guidesLead: '延期、特殊考虑、考试时间表和成绩。',
     checked: '核对于',
-    community: '社区',
-    communityLead: '官方页面答不了的，在这里问同学：学习负担、考试、哪些课搭着上。',
-    ask: '提一个问题',
     trust: [
       ['每周', '从 handbook.monash.edu 同步全部课程和学位'],
       ['每 6 小时', '核对一次 Monash 官方页面有没有改动'],
@@ -156,25 +149,25 @@ const COPY = {
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 const marketing = computed(() => locale.value === 'en' || locale.value === 'zh')
 
-// The eight tools sit under the search box, so a first visit sees what the site
-// does without scrolling past the dates. Labels come from the header navigation;
-// the icons are the line set the header and the plan page already use.
-const TOOLS = [
+// The tools sit under the search box, so a first visit sees what the site does
+// without scrolling past the dates. Three get a tile: the ones students come
+// back for every semester. The rest are one line of links, still a tap away and
+// all in the header too. 马莫百科 has its own block below. Labels come from the
+// header navigation; the icons are the line set the header and the plan page
+// already use.
+const PRIMARY_TOOLS = [
   { to: '/units', key: 'units', icon: 'book' },
-  { to: '/guides', key: 'guides', icon: 'page' },
-  { to: '/tree', key: 'tree', icon: 'tree' },
   { to: '/plan', key: 'plan', icon: 'columns' },
-  { to: '/courses', key: 'courses', icon: 'degree' },
-  { to: '/marks', key: 'marks', icon: 'percent' },
-  { to: '/community', key: 'community', icon: 'chat' },
-  { to: '/mamo', key: 'mamo', icon: 'pin' }
+  { to: '/marks', key: 'marks', icon: 'percent' }
 ]
+const MORE_TOOLS = ['/guides', '/courses', '/tree', '/community']
 const directory = computed(() =>
-  TOOLS.flatMap(({ to, key, icon }) => {
+  PRIMARY_TOOLS.flatMap(({ to, key, icon }) => {
     const item = sectionItems.value.find(i => i.to === to)
     return item ? [{ to, icon, label: item.label, hint: $t(`home.toolHint.${key}`) }] : []
   })
 )
+const moreTools = computed(() => sectionItems.value.filter(i => MORE_TOOLS.includes(i.to)))
 
 // The query stays English, which is what the official pages are indexed by.
 const POPULAR = {
@@ -249,18 +242,24 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         <nav class="tools" aria-labelledby="tools-title">
           <h2 id="tools-title" class="tools-title">{{ $t('home.startHere') }}</h2>
           <NuxtLink v-for="item in directory" :key="item.to" :to="item.to" class="tool">
-            <span class="tool-icon"><PlanIcon :name="item.icon" :size="20" /></span>
+            <span class="tool-icon"><PlanIcon :name="item.icon" :size="22" /></span>
             <span class="tool-text">
               <b>{{ item.label }}</b>
               <span class="tool-hint">{{ item.hint }}</span>
             </span>
           </NuxtLink>
+          <p class="more-tools small">
+            <span class="muted">{{ $t('home.moreTools') }}</span>
+            <NuxtLink v-for="item in moreTools" :key="item.to" :to="item.to">{{ item.label }}</NuxtLink>
+          </p>
         </nav>
       </div>
       <KeyDatesCard v-model:campus="campus" />
     </section>
 
     <NotificationPanel class="notifications" />
+
+    <MamoIntro />
 
     <ul v-if="marketing" class="trust" aria-label="Data freshness">
       <li v-for="[figure, text] in c.trust" :key="figure">
@@ -302,50 +301,33 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
       <EmptyState v-else :title="$t('home.noUnits')" :hint="$t('home.noUnitsHint')" />
     </section>
 
-    <div class="sec split">
-      <section aria-labelledby="guides-title">
-        <div class="sec-head">
-          <div>
-            <h2 id="guides-title">{{ marketing ? c.guidesTitle : $t('home.officialGuides') }}</h2>
-            <p v-if="marketing" class="small muted">{{ c.guidesLead }}</p>
-          </div>
-          <NuxtLink to="/guides" class="more small">{{ $t('home.allGuides') }}</NuxtLink>
+    <section class="sec" aria-labelledby="guides-title">
+      <div class="sec-head">
+        <div>
+          <h2 id="guides-title">{{ marketing ? c.guidesTitle : $t('home.officialGuides') }}</h2>
+          <p v-if="marketing" class="small muted">{{ c.guidesLead }}</p>
         </div>
-        <ul class="guides">
-          <li v-for="page in guides?.results || []" :key="page.slug">
-            <NuxtLink :to="`/guides/${page.slug}`">
-              <span class="gt">{{ page.title }}</span>
-              <span class="gm tiny muted">
-                {{ $t(`category.${page.category}`) }} ·
-                <CampusNotice :applies-to="page.applies_to" compact />
-              </span>
-              <span class="gd tiny muted mono">{{ marketing ? c.checked : '' }} {{ shortDate(page.last_checked) }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </section>
-
-      <!-- Always rendered, empty or not. An empty forum that says nothing looks
-           broken; an empty forum that asks for the first question is an invitation. -->
-      <section aria-labelledby="community-title">
-        <div class="sec-head">
-          <h2 id="community-title">{{ marketing ? c.community : $t('home.latestDiscussions') }}</h2>
-          <NuxtLink to="/community" class="more small">{{ $t('home.allDiscussions') }}</NuxtLink>
-        </div>
-        <div class="ask">
-          <ul v-if="posts?.results?.length" class="posts">
-            <li v-for="post in posts.results" :key="post.id">
-              <NuxtLink :to="`/community/post/${post.id}`">
-                <span class="gt">{{ post.title }}</span>
-                <span class="gm tiny muted">{{ post.author || '—' }}</span>
-              </NuxtLink>
-            </li>
-          </ul>
-          <p class="small muted">{{ marketing ? c.communityLead : $t('home.communityEmptyHint') }}</p>
-          <NuxtLink to="/community" class="btn btn--small">{{ marketing ? c.ask : $t('community.ask') }}</NuxtLink>
-        </div>
-      </section>
-    </div>
+        <NuxtLink to="/guides" class="more small">{{ $t('home.allGuides') }}</NuxtLink>
+      </div>
+      <ul class="guides">
+        <li v-for="page in guides?.results || []" :key="page.slug">
+          <NuxtLink :to="`/guides/${page.slug}`">
+            <span class="gt">{{ page.title }}</span>
+            <span class="gm tiny muted">
+              {{ $t(`category.${page.category}`) }} ·
+              <CampusNotice :applies-to="page.applies_to" compact />
+            </span>
+            <span class="gd tiny muted mono">{{ marketing ? c.checked : '' }} {{ shortDate(page.last_checked) }}</span>
+          </NuxtLink>
+        </li>
+      </ul>
+      <!-- The community stays one line until it has enough posts to fill a
+           section; a big empty forum on the home page reads as abandoned. -->
+      <p class="community-line small muted">
+        {{ $t('home.communityLine') }}
+        <NuxtLink to="/community">{{ $t('home.communityLink') }} →</NuxtLink>
+      </p>
+    </section>
   </div>
 </template>
 
@@ -407,12 +389,13 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .sec-head p { margin: var(--s1) 0 0; }
 .more { color: var(--brand); white-space: nowrap; }
 
-/* The eight tools as soft tiles on the same light grey as the header tray: two
-   columns beside the dates, an app-style grid of four on a phone. The icon sits
-   on a small white chip, like the raised sign-in piece in the header. */
+/* The three main tools as soft tiles on the same light grey as the header tray,
+   side by side beside the dates and an app-style row of three on a phone. The
+   icon sits on a small white chip, like the raised sign-in piece in the header.
+   The other tools follow as one line of links. */
 .tools {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s2);
   margin-top: var(--s5);
 }
@@ -427,10 +410,10 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 .tool {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  column-gap: var(--s3);
-  align-items: center;
-  padding: var(--s2) var(--s3);
+  grid-template-columns: 1fr;
+  align-content: start;
+  row-gap: var(--s3);
+  padding: var(--s4);
   border-radius: 12px;
   background: var(--surface-2);
   color: inherit;
@@ -441,18 +424,28 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .tool-icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   background: var(--surface);
   color: var(--brand);
   box-shadow: var(--shadow-sm), 0 0 0 1px var(--border);
 }
 .tool-text { display: grid; gap: 1px; }
-.tool b { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+.tool b { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .tool-hint { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
 /* Korean wraps between words, not inside them. */
 .tool-hint:lang(ko) { word-break: keep-all; }
+.more-tools {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1) var(--s4);
+  margin: var(--s2) 0 0;
+}
+.more-tools a { color: var(--text); border-bottom: 1px solid var(--border-strong); }
+.more-tools a:hover { color: var(--brand); border-color: var(--brand); text-decoration: none; }
 
 .units { border-top: 1px solid var(--ink); }
 .unit {
@@ -472,20 +465,17 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .meta { text-align: right; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--soon); font-weight: 500; }
 
-.split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--s7); }
-.guides, .posts { margin: 0; padding: 0; list-style: none; }
+.guides { margin: 0; padding: 0; list-style: none; }
 .guides { border-top: 1px solid var(--ink); }
 .guides li { border-bottom: 1px solid var(--border); }
-.guides a, .posts a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--s4); padding: var(--s3) 0; color: inherit; }
-.guides a:hover, .posts a:hover { text-decoration: none; }
-.guides a:hover .gt, .posts a:hover .gt { color: var(--brand); }
+.guides a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--s4); padding: var(--s3) 0; color: inherit; }
+.guides a:hover { text-decoration: none; }
+.guides a:hover .gt { color: var(--brand); }
 .gt { font-weight: 500; }
 .gm { grid-column: 1; }
 .gd { grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; white-space: nowrap; }
-.ask { padding-top: var(--s4); border-top: 1px solid var(--ink); }
-.posts { margin-bottom: var(--s4); }
-.posts li { border-bottom: 1px solid var(--border); }
-.ask > p { margin: 0 0 var(--s4); }
+.community-line { margin: var(--s5) 0 0; }
+.community-line a { color: var(--brand); white-space: nowrap; }
 
 @media (max-width: 1040px) {
   .unit { grid-template-columns: 8em 6.5em minmax(0, 1fr) auto; }
@@ -495,10 +485,9 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   .hero { grid-template-columns: 1fr; }
   .trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tools { margin-top: var(--s5); }
-  .split { grid-template-columns: 1fr; gap: var(--s6); }
 }
 @media (max-width: 560px) {
-  .tools { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s3) var(--s2); }
+  .tools { gap: var(--s3) var(--s2); }
   .tool {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -511,7 +500,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   .tool:hover { background: none; }
   .tool-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); box-shadow: none; }
   .tool:hover .tool-icon { background: var(--blue-50); }
-  .tool b { font-size: 0.75rem; font-weight: 500; }
+  .tool b { font-size: 0.85rem; font-weight: 500; }
   .tool-hint { display: none; }
   .unit { grid-template-columns: 1fr auto; gap: 2px var(--s3); }
   .area { grid-column: 2; grid-row: 1; text-align: right; }
