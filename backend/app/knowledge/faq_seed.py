@@ -240,9 +240,6 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         priority=85,
         malaysia_pages=("malaysia-frequently-asked-questions-faq-unit-withdra",),
     ),
-    # The SORS sentences (form, Week 2 deadline, ISP email) are from the notes
-    # on Monash Malaysia's underload application form, which we do not crawl;
-    # checked on the form on 2026-10-25.
     FaqSeed(
         "how-to-withdraw-from-a-unit",
         "How do I withdraw from a unit?",
@@ -255,16 +252,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "Malaysia: after the census date a withdrawn unit shows as WD-LATE or WD-FAIL, and the "
         "date you withdraw can affect fee refunds and your academic record. The last day to "
         "withdraw without academic penalty is before the WD-LATE date ends; the dates are in "
-        "Monash Malaysia's Principal Dates. With a Student Pass, a full-time load is 48 credit "
-        "points a year (usually 24 a semester). You can go down to no less than 18 credit "
-        "points a semester only in the cases the page lists, such as an academic progress "
-        "condition, a medical reason or your final semester, and with supporting documents. "
-        "Apply with the underload application form in SORS "
-        "(sors.monash.edu.my/sites/student-online-forms/enrol/underload-application) by "
-        "Friday of Week 2 of the semester to avoid a financial penalty, and talk to the "
-        "International Student Pass Office (mum.student.visa@monash.edu) about your Student "
-        "Pass first. If you have a scholarship, bursary or study loan, check with its office "
-        "too. Below 18 credit points you have to apply for intermission.",
+        "Monash Malaysia's Principal Dates. With a Student Pass, going below 24 credit points "
+        "a semester is an underload: it needs approval, it can never go below 18 credit "
+        "points, and below 18 you have to apply for intermission.",
         "enrolment",
         ("enrolment", "unit", "units", "subject", "course", "wes", "课", "一门课",
          "课程", "网上", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
@@ -275,6 +265,80 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         priority=75,
         malaysia_pages=("malaysia-frequently-asked-questions-faq-unit-withdra",
                         "malaysia-international-students-during-your-studies"),
+    ),
+    # The SORS sentences (forms, Week 2 deadlines, the ISP email, the late
+    # addition fee) are from the notes on Monash Malaysia's underload and
+    # overload application forms, which we do not crawl; checked on the forms
+    # on 2026-10-25.
+    FaqSeed(
+        "international-student-underload",
+        "Can I take less than a full-time load on a student visa (underload)?",
+        "Only with approval, and the rules depend on the campus. "
+        "Australia: on a student visa you must finish your course in the time stated on "
+        "your CoE, so you can apply to underload only for compassionate or compelling "
+        "circumstances, such as serious illness or a course structure that prevents a "
+        "standard load. You do not need approval if you are in your final year and will "
+        "finish within the time on your CoE. Apply before 11.59pm (Melbourne time) on the "
+        "census date. "
+        "Malaysia: with a Student Pass, a full-time load is 48 credit points a year "
+        "(usually 24 a semester). You can go down to no less than 18 credit points a "
+        "semester, and only for an academic progress condition; course structure, "
+        "progression rules or unit availability; illness or exceptional personal "
+        "circumstances; or a final semester or year that needs fewer credit points. Talk to "
+        "the International Student Pass Office (mum.student.visa@monash.edu) about your "
+        "Student Pass first, then apply with the underload form in SORS "
+        "(sors.monash.edu.my/sites/student-online-forms/enrol/underload-application) with "
+        "supporting documents by Friday of Week 2 of the semester to avoid a financial "
+        "penalty. If you have a scholarship, bursary or study loan, check with its office "
+        "too. Below 18 credit points a semester you have to apply for intermission.",
+        "enrolment",
+        ("international", "国际学生", "留学生", "visa", "student visa", "签证", "学生签证",
+         "student pass", "学生准证", "malaysia", "马来西亚", "马莫", "australia", "澳洲",
+         "澳大利亚", "澳莫", "semester", "学期", "credit points", "credit point", "学分",
+         "unit", "units", "课", "门", "几门", "full-time", "full time", "全日制", "load",
+         "study load", "课业量", "less", "fewer", "少", "only", "只", "form", "sors",
+         "deadline", "截止", "when", "approval", "批准", "条件", "要求", "18", "24", "48",
+         "apply", "申请", "一学期", "一个学期", "每学期"),
+        ("underload", "underloading", "under load", "减课", "少修", "少选", "少选课",
+         "少上课", "part-time load", "study part-time", "part time study", "读非全日制"),
+        "study-load",
+        priority=60,
+        malaysia_pages=("malaysia-international-students-during-your-studies",
+                        "malaysia-frequently-asked-questions-faq-study-load-o"),
+    ),
+    FaqSeed(
+        "overload",
+        "Can I take more units than a full-time load (overload)?",
+        "Overloading means enrolling in more than the standard load, and it needs approval. "
+        "Australia: you can request it if, within the last 12 months, you completed 48 "
+        "credit points and have a WAM of 60 or higher. Exceptions may apply to "
+        "high-achieving students in approved programs, and some courses do not allow it "
+        "because of professional accreditation or clinical requirements. Submit the "
+        "Overload Request form at least five University working days before the teaching "
+        "period starts, once you have your results from the previous teaching period; you "
+        "hear back within five working days. "
+        "Malaysia: it is usually limited to students who completed 48 credit points in two "
+        "consecutive semesters at Monash University Malaysia and had a credit average of "
+        "60% or higher in the previous year, including failed units. Apply with the "
+        "overload form in SORS "
+        "(sors.monash.edu.my/sites/student-online-forms/enrol/overload-semester-enrolment) "
+        "by Friday of Week 2 of the semester; a fee applies if a late addition is approved. "
+        "The School of Business FAQ says an overload is usually one more unit, five units "
+        "in a semester, subject to faculty approval. If you have a scholarship, bursary or "
+        "study loan, check with its office first.",
+        "enrolment",
+        ("malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚", "澳莫", "semester",
+         "学期", "credit points", "credit point", "学分", "unit", "units", "课", "门", "几门",
+         "five", "5", "五门", "5门", "门课", "full-time", "full time", "全日制", "load",
+         "study load", "课业量", "more", "extra", "多", "form", "sors", "deadline", "截止",
+         "when", "approval", "批准", "wam", "60", "条件", "要求", "requirement",
+         "requirements", "eligible", "资格", "fee", "费用", "accelerate", "提前毕业",
+         "apply", "申请", "一学期", "一个学期", "每学期"),
+        ("overload", "overloading", "over load", "超修", "多修", "多选课", "多选一门",
+         "加修", "选五门", "选5门", "修五门", "修5门"),
+        "study-load",
+        priority=60,
+        malaysia_pages=("malaysia-frequently-asked-questions-faq-study-load-o",),
     ),
     FaqSeed(
         "student-visa-work-hours",

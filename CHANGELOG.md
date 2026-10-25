@@ -16,6 +16,10 @@ All notable changes to Monash Hub are documented here.
   semester). Such an answer carries no single-campus label.
 - New answer: do international students need health insurance (OSHC in
   Australia; the medical insurance Monash Malaysia buys with the Student Pass).
+- New answers: underload on a student visa, and overload, each for both
+  campuses. The Malaysia parts give the SORS forms, the Friday of Week 2
+  deadline and the International Student Pass Office, from the notes on the
+  forms.
 - The GPA answer said N is worth 0. A fail is 0.3 on Monash's scale; the
   answer now gives the whole scale and Malaysia's CGPA values.
 - The automatic conferral answer adds how to delay conferral (3 months in the

@@ -647,15 +647,39 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "马来西亚：过了 census date 再退课，成绩会显示为 WD-LATE 或 WD-FAIL，"
         "退课日期会影响退费和学业记录。不受学业处罚的最后退课时间是 WD-LATE 日期结束之前，"
         "具体日期看 Monash Malaysia 的 Principal Dates。"
-        "持学生准证（Student Pass）的全日制课业量是每年 48 学分（一般每学期 24 学分）。"
-        "只有在页面列出的情况下，比如学业进度委员会的条件、医疗原因或最后一个学期，"
-        "并附上证明材料，才能减到每学期不少于 18 学分。"
-        "减课（underload）用 SORS 里的申请表"
-        "（sors.monash.edu.my/sites/student-online-forms/enrol/underload-application），"
-        "要在开学第 2 周的周五前交，否则会有费用上的处罚；"
-        "交之前先发邮件问国际学生准证办公室（mum.student.visa@monash.edu）对学生准证的影响。"
+        "持学生准证（Student Pass）的，每学期少于 24 学分就是减课（underload）："
+        "要经过批准，最少不能低于 18 学分，少于 18 学分就要申请休学（intermission）。",
+    ),
+    "international-student-underload": (
+        "持学生签证可以少修课（underload）吗？",
+        "要经过批准，规定看校区。"
+        "澳大利亚：持学生签证必须在 CoE 写的时间内读完课程，所以只有在情有可原或不得已的情况"
+        "（compassionate or compelling circumstances）下才能申请减课，比如重病，"
+        "或者课程结构让你没法按标准课业量选课。如果你在最后一年并且能在 CoE 写的时间内毕业，"
+        "不需要批准。要在 census date 当天墨尔本时间 23:59 前申请。"
+        "马来西亚：持学生准证（Student Pass）的全日制课业量是每年 48 学分（一般每学期 24 学分）。"
+        "每学期最少不能低于 18 学分，而且只限这几种情况：学业进度委员会附加的条件；"
+        "课程结构、修读规定或开课情况；生病或特殊个人情况；最后一个学期或最后一年需要的学分不够一整份。"
+        "先发邮件问国际学生准证办公室（mum.student.visa@monash.edu）对学生准证的影响，"
+        "再用 SORS 里的减课申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/underload-application）"
+        "附上证明材料申请，要在开学第 2 周的周五前交，否则会有费用上的处罚。"
         "拿奖学金、助学金或学生贷款的，也要先问对应的办公室。"
         "每学期少于 18 学分就要申请休学（intermission）。",
+    ),
+    "overload": (
+        "可以多修课（overload）吗？",
+        "overload 是选比标准课业量更多的课，要经过批准。"
+        "澳大利亚：最近 12 个月内修完 48 学分、WAM 在 60 或以上，才能申请。"
+        "参加特定项目的高分学生可能有例外，有些课程因为专业认证或临床要求不允许提前修。"
+        "要在教学期开始前至少 5 个工作日提交 Overload Request 表，而且要先拿到上一个教学期的成绩；"
+        "5 个工作日内会邮件通知结果。"
+        "马来西亚：一般只限在 Monash University Malaysia 连续两个学期修完 48 学分、"
+        "上一年平均分（含挂科）达到 60% 或以上的学生。用 SORS 里的 overload 申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/overload-semester-enrolment）申请，"
+        "截止时间是开学第 2 周的周五；如果批准的是晚加课，要交一笔费用。"
+        "商学院的 FAQ 写的是一般只能多加一门，也就是一学期五门课，要学院批准。"
+        "拿奖学金、助学金或学生贷款的，先问对应的办公室。",
     ),
     "student-visa-work-hours": (
         "持学生签证一周能打工多少小时？",
