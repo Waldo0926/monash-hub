@@ -4,6 +4,13 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (WAM needed this semester)
+
+- "What do I need this semester" on `/marks` took one level for every planned
+  unit, so a semester mixing Level 1 units with Level 2 or 3 units gave the
+  wrong mark: Level 1 counts half towards the WAM. It now asks how many planned
+  units are at Level 1 and how many at Level 2 or above, and weights each.
+
 ### Fixed (pages about past years)
 
 - 152 pages about a year that is over leave the guides: OSHC price lists
