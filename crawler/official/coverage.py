@@ -53,6 +53,9 @@ EXTRA: dict[str, dict] = {
     "https://www.monash.edu/business/current-students/global-study-experiences"
     "/global-summer-and-winter-programs": {},
     "https://www.monash.edu.my/science/current/undergraduate/exchange-program": {},
+    # Printing on campus and in the library: short pages that fell under
+    # MIN_LENGTH in the walk, and a question students ask every semester.
+    "https://www.monash.edu.my/its/our-services/students/printing-services": {"keep": True},
     "https://www.monash.edu.my/sass/current/undergraduate/monash-study-abroad-program": {},
 }
 
