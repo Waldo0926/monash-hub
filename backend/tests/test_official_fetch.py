@@ -80,11 +80,40 @@ def test_a_429_means_slower_on_the_same_transport():
     assert fetcher.pauses == [90.0]
 
 
-def test_a_403_in_auto_mode_moves_to_the_browser_once():
+def test_a_403_in_auto_mode_reads_that_page_with_the_browser_and_no_wait():
     fetcher = Scripted([(403, None), (200, None), (200, None)], transport=AUTO_TRANSPORT)
     assert fetcher.fetch("https://www.monash.edu/students/one").ok
     assert fetcher.fetch("https://www.monash.edu/students/two").ok
-    assert [mode for mode, _ in fetcher.asked] == [HTTP_TRANSPORT, BROWSER_TRANSPORT, BROWSER_TRANSPORT]
+    # One refusal is that page: the next one is asked over httpx again.
+    assert [mode for mode, _ in fetcher.asked] == [HTTP_TRANSPORT, BROWSER_TRANSPORT, HTTP_TRANSPORT]
+    assert fetcher.pauses == []
+
+
+def test_a_host_that_refuses_every_page_latches_to_the_browser():
+    answers = [(403, None), (200, None)] * 3 + [(200, None)]
+    fetcher = Scripted(answers, transport=AUTO_TRANSPORT)
+    for n in range(4):
+        assert fetcher.fetch(f"https://www.monash.edu.my/page-{n}").ok
+    assert [mode for mode, _ in fetcher.asked][-1] == BROWSER_TRANSPORT
+    assert fetcher.transport == BROWSER_TRANSPORT
+
+
+def test_a_page_the_browser_is_refused_too_is_not_asked_a_third_time():
+    fetcher = Scripted([(403, None), (403, None), (200, None)], transport=AUTO_TRANSPORT)
+    assert fetcher.fetch("https://www.monash.edu.my/exams").status == 403
+    assert len(fetcher.asked) == 2
+
+
+def test_a_link_to_a_file_is_not_retried():
+    class Download(Scripted):
+        def _fetch_once(self, url):
+            self.asked.append((self._mode, url))
+            return PageResult(url, None, None, BROWSER_TRANSPORT,
+                              "Error: Page.goto: Download is starting")
+
+    fetcher = Download([], transport=BROWSER_TRANSPORT)
+    assert not fetcher.fetch("https://www.monash.edu.my/form").ok
+    assert len(fetcher.asked) == 1
 
 
 def test_an_explicit_transport_is_kept_whatever_the_server_says():

@@ -18,7 +18,6 @@ from crawler.handbook import discover
 from crawler.handbook.withdrawn import withdrawal_cap
 from crawler.official.fetch import (
     AUTO_TRANSPORT,
-    BROWSER_TRANSPORT,
     HTTP_TRANSPORT,
     OfficialFetcher,
     PageResult,
@@ -189,7 +188,9 @@ def test_a_robots_file_the_waf_refuses_is_read_with_the_browser():
         assert fetcher.robots.allowed("https://www.monash.edu.my/finance")
         assert not fetcher.robots.allowed("https://www.monash.edu.my/private/x")
         assert fetcher.browser_asked == "https://www.monash.edu.my/robots.txt"
-        assert fetcher.transport == BROWSER_TRANSPORT
+        # The file was read with the browser; the pages are still tried over
+        # httpx first, since on most machines most of them are answered.
+        assert fetcher.transport == HTTP_TRANSPORT
 
 
 def test_a_robots_file_refused_with_an_explicit_transport_still_closes_the_host():
