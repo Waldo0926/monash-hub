@@ -274,6 +274,19 @@ SEEDS: tuple[Seed, ...] = (
                  "it only after you sign in with your Monash account. Most of the same "
                  "questions - when to apply, ceremonies, graduating in absentia - are "
                  "answered on the public FAQs for graduations (Monash Malaysia)."),
+    # Monash Malaysia's fee calculator is an app behind sign-in; its page on
+    # monash.edu.my only forwards to it. Checked by a signed-in student on
+    # 2026-10-25.
+    Seed("malaysia-fees-fees-calculator",
+         "https://fin-feescalc.monash.edu.my/Views/Student/CalculateFee.aspx",
+         "Fee calculator (Monash Malaysia)", "fees-dates",
+         ("malaysia", "fees", "fee calculator", "calculate fees", "学费", "学费计算",
+          "算学费", "马来西亚"),
+         tier="stable", applies_to="malaysia",
+         sign_in="Monash Malaysia's fee calculator. Enter your student ID, citizenship, "
+                 "intake, school, course and the number of credit points you are enrolled "
+                 "in, and it calculates your fees for the semester. It opens after you sign "
+                 "in with your Monash account."),
 
     # --- Course maps ------------------------------------------------------
     #
@@ -493,11 +506,6 @@ SEEDS: tuple[Seed, ...] = (
          "https://www.monash.edu.my/student-services/student-admin",
          "Student administration (Monash Malaysia)", "malaysia",
          ("malaysia", "enrolment", "选课注册"), applies_to="malaysia"),
-    Seed("malaysia-special-consideration",
-         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
-         "/assessments-and-results/special-consideration2",
-         "Special consideration (Monash Malaysia)", "malaysia",
-         ("malaysia", "special consideration", "特殊考虑"), applies_to="malaysia"),
     Seed("malaysia-science-course-maps",
          "https://www.monash.edu.my/science/current/undergraduate/course-and-unit-information"
          "/course-maps",
@@ -525,11 +533,6 @@ SEEDS: tuple[Seed, ...] = (
          ("malaysia", "transport", "campus map", "shuttle bus", "brt", "lrt", "ktm",
           "parking", "grab", "airport", "交通", "校车", "公交", "地图", "停车", "机场"),
          applies_to="malaysia"),
-    Seed("malaysia-exam-rules",
-         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
-         "/exam-rules",
-         "Exam rules (Monash Malaysia)", "malaysia",
-         ("malaysia", "exam", "考试规则"), applies_to="malaysia"),
 )
 
 # The long tail: every other content page on the student sites, Malaysia first.

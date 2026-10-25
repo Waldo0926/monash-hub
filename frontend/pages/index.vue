@@ -66,7 +66,7 @@ const unitsFetch = useLocalisedApiFetch<any>(
 // searched for: a category query returns whatever sorts first.
 const GUIDE_SLUGS = {
   malaysia: [
-    'malaysia-special-consideration', 'supporting-documents', 'final-assessment-dates',
+    'special-consideration', 'supporting-documents', 'final-assessment-dates',
     'dates-timetables-start-times', 'results-release', 'malaysia-frequent-asked-questions-faq-exam-results'
   ],
   australia: [

@@ -39,6 +39,8 @@ SOURCES = {
     "www.monash.edu": ("monash-students", "Monash University", "https://www.monash.edu"),
     "www.monash.edu.my": ("monash-malaysia", "Monash University Malaysia",
                           "https://www.monash.edu.my"),
+    "fin-feescalc.monash.edu.my": ("monash-malaysia", "Monash University Malaysia",
+                                   "https://www.monash.edu.my"),
 }
 
 

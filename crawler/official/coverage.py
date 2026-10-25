@@ -162,7 +162,10 @@ LEAVE_OUT = re.compile(
     r"accouncements|external-report|/redirect/|home-test|engage-with-us-test|itex-20\d\d|"
     r"alumni-(?:dinner|roundtable)|sciencecup20\d\d|volatevssummit|research-areas-|"
     r"/geron(?:/|$)|structures-20\d\d|innovative-technologies|/all-disciplines/[^/]+/20\d\d$|"
-    r"[^/]*(?:-won-|-recipient-|site-visit-to-|students-excel-again)[^/]*$",
+    r"[^/]*(?:-won-|-recipient-|site-visit-to-|students-excel-again)[^/]*$|"
+    # Checked by hand on 2026-10-25: a photo and video consent form, and the
+    # fee calculator, which forwards to an app with no text of its own.
+    r"(?:^|/)(?:talent-)?release-form(?:/|$)|^/finance/fees/fees-calculator(?:/|$)",
     re.IGNORECASE,
 )
 
