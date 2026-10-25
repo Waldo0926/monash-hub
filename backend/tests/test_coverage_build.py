@@ -124,3 +124,9 @@ def test_a_schools_copy_does_not_replace_the_central_page():
     twin = {**page(copy, "h"), "len": len(text), "head": text[:300]}
     rows = build([twin], texts, [], {central: "malaysia-re-enrol"}, previous)
     assert [(row["url"], row["slug"]) for row in rows] == [(central, "malaysia-re-enrol")]
+
+
+def test_of_two_live_copies_the_student_services_one_is_kept():
+    services = f"{MY}/student-services/financial-assistance/undergraduate-scholarships-and-bursaries/other-financial-support"
+    fees = f"{MY}/study/undergraduate/fees/sibling-discount2"
+    assert urls(build([page(fees, "same"), page(services, "same")], {}, [])) == [services]
