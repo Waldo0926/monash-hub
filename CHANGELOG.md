@@ -4,6 +4,12 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Removed (a staff tool listed as a guide)
+
+- "Welcome to the Connect Tutor" is Monash Connect's tool for officers to check
+  an email reply before sending it. It was listed among the support guides;
+  it is now left out of coverage and retired at the next full registration.
+
 ### Changed (owner name)
 
 - The footer, READMEs and COPYRIGHT.md name the owner as Waldo instead of a

@@ -166,7 +166,10 @@ LEAVE_OUT = re.compile(
     r"[^/]*(?:-won-|-recipient-|site-visit-to-|students-excel-again)[^/]*$|"
     # Checked by hand on 2026-10-25: a photo and video consent form, and the
     # fee calculator, which forwards to an app with no text of its own.
-    r"(?:^|/)(?:talent-)?release-form(?:/|$)|^/finance/fees/fees-calculator(?:/|$)",
+    r"(?:^|/)(?:talent-)?release-form(?:/|$)|^/finance/fees/fees-calculator(?:/|$)|"
+    # Monash Connect's tool for officers to check an email reply before sending
+    # it, saved by hand on 2026-10-25: nothing in it is for students.
+    r"(?:^|/)connect-tutor(?:/|$)",
     re.IGNORECASE,
 )
 
