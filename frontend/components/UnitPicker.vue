@@ -10,12 +10,20 @@
  * same /plan/check the map uses so the two can never disagree.
  */
 import type { PlanEntry } from '~/composables/usePlan'
+import type { Candidate } from '~/utils/planCandidates'
 
 const props = defineProps<{
   year: number
   period: string
   campus: string
   entries: PlanEntry[]
+  /**
+   * What the chosen degree still wants, offered before anything is typed.
+   * Null when no degree is chosen, so the dialog asks for a search instead.
+   */
+  candidates?: Candidate[] | null
+  /** The part of the degree the dialog was opened for, by title, when it was opened from one. */
+  focus?: string | null
   /** The plan page's wording for one check finding, so both say the same thing. */
   describe: (issue: any) => string
   /** The plan page's short name for a teaching period. */
@@ -26,7 +34,7 @@ const props = defineProps<{
    */
   handbookYear?: number
 }>()
-const emit = defineEmits<{ add: [code: string]; close: [] }>()
+const emit = defineEmits<{ add: [code: string]; close: []; clearFocus: [] }>()
 
 const { $t, $term } = useNuxtApp() as any
 const { locale } = useLocale()
@@ -85,13 +93,21 @@ async function search() {
   }
 }
 
-/** S1, S2 and so on at the plan's campus; anything rarer is folded into "Other". */
+/**
+ * S1, S2 and so on at the plan's campus; anything rarer is folded into "Other".
+ * A search result carries its offerings; a degree candidate arrives with the
+ * short labels already picked out for the campus.
+ */
 function tags(unit: any): string[] {
-  const here = (unit.offerings || []).filter((o: any) => !props.campus || o.campus_raw === props.campus)
   const seen: string[] = []
   let other = false
-  for (const o of here) {
-    const label = o.short && o.short.length <= 3 ? o.short : null
+  const labels: (string | null)[] = unit.periods
+    ? unit.periods
+    : (unit.offerings || [])
+        .filter((o: any) => !props.campus || o.campus_raw === props.campus)
+        .map((o: any) => o.short)
+  for (const short of labels) {
+    const label = short && short.length <= 3 ? short : null
     if (!label) other = true
     else if (!seen.includes(label)) seen.push(label)
   }
@@ -117,10 +133,28 @@ const slotShort = computed(() => SLOT_SHORT[props.period] ?? props.period)
  * short label, because the Handbook spells one semester more than one way.
  */
 function runsInSlot(unit: any): boolean {
+  if (unit.periods) return unit.periods.includes(slotShort.value)
   return (unit.offerings || []).some(
     (o: any) => (!props.campus || o.campus_raw === props.campus) && o.short === slotShort.value
   )
 }
+
+// --- the degree's own list -------------------------------------------------
+//
+// Until two characters are typed the list is the degree's: every unit it
+// names that is not on the map. The ones that run in this semester come first,
+// because that is the question the open slot asks; the rest keep the degree's
+// order. Typing replaces it with the search, as before.
+
+const CANDIDATE_LIMIT = 80
+const browsing = computed(() => query.value.trim().length < 2)
+const candidates = computed(() => {
+  const list = props.candidates || []
+  return [...list.filter(runsInSlot), ...list.filter((u) => !runsInSlot(u))]
+})
+const shown = computed(() => candidates.value.slice(0, CANDIDATE_LIMIT))
+/** The rows on the left, whichever list is up. */
+const visible = computed<any[]>(() => (browsing.value ? shown.value : results.value))
 
 // --- preview ---------------------------------------------------------------
 
@@ -223,10 +257,10 @@ function add(code: string | null = active.value) {
 }
 
 function move(step: number) {
-  if (!results.value.length) return
-  const index = results.value.findIndex((r) => r.unit_code === active.value)
-  const next = Math.min(results.value.length - 1, Math.max(0, index + step))
-  active.value = results.value[next].unit_code
+  if (!visible.value.length) return
+  const index = visible.value.findIndex((r) => r.unit_code === active.value)
+  const next = Math.min(visible.value.length - 1, Math.max(0, index + step))
+  active.value = visible.value[next].unit_code
   nextTick(() => document.getElementById(`pick-${active.value}`)?.scrollIntoView({ block: 'nearest' }))
 }
 
@@ -268,11 +302,23 @@ onBeforeUnmount(() => {
         <div class="list">
           <p v-if="lastAdded && !query" class="added" role="status">{{ $t('picker.added', { code: lastAdded, slot: slotLabel }) }}</p>
           <p v-if="searchError" class="hint bad-text" role="alert">{{ searchError }}</p>
-          <p v-else-if="query.trim().length < 2" class="hint">{{ $t('picker.hint', { campus: campusName(campus), year: handbook }) }}</p>
+          <template v-else-if="browsing">
+            <p v-if="props.candidates == null" class="hint">{{ $t('picker.hint', { campus: campusName(campus), year: handbook }) }}</p>
+            <div v-else-if="focus" class="scope">
+              <h3 class="scope-title">{{ $t('picker.forPart', { part: focus }) }}</h3>
+              <button type="button" class="scope-all" @click="emit('clearFocus')">{{ $t('picker.allDegree') }}</button>
+            </div>
+            <h3 v-else-if="candidates.length" class="scope-title">{{ $t('picker.fromDegree', { n: candidates.length }) }}</h3>
+            <p v-if="props.candidates != null && !candidates.length" class="hint">{{ $t('picker.noCandidates') }}</p>
+          </template>
           <p v-else-if="!searching && !results.length" class="hint">{{ $t('plan.noMatches') }}</p>
-          <ul v-if="results.length" role="listbox" :aria-label="$t('picker.results')">
+          <ul
+            v-if="visible.length"
+            role="listbox"
+            :aria-label="browsing ? $t('picker.fromDegree', { n: candidates.length }) : $t('picker.results')"
+          >
             <li
-              v-for="unit in results"
+              v-for="unit in visible"
               :id="`pick-${unit.unit_code}`"
               :key="unit.unit_code"
               role="option"
@@ -291,16 +337,34 @@ onBeforeUnmount(() => {
                   <span v-if="unit.credit_points" class="cp">{{ unit.credit_points }}cp</span>
                 </span>
                 <span class="tags">
+                  <!-- Which part of the degree a candidate counts towards, in
+                       the same colour the map gives the card once it is placed. -->
+                  <span
+                    v-if="unit.part"
+                    class="tag tag--part"
+                    :class="`tone-${unit.part.tone}`"
+                    :title="unit.part.title"
+                  >{{ unit.part.letter }}</span>
+                  <span v-if="unit.via" class="tag tag--via" :title="unit.via">{{ unit.via }}</span>
                   <span
                     v-for="t in tags(unit)"
                     :key="t"
                     class="tag"
                     :class="{ 'tag--slot': t === slotShort }"
                   >{{ t }}</span>
+                  <span v-if="unit.offered_at_campus === false" class="tag tag--away">
+                    {{ $t('tree.keyAway', { campus: campusName(campus) }) }}
+                  </span>
                 </span>
               </button>
             </li>
           </ul>
+          <template v-if="browsing && props.candidates != null">
+            <p v-if="candidates.length > shown.length" class="hint">
+              {{ $t('picker.more', { n: shown.length, total: candidates.length }) }}
+            </p>
+            <p v-else-if="candidates.length" class="hint">{{ $t('picker.typeToSearch', { campus: campusName(campus) }) }}</p>
+          </template>
         </div>
 
         <section class="preview" aria-live="polite">
@@ -414,6 +478,20 @@ onBeforeUnmount(() => {
 .tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .tag { padding: 0 6px; border-radius: 4px; font-size: 0.72rem; line-height: 1.6; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
 .tag--slot { background: var(--brand); border-color: var(--brand); color: #fff; }
+.tag--part { font-weight: 700; color: var(--tone); background: var(--tone-bg); border-color: transparent; }
+.tag--via { max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag--away { color: var(--warning); background: var(--warning-bg); border-color: transparent; }
+.tone-1 { --tone: var(--part-1); --tone-bg: var(--part-1-bg); }
+.tone-2 { --tone: var(--part-2); --tone-bg: var(--part-2-bg); }
+.tone-3 { --tone: var(--part-3); --tone-bg: var(--part-3-bg); }
+.tone-4 { --tone: var(--part-4); --tone-bg: var(--part-4-bg); }
+.tone-5 { --tone: var(--part-5); --tone-bg: var(--part-5-bg); }
+.tone-6 { --tone: var(--part-6); --tone-bg: var(--part-6-bg); }
+
+.scope { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2); padding: var(--s3) var(--s3) var(--s1); }
+.scope-title { margin: 0; padding: var(--s3) var(--s3) var(--s1); font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.scope .scope-title { padding: 0; }
+.scope-all { flex: none; border: 0; background: none; padding: 0; font: inherit; font-size: 0.78rem; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 
 .preview { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; background: var(--bg); }
 .empty { margin: auto; padding: var(--s6); color: var(--muted); text-align: center; grid-row: 1 / -1; }

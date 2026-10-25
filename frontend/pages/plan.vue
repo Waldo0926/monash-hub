@@ -14,6 +14,7 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
  * why there is no sign-in on this page and why there is an export button.
  */
 import { toCsv } from '~/utils/csv'
+import { degreeCandidates, firstOpenSlot } from '~/utils/planCandidates'
 import { handbookYearFor } from '~/composables/useHandbookYear'
 import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 
@@ -28,10 +29,21 @@ const {
  * The slot the add-unit dialog was opened for. The dialog does its own search
  * and preview; this page only says where the unit goes and puts it there.
  */
-const picking = ref<{ year: number; period: string } | null>(null)
+const picking = ref<{ year: number; period: string; part?: number } | null>(null)
 
 function openPicker(year: number, period: string) {
   picking.value = { year, period }
+}
+
+/**
+ * From a part of the degree that is not yet full: the dialog opens on the
+ * first semester with room and lists only what that part still wants. The
+ * student did not pick the semester, so the dialog names it and the unit can
+ * be moved afterwards like any other.
+ */
+function openPickerFor(part: number) {
+  const slot = firstOpenSlot(yearsList.value, plan.value.periods, (y, p) => slotEntries(y, p).length, LOAD)
+  if (slot) picking.value = { ...slot, part }
 }
 
 function place(unitCode: string) {
@@ -284,6 +296,7 @@ const requirements = computed(() => {
     let points = direct.points
     let count = direct.count
     let via: string | null = null
+    let aos: string | null = null
     const claimed = new Set(unitsIn(node).filter((c) => planned.value.has(c)))
 
     const choices = choicesIn(node)
@@ -296,7 +309,10 @@ const requirements = computed(() => {
       points += best.points
       count += best.count
       // Only worth naming once the student has actually started one.
-      if (best.code && best.points > 0) via = aosTitle.get(best.code) || best.code
+      if (best.code && best.points > 0) {
+        via = aosTitle.get(best.code) || best.code
+        aos = best.code
+      }
       for (const code of aosUnits.get(best.code) || []) {
         if (planned.value.has(code)) claimed.add(code)
       }
@@ -308,6 +324,7 @@ const requirements = computed(() => {
       planned: points,
       count,
       via,
+      aos,
       free: !!node.free_elective,
       claimed
     }
@@ -399,6 +416,27 @@ const progress = computed(() =>
 function partFor(code: string) {
   const index = requirements.value?.partOf.get(code)
   return index === undefined ? null : requirements.value!.rows[index]
+}
+
+/**
+ * What the degree still wants, for the add-unit dialog to offer before a
+ * search. Null without a degree, so the dialog knows to ask for one. Opened
+ * from a part, only that part's units.
+ */
+const candidates = computed(() =>
+  requirements.value ? degreeCandidates(course.value, requirements.value.rows, planned.value) : null
+)
+const pickerCandidates = computed(() => {
+  if (!candidates.value) return null
+  const part = picking.value?.part
+  return part === undefined ? candidates.value : candidates.value.filter((c) => c.part.index === part)
+})
+const pickerFocus = computed(() => {
+  const part = picking.value?.part
+  return part === undefined ? null : requirements.value?.rows[part]?.title ?? null
+})
+function clearPickerFocus() {
+  if (picking.value) picking.value = { year: picking.value.year, period: picking.value.period }
 }
 
 // --- export and import -----------------------------------------------------
@@ -1023,11 +1061,22 @@ useSeoMeta({ title: () => $t('plan.title') })
           <h2 class="panel-title">{{ $t('plan.progress') }}</h2>
           <ul class="parts">
             <li v-for="row in progress" :key="row.title" :class="`tone-${row.tone}`">
-              <div class="part-line">
+              <!-- A part that is not full yet is a button: it opens the add-unit
+                   dialog on what the part still wants. A free elective part has
+                   no list, and a full one needs nothing. -->
+              <component
+                :is="!row.free && row.required > row.planned ? 'button' : 'div'"
+                class="part-line"
+                :class="{ 'part-line--go': !row.free && row.required > row.planned }"
+                v-bind="!row.free && row.required > row.planned
+                  ? { type: 'button', 'aria-label': $t('plan.findUnitsFor', { part: row.title }), onClick: () => openPickerFor(row.index) }
+                  : {}"
+              >
                 <span class="part-tag">{{ row.letter }}</span>
                 <span class="part-name">{{ row.title }}</span>
                 <span class="part-num">{{ row.planned }}<template v-if="row.required"> / {{ row.required }}</template></span>
-              </div>
+                <span v-if="!row.free && row.required > row.planned" class="part-go">{{ $t('plan.findUnits') }} ›</span>
+              </component>
               <div class="part-bar">
                 <span
                   class="part-fill"
@@ -1063,8 +1112,11 @@ useSeoMeta({ title: () => $t('plan.title') })
       :entries="plan.entries"
       :describe="issueText"
       :period-name="shortPeriod"
+      :candidates="pickerCandidates"
+      :focus="pickerFocus"
       @add="place"
       @close="picking = null"
+      @clear-focus="clearPickerFocus"
     />
   </div>
 </template>
@@ -1406,6 +1458,12 @@ select.ctl-input {
 
 .parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .part-line { display: flex; gap: var(--s2); align-items: center; margin-bottom: 6px; }
+button.part-line {
+  width: calc(100% + var(--s3)); margin: 0 calc(var(--s3) * -0.5) 6px; padding: 3px calc(var(--s3) / 2);
+  border: 0; border-radius: var(--radius-sm); background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+button.part-line:hover, button.part-line:focus-visible { background: var(--tone-bg); }
+.part-go { flex: none; font-size: 0.72rem; color: var(--tone); font-weight: 600; white-space: nowrap; }
 .part-tag {
   flex: none; min-width: 20px; padding: 1px 5px; border-radius: 4px; text-align: center;
   font-size: 0.7rem; font-weight: 700; color: var(--tone); background: var(--tone-bg);

@@ -16,6 +16,7 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
  * hiding them would make an unreachable rule look satisfiable.
  */
 import { layoutTree, CARD_W, CARD_H, type TreeEdge, type TreeNode } from '~/composables/useTreeLayout'
+import { chainOf } from '~/utils/treeChain'
 
 const route = useRoute()
 const router = useRouter()
@@ -220,6 +221,23 @@ onBeforeUnmount(() => watcher?.disconnect())
 
 const detail = computed(() => layout.value.nodes.find((n) => n.unit_code === selected.value) || null)
 
+/**
+ * Selecting a unit dims everything that is not on its own chain: the units it
+ * needs, all the way back, and the units that need it. On a graph of forty
+ * boxes the edges touching one node said what it connects to; the chain says
+ * which boxes are on the way to it, which is what the reader clicked to find
+ * out. The box in the side panel turns it off for the reader who wants the
+ * whole graph back while a unit stays selected.
+ */
+const focus = ref(true)
+const chain = computed(() => (selected.value ? chainOf(selected.value, layout.value.edges) : null))
+function dimmed(code: string): boolean {
+  return focus.value && chain.value !== null && !chain.value.has(code)
+}
+function onChain(edge: TreeEdge): boolean {
+  return chain.value !== null && chain.value.has(edge.source) && chain.value.has(edge.target)
+}
+
 /** A cut title needs to look cut - without the ellipsis it reads as a typo. */
 const TITLE_CHARS = 22
 function clip(title: string): string {
@@ -352,7 +370,12 @@ function hue(prefix: string): number {
                   :key="index"
                   :d="edge.path"
                   class="edge"
-                  :class="{ 'edge--coreq': edge.type === 'corequisite', 'edge--lit': selected === edge.source || selected === edge.target }"
+                  :class="{
+                    'edge--coreq': edge.type === 'corequisite',
+                    'edge--lit': selected === edge.source || selected === edge.target,
+                    'edge--chain': focus && onChain(edge),
+                    'edge--dim': focus && chain && !onChain(edge)
+                  }"
                   marker-end="url(#arrow)"
                 />
 
@@ -364,7 +387,8 @@ function hue(prefix: string): number {
                     'node--seed': node.depth === 0,
                     'node--away': campus && node.in_year && !node.offered_at_campus,
                     'node--gone': !node.in_year,
-                    'node--on': selected === node.unit_code
+                    'node--on': selected === node.unit_code,
+                    'node--dim': dimmed(node.unit_code)
                   }"
                   :transform="`translate(${node.x}, ${node.y})`"
                   :data-code="node.unit_code"
@@ -422,6 +446,11 @@ function hue(prefix: string): number {
         <p v-if="detail.periods.length" class="meta">
           {{ $t('tree.periods') }}: {{ detail.periods.join(' · ') }}
         </p>
+        <label class="focus-toggle">
+          <input v-model="focus" type="checkbox" />
+          {{ $t('tree.focusChain') }}
+        </label>
+        <p v-if="focus && chain" class="meta">{{ $t('tree.chainCount', { n: chain.size - 1 }) }}</p>
         <NuxtLink v-if="detail.in_year" class="btn btn--ghost btn--small" :to="`/units/${detail.unit_code}${year ? `?year=${year}` : ''}`">
           {{ $t('tree.openUnit') }}
         </NuxtLink>
@@ -512,8 +541,12 @@ function hue(prefix: string): number {
 .edge { fill: none; stroke: var(--border-strong); stroke-width: 1.4; }
 .edge--coreq { stroke-dasharray: 5 4; }
 .edge--lit { stroke: var(--blue); stroke-width: 2.2; }
+.edge--chain { stroke: var(--blue); stroke-width: 1.8; }
+.edge--dim { opacity: 0.18; }
 
-.node { cursor: pointer; }
+.node { cursor: pointer; transition: opacity 0.2s ease; }
+.node--dim { opacity: 0.22; }
+.focus-toggle { display: flex; align-items: center; gap: var(--s2); font-size: 0.85rem; cursor: pointer; }
 .card-bg { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; }
 .node--seed .card-bg { fill: var(--blue-50); stroke: var(--blue); stroke-width: 2; }
 .node--on .card-bg { stroke: var(--blue); stroke-width: 2; }

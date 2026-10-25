@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 
 from app.core.db import SessionLocal
+from app.handbook.course_repository import upsert_course
 from app.handbook.parser import compute_content_hash
 from app.handbook.repository import upsert_unit
 from app.knowledge import teach_out
@@ -110,7 +111,60 @@ UNITS = [
          [offering("Malaysia", S1), offering("Malaysia", S2)], prerequisites=("FIT1008",)),
     unit("FIT2102", "Synthetic programming paradigms",
          [offering("Malaysia", S2), offering("Clayton", S2)]),
+    unit("FIT2085", "Synthetic systems programming",
+         [offering("Malaysia", S1)], prerequisites=("FIT1008",)),
 ]
+
+
+def course_item(code: str, title: str) -> dict:
+    return {
+        "item_code": code, "item_name": title, "item_type": "unit",
+        "item_url": f"https://handbook.monash.edu/{YEAR}/units/{code}",
+        "credit_points": 6, "connector": None,
+    }
+
+
+#: One synthetic degree, so the course map has a structure to score and the
+#: add-unit dialog has a list to offer. Part A names three of the units above;
+#: Part B is a free elective part, which lists nothing.
+COURSE = {
+    "course_code": "C9001",
+    "academic_year": YEAR,
+    "title": "Synthetic Bachelor of Testing",
+    "abbreviated_name": "BTest",
+    "credit_points": 144,
+    "cricos_code": None,
+    "aqf_level": "Level 7 - Bachelor Degree",
+    "course_type": "UG specialist",
+    "faculty": "Faculty of Information Technology",
+    "school": None,
+    "campuses": ["Malaysia", "Clayton"],
+    "duration_years": 3,
+    "overview": "A synthetic degree, written for the browser tests.",
+    "structure_text": None,
+    "requirements_text": None,
+    "handbook_version": None,
+    "source_url": f"https://handbook.monash.edu/{YEAR}/courses/C9001",
+    "content_hash": "e2e-C9001",
+    "containers": [
+        {
+            "title": "Part A. Synthetic core", "description": None, "footnote": None,
+            "credit_points": 18, "credit_points_max": None, "connector": None,
+            "items": [
+                course_item("FIT1008", "Synthetic introduction to computer science"),
+                course_item("FIT2004", "Synthetic algorithms and data structures"),
+                course_item("FIT2085", "Synthetic systems programming"),
+            ],
+            "containers": [],
+        },
+        {
+            "title": "Part B. Free electives",
+            "description": "Any units from across the University.",
+            "footnote": None, "credit_points": 126, "credit_points_max": None, "connector": None,
+            "items": [], "containers": [],
+        },
+    ],
+}
 
 
 HEADER = ["Unit Code", "Unit Title", "Change", "Course", "Teach out plan"]
@@ -149,12 +203,15 @@ def seed_teach_out(db) -> None:
 
 def main() -> None:
     with SessionLocal() as db:
-        db.execute(text("TRUNCATE units, unit_reviews RESTART IDENTITY CASCADE"))
+        db.execute(text(
+            "TRUNCATE units, unit_reviews, courses, areas_of_study RESTART IDENTITY CASCADE"
+        ))
         for record in UNITS:
             upsert_unit(db, record)
+        upsert_course(db, COURSE)
         seed_teach_out(db)
         db.commit()
-    print(f"seeded {len(UNITS)} units for {YEAR}")
+    print(f"seeded {len(UNITS)} units and 1 course for {YEAR}")
 
 
 if __name__ == "__main__":
