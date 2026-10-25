@@ -15,7 +15,7 @@ let previousBodyOverflow = ''
 const primaryItems = computed(() => [
   { to: '/', label: $t('nav.home'), icon: '⌂', badge: 0 },
   { to: '/search', label: $t('nav.search'), icon: '⌕', badge: 0 },
-  { to: '/community', label: $t('nav.community'), icon: '☰', badge: 0 },
+  { to: '/mamo', label: $t('nav.mamo'), icon: 'M', badge: 0 },
   user.value
     ? { to: '/notifications', label: $t('nav.notifications'), icon: '🔔', badge: unread.value }
     : { to: '/login', label: $t('nav.account'), icon: '◍', badge: 0 }
@@ -24,7 +24,7 @@ const primaryItems = computed(() => [
 const sectionItems = useSectionNavigation()
 
 const sectionActive = computed(() => sectionItems.value.some(item =>
-  item.to !== '/community' &&
+  item.to !== '/mamo' &&
   (route.path === item.to || route.path.startsWith(`${item.to}/`))
 ))
 

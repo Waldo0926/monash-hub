@@ -21,6 +21,9 @@ All notable changes to Monash Hub are documented here.
   专业 would have been ambiguous.
 - The community section, which had one post, is a single line under the
   assessment guides.
+- The header lists 马莫百科 before the community, which is now last. On phones
+  the bottom bar's community slot goes to 马莫百科; the community stays in the
+  More menu.
 - The key-dates card no longer lists its headline date twice. The big number
   is the next academic date (census, withdrawal, swot vac, exams, results)
   rather than a public holiday, a date already underway says so at the same
