@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
         <button class="close" type="button" :aria-label="$t('picker.close')" @click="emit('close')">×</button>
       </header>
 
-      <div class="body">
+      <div class="body" :class="{ 'body--empty': !active }">
         <div class="list">
           <p v-if="lastAdded && !query" class="added" role="status">{{ $t('picker.added', { code: lastAdded, slot: slotLabel }) }}</p>
           <p v-if="searchError" class="hint bad-text" role="alert">{{ searchError }}</p>
@@ -526,7 +526,12 @@ onBeforeUnmount(() => {
   .backdrop { padding: 0; }
   .dialog { height: 100%; border-radius: 0; }
   .body { grid-template-columns: 1fr; grid-template-rows: minmax(140px, 38%) minmax(0, 1fr); }
+  /* With nothing picked yet the preview is one sentence, so the list gets the
+     screen; the split comes back once there is a unit to show. */
+  .body--empty { grid-template-rows: minmax(0, 1fr) auto; }
+  .body--empty .empty { margin: 0; padding: var(--s3) var(--s4); font-size: 0.86rem; }
   .list { border-right: 0; border-bottom: 1px solid var(--border); }
+  .scope { flex-wrap: wrap; }
   .scroll { padding: var(--s4); }
   .foot .btn { width: 100%; min-height: 44px; }
 }

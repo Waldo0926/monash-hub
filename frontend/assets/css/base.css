@@ -10,6 +10,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* The phone bar is fixed over the bottom of the page. Scrolling a focused or
+   targeted element into view must stop above it, or a short screen lands the
+   element behind the bar. */
+@media (max-width: 1180px) {
+  html { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
 body {
   margin: 0;
   background: var(--bg);
