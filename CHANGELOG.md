@@ -24,6 +24,9 @@ All notable changes to Monash Hub are documented here.
 - The header lists 马莫百科 before the community, which is now last. On phones
   the bottom bar's community slot goes to 马莫百科; the community stays in the
   More menu.
+- The example searches under the search box were labelled "Often searched" and
+  热门搜索, but they are a fixed list and the site does not log searches. They
+  are now labelled Try / 试试搜 / 検索例 / 검색 예시.
 - The key-dates card no longer lists its headline date twice. The big number
   is the next academic date (census, withdrawal, swot vac, exams, results)
   rather than a public holiday, a date already underway says so at the same
