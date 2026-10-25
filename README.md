@@ -7,6 +7,7 @@
   <a href="https://monashhub.secureview.tech"><img src="https://img.shields.io/badge/live-monash--hub-1e5eff?style=for-the-badge" alt="Live site" /></a>
   <a href="https://github.com/Waldo0926/monash-hub/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Waldo0926/monash-hub/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI" /></a>
   <img src="https://img.shields.io/badge/status-in%20production-2ea44f?style=for-the-badge" alt="Status: in production" />
+  <a href="https://waldo0926.github.io/uptime/history/monash-hub"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FWaldo0926%2Fuptime%2FHEAD%2Fapi%2Fmonash-hub%2Fuptime.json&style=for-the-badge" alt="Uptime" /></a>
   <img src="https://img.shields.io/badge/unofficial-not%20affiliated%20with%20Monash-black?style=for-the-badge" alt="Unofficial" />
 </p>
 
