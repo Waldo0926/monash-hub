@@ -1391,7 +1391,7 @@ select.ctl-input {
 .ring-big { font-size: 2.2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--text); }
 .ring-big small { font-size: 1rem; font-weight: 600; margin-left: 1px; color: var(--muted); }
 .ring-small { margin-top: 6px; font-size: 0.76rem; color: var(--muted); }
-.panel-note { margin: var(--s3) 0 0; font-size: 0.8rem; color: var(--muted); }
+.panel-note { margin: var(--s3) 0 0; font-size: 0.8rem; color: var(--muted); text-wrap: balance; }
 
 .stats {
   display: grid; grid-template-columns: repeat(3, 1fr); width: 100%;

@@ -1327,7 +1327,7 @@ const zh: Messages = {
   'plan.savedJustNow': '刚刚已保存在这台设备',
   'plan.savedMinutes': '{n} 分钟前已保存在这台设备',
   'plan.saved': '已保存在这台设备',
-  'plan.pickDegree': '选好专业与学位，就能看到这份规划完成了多少。',
+  'plan.pickDegree': '选好专业与学位，这里会显示完成进度。',
   'plan.stat.units': '课程',
   'plan.stat.errors': '问题',
   'plan.stat.warnings': '提醒',
