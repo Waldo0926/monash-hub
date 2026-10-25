@@ -191,18 +191,27 @@ _BR = "\u2028"
 # A <br> in the middle of a phrase only wraps the line to fit a box: the
 # misconduct page's tiles read "impartial and fair to<br>all parties". Before a
 # lowercase word and after anything but the end of a sentence or a label, it
-# becomes a space. "Building 1<br>Clayton" and "Phone:<br>..." keep the break.
-_SOFT_BR = re.compile(r"(?<=[^\s.:;!?])\u2028(?=[a-z])")
+# becomes a space. "Building 1<br>Clayton", "Phone:<br>...", "Description:-<br>"
+# and enumerated lines ("research,<br>b) continuing ...") keep the break.
+_ENDS_LINE = re.compile(r"(?:[\s.:;!?]|:-)$")
+_ENUMERATOR = re.compile(r"^(?:\(?[a-z]{1,3}\)|[ivx]{1,4}\.\s)")
+
+
+def _soft_break(before: str, after: str) -> bool:
+    return (bool(before) and not _ENDS_LINE.search(before)
+            and after[:1].islower() and not _ENUMERATOR.match(after))
 
 
 def _soften_breaks(spans: list[dict[str, Any]]) -> None:
-    for i, span in enumerate(spans):
-        text = _SOFT_BR.sub(" ", span["text"])
-        if text.endswith(_BR) and len(text) > 1 and i + 1 < len(spans):
-            after = spans[i + 1]["text"][:1]
-            if after.islower() and text[-2] not in " .:;!?":
-                text = text[:-1] + " "
-        span["text"] = text.replace(_BR, "\n")
+    texts = [span["text"] for span in spans]
+    for i, text in enumerate(texts):
+        parts = text.split(_BR)
+        out = parts[0]
+        for k, part in enumerate(parts[1:], start=1):
+            before = out or (spans[i - 1]["text"] if i else "")
+            after = part or (texts[i + 1] if i + 1 < len(texts) and k == len(parts) - 1 else "")
+            out += (" " if _soft_break(before, after) else "\n") + part
+        spans[i]["text"] = out
 
 
 def _rich(node: Tag | list[Any]) -> list[dict[str, Any]]:

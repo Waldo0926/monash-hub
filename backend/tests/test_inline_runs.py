@@ -38,8 +38,26 @@ def test_a_tile_with_a_line_wrap_is_one_line():
 
 
 def test_a_line_break_between_lines_is_kept():
-    blocks = _blocks("<div>Building 1<br>Clayton campus</div><div>Phone:<br>1800 666 274</div>")
-    assert _texts(blocks) == ["Building 1\nClayton campus", "Phone:\n1800 666 274"]
+    blocks = _blocks("<div>Building 1<br>Clayton campus</div><div>Phone:<br>1800 666 274</div>"
+                     "<div>Description:-<br>myDIDeA was built for</div>")
+    assert _texts(blocks) == ["Building 1\nClayton campus", "Phone:\n1800 666 274",
+                              "Description:-\nmyDIDeA was built for"]
+
+
+def test_lettered_lines_keep_their_breaks():
+    """MED5101 on monash.edu.my lists its options as a) b) c) on lines of their own."""
+    blocks = _blocks(
+        "<p>You can spend it on a) writing up the publication arising from your research,"
+        "<br>b) continuing that research towards a publication, or<br>c) working on a new "
+        "research project.</p><p>a)An option to submit preferences<br>b)A first-in option"
+        "<br>(ii) or a third</p>"
+    )
+    assert _texts(blocks) == [
+        "You can spend it on a) writing up the publication arising from your research,\n"
+        "b) continuing that research towards a publication, or\n"
+        "c) working on a new research project.",
+        "a)An option to submit preferences\nb)A first-in option\n(ii) or a third",
+    ]
 
 
 def test_a_link_in_the_middle_of_a_sentence_stays_in_it():

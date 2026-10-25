@@ -12,8 +12,8 @@ All notable changes to Monash Hub are documented here.
   offer" into three lines and lost the link. A run of inline content is now one
   paragraph.
 - A `<br>` in the middle of a phrase ("fair to<br>all parties") is a space. One
-  after a full stop or a colon, or before a capital or a number, still breaks
-  the line.
+  after a full stop or a colon, or before a capital, a number or a lettered
+  item ("b) continuing ..."), still breaks the line.
 - `<li>` written with no list around it becomes a list.
 - `EXTRACTOR_VERSION` is 8, so each page is re-extracted the next time it is
   fetched.
