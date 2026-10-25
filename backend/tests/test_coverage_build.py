@@ -177,6 +177,9 @@ def test_pages_checked_by_hand_on_2026_10_25():
 
     left_out = ["/release-form", "/talent-release-form/subscribe", "/finance/fees/fees-calculator"]
     assert urls(build([page(f"{MY}{path}", path) for path in left_out], {}, [])) == []
+    tutor = "https://www.monash.edu/students/support/connect/connect-tutor"
+    assert urls(build([page(tutor, "Welcome to the Connect Tutor")], {}, [])) == []
+    assert "connect-connect-tutor" not in {seed.slug for seed in SEEDS}
 
     by_slug = {seed.slug: seed for seed in SEEDS}
     exams = f"{MY}/student-services/student-admin/examinations-results"
