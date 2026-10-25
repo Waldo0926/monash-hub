@@ -157,7 +157,9 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"ceremon|graduation day|graduations/guides", ["毕业典礼"], ["ceremony"]),
     (r"all.dates|graduation dates", ["毕业时间", "毕业典礼日期"], ["graduation dates"]),
     (r"course.completion|eligib", ["完成学业", "毕业资格"], ["course completion"]),
-    (r"transfer", ["转专业", "转课程", "转校区", "转学"], ["transfer", "course transfer"]),
+    # A credit transfer moves credit, not the student.
+    (r"(?<!credit )(?<!credit-)transfer", ["转专业", "转课程", "转校区", "转学"],
+     ["transfer", "course transfer"]),
     (r"campus.transfer|clayton.transfer|intercampus|campus-transfer",
      ["转校区", "澳洲校区", "马来西亚校区"], ["campus transfer"]),
     (r"\bfees?\b|payment|\bpay\b", ["学费", "缴费"], ["fees"]),
@@ -196,7 +198,8 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"exchange|abroad|overseas|intercampus|global (summer|winter)|summer program|"
      r"winter program|short.term",
      ["交换", "海外学习"], ["exchange"]),
-    (r"credit|exemption|advanced standing", ["学分减免"], ["credit"]),
+    # "12 credit points" is a unit's size, not credit for earlier study.
+    (r"credit(?![- ]?points?)|exemption|advanced standing", ["学分减免", "学分转换"], ["credit"]),
     (r"policy|policies|procedure", ["政策", "规定"], ["policy"]),
     (r"global summer|summer program",
      ["暑期项目", "Global Summer Program"], ["global summer program"]),
