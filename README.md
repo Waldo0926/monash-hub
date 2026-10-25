@@ -15,6 +15,8 @@
 
 ---
 
+<p align="center"><img src="./docs/images/home-en.webp" alt="Monash Hub home page: search, key dates for Malaysia and Australia, and entry points to units, course map and guides" width="900" /></p>
+
 ## What is Monash Hub?
 
 Monash Hub brings Monash student essentials into one place: courses, degrees, study planning, WAM/GPA tools, official guides and a student community. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
@@ -22,6 +24,20 @@ Monash Hub brings Monash student essentials into one place: courses, degrees, st
 Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
 > Monash Hub is not affiliated with or endorsed by Monash University. For enrolment, visas, assessment and academic-policy decisions, always confirm details through Monash websites, the Handbook, Moodle or WES.
+
+## Why another site?
+
+Before Monash Hub, a student with a question had three places to look, and each covered part of it:
+
+| Where | Good at | Missing |
+| --- | --- | --- |
+| [Monash Handbook](https://handbook.monash.edu) | The official record for units and courses | English only, and only units and courses: policies, visas and key dates are elsewhere |
+| monash.edu and monash.edu.my | Official guides for each campus | About 3,100 pages across two sites, and the campuses' rules differ (visas, insurance, unit changes) |
+| Student group chats and shared docs | Quick answers in Chinese | No source, and often a past year or the other campus |
+
+Student tools came before this one. [MonPlan](https://github.com/MonPlan) was a student-built course planner; its open scrapers ([MonScrape](https://github.com/MonPlan/MonScrape)) were last updated in 2017 and read the old Handbook pages. monashcoding's [TheBetterHandbookAPI](https://github.com/monashcoding/TheBetterHandbookAPI) documents the Handbook's search endpoint (last commit September 2022). Neither covers policies or a second language.
+
+Monash Hub keeps what they got right, data straight from the Handbook, and adds the rest: official pages from both sites next to the units, every result labelled with its source and the date it was last checked, Malaysia and Australia shown side by side when they differ, and a Chinese translation linked to the English original. The site assistant searches these sources; it does not use a generative model to write answers.
 
 ## Technology stack
 
@@ -36,6 +52,18 @@ The current production stack is:
 - **Production:** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 
 The production request path is Nginx → Nuxt SSR for the web interface and Nginx → FastAPI for `/api/*`, with PostgreSQL on a private Docker network. See [architecture](docs/ARCHITECTURE.md) for the current system design.
+
+## By the numbers (25 October 2026)
+
+| | |
+| --- | --- |
+| Official pages in the guides | About 3,100 from both sites' sitemaps, up from 662 |
+| Backend tests | 799 test functions, run against a real PostgreSQL in CI |
+| Frontend and browser tests | 48 Vitest tests; 13 Playwright tests at desktop and phone sizes |
+| Translation model | Zhipu's free `glm-4.5-flash`, chosen after reading three free models against the English over 70 paragraphs (`glm-4-flash` turned conditions around) |
+| Deploys | Every merge to `main`; a smoke check of the live site after each, and the previous version goes back if it fails |
+
+Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `frontend` and `e2e`.
 
 ## What can you do here?
 
