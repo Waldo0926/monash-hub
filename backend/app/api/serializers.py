@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from app.knowledge.faq_seed import MALAYSIA_PAGES
 from app.knowledge.translations import Translation, translate_blocks, translated_headings
 from app.models.community import CommunityAnswer, CommunityPost
 from app.models.curriculum import AreaOfStudy, Course
@@ -226,7 +227,9 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
         # Taken from the page the answer is traceable to rather than stored
         # again here: an answer about the 48-hour work limit is Australian
         # because the page it cites is, and the two must never disagree.
-        "applies_to": entry.official_page.applies_to if entry.official_page else None,
+        # An answer written for both campuses names each one in its text.
+        "applies_to": None if entry.slug in MALAYSIA_PAGES
+        else (entry.official_page.applies_to if entry.official_page else None),
         "last_checked": _iso(entry.official_page.last_checked) if entry.official_page else None,
     }
 

@@ -31,6 +31,11 @@ class FaqSeed:
     keywords: tuple[str, ...]
     page_slug: str
     priority: int = 0
+    #: The Monash Malaysia pages for an answer that covers both campuses.
+    #: Visas, health cover and study load follow each country's law, so such an
+    #: answer says which part is Australia and which is Malaysia, and cites
+    #: both: ``page_slug`` for Australia, these for Malaysia.
+    malaysia_pages: tuple[str, ...] = ()
 
 
 FAQ_SEEDS: tuple[FaqSeed, ...] = (
@@ -201,12 +206,19 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     FaqSeed(
         "what-is-gpa",
         "What is GPA at Monash?",
-        "GPA is a 0-4 scale calculated from your grades rather than your marks, where HD is 4 "
-        "and N is 0. Monash uses GPA for some scholarship and admission decisions and WAM for "
-        "others, so check which one a specific application asks for.",
+        "GPA is calculated on a 4.0 scale from your grades rather than your marks: High "
+        "Distinction 4.0, Distinction 3.0, Credit 2.0, Pass 1.0, Near pass 0.7, Fail and "
+        "Hurdle fail 0.3, Withdrawn fail 0.0. Some results, such as SFR and NE, are not "
+        "counted. Your GPA is shown in WES and on your transcript. "
+        "Malaysia also uses a Cumulative Grade Point Average (CGPA) with different values: "
+        "High Distinction 4.0, Distinction 3.67, Credit 2.85, Pass 2.15, Near pass 1.7, Fail "
+        "and Hurdle fail 1.15, Withdrawn fail 0.0. It is not on your academic record, so you "
+        "request a CGPA letter.",
         "assessment",
-        ("results", "calculate", "calculation", "scale", "怎么算", "计算", "算"),
-        ("gpa", "绩点", "平均绩点", "grade point average"),
+        ("results", "calculate", "calculation", "scale", "怎么算", "计算", "算",
+         "malaysia", "马来西亚", "马莫", "letter", "证明", "成绩单", "transcript"),
+        ("gpa", "cgpa", "绩点", "平均绩点", "grade point average",
+         "cumulative grade point average"),
         "gpa",
         priority=80,
     ),
@@ -216,7 +228,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "The census date is the last day you can withdraw from a unit without paying for it and "
         "without it appearing on your record. After that date you are liable for the fees and a "
         "withdrawal is recorded. Census dates differ by teaching period, so check the date for "
-        "your specific unit rather than assuming one date covers the semester.",
+        "your specific unit rather than assuming one date covers the semester. At the "
+        "Malaysia campus, a unit withdrawn after the census date shows as WD-LATE or WD-FAIL, "
+        "and the dates are in Monash Malaysia's Principal Dates.",
         "enrolment",
         ("withdraw", "fees", "deadline", "date", "dates", "important", "matter",
          "截止", "截止日", "日期", "学费", "重要", "为什么", "退课"),
@@ -224,51 +238,147 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "退课截止日", "退课截止日期", "退课的截止日期"),
         "census-dates-explained",
         priority=85,
+        malaysia_pages=("malaysia-frequently-asked-questions-faq-unit-withdra",),
     ),
     FaqSeed(
         "how-to-withdraw-from-a-unit",
         "How do I withdraw from a unit?",
-        "Withdraw through WES while enrolment changes are open. Before the census date there is "
-        "no fee and no record; after it, you keep the fee liability and the unit shows as a "
-        "withdrawal. If you are on a student visa, dropping below full-time load can affect "
-        "your visa, so check with an adviser first.",
+        "Australia: withdraw through WES while enrolment changes are open. Before the census "
+        "date there is no fee and no record; after it, you keep the fee liability and the unit "
+        "shows as a withdrawal. If you are on a student visa you have study load requirements "
+        "to maintain: Monash's study load page says you can reduce your load only in "
+        "compassionate or compelling circumstances, unless you are in your final year and "
+        "will finish within the time on your CoE. "
+        "Malaysia: after the census date a withdrawn unit shows as WD-LATE or WD-FAIL, and the "
+        "date you withdraw can affect fee refunds and your academic record. The last day to "
+        "withdraw without academic penalty is before the WD-LATE date ends; the dates are in "
+        "Monash Malaysia's Principal Dates. With a Student Pass, going below 24 credit points "
+        "a semester is an underload: it needs approval, it can never go below 18 credit "
+        "points, and below 18 you have to apply for intermission.",
         "enrolment",
         ("enrolment", "unit", "units", "subject", "course", "wes", "课", "一门课",
-         "课程", "网上"),
+         "课程", "网上", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
+         "澳莫"),
         ("withdraw", "withdrawal", "drop", "discontinue a unit", "退课", "退选",
          "退掉"),
         "add-or-withdraw-units",
         priority=75,
+        malaysia_pages=("malaysia-frequently-asked-questions-faq-unit-withdra",
+                        "malaysia-international-students-during-your-studies"),
+    ),
+    # The SORS sentences (forms, Week 2 deadlines, the ISP email, the late
+    # addition fee) are from the notes on Monash Malaysia's underload and
+    # overload application forms, which we do not crawl; checked on the forms
+    # on 2026-10-25.
+    FaqSeed(
+        "international-student-underload",
+        "Can I take less than a full-time load on a student visa (underload)?",
+        "Only with approval, and the rules depend on the campus. "
+        "Australia: on a student visa you must finish your course in the time stated on "
+        "your CoE, so you can apply to underload only for compassionate or compelling "
+        "circumstances, such as serious illness or a course structure that prevents a "
+        "standard load. You do not need approval if you are in your final year and will "
+        "finish within the time on your CoE. Apply before 11.59pm (Melbourne time) on the "
+        "census date. "
+        "Malaysia: with a Student Pass, a full-time load is 48 credit points a year "
+        "(usually 24 a semester). You can go down to no less than 18 credit points a "
+        "semester, and only for an academic progress condition; course structure, "
+        "progression rules or unit availability; illness or exceptional personal "
+        "circumstances; or a final semester or year that needs fewer credit points. Talk to "
+        "the International Student Pass Office (mum.student.visa@monash.edu) about your "
+        "Student Pass first, then apply with the underload form in SORS "
+        "(sors.monash.edu.my/sites/student-online-forms/enrol/underload-application) with "
+        "supporting documents by Friday of Week 2 of the semester to avoid a financial "
+        "penalty. If you have a scholarship, bursary or study loan, check with its office "
+        "too. Below 18 credit points a semester you have to apply for intermission.",
+        "enrolment",
+        ("international", "国际学生", "留学生", "visa", "student visa", "签证", "学生签证",
+         "student pass", "学生准证", "malaysia", "马来西亚", "马莫", "australia", "澳洲",
+         "澳大利亚", "澳莫", "semester", "学期", "credit points", "credit point", "学分",
+         "unit", "units", "课", "门", "几门", "full-time", "full time", "全日制", "load",
+         "study load", "课业量", "less", "fewer", "少", "only", "只", "form", "sors",
+         "deadline", "截止", "when", "approval", "批准", "条件", "要求", "18", "24", "48",
+         "apply", "申请", "一学期", "一个学期", "每学期"),
+        ("underload", "underloading", "under load", "减课", "少修", "少选", "少选课",
+         "少上课", "part-time load", "study part-time", "part time study", "读非全日制"),
+        "study-load",
+        priority=60,
+        malaysia_pages=("malaysia-international-students-during-your-studies",
+                        "malaysia-frequently-asked-questions-faq-study-load-o"),
+    ),
+    FaqSeed(
+        "overload",
+        "Can I take more units than a full-time load (overload)?",
+        "Overloading means enrolling in more than the standard load, and it needs approval. "
+        "Australia: you can request it if, within the last 12 months, you completed 48 "
+        "credit points and have a WAM of 60 or higher. Exceptions may apply to "
+        "high-achieving students in approved programs, and some courses do not allow it "
+        "because of professional accreditation or clinical requirements. Submit the "
+        "Overload Request form at least five University working days before the teaching "
+        "period starts, once you have your results from the previous teaching period; you "
+        "hear back within five working days. "
+        "Malaysia: it is usually limited to students who completed 48 credit points in two "
+        "consecutive semesters at Monash University Malaysia and had a credit average of "
+        "60% or higher in the previous year, including failed units. Apply with the "
+        "overload form in SORS "
+        "(sors.monash.edu.my/sites/student-online-forms/enrol/overload-semester-enrolment) "
+        "by Friday of Week 2 of the semester; a fee applies if a late addition is approved. "
+        "The School of Business FAQ says an overload is usually one more unit, five units "
+        "in a semester, subject to faculty approval. If you have a scholarship, bursary or "
+        "study loan, check with its office first.",
+        "enrolment",
+        ("malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚", "澳莫", "semester",
+         "学期", "credit points", "credit point", "学分", "unit", "units", "课", "门", "几门",
+         "five", "5", "五门", "5门", "门课", "full-time", "full time", "全日制", "load",
+         "study load", "课业量", "more", "extra", "多", "form", "sors", "deadline", "截止",
+         "when", "approval", "批准", "wam", "60", "条件", "要求", "requirement",
+         "requirements", "eligible", "资格", "fee", "费用", "accelerate", "提前毕业",
+         "apply", "申请", "一学期", "一个学期", "每学期"),
+        ("overload", "overloading", "over load", "超修", "多修", "多选课", "多选一门",
+         "加修", "选五门", "选5门", "修五门", "修5门"),
+        "study-load",
+        priority=60,
+        malaysia_pages=("malaysia-frequently-asked-questions-faq-study-load-o",),
     ),
     FaqSeed(
         "student-visa-work-hours",
-        "How many hours can I work on a student visa? (Australia)",
-        "This is about the Australian campuses. In Malaysia the right to stay is a student "
-        "pass issued by the Immigration Department through EMGS, and its conditions are not "
-        "the ones below - check monash.edu.my. "
-        "Work rights for student visa holders are set by the Australian Government, not by "
-        "Monash, and the cap has changed several times in recent years. Monash's page links to "
-        "the current Department of Home Affairs conditions - always confirm the number there "
-        "before relying on it.",
+        "How many hours can I work on a student visa?",
+        "The rules are each country's, not Monash's, and they are different. "
+        "Australia: work rights for student visa holders are set by the Australian Government, "
+        "and the cap has changed several times in recent years. Monash's page links to the "
+        "current Department of Home Affairs conditions - always confirm the number there "
+        "before relying on it. "
+        "Malaysia: with a Student Pass you may work only during semester breaks or public "
+        "holidays of more than seven days, and for no more than 20 hours a week, at "
+        "restaurants, petrol kiosks, mini markets or hotels; the page lists jobs that are not "
+        "allowed. Every job has to be approved by the Immigration Department: you apply "
+        "through the International Student Pass office and must be there in person when the "
+        "application is submitted.",
         "international",
         ("visa", "student visa", "签证", "学生签证", "hours", "hour", "week",
          "fortnight", "australia", "australian", "小时", "每周", "一周", "两周",
-         "澳洲", "澳大利亚", "多少", "能", "可以", "limit", "cap", "job",
-         "international", "国际学生", "留学生"),
+         "澳洲", "澳大利亚", "澳莫", "多少", "能", "可以", "limit", "cap", "job",
+         "international", "国际学生", "留学生", "malaysia", "马来西亚", "马莫",
+         "student pass", "学生准证", "holiday", "holidays", "break", "breaks", "假期",
+         "放假"),
         ("work", "working", "work hours", "work rights", "part-time work",
          "打工", "兼职", "工作时长", "打工时长"),
         "working-on-a-student-visa",
         priority=70,
+        malaysia_pages=("malaysia-international-students-student-pass2",),
     ),
     FaqSeed(
         "what-is-coe",
         "What is a CoE and when do I need a new one? (Australia)",
-        "This is about the Australian campuses; Malaysia issues a student pass through EMGS "
-        "instead. "
-        "A Confirmation of Enrolment (CoE) is the document your student visa is granted against. "
-        "You generally need a new one if your course, campus or completion date changes - "
-        "including if you take intermission or reduce your load. Request it before your current "
-        "CoE expires.",
+        "Australia: a Confirmation of Enrolment (CoE) is the enrolment document your student "
+        "visa is based on. If your visa will expire "
+        "before you finish your course, you need a new CoE, and you can apply two months "
+        "before the visa expires. Monash approves a new one only for compassionate or "
+        "compelling circumstances, an academic progress intervention, or an approved "
+        "deferment or intermission. Changing your study load can also mean a new CoE with a "
+        "new completion date. "
+        "Malaysia: there is a Student Pass instead. You come in on an eVisa Approval Letter "
+        "(eVAL), and you renew the pass through the International Student Pass office.",
         "international",
         ("visa", "签证", "new", "need", "when", "change", "新", "换", "需要",
          "什么时候", "australia", "澳洲"),
@@ -276,21 +386,64 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "入学确认书"),
         "confirmation-of-enrolment",
         priority=60,
+        malaysia_pages=("malaysia-student-pass",
+                        "malaysia-international-students-during-your-studies"),
+    ),
+    FaqSeed(
+        "international-student-health-insurance",
+        "Do international students need health insurance?",
+        "Yes, at both campuses, but the cover is different. "
+        "Australia: international students on a student visa must have Overseas Student "
+        "Health Cover (OSHC) for the length of their visa while studying in Australia. The "
+        "official page explains how to buy it and who is exempt. "
+        "Malaysia: the Ministry of Higher Education requires every international student to "
+        "have valid medical insurance for the whole period of study, and proof of it is a "
+        "condition of the Student Pass. You buy it through Monash University Malaysia, from "
+        "its appointed insurer, when you apply for your Student Pass, and the fee to renew "
+        "the pass includes it. A personal policy can only be added on top of it.",
+        "international",
+        ("international", "国际学生", "留学生", "visa", "student visa", "签证", "学生签证",
+         "student pass", "学生准证", "need", "required", "compulsory", "buy", "要", "买",
+         "必须", "强制", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
+         "澳莫", "medical", "health", "看病", "医疗", "cover", "policy", "insurance",
+         "保险", "医保"),
+        # Not 医保 or 保险 alone: a bare topic word is a search for the pages.
+        ("health insurance", "medical insurance", "health cover", "oshc",
+         "overseas student health cover", "医疗保险", "健康保险", "买保险", "买医保"),
+        "oshc",
+        priority=50,
+        malaysia_pages=("malaysia-international-students-medical-insurance",
+                        "malaysia-international-students-during-your-studies"),
     ),
     FaqSeed(
         "apply-for-intermission",
         "Can I take a semester off?",
-        "Yes - it is called intermission. Coursework students can usually apply for up to a "
-        "defined maximum period, and approval is not automatic. International students on a "
-        "student visa need to check the visa consequences before applying, because intermission "
-        "changes your CoE.",
+        "Yes - it is called intermission, and approval is not automatic. The rules for "
+        "international students depend on the campus. "
+        "Australia: you can take up to 12 months during your course, over one or two teaching "
+        "periods. If you are on a student visa, study leave is approved only in compassionate "
+        "or compelling circumstances. Before you return, you apply for a new Confirmation of "
+        "Enrolment (CoE); the page explains when you also need a new student visa. "
+        "Malaysia: you can take up to two semesters or 12 months, once your first census date "
+        "has passed, and you should apply before the census date of the current semester. "
+        "With a Student Pass, intermission for medical reasons lets you stay in Malaysia as "
+        "long as your Student Pass stays valid, with medical evidence. For any other reason "
+        "you must cancel your Student Pass and leave Malaysia, and to come back you apply for "
+        "a new eVisa Approval Letter (eVAL) through the International Student Pass office, "
+        "between 4 and 2 months before the semester starts. You must still finish within "
+        "the full-time course duration plus at most 12 months of approved leave.",
         "enrolment",
         ("leave", "semester", "take", "off", "break", "study", "apply", "学期",
-         "一个学期", "申请", "请假"),
+         "一个学期", "申请", "请假", "visa", "student visa", "签证", "学生签证",
+         "student pass", "学生准证", "affect", "影响", "international", "国际学生",
+         "留学生", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
+         "澳莫"),
         ("intermission", "休学", "停学", "gap year", "leave of absence",
          "semester off", "break from study", "break from studies", "study break"),
         "intermission",
         priority=55,
+        malaysia_pages=("malaysia-changing-your-enrolment-intermission",
+                        "malaysia-international-students-during-your-studies"),
     ),
     FaqSeed(
         "when-do-results-come-out",
@@ -323,10 +476,12 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
     FaqSeed(
         "exchange-eligibility",
         "How do I go on exchange at Monash?",
-        "Exchange runs through Monash Abroad. Eligibility normally depends on your WAM, how much "
-        "of your course you have completed, and having units that can be credited back. "
+        "Australia: exchange runs through Monash Abroad. Eligibility normally depends on your "
+        "WAM, how much of your course you have completed, and having units that can be "
+        "credited back. "
         "Applications open well before the semester you want to travel in, so check the round "
-        "dates early.",
+        "dates early. At the Malaysia campus, start from Monash Malaysia's outbound exchange "
+        "page.",
         "exchange",
         ("go", "eligible", "eligibility", "requirement", "requirements", "apply",
          "条件", "要求", "申请", "去", "出国"),
@@ -334,10 +489,15 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "出国交换", "交换生"),
         "semester-exchange",
         priority=50,
+        malaysia_pages=("malaysia-outbound-exchange-program",),
     ),
     # Monash added the notice to the graduations page on 2026-10-16 and says the
     # full details come out in December 2026. Rewrite this entry then, and check
     # whether Monash Malaysia has moved over: its FAQ still says you must apply.
+    # The delay rule (3 months in the system, up to 12 through Monash Connect)
+    # is the one sentence no page backs yet: the graduations office confirmed
+    # it in writing in October 2026, and the answer says so. Replace it with
+    # the published wording in December.
     FaqSeed(
         "automatic-conferral",
         "Do I still need to apply to graduate?",
@@ -347,7 +507,13 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "You are conferred first and then invited to an upcoming ceremony, so graduating in "
         "absentia will no longer apply. If you have already applied to graduate this year, "
         "the current process on the official page still applies to you. Full details of the "
-        "new process will be published in December. Monash Malaysia's own graduation pages "
+        "new process will be published in December. "
+        "Not on the website yet, but confirmed by Monash's graduations office in October "
+        "2026: after you complete your course you can delay conferral yourself in the system "
+        "by up to 3 months. For a longer delay, for example for a graduate recruitment "
+        "program, ask Monash Connect; it can be up to 12 months after you complete. Your "
+        "testamur shows the date the award was actually conferred. "
+        "Monash Malaysia's own graduation pages "
         "still describe applying to graduate, so Malaysia campus students should check "
         "those as well until they are updated.",
         "graduation",
@@ -356,10 +522,14 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
          "complete", "completed", "change", "changes", "new", "process", "still",
          "apply", "applied", "malaysia", "毕业", "毕业典礼", "典礼", "学位", "自动",
          "每月", "学院", "完成", "变化", "改变", "新", "还", "12月", "十二月",
-         "马来西亚", "校区", "申请", "毕业证", "学位证", "证书"),
+         "马来西亚", "校区", "申请", "毕业证", "学位证", "证书", "delay", "defer",
+         "postpone", "months", "3", "12", "recruitment", "program", "延迟", "推迟", "延期",
+         "晚点", "个月", "三个月", "十二个月", "招聘", "工作", "日期", "connect"),
         ("apply to graduate", "applying to graduate", "apply for graduation",
          "graduation application", "conferral", "conferred", "confer", "testamur",
-         "in absentia", "申请毕业", "毕业申请", "授予学位", "学位授予", "自动毕业",
+         "in absentia", "delay conferral", "defer conferral", "postpone conferral",
+         "延迟授予", "推迟授予", "延期授予", "晚点授予", "授予延期", "延迟毕业", "推迟毕业",
+         "申请毕业", "毕业申请", "授予学位", "学位授予", "自动毕业",
          "自动授予", "缺席毕业", "毕业要不要申请", "毕业还要申请", "毕业还需要申请",
          "毕业需要申请", "毕业要申请"),
         "graduations",
@@ -436,3 +606,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         priority=40,
     ),
 )
+
+
+#: FAQ slug -> its Malaysia pages, for the answers written for both campuses.
+MALAYSIA_PAGES: dict[str, tuple[str, ...]] = {
+    seed.slug: seed.malaysia_pages for seed in FAQ_SEEDS if seed.malaysia_pages
+}

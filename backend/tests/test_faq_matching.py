@@ -7,10 +7,14 @@ them back fails here before it reaches a student.
 """
 from __future__ import annotations
 
+import re
+
 import pytest
 from app.knowledge.faq_seed import FAQ_SEEDS
 from app.knowledge.translations_seed import FAQ_ZH
 from app.search.faq_match import FaqCandidate, match, normalise, stem
+
+from crawler.official.seeds import SEEDS_BY_SLUG
 
 CANDIDATES = [
     FaqCandidate(
@@ -108,6 +112,25 @@ def test_the_more_specific_entry_wins(query, right):
         ("怎麼申請特殊考慮", "how-to-apply-special-consideration"),
         ("ＷＡＭ怎么算", "what-is-wam"),
         ("hurdle没过怎么办", "what-is-a-hurdle"),
+        # Asked about one campus; the answers cover both.
+        ("休学会影响学生签证吗", "apply-for-intermission"),
+        ("马莫可以休学吗", "apply-for-intermission"),
+        ("马来西亚留学生可以打工吗", "student-visa-work-hours"),
+        ("student pass work hours", "student-visa-work-hours"),
+        ("国际学生要买医疗保险吗", "international-student-health-insurance"),
+        ("马莫的医疗保险", "international-student-health-insurance"),
+        ("留学生要买医保吗", "international-student-health-insurance"),
+        ("OSHC是什么", "international-student-health-insurance"),
+        ("do I need health insurance", "international-student-health-insurance"),
+        ("马莫 CGPA", "what-is-gpa"),
+        ("学位授予可以推迟吗", "automatic-conferral"),
+        ("马莫可以减课吗", "international-student-underload"),
+        ("can I underload on a student visa", "international-student-underload"),
+        ("怎么申请underload", "international-student-underload"),
+        ("overload 条件", "overload"),
+        ("一学期可以修5门课吗", "overload"),
+        ("how do I apply to overload", "overload"),
+        ("can I delay conferral", "automatic-conferral"),
         ("failed a hurdle what happens", "what-is-a-hurdle"),
         ("我能补考吗", "supplementary-assessment"),
         ("supp exam", "supplementary-assessment"),
@@ -174,7 +197,7 @@ def test_every_faq_answers_its_own_question(seed):
 
 @pytest.mark.parametrize(
     "query",
-    ["签证", "visa", "考试", "exam", "工作量是什么", "where can I park a scooter",
+    ["签证", "visa", "医保", "保险", "考试", "exam", "工作量是什么", "where can I park a scooter",
      "is there a science building map", "group work", ""],
 )
 def test_a_topic_word_alone_answers_nothing(query):
@@ -225,3 +248,37 @@ def test_every_faq_has_a_chinese_translation(seed):
     """The answer card is drawn in the reader's language; a new FAQ without
     Chinese would be the one English paragraph on a Chinese page."""
     assert seed.slug in FAQ_ZH
+
+
+# --- answers for both campuses -------------------------------------------------
+
+# Words that belong to one country's rules.
+AUSTRALIA_ONLY = re.compile(
+    r"\b(?:CoE|OSHC|ESOS|Centrelink|HECS|HELP|Home Affairs|student visa)\b")
+MALAYSIA_ONLY = re.compile(r"\b(?:Student Pass|EMGS|eVAL|MOHE|WD-LATE|CGPA)\b")
+
+
+@pytest.mark.parametrize("seed", FAQ_SEEDS, ids=lambda s: s.slug)
+def test_a_rule_of_one_country_says_which_country(seed):
+    """CoE and OSHC are Australian, a Student Pass is Malaysian.
+
+    An answer that names one has to say which country it is about, in English
+    and in Chinese, so a Monash Malaysia student is never handed the Australian
+    rule as if it were theirs.
+    """
+    zh = "".join(FAQ_ZH.get(seed.slug, ()))
+    text = seed.question + " " + seed.answer
+    if AUSTRALIA_ONLY.search(seed.answer):
+        assert "Australia" in text, seed.slug
+        assert not zh or "澳大利亚" in zh, seed.slug
+    if MALAYSIA_ONLY.search(seed.answer):
+        assert "Malaysia" in text, seed.slug
+        assert not zh or "马来西亚" in zh, seed.slug
+
+
+@pytest.mark.parametrize("seed", [s for s in FAQ_SEEDS if s.malaysia_pages],
+                         ids=lambda s: s.slug)
+def test_an_answer_for_both_campuses_cites_real_malaysia_pages(seed):
+    for slug in seed.malaysia_pages:
+        assert slug in SEEDS_BY_SLUG, (seed.slug, slug)
+        assert SEEDS_BY_SLUG[slug].applies_to == "malaysia", (seed.slug, slug)

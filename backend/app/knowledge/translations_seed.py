@@ -622,29 +622,76 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "what-is-gpa": (
         "Monash 的 GPA 是什么？",
-        "GPA 是 0–4 分制，按成绩等级（而不是具体分数）计算，HD 记 4 分，N 记 0 分。"
-        "Monash 有些奖学金和录取决定看 GPA，有些看 WAM，所以申请前要确认对方要的是哪一个。",
+        "GPA 按成绩等级（而不是具体分数）计算，满分 4.0：High Distinction 4.0，Distinction 3.0，"
+        "Credit 2.0，Pass 1.0，Near pass 0.7，Fail 和 Hurdle fail 0.3，Withdrawn fail 0.0。"
+        "SFR、NE 等一些结果不计入。GPA 在 WES 和成绩单上可以看到。"
+        "马来西亚另外还有累积绩点 CGPA，分值不一样：High Distinction 4.0，Distinction 3.67，"
+        "Credit 2.85，Pass 2.15，Near pass 1.7，Fail 和 Hurdle fail 1.15，Withdrawn fail 0.0。"
+        "CGPA 不显示在学业记录上，需要的话申请 CGPA 证明信（CGPA letter）。",
     ),
     "census-date-meaning": (
         "census date 是什么，为什么重要？",
         "census date 是你退选一门课而不用付这门课学费、也不留下记录的最后一天。"
         "过了这一天，学费就要照付，退课也会被记录在案。不同教学期的 census date 不一样，"
-        "所以要查你那门课的具体日期，不要以为整个学期只有一个日子。",
+        "所以要查你那门课的具体日期，不要以为整个学期只有一个日子。"
+        "马来西亚校区过了 census date 再退课，成绩会显示为 WD-LATE 或 WD-FAIL，"
+        "具体日期看 Monash Malaysia 的 Principal Dates。",
     ),
     "how-to-withdraw-from-a-unit": (
         "怎么退选一门课？",
-        "在选课变更开放期间，通过 WES 退选。census date 之前退，不收费也不留记录；"
-        "之后退，学费照付，并且这门课会显示为退课。如果你持学生签证，"
-        "课业量降到全日制以下可能影响签证，"
-        "先找顾问确认再操作。",
+        "澳大利亚：在选课变更开放期间，通过 WES 退选。census date 之前退，不收费也不留记录；"
+        "之后退，学费照付，并且这门课会显示为退课。持学生签证的同学有课业量要求："
+        "Monash 的 study load 页面写明，只有在情有可原或不得已的情况"
+        "（compassionate or compelling circumstances）下才能减少课业量，"
+        "除非你在最后一年并且能在 CoE 写的时间内毕业。"
+        "马来西亚：过了 census date 再退课，成绩会显示为 WD-LATE 或 WD-FAIL，"
+        "退课日期会影响退费和学业记录。不受学业处罚的最后退课时间是 WD-LATE 日期结束之前，"
+        "具体日期看 Monash Malaysia 的 Principal Dates。"
+        "持学生准证（Student Pass）的，每学期少于 24 学分就是减课（underload）："
+        "要经过批准，最少不能低于 18 学分，少于 18 学分就要申请休学（intermission）。",
+    ),
+    "international-student-underload": (
+        "持学生签证可以少修课（underload）吗？",
+        "要经过批准，规定看校区。"
+        "澳大利亚：持学生签证必须在 CoE 写的时间内读完课程，所以只有在情有可原或不得已的情况"
+        "（compassionate or compelling circumstances）下才能申请减课，比如重病，"
+        "或者课程结构让你没法按标准课业量选课。如果你在最后一年并且能在 CoE 写的时间内毕业，"
+        "不需要批准。要在 census date 当天墨尔本时间 23:59 前申请。"
+        "马来西亚：持学生准证（Student Pass）的全日制课业量是每年 48 学分（一般每学期 24 学分）。"
+        "每学期最少不能低于 18 学分，而且只限这几种情况：学业进度委员会附加的条件；"
+        "课程结构、修读规定或开课情况；生病或特殊个人情况；最后一个学期或最后一年需要的学分不够一整份。"
+        "先发邮件问国际学生准证办公室（mum.student.visa@monash.edu）对学生准证的影响，"
+        "再用 SORS 里的减课申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/underload-application）"
+        "附上证明材料申请，要在开学第 2 周的周五前交，否则会有费用上的处罚。"
+        "拿奖学金、助学金或学生贷款的，也要先问对应的办公室。"
+        "每学期少于 18 学分就要申请休学（intermission）。",
+    ),
+    "overload": (
+        "可以多修课（overload）吗？",
+        "overload 是选比标准课业量更多的课，要经过批准。"
+        "澳大利亚：最近 12 个月内修完 48 学分、WAM 在 60 或以上，才能申请。"
+        "参加特定项目的高分学生可能有例外，有些课程因为专业认证或临床要求不允许提前修。"
+        "要在教学期开始前至少 5 个工作日提交 Overload Request 表，而且要先拿到上一个教学期的成绩；"
+        "5 个工作日内会邮件通知结果。"
+        "马来西亚：一般只限在 Monash University Malaysia 连续两个学期修完 48 学分、"
+        "上一年平均分（含挂科）达到 60% 或以上的学生。用 SORS 里的 overload 申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/overload-semester-enrolment）申请，"
+        "截止时间是开学第 2 周的周五；如果批准的是晚加课，要交一笔费用。"
+        "商学院的 FAQ 写的是一般只能多加一门，也就是一学期五门课，要学院批准。"
+        "拿奖学金、助学金或学生贷款的，先问对应的办公室。",
     ),
     "student-visa-work-hours": (
-        "（澳大利亚校区）持学生签证一周能打工多少小时？",
-        "这一条讲的是澳大利亚各校区。在马来西亚，居留身份是移民局通过 EMGS 签发的学生签证（Student Pass），适用条件与下面写的不是一回事，请以 monash.edu.my 为准。"
-            "学生签证的工作权限由澳大利亚政府规定，不是 Monash 定的，近几年上限改过好几次。"
-        "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定——"
-        "在按某个小时数行事之前，"
-        "务必到那里确认当前数字。",
+        "持学生签证一周能打工多少小时？",
+        "打工规定由各国政府定，不是 Monash 定的，两边不一样。"
+        "澳大利亚：学生签证的工作权限由澳大利亚政府规定，近几年上限改过好几次。"
+        "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定，"
+        "按某个小时数打工之前，务必到那里确认当前数字。"
+        "马来西亚：持学生准证（Student Pass）只能在超过 7 天的学期假期或公共假期打工，"
+        "每周不超过 20 小时，只能在餐厅、加油站便利店、迷你超市或酒店工作；"
+        "页面还列出了不允许做的工作。每份工作都要经马来西亚移民局批准："
+        "通过国际学生准证办公室（International Student Pass office）申请，"
+        "递交申请时本人必须到场。",
     ),
     "when-do-results-come-out": (
         "成绩什么时候出？",
@@ -653,21 +700,42 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "what-is-coe": (
         "（澳大利亚校区）CoE 是什么？什么时候需要换新的？",
-        "这一条讲的是澳大利亚各校区；马来西亚签发的是通过 EMGS 办理的学生签证（Student Pass）。"
-            "CoE（入学确认书）是签发学生签证所依据的文件。一般来说，只要你的课程、"
-        "校区或完成日期发生变化，"
-        "就需要一份新的 CoE——包括申请休学或减少课业量的情况。请在现有 CoE 过期之前提出申请。",
+        "澳大利亚：CoE（入学确认书，Confirmation of Enrolment）是你的学生签证所依据的注册文件。"
+        "如果签证会在你读完课程之前到期，就需要一份新的 CoE，可以在签证到期前两个月申请。"
+        "Monash 只在以下情况批准新的 CoE：情有可原或不得已的情况、学业进度干预，"
+        "或者已获批的推迟入学或休学。改变课业量也可能需要一份写着新完成日期的 CoE。"
+        "马来西亚：用的是学生准证（Student Pass）。入境凭 eVisa 批准信（eVAL），"
+        "续签通过国际学生准证办公室（International Student Pass office）办理。",
+    ),
+    "international-student-health-insurance": (
+        "国际学生需要买医疗保险吗？",
+        "需要，两个校区都要，但保险不一样。"
+        "澳大利亚：持学生签证的国际学生在澳大利亚读书期间，要在整个签证有效期内持有"
+        "海外学生医疗保险（OSHC）。怎么买、谁可以豁免，看官方页面。"
+        "马来西亚：马来西亚高等教育部（MOHE）要求所有国际学生在整个学习期间持有有效的医疗保险，"
+        "保险证明是学生准证（Student Pass）的条件之一。申请学生准证时，"
+        "要通过 Monash University Malaysia 向它指定的保险公司购买，续签学生准证的费用里也包含了保险费。"
+        "自己的个人保险只能在这份保险之外另外加。",
     ),
     "apply-for-intermission": (
         "可以休学一个学期吗？",
-        "可以，这叫 intermission（休学）。授课型课程的学生通常可以申请到规定的最长期限，"
-        "但审批不是自动通过的。"
-        "持学生签证的国际学生要在申请前先确认对签证的影响，因为休学会改变你的 CoE。",
+        "可以，这叫 intermission（休学），审批不是自动通过的。国际学生的规定要看校区。"
+        "澳大利亚：读书期间最多可以休 12 个月，分在一个或两个教学期。"
+        "持学生签证的话，只有在情有可原或不得已的情况（compassionate or compelling circumstances）下才会批准。"
+        "回来之前要申请新的 CoE（入学确认书）；什么情况下还要办新的学生签证，看官方页面。"
+        "马来西亚：最多可以休两个学期或 12 个月，要在第一个 census date 过了之后才能申请，"
+        "并且应该在当前学期的 census date 之前申请。"
+        "持学生准证（Student Pass）的，因病休学可以留在马来西亚，但学生准证要一直有效，"
+        "并提供医疗证明；其他原因休学必须注销学生准证并离开马来西亚，"
+        "回来时要通过国际学生准证办公室（International Student Pass office）重新申请 eVisa 批准信（eVAL），"
+        "时间是开学前 4 个月到 2 个月之间。"
+        "另外，总学习时间不能超过全日制学制再加最多 12 个月的获批休学。",
     ),
     "exchange-eligibility": (
         "在 Monash 怎么去交换？",
-        "交换项目由 Monash Abroad 负责。是否符合条件通常取决于你的 WAM、课程完成的进度，"
-        "以及有没有可以转回学分的课程。申请轮次远早于你想出去的那个学期，所以要尽早查申请日期。",
+        "澳大利亚：交换项目由 Monash Abroad 负责。是否符合条件通常取决于你的 WAM、课程完成的进度，"
+        "以及有没有可以转回学分的课程。申请轮次远早于你想出去的那个学期，所以要尽早查申请日期。"
+        "马来西亚校区的同学先看 Monash Malaysia 的出境交换（outbound exchange）页面。",
     ),
     "how-to-get-a-transcript": (
         "怎么申请正式成绩单？",
@@ -682,6 +750,10 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "并在完成学业后不久收到学位证书（testamur）。新流程是先授予学位，再邀请你参加之后的"
         "毕业典礼，所以缺席毕业（graduating in absentia）将不再适用。如果你今年已经申请了毕业，"
         "仍然按官方页面上现在的流程办理。新流程的完整细节会在 12 月公布。"
+        "官网还没写、但 Monash 毕业事务部门在 2026 年 10 月确认过的："
+        "完成课程后，你可以在系统里自己申请把学位授予延后最多 3 个月；"
+        "如果因为毕业生招聘计划等原因要延后更久，通过 Monash Connect 申请人工处理，"
+        "最晚可以延到课程完成后 12 个月。学位证书上写的是实际授予学位的日期。"
         "Monash Malaysia 自己的毕业页面目前还写着需要申请毕业，"
         "马来西亚校区的同学在那边更新之前也要一起看。",
     ),
