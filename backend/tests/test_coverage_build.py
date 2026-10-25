@@ -101,3 +101,12 @@ def test_a_listed_page_no_sitemap_names_stays_while_production_has_its_text():
     rows = build([page(f"{MY}/student-services/student-admin", "w")], texts, [],
                  {row[1]: row[0] for row in previous}, previous)
     assert sorted(urls(rows)) == sorted([f"{MY}/student-services/student-admin", exam])
+
+
+def test_a_listed_page_now_at_another_address_is_kept_once():
+    old = f"{MY}/it/current-students/Course-Offered/postgraduates/transfers"
+    new = f"{MY}/it/current-students/postgraduate/postgraduates/transfers"
+    previous = (("my-old-transfers", old, "Transfers", "enrolment", (), "medium", "malaysia"),)
+    texts = {old: {"text": "x" * 2000, "hash": "same"}}
+    rows = build([page(new, "same")], texts, [], {old: "my-old-transfers"}, previous)
+    assert urls(rows) == [new]

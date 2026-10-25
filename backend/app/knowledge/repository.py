@@ -31,6 +31,7 @@ def upsert_seed_page(
     tags: list[str],
     refresh_tier: str,
     applies_to: str = "australia",
+    curated: bool = False,
 ) -> OfficialPage:
     """Register a seed URL before it has ever been fetched.
 
@@ -56,6 +57,7 @@ def upsert_seed_page(
     page.applies_to = applies_to
     page.tags = tags
     page.refresh_tier = refresh_tier
+    page.curated = curated
     # The seed list's title, not the page's own: Monash Malaysia's student pass
     # page calls itself "Before You Arrive", and nobody searching "student pass"
     # found it. The page's own title is kept in its version history.

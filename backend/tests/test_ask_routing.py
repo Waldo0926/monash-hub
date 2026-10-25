@@ -33,7 +33,7 @@ def seeded(db, handbook_html):
         page = upsert_seed_page(
             db, source=source, slug=seed.slug, url=seed.url, title=seed.title,
             category=seed.category, tags=list(seed.tags), refresh_tier=seed.tier,
-            applies_to=seed.applies_to,
+            applies_to=seed.applies_to, curated=seed.curated,
         )
         page.status = "ok"
         page.content_hash = f"hash-{seed.slug}"

@@ -6,6 +6,22 @@ All notable changes to Monash Hub are documented here.
 
 ### Changed (official pages)
 
+- The guides cover both Monash sites from their sitemaps: about 3,100
+  pages, up from 662 - Monash Malaysia's whole site and monash.edu's student
+  pages, less research news and research sections, staff and alumni pages,
+  testimonials, conference and campaign sites, event sign-ups, CMS drafts
+  and the 2020-22 COVID-19 notices. A page already listed stays when it is in
+  no sitemap but still has its text (the Malaysia eExam pages).
+- A page Monash writes as a paragraph inside a list ("April 2026 ceremony in
+  Malaysia, you'll get:" before its items) keeps the paragraph.
+- Among pages that match a question equally, the hand-picked ones come first.
+  With the long tail listed, 全日制 found a science honours FAQ before the
+  study load page.
+- Monash Malaysia's site refuses the server's address since 2026-10-25. Its
+  pages can be read on another computer (`crawler.official.harvest`) and
+  stored by the server with its own code (`deployment/crawl.sh
+  official-harvest FILE`).
+
 - Tables keep their shape. A cell that spans rows or columns is drawn merged,
   as on monash.edu, instead of moving every cell below it one column left; a
   second header row ("Malaysian / International" under "Tuition fees") and a

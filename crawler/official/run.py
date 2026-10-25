@@ -73,6 +73,7 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
                 tags=list(seed.tags),
                 refresh_tier=seed.tier,
                 applies_to=seed.applies_to,
+                curated=seed.curated,
             )
             if seed.sign_in:
                 list_behind_sign_in(db, page, title=seed.title, description=seed.sign_in)

@@ -97,6 +97,11 @@ class OfficialPage(Base):
     #: description written here, the link - and its text is never fetched or
     #: copied: what Monash keeps behind its login is not ours to republish.
     requires_sign_in: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    #: Picked by hand for the seed list, rather than found by the sitemap
+    #: coverage. Among pages that match a question equally, these come first:
+    #: with three thousand pages listed, 全日制 found a science honours FAQ
+    #: ("Can I study honours part-time?") before the study load page.
+    curated: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     # ``dynamic`` pages (dates, deadlines) are re-checked far more often than
     # ``stable`` policy text; see crawler/sync/refresh.py.

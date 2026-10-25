@@ -492,8 +492,12 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             # Not in any sitemap and linked from nowhere discovery walked - the
             # five Malaysia eExam pages - but production holds its text, so
             # it is still there; a 404 on the next crawl takes it down.
-            stored = (texts.get(url.rstrip("/")) or {}).get("text") or ""
-            if key in seen or len(stored) < MIN_LENGTH:
+            stored = texts.get(url.rstrip("/")) or {}
+            if key in seen or len(stored.get("text") or "") < MIN_LENGTH:
+                continue
+            # The same page at the address the sitemap gives now: IT's
+            # Course-Offered/postgraduates pages moved under current-students.
+            if stored.get("hash") in by_hash:
                 continue
         elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
             continue
