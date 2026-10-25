@@ -359,6 +359,19 @@ def _unit_title(db: Session, unit, locale: str | None) -> str:
     return tr.field("title", unit.title) or unit.title
 
 
+def _teach_out_sources(notice: dict | None) -> list[dict[str, Any]]:
+    """Every campus's teach-out page, whether or not it lists the unit: the
+    campuses change units on different dates, and each page lists every unit
+    that is changing, not just the one asked about."""
+    notice = notice or {}
+    pages = notice.get("pages") or notice.get("sources", {})
+    return [
+        {"kind": "official", "label": source["title"], "url": source["url"],
+         "last_checked": source["last_checked"]}
+        for source in pages.values()
+    ]
+
+
 def _known_prefix(db: Session, code: str, year: int) -> bool:
     """Whether ``code`` looks like a real unit code rather than "year 2026".
 
@@ -602,6 +615,14 @@ def answer(
             }
         )
         base["sources"] = [_unit_source(unit)]
+        # A unit still running that its faculty is closing or replacing
+        # (FIT1043: final offering S1 2027 at Monash Malaysia): the notice goes
+        # above the link, since it is the thing a student planning next year
+        # needs to see.
+        notice = teach_out.lookup(db, [unit.unit_code]).get(unit.unit_code)
+        if notice:
+            base["blocks"].insert(0, {"type": "teach_out", **notice})
+            base["sources"] += _teach_out_sources(notice)
         base["suggestions"] = _unit_suggestions(unit.unit_code, locale)
         return base
 
@@ -635,11 +656,7 @@ def answer(
                     "caveat": None,
                 }
             )
-            base["sources"] = [
-                {"kind": "official", "label": source["title"], "url": source["url"],
-                 "last_checked": source["last_checked"]}
-                for source in (notice or {}).get("sources", {}).values()
-            ]
+            base["sources"] = _teach_out_sources(notice)
             return base
         base.update(
             {

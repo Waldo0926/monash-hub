@@ -133,6 +133,7 @@ function ask(question: string) {
         v-else-if="block.type === 'teach_out'"
         :entries="block.entries"
         :sources="block.sources"
+        :pages="block.pages"
         :campus="plan.campus || 'Malaysia'"
         class="block"
       />

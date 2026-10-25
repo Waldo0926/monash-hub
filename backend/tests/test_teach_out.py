@@ -103,6 +103,22 @@ def test_each_campus_sees_its_own_faculty_page(client, db):
     assert both["FIT2004"]["sources"][to.SOURCES[1]]["applies_to"] == "malaysia"
 
 
+def test_a_unit_on_one_campus_list_still_links_the_other(client, db):
+    """The campuses change units on different dates (FIT1043 is gone in
+    Australia and runs once more in Malaysia; FIT2014 is only on the Australian
+    list), so a notice carries both pages and never fills one campus's gap with
+    the other's row."""
+    _page(db, to.SOURCES[0], "https://www.monash.edu/it/x", ROWS, "australia")
+    _page(db, to.SOURCES[1], "https://www.monash.edu.my/it/x", MY_ROWS, "malaysia")
+    db.commit()
+
+    found = to.lookup(db, ["FIT2014"])
+    assert [e["applies_to"] for e in found["FIT2014"]["entries"]] == ["australia"]
+    assert list(found["FIT2014"]["sources"]) == [to.SOURCES[0]]
+    assert list(found["FIT2014"]["pages"]) == list(to.SOURCES)
+    assert found["FIT2014"]["pages"][to.SOURCES[1]]["applies_to"] == "malaysia"
+
+
 def test_campus_names_map_to_a_faculty_page():
     assert to.region("Malaysia") == "malaysia"
     assert to.region("Clayton") == "australia"
@@ -150,3 +166,29 @@ def test_searching_a_closed_unit_shows_what_replaces_it_on_both_campuses(client,
     # In no Handbook at all: a mistyped code, as before.
     assert client.post("/api/v1/ask", json={"query": "FIT9999"}).json()["answer_type"] \
         == "unit_not_found"
+
+
+def test_searching_a_unit_in_its_last_offering_shows_the_notice(client, db, monkeypatch):
+    """FIT1043 still runs in S1 2027 at Malaysia; a student planning next year
+    should see that it is the last offering and what replaces it."""
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "current_academic_year", 2027)
+    _page(db, to.SOURCES[1], "https://www.monash.edu.my/it/x", MY_ROWS, "malaysia")
+    _unit(db, "FIT1043", 2027)
+    _unit(db, "FIT2014", 2027)
+    db.commit()
+
+    body = client.post("/api/v1/ask", json={"query": "FIT1043"}).json()
+    assert body["answer_type"] == "handbook_overview"
+    notice = body["blocks"][0]
+    assert notice["type"] == "teach_out"
+    assert notice["entries"][0]["change"] == "Final offering S1 2027"
+    assert notice["entries"][0]["plan"] == "Replace with FIT2132 (S2)"
+    assert body["blocks"][1]["type"] == "link"
+    assert "https://www.monash.edu.my/it/x" in [s["url"] for s in body["sources"]]
+    assert list(notice["pages"]) == [to.SOURCES[1]]
+
+    # A unit no faculty list names keeps the plain answer.
+    body = client.post("/api/v1/ask", json={"query": "FIT2014"}).json()
+    assert [b["type"] for b in body["blocks"]] == ["link"]
