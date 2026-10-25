@@ -333,9 +333,11 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         ("international", "国际学生", "留学生", "visa", "student visa", "签证", "学生签证",
          "student pass", "学生准证", "need", "required", "compulsory", "buy", "要", "买",
          "必须", "强制", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
-         "澳莫", "medical", "health", "看病", "医疗", "cover", "policy"),
+         "澳莫", "medical", "health", "看病", "医疗", "cover", "policy", "insurance",
+         "保险", "医保"),
+        # Not 医保 or 保险 alone: a bare topic word is a search for the pages.
         ("health insurance", "medical insurance", "health cover", "oshc",
-         "overseas student health cover", "医疗保险", "医保", "健康保险", "保险"),
+         "overseas student health cover", "医疗保险", "健康保险", "买保险", "买医保"),
         "oshc",
         priority=50,
         malaysia_pages=("malaysia-international-students-medical-insurance",

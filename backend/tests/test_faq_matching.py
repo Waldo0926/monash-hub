@@ -118,7 +118,8 @@ def test_the_more_specific_entry_wins(query, right):
         ("马来西亚留学生可以打工吗", "student-visa-work-hours"),
         ("student pass work hours", "student-visa-work-hours"),
         ("国际学生要买医疗保险吗", "international-student-health-insurance"),
-        ("马莫的保险", "international-student-health-insurance"),
+        ("马莫的医疗保险", "international-student-health-insurance"),
+        ("留学生要买医保吗", "international-student-health-insurance"),
         ("OSHC是什么", "international-student-health-insurance"),
         ("do I need health insurance", "international-student-health-insurance"),
         ("马莫 CGPA", "what-is-gpa"),
@@ -190,7 +191,7 @@ def test_every_faq_answers_its_own_question(seed):
 
 @pytest.mark.parametrize(
     "query",
-    ["签证", "visa", "考试", "exam", "工作量是什么", "where can I park a scooter",
+    ["签证", "visa", "医保", "保险", "考试", "exam", "工作量是什么", "where can I park a scooter",
      "is there a science building map", "group work", ""],
 )
 def test_a_topic_word_alone_answers_nothing(query):
