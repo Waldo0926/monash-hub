@@ -67,6 +67,15 @@ def test_priming_repairs_what_was_stored_before():
     assert engine.text("Go to www.monash.edu now.") == "现在访问 www.monash.edu。"
 
 
+def test_a_stored_translation_with_a_term_inside_its_address_is_translated_again():
+    """2026-10-25: --refresh reused course S2010's stored sentence with
+    forms.Monash.edu/选课注册-amendment in it, an address that does not exist."""
+    source = "Submit https://forms.monash.edu/enrolment-amendment by Friday."
+    engine = _engine(lambda text: text.replace("Submit", "请在周五前提交").replace(" by Friday.", "。"))
+    engine.prime({source: "请在周五前提交 https://forms.Monash.edu/选课注册-amendment。"})
+    assert "https://forms.monash.edu/enrolment-amendment" in engine.text(source)
+
+
 def test_a_masked_translation_keeps_the_address_as_written():
     engine = _engine(lambda text: text.replace("Visit", "访问").replace(" for help.", "获取帮助。"))
     assert "https://www.monash.edu.my/its" in engine.text(

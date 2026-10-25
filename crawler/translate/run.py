@@ -46,7 +46,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from crawler.official.seeds import SEEDS
-from crawler.translate.engine import Translator, quieten
+from crawler.translate.engine import Translator, quieten, stored_ok
 
 log = logging.getLogger("crawler.translate")
 
@@ -430,7 +430,7 @@ def translate_official(translator: Translator, *, refresh: bool) -> dict:
                 # than sending the whole unchanged page to the model again. A
                 # title whose campus the model translated itself counts as unseen.
                 have = _stored_strings(db, locale, OFFICIAL_PAGE, page.slug)
-                wanted = [s for s in wanted if s not in have
+                wanted = [s for s in wanted if s not in have or not stored_ok(s, have[s])
                           or (s == page.title and not _campus_title_ok(s, have[s], locale))]
                 if not wanted:
                     summary["skipped"] += 1

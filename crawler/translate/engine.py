@@ -30,6 +30,7 @@ from app.knowledge.glossary import (
     GENERAL,
     MASKS,
     addresses_kept,
+    addresses_lost,
     has_verbatim,
     is_critical,
     is_only_placeholders,
@@ -275,6 +276,19 @@ def _invented(result: str, source: str) -> bool:
     return bool(_INVENTED.search(result)) and not _INVENTED.search(source)
 
 
+def stored_ok(source: str, target: str) -> bool:
+    """Whether a stored translation may be used again as it is.
+
+    Not a reply that carried the prompt with it ("GLOSSARY:" before a
+    person's name), stored before the reply check looked past the glossary,
+    and not one that lost an address: reused as they were, a --refresh pass
+    on 2026-10-25 put 179 such strings back. They are translated again.
+    """
+    if "GLOSSARY:" in target or "TEXT:" in target:
+        return False
+    return not addresses_lost(source, target)
+
+
 class Translator:
     """One loaded model per language, translating with the glossary in front."""
 
@@ -335,9 +349,7 @@ class Translator:
             key = (source or "").strip()
             if not key or not target or key in self._cache:
                 continue
-            if "GLOSSARY:" in target or "TEXT:" in target:
-                # A reply that carried the prompt with it, stored before the
-                # reply check looked past the glossary. Translate it again.
+            if not stored_ok(key, target):
                 continue
             if self.locale == "zh" and (STRUCTURE_ZH.get(key) or structure.compose(key, "zh")):
                 continue
