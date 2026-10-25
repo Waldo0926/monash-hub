@@ -117,3 +117,43 @@ test('an unfinished part of the degree opens the dialog on what it still wants',
   await dialog.getByRole('button', { name: '看整个专业与学位' }).click()
   await expect(dialog.getByRole('heading', { name: '专业与学位里还没排的课（2 门）' })).toBeVisible()
 })
+
+// A plan as one line of text, for moving it between devices without a file.
+const FRIEND = 'MH1|%E6%9C%8B%E5%8F%8B%E7%9A%84|2026|3|Malaysia||S1;S2|FIT1008@0.0,FIT2004@1.0'
+
+test('a pasted plan code arrives as a new plan', async ({ page }) => {
+  await page.getByRole('toolbar').getByText('更多', { exact: true }).click()
+  await page.getByRole('button', { name: '粘贴规划码' }).click()
+  await page.getByLabel('粘贴规划码').fill(`看看这个 ${FRIEND}`)
+  await page.getByRole('button', { name: '导入', exact: true }).click()
+  await expect(page.getByRole('status').filter({ hasText: '「朋友的」已作为新规划加入' })).toBeVisible()
+  await expect(card(page, 'FIT1008')).toBeVisible()
+  await expect(card(page, 'FIT2004')).toBeVisible()
+})
+
+test('a plan link opens the plan it carries and leaves the code out of the address', async ({ page }) => {
+  // Opened fresh, as from a chat message.
+  await page.goto('about:blank')
+  await page.goto(`/plan#plan=${encodeURIComponent(FRIEND)}`)
+  await expect(card(page, 'FIT1008')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /第 1 年\s*2026/ })).toBeVisible()
+  expect(new URL(page.url()).hash).toBe('')
+  // Pasted into the address bar of a tab already on the page: only the hash changes.
+  const second = FRIEND.replace('%E6%9C%8B%E5%8F%8B%E7%9A%84', 'again').replace('FIT1008@0.0', 'FIT2102@0.1')
+  await page.goto(`/plan#plan=${encodeURIComponent(second)}`)
+  await expect(page.getByRole('status').filter({ hasText: '「again」已作为新规划加入' })).toBeVisible()
+  await expect(card(page, 'FIT2102')).toBeVisible()
+})
+
+test.describe('copying', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+  test('copy plan code puts a link to this plan on the clipboard', async ({ page }) => {
+    await addUnit(page, '第一学期, 2026', 'FIT1008')
+    await page.getByRole('toolbar').getByText('更多', { exact: true }).click()
+    await page.getByRole('button', { name: '复制规划码' }).click()
+    await expect(page.getByRole('status').filter({ hasText: '已复制' })).toBeVisible()
+    const copied = await page.evaluate(() => navigator.clipboard.readText())
+    expect(copied).toContain('/plan#plan=MH1')
+    expect(decodeURIComponent(copied)).toContain('FIT1008@0.0')
+  })
+})
