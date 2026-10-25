@@ -10,7 +10,7 @@ from app.core.config import get_settings
 from app.core.db import get_db
 from app.knowledge import translations
 from app.models.translation import COURSE, FAQ_ENTRY, OFFICIAL_PAGE, UNIT
-from app.search import service
+from app.search import popular, service
 
 router = APIRouter(tags=["search"])
 
@@ -38,6 +38,11 @@ def unified_search(
         pages, page_total = service.search_official(db, q, limit=limit)
     posts, post_total = service.search_community(db, q, limit=limit)
     faqs = service.search_faq(db, q, limit=3)
+
+    # A search that found something is counted, by term and day only; see
+    # app/search/popular.py for what is kept and what the home page shows.
+    if unit_total or course_total or page_total or faqs:
+        popular.record(db, q)
 
     # Three lookups for the whole page rather than one per result. Community
     # posts are what a student wrote, so they are never translated.
@@ -96,6 +101,15 @@ def unified_search(
             },
         ],
     }
+
+
+@router.get("/search/popular")
+def popular_searches(
+    limit: int = Query(6, ge=1, le=20),
+    db: Session = Depends(get_db),
+) -> dict:
+    """The terms searched most in the last two weeks, for the home page."""
+    return {"days": popular.DAYS, "terms": popular.popular(db, limit)}
 
 
 @router.get("/official/search")

@@ -474,6 +474,7 @@ const en: Messages = {
   'home.lead':
     'Unit data from the 2026 Handbook, the Monash pages students use most, and a public community for questions.',
   'home.trending': 'Try',
+  'home.searchedLately': 'Searched lately',
   'home.startHere': 'Start here',
   'home.toolHint.units': 'Assessment, requisites, when it runs',
   'home.toolHint.guides': 'Special consideration, census, visas',
@@ -1564,6 +1565,7 @@ const zh: Messages = {
   'home.lead':
     '2026 Handbook 的课程数据、常用的 Monash 官方页面，还有一个可以公开提问的社区。',
   'home.trending': '试试搜',
+  'home.searchedLately': '最近常搜',
   'home.startHere': '从这里开始',
   'home.toolHint.units': '考核方式、先修要求、哪个校区哪学期开',
   'home.toolHint.guides': '特殊考虑、Census date、学生签证',
@@ -2630,6 +2632,7 @@ const ja: Messages = {
   'home.lead':
     '2026 年 Handbook のユニット情報、よく使う Monash 公式ページ、そして質問できる公開コミュニティ。',
   'home.trending': '検索例',
+  'home.searchedLately': '最近よく検索',
   'home.startHere': 'ここから始める',
   'home.toolHint.units': '評価方法、履修条件、開講時期',
   'home.toolHint.guides': '特別考慮、Census date、学生ビザ',
@@ -3709,6 +3712,7 @@ const ko: Messages = {
   'home.lead':
     '2026 Handbook의 과목 정보, 자주 쓰는 Monash 공식 페이지, 그리고 질문할 수 있는 공개 커뮤니티.',
   'home.trending': '검색 예시',
+  'home.searchedLately': '최근 자주 검색',
   'home.startHere': '여기서 시작하기',
   'home.toolHint.units': '평가 방식, 선수 과목, 개설 캠퍼스와 학기',
   'home.toolHint.guides': '특별 고려, Census date, 학생 비자',

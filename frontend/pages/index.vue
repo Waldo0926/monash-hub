@@ -80,7 +80,12 @@ const guidesFetch = useLocalisedApiFetch<any>(
   () => `/v1/guides?slugs=${GUIDE_SLUGS[campus.value].join(',')}`,
   { watch: [campus] }
 )
-const [{ data: units }, { data: guides }] = await Promise.all([unitsFetch, guidesFetch])
+// What people searched for lately, counted by term and day on the server
+// (nothing about who). Shown in place of the examples once enough terms have
+// been searched on more than one day; until then the examples stay, labelled
+// as examples.
+const popularFetch = useApiFetch<any>('/v1/search/popular?limit=6')
+const [{ data: units }, { data: guides }, { data: searched }] = await Promise.all([unitsFetch, guidesFetch, popularFetch])
 
 const unitRows = computed(() => {
   const byCode = new Map<string, any>((units.value?.results ?? []).map((u: any) => [u.unit_code, u]))
@@ -177,7 +182,7 @@ const POPULAR = {
 }
 const lang = () => (['zh', 'ja', 'ko'].includes(locale.value) ? locale.value : 'en') as keyof typeof POPULAR.visa
 
-const popularTerms = computed(() =>
+const exampleTerms = computed(() =>
   [
     { query: 'C2001', text: 'C2001', code: true },
     { query: 'FIT2102', text: 'FIT2102', code: true },
@@ -186,6 +191,16 @@ const popularTerms = computed(() =>
     { query: 'Student visa', text: POPULAR.visa[lang()] },
     { query: 'Exchange', text: POPULAR.exchange[lang()] }
   ]
+)
+const CODE = /^(?:[A-Z]{3}\d{4}|[A-Z]\d{4})$/
+const searchedTerms = computed(() =>
+  ((searched.value?.terms ?? []) as { label: string }[]).map(t => ({ query: t.label, text: t.label, code: CODE.test(t.label) }))
+)
+// Three real terms read as a list; one or two read as an oddity.
+const liveTerms = computed(() => searchedTerms.value.length >= 3)
+const popularTerms = computed(() => (liveTerms.value ? searchedTerms.value : exampleTerms.value))
+const popularLabel = computed(() =>
+  liveTerms.value ? $t('home.searchedLately') : marketing.value ? c.value.popular : $t('home.trending')
 )
 
 const searchPlaceholder = computed(() => (marketing.value ? c.value.placeholder : $t('search.placeholder')))
@@ -228,7 +243,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         <p class="lead">{{ marketing ? c.lead : $t('home.lead') }}</p>
         <SearchInput v-model="query" big autofocus :placeholder="searchPlaceholder" @submit="search" />
         <p class="often tiny">
-          <span class="muted">{{ marketing ? c.popular : $t('home.trending') }}</span>
+          <span class="muted">{{ popularLabel }}</span>
           <button
             v-for="term in popularTerms"
             :key="term.query"

@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (home page: the searches shown are the ones people make)
+
+- The row under the home search box shows the terms searched most in the last
+  two weeks, labelled "Searched lately". Until three terms qualify it shows
+  the same six examples as before, labelled as examples. A term is counted
+  when a search for it found something, once per search, in a row that holds
+  the term, the day and a count: no address, account or time. A day counts
+  for at most 20 searches of a term and a term has to have been searched on
+  two different days, so one person cannot put words on the home page.
+  Anything that looks personal (an address, a long number, a sentence) is not
+  counted. Rows older than 60 days are dropped. New table `search_terms`,
+  `GET /v1/search/popular`.
+
 ### Added (course map: a plan code for moving a plan between devices)
 
 - "Copy plan code" in the course map's More menu puts a link to this page on
