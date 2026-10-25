@@ -3822,6 +3822,16 @@ def addresses_kept(source: str, translated: str) -> str:
     return translated
 
 
+def addresses_lost(source: str, translated: str) -> bool:
+    """Whether a web or email address in ``source`` is not in the translation
+    as written, even after ``addresses_kept``. Translations stored before
+    addresses were masked had the glossary inside the path:
+    forms.monash.edu/enrolment-amendment became forms.Monash.edu/选课注册-amendment,
+    an address that does not exist."""
+    kept = addresses_kept(source, translated)
+    return any(found.group(0) not in kept for found in re.finditer(_URL + "|" + _EMAIL, source))
+
+
 def restore(
     text: str, replacements: list[str], mask: tuple[str, str] = MASKS[0]
 ) -> str:

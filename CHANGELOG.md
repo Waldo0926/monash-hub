@@ -44,6 +44,11 @@ All notable changes to Monash Hub are documented here.
 
 ### Changed (Chinese translation)
 
+- A stored translation that lost a web or email address, or carried the
+  prompt with it, is not reused: a `--refresh` pass on 2026-10-25 put 179
+  of them back, such as forms.Monash.edu/选课注册-amendment for
+  forms.monash.edu/enrolment-amendment. They are translated again, and the
+  official pass picks them out of pages that are otherwise up to date.
 - The chat-model translator defaults to Zhipu's free `glm-4.5-flash`. Read
   against the English over 70 paragraphs of the guides, `glm-4-flash` turned
   conditions around ("provided you have one semester left") and
