@@ -4,6 +4,26 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (course map: the degree's own list, find units for a part, chain focus on the graph)
+
+- With a degree chosen, the add-unit dialog lists the units the degree names
+  that are not on the map yet, before anything is typed: the ones that run in
+  the opened semester first, each with the part it counts towards in that
+  part's colour, the specialisation it comes through when it does, and a mark
+  when the plan's campus does not teach it. Typing still searches everything.
+  Parts that ask for one of several specialisations offer the units of the one
+  the plan has started, or of all of them until then. A free elective part has
+  no list to offer.
+- In the progress panel, a part that is not full yet is a button: it opens the
+  dialog on the first semester with room, showing only what that part still
+  wants, with a link back to the whole degree.
+- On the unit tree, selecting a unit now dims everything that is not on its
+  chain: what it needs, all the way back, and what needs it. The side panel
+  says how many units are on the chain and has a box to show the whole graph
+  again. Keyboard selection (Enter on a node) works the same.
+- The browser tests' seed gains a fourth unit (FIT2085, needs FIT1008) and one
+  synthetic degree (C9001) so the course map has a structure to test against.
+
 ### Changed (course map: first steps, local-only note, More menu)
 
 - An empty plan opens with three numbered steps: choose campus and degree,

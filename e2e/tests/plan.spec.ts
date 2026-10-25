@@ -78,3 +78,42 @@ test('export and print sit in the More menu', async ({ page }) => {
   await expect(page.getByRole('button', { name: '导出' })).toBeVisible()
   await expect(page.getByRole('button', { name: '打印' })).toBeVisible()
 })
+
+test('with a degree chosen, the dialog offers its units before anything is typed', async ({ page }) => {
+  await page.getByLabel('专业与学位').selectOption('C9001')
+  await expect(page.getByText('Part A. Synthetic core')).toBeVisible()
+
+  await page.getByRole('button', { name: '添加课程: 第一学期, 2026' }).first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: '专业与学位里还没排的课（3 门）' })).toBeVisible()
+  await expect(dialog.getByRole('option')).toHaveCount(3)
+  // Each row says which part of the degree it counts towards.
+  await expect(dialog.getByRole('option', { name: /FIT2085/ })).toContainText('A')
+
+  await dialog.getByRole('option', { name: /FIT1008/ }).click()
+  await dialog.getByRole('button', { name: '添加到 第一学期, 2026' }).click()
+  await expect(dialog.getByRole('status')).toContainText('FIT1008 已加入')
+  // What is on the map leaves the list.
+  await expect(dialog.getByRole('option')).toHaveCount(2)
+  await expect(dialog.getByRole('option', { name: /FIT1008/ })).toHaveCount(0)
+
+  // Typing still searches everything, the degree's list or not.
+  await dialog.getByRole('textbox').fill('FIT2102')
+  await expect(dialog.getByRole('option', { name: /FIT2102/ })).toBeVisible()
+})
+
+test('an unfinished part of the degree opens the dialog on what it still wants', async ({ page }) => {
+  await page.getByLabel('专业与学位').selectOption('C9001')
+  await addUnit(page, '第一学期, 2026', 'FIT1008')
+
+  await page.getByRole('button', { name: '找Part A. Synthetic core的课' }).click()
+  // The first semester with room is where a unit from here goes.
+  const dialog = page.getByRole('dialog', { name: '添加课程到 第一学期, 2026' })
+  await expect(dialog.getByRole('heading', { name: 'Part A. Synthetic core还缺的课' })).toBeVisible()
+  await expect(dialog.getByRole('option')).toHaveCount(2)
+  await expect(dialog.getByRole('option', { name: /FIT2004/ })).toBeVisible()
+  await expect(dialog.getByRole('option', { name: /FIT2085/ })).toBeVisible()
+
+  await dialog.getByRole('button', { name: '看整个专业与学位' }).click()
+  await expect(dialog.getByRole('heading', { name: '专业与学位里还没排的课（2 门）' })).toBeVisible()
+})
