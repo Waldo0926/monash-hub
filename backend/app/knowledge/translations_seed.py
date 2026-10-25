@@ -650,6 +650,11 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "持学生准证（Student Pass）的全日制课业量是每年 48 学分（一般每学期 24 学分）。"
         "只有在页面列出的情况下，比如学业进度委员会的条件、医疗原因或最后一个学期，"
         "并附上证明材料，才能减到每学期不少于 18 学分。"
+        "减课（underload）用 SORS 里的申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/underload-application），"
+        "要在开学第 2 周的周五前交，否则会有费用上的处罚；"
+        "交之前先发邮件问国际学生准证办公室（mum.student.visa@monash.edu）对学生准证的影响。"
+        "拿奖学金、助学金或学生贷款的，也要先问对应的办公室。"
         "每学期少于 18 学分就要申请休学（intermission）。",
     ),
     "student-visa-work-hours": (

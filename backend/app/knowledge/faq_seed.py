@@ -240,6 +240,9 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         priority=85,
         malaysia_pages=("malaysia-frequently-asked-questions-faq-unit-withdra",),
     ),
+    # The SORS sentences (form, Week 2 deadline, ISP email) are from the notes
+    # on Monash Malaysia's underload application form, which we do not crawl;
+    # checked on the form on 2026-10-25.
     FaqSeed(
         "how-to-withdraw-from-a-unit",
         "How do I withdraw from a unit?",
@@ -256,7 +259,12 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "points a year (usually 24 a semester). You can go down to no less than 18 credit "
         "points a semester only in the cases the page lists, such as an academic progress "
         "condition, a medical reason or your final semester, and with supporting documents. "
-        "Below 18 credit points you have to apply for intermission.",
+        "Apply with the underload application form in SORS "
+        "(sors.monash.edu.my/sites/student-online-forms/enrol/underload-application) by "
+        "Friday of Week 2 of the semester to avoid a financial penalty, and talk to the "
+        "International Student Pass Office (mum.student.visa@monash.edu) about your Student "
+        "Pass first. If you have a scholarship, bursary or study loan, check with its office "
+        "too. Below 18 credit points you have to apply for intermission.",
         "enrolment",
         ("enrolment", "unit", "units", "subject", "course", "wes", "课", "一门课",
          "课程", "网上", "malaysia", "马来西亚", "马莫", "australia", "澳洲", "澳大利亚",
