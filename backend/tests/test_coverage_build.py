@@ -130,3 +130,9 @@ def test_of_two_live_copies_the_student_services_one_is_kept():
     services = f"{MY}/student-services/financial-assistance/undergraduate-scholarships-and-bursaries/other-financial-support"
     fees = f"{MY}/study/undergraduate/fees/sibling-discount2"
     assert urls(build([page(fees, "same"), page(services, "same")], {}, [])) == [services]
+
+
+def test_an_old_home_copy_is_the_last_choice():
+    rows = build([page(f"{MY}/student-services/home-old/m-pass", "m"),
+                  page(f"{MY}/m-pass", "m")], {}, [])
+    assert urls(rows) == [f"{MY}/m-pass"]

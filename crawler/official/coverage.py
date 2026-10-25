@@ -465,10 +465,12 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
         # address already in seeds_coverage.py wins, so a page keeps its slug
         # and its translations from one build to the next; then a student
         # services page over the same text in the prospective-student section
-        # (Malaysia's sibling discount is at both).
+        # (Malaysia's sibling discount is at both). A "home-old" copy is the
+        # last choice: student-services/home-old/m-pass is the old M-Pass page.
         path = urlparse(url).path.lower()
         services = path.startswith(("/student-services/", "/students/"))
-        return (url.lower() not in known_urls, not services, len(url), "/overseas" in url)
+        return (url.lower() not in known_urls, "/home-old/" in path, not services, len(url),
+                "/overseas" in url)
 
     spelled: dict[str, str] = {}  # lower-cased address -> the spelling kept
     for page in pages:
