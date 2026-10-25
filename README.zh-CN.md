@@ -15,6 +15,8 @@
 
 ---
 
+<p align="center"><img src="./docs/images/home-zh.webp" alt="Monash Hub 首页：搜索、马来西亚和澳洲的重要日期、课程、选课规划和官方指南入口" width="900" /></p>
+
 ## Monash Hub 是什么？
 
 Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生社区都集中在一个地方，Monash 学习生活一站查清。它尤其帮助非英语母语学生更轻松地搜索、理解和核实与 Monash 学习和校园生活相关的信息。
@@ -22,6 +24,20 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 你不必在 Handbook、官网、政策页面和学生讨论之间反复切换。Monash Hub 将常用信息整理到同一个入口，并清楚说明每一条内容来自哪里。
 
 > Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
+
+## 为什么还要做一个网站？
+
+以前学生有问题，要去三个地方找，每个地方只管一部分：
+
+| 去哪找 | 擅长 | 缺什么 |
+| --- | --- | --- |
+| [Monash Handbook](https://handbook.monash.edu) | 课程和学位的官方记录 | 只有英文，也只有课程和学位；政策、签证、重要日期在别的网站 |
+| monash.edu 和 monash.edu.my | 两个校区各自的官方指南 | 两个网站加起来约 3,100 页，而且两边规则不一样（签证、保险、课程变动） |
+| 学生群和共享文档 | 中文，回得快 | 没有出处，经常是往年的或另一个校区的 |
+
+之前也有学生做过工具。[MonPlan](https://github.com/MonPlan) 是学生做的选课规划工具，它公开的爬虫（[MonScrape](https://github.com/MonPlan/MonScrape)）最后一次更新是 2017 年，读的还是旧版 Handbook 页面。monashcoding 的 [TheBetterHandbookAPI](https://github.com/monashcoding/TheBetterHandbookAPI) 记录了 Handbook 搜索接口的用法（最后提交是 2022 年 9 月）。这两个都不管政策，也没有中文。
+
+Monash Hub 保留了它们做对的地方，数据直接来自 Handbook，再补上其余部分：两个校区的官方页面和课程放在一起，每条结果都标出处和最后核对的日期，马来西亚和澳洲规则不同时并排显示，中文翻译附英文原文链接。站内助手只在这些资料里搜，不用生成式模型写答案。
 
 ## 技术栈
 
@@ -36,6 +52,18 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 - **生产环境：** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 
 当前生产请求链路为：Nginx → Nuxt SSR 提供网页界面，Nginx → FastAPI 处理 `/api/*` 请求，PostgreSQL 运行在私有 Docker 网络中。完整系统设计见 [架构说明](docs/ARCHITECTURE.md)。
+
+## 一些数字（2026 年 10 月 25 日）
+
+| | |
+| --- | --- |
+| 官方指南收录的页面 | 约 3,100 页，来自两个网站的 sitemap，之前是 662 页 |
+| 后端测试 | 799 个测试函数，CI 里连真实 PostgreSQL 跑 |
+| 前端和浏览器测试 | 48 个 Vitest 测试；13 个 Playwright 测试，桌面和手机尺寸都跑 |
+| 翻译模型 | 智谱免费的 `glm-4.5-flash`。对照英文读了三个免费模型翻的 70 段后选的（`glm-4-flash` 会把条件句译反） |
+| 部署 | 每次合并到 `main` 自动部署，部署后对线上网站跑冒烟检查，不通过就退回上一版 |
+
+出处：[更新日志](CHANGELOG.md)，以及 `backend/tests`、`frontend`、`e2e` 里的测试文件。
 
 ## 你可以做什么？
 
