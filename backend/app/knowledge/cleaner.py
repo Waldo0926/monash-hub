@@ -46,7 +46,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 # Bumped when the extraction itself changes. It goes into the content hash, so
 # the next crawl re-writes every page instead of reporting "unchanged" and
 # leaving the old shape in the database forever.
-EXTRACTOR_VERSION = 7
+EXTRACTOR_VERSION = 8
 
 DROP_TAGS = (
     "script", "style", "noscript", "svg", "iframe", "form", "button",
@@ -127,6 +127,20 @@ CONTENT_SELECTORS = (
 
 CONTAINERS = {"div", "section", "article", "main", "figure", "aside", "span"}
 HEADINGS = ("h2", "h3", "h4", "h5", "h6")
+# Tags that sit inside a line of text. One of these holding any of BLOCKS is a
+# container in disguise (a <span> wrapping paragraphs) and is walked instead.
+INLINE = {
+    "a", "abbr", "b", "br", "cite", "code", "em", "font", "i", "img", "mark", "q",
+    "s", "small", "span", "strong", "sub", "sup", "time", "u", "wbr",
+}
+BLOCKS = (
+    "p", "div", "ul", "ol", "li", "table", "dl", "blockquote", "section", "article",
+    "h1", "h2", "h3", "h4", "h5", "h6", "figure", "aside", "details",
+)
+
+
+def _is_inline(node: Tag) -> bool:
+    return node.name in INLINE and node.find(BLOCKS) is None
 
 WS_RE = re.compile(r"[ \t\xa0​]+")
 BLANK_RE = re.compile(r"\n{3,}")
@@ -171,8 +185,32 @@ def _absolute_links(value: Any, base: str) -> Any:
     return value
 
 
-def _rich(node: Tag) -> list[dict[str, Any]]:
-    """Flatten a node's inline content into spans, merging matching neighbours."""
+# A <br> is held as this character until the spans are built, so it can be told
+# apart from the break between two paragraphs in one list item.
+_BR = "\u2028"
+# A <br> in the middle of a phrase only wraps the line to fit a box: the
+# misconduct page's tiles read "impartial and fair to<br>all parties". Before a
+# lowercase word and after anything but the end of a sentence or a label, it
+# becomes a space. "Building 1<br>Clayton" and "Phone:<br>..." keep the break.
+_SOFT_BR = re.compile(r"(?<=[^\s.:;!?])\u2028(?=[a-z])")
+
+
+def _soften_breaks(spans: list[dict[str, Any]]) -> None:
+    for i, span in enumerate(spans):
+        text = _SOFT_BR.sub(" ", span["text"])
+        if text.endswith(_BR) and len(text) > 1 and i + 1 < len(spans):
+            after = spans[i + 1]["text"][:1]
+            if after.islower() and text[-2] not in " .:;!?":
+                text = text[:-1] + " "
+        span["text"] = text.replace(_BR, "\n")
+
+
+def _rich(node: Tag | list[Any]) -> list[dict[str, Any]]:
+    """Flatten inline content into spans, merging matching neighbours.
+
+    ``node`` is one element, or a run of sibling nodes that read as one
+    paragraph (text, links and bold side by side in a ``<div>``).
+    """
     spans: list[dict[str, Any]] = []
 
     def push(text: str, bold: bool, url: str | None) -> None:
@@ -189,13 +227,15 @@ def _rich(node: Tag) -> list[dict[str, Any]]:
             span["url"] = url
         spans.append(span)
 
-    def walk(current: Tag, bold: bool, url: str | None) -> None:
-        for child in current.children:
+    def walk(current: Tag | list[Any], bold: bool, url: str | None) -> None:
+        for child in (current if isinstance(current, list) else current.children):
+            if isinstance(child, Comment):
+                continue
             if isinstance(child, NavigableString):
                 push(str(child), bold, url)
             elif isinstance(child, Tag):
                 if child.name == "br":
-                    push("\n", bold, url)
+                    push(_BR, bold, url)
                 elif child.name in ("p", "div") and spans:
                     # Two paragraphs in one list item ran together as one.
                     push("\n", bold, url)
@@ -211,6 +251,7 @@ def _rich(node: Tag) -> list[dict[str, Any]]:
                     walk(child, bold, url)
 
     walk(node, False, None)
+    _soften_breaks(spans)
 
     while spans and not spans[-1]["text"].strip():
         spans.pop()
@@ -522,14 +563,50 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
             blocks.append({"type": "paragraph", "spans": spans})
 
     def walk(node: Tag) -> None:
+        # Text, links and bold that sit side by side in a container are one
+        # paragraph. Each piece used to become a block of its own, so
+        # "Check the <a>handbook</a> for units on offer" read as three lines
+        # with the link lost.
+        run: list[Any] = []
+        # <li> with no list around it, which Monash writes straight into a <div>.
+        loose_items: list[list[dict[str, Any]]] = []
+
+        def flush() -> None:
+            if run:
+                add_paragraph(_rich(list(run)))
+                run.clear()
+            if loose_items:
+                blocks.append({"type": "list", "ordered": False, "items": list(loose_items)})
+                loose_items.clear()
+
         for child in node.children:
+            if isinstance(child, Comment):
+                continue
             if isinstance(child, NavigableString):
-                text = _clean(str(child)).strip()
-                if text and (node.name in CONTAINERS or node.name == "li"):
-                    add_paragraph([{"text": text}])
+                if node.name in CONTAINERS or node.name == "li":
+                    if _clean(str(child)).strip():
+                        if loose_items:
+                            flush()
+                        run.append(child)
+                    elif run:
+                        run.append(child)  # the space between two inline pieces
                 continue
             if not isinstance(child, Tag):
                 continue
+            if _is_inline(child):
+                if loose_items:
+                    flush()
+                run.append(child)
+                continue
+            if child.name == "li" and node.name not in ("ul", "ol") and not child.find(BLOCKS):
+                if run:
+                    add_paragraph(_rich(list(run)))
+                    run.clear()
+                spans = _rich(child)
+                if spans:
+                    loose_items.append(spans)
+                continue
+            flush()
 
             name = child.name
             if name == "h1":
@@ -582,6 +659,7 @@ def _extract_blocks(body: Tag) -> list[dict[str, Any]]:
                 walk(child)
             else:
                 add_paragraph(_rich(child))
+        flush()
 
     walk(body)
     return _dedupe(blocks)
