@@ -23,6 +23,8 @@ import gzip
 import json
 import logging
 import os
+import zlib
+from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
@@ -36,23 +38,80 @@ log = logging.getLogger("crawler.official.harvest")
 MAX_AGE = timedelta(days=3)
 
 
-def _records(path: str) -> list[dict]:
-    """Every whole line in a harvest file. A run stopped mid-write leaves a
-    torn last line, or a torn gzip member; what came before it still counts."""
+GZIP_MAGIC = b"\x1f\x8b\x08"
+
+
+#: Decompressed bytes taken at a time: one page's HTML runs to 2.5 MB.
+STEP = 1 << 20
+
+
+def _gzip_lines(data: bytes) -> Iterator[bytes]:
+    """Each line of every gzip member, as far as each member goes.
+
+    A run stopped mid-write tears the member it was writing, and the next run
+    appends a new one. ``gzip.open`` raises at the tear and loses the rest.
+    Worse, a decoder carried past a tear can read the next member as more of
+    the torn one and give garbage without an error. So a member that does not
+    end cleanly is read only as far as it goes, and reading starts again at
+    the next place a member header could be. Lines that are not whole records
+    are dropped by the caller.
+    """
+    cuts = []
+    at = data.find(GZIP_MAGIC)
+    while at != -1:
+        cuts.append(at)
+        at = data.find(GZIP_MAGIC, at + 1)
+    cuts.append(len(data))
+    view = memoryview(data)
+    first = 0
+    while first < len(cuts) - 1:
+        reader = zlib.decompressobj(wbits=31)
+        piece, end, pending = first, None, bytearray()
+        try:
+            while piece < len(cuts) - 1 and end is None:
+                chunk = view[cuts[piece]:cuts[piece + 1]]
+                while not reader.eof:
+                    out = reader.decompress(chunk, STEP)
+                    chunk = reader.unconsumed_tail
+                    if not out and not chunk:
+                        break
+                    pending += out
+                    *lines, rest = pending.split(b"\n")
+                    yield from lines
+                    pending = bytearray(rest)
+                piece += 1
+                if reader.eof:
+                    end = cuts[piece] - len(reader.unused_data)
+        except zlib.error:
+            pass
+        if end is None:
+            first += 1  # torn: the next header, if any, starts the next member
+        else:
+            if pending:
+                yield bytes(pending)
+            first = next((k for k in range(first + 1, len(cuts)) if cuts[k] >= end),
+                         len(cuts) - 1)
+
+
+def _records(path: str) -> Iterator[dict]:
+    """Every whole line in a harvest file, one at a time: a full harvest holds
+    gigabytes of HTML, more than the crawler container may use. A run stopped
+    mid-write leaves a torn last line, or a torn gzip member; every whole line
+    around it still counts."""
     if not os.path.exists(path):
-        return []
-    opener = gzip.open if path.endswith(".gz") else open
-    records = []
-    try:
-        with opener(path, "rt", encoding="utf-8") as handle:
-            for line in handle:
-                try:
-                    records.append(json.loads(line))
-                except json.JSONDecodeError:
-                    break
-    except (EOFError, gzip.BadGzipFile):
-        pass
-    return records
+        return
+    with open(path, "rb") as handle:
+        if path.endswith(".gz"):
+            lines: Iterable[bytes] = _gzip_lines(handle.read())
+        else:
+            lines = handle
+        for line in lines:
+            try:
+                record = json.loads(line)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+            if isinstance(record, dict) and "url" in record:
+                yield record
 
 
 def seeds_on(host: str) -> list[Seed]:
@@ -68,16 +127,18 @@ def harvest(host: str, out: str, *, min_interval: float, transport: str = "auto"
     summary = {"ok": 0, "failed": 0}
     fetcher = fetcher or OfficialFetcher(Throttle(RateLimit(min_interval=min_interval)),
                                          transport=transport)
-    opener = gzip.open if out.endswith(".gz") else open
-    with fetcher, opener(out, "at", encoding="utf-8") as handle:
+    with fetcher, open(out, "ab") as handle:
         for index, seed in enumerate(seeds, start=1):
             result = fetcher.fetch(seed.url)
-            handle.write(json.dumps({
+            line = json.dumps({
                 "url": seed.url, "status": result.status, "html": result.html,
                 "transport": result.transport, "error": result.error,
                 "final_url": result.final_url,
                 "fetched_at": datetime.now(UTC).isoformat(),
-            }, ensure_ascii=False) + "\n")
+            }, ensure_ascii=False).encode("utf-8") + b"\n"
+            # One gzip member per page: a run stopped mid-write loses only
+            # the page it was writing.
+            handle.write(gzip.compress(line) if out.endswith(".gz") else line)
             handle.flush()
             summary["ok" if result.ok else "failed"] += 1
             if not result.ok:
@@ -98,13 +159,16 @@ class HarvestedFetcher:
 
     def __init__(self, path: str, *, now: datetime | None = None) -> None:
         now = now or datetime.now(UTC)
-        self._pages: dict[str, dict] = {}
+        # Each record is kept compressed until it is fetched: 723 pages held
+        # as parsed records took more than the crawler's 2 GB.
+        self._pages: dict[str, bytes] = {}
         stale = 0
         for record in _records(path):
             if now - datetime.fromisoformat(record["fetched_at"]) > MAX_AGE:
                 stale += 1
                 continue
-            self._pages[record["url"]] = record  # the last read of a page wins
+            # The last read of a page wins.
+            self._pages[record["url"]] = zlib.compress(json.dumps(record).encode("utf-8"))
         if stale:
             log.warning("%d pages in %s were read more than %s ago and are skipped",
                         stale, path, MAX_AGE)
@@ -114,7 +178,7 @@ class HarvestedFetcher:
         return set(self._pages)
 
     def fetch(self, url: str) -> PageResult:
-        record = self._pages[url]
+        record = json.loads(zlib.decompress(self._pages[url]))
         return PageResult(url, record["status"], record["html"],
                           f"relayed-{record['transport']}", record["error"],
                           final_url=record["final_url"])
