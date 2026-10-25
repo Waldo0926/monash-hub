@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (phones: the add-unit dialog and the bar at the bottom)
+
+- On a phone the add-unit dialog gave the list of units a third of the screen
+  and the rest to an empty preview, so three units of a degree did not fit.
+  Until a unit is picked the list has the screen and the preview is one line;
+  the split comes back once there is a unit to show. The line no longer says
+  "on the left", which is where the list is on a desktop only.
+- A part's "find units" button, and anything else the page scrolls into view
+  on a phone, stops above the bar at the bottom instead of landing behind it
+  (seen on an iPhone SE).
+
 ### Added (course map: the degree's own list, find units for a part, chain focus on the graph)
 
 - With a degree chosen, the add-unit dialog lists the units the degree names
