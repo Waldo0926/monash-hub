@@ -17,11 +17,12 @@ import { toCsv } from '~/utils/csv'
 import { degreeCandidates, firstOpenSlot } from '~/utils/planCandidates'
 import { handbookYearFor } from '~/composables/useHandbookYear'
 import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
+import { encodePlan, findPlanCode } from '~/utils/planCode'
 
 const { $t } = useNuxtApp()
 const campusName = useCampusName()
 const {
-  plan, yearsList, slotEntries, add, remove, move, reset, addYear, removeYear, exported, imported,
+  plan, yearsList, slotEntries, add, remove, move, reset, addYear, removeYear, exported, imported, importedCode,
   undo, redo, canUndo, canRedo, savedAt, library
 } = usePlan()
 
@@ -464,6 +465,71 @@ function upload(event: Event) {
   reader.readAsText(file)
 }
 
+// --- the plan code ----------------------------------------------------------
+// One line of text that holds the plan, for the phone-to-laptop trip the
+// export file makes a chore of. Copied as a link to this page, so the other
+// device can open it in one tap or paste the whole thing into the box below.
+// The code sits after "#", which a browser never sends to the server.
+
+const codeNotice = ref<{ text: string; tone: 'ok' | 'bad' } | null>(null)
+const pasting = ref(false)
+const pasteText = ref('')
+const pasteBox = ref<HTMLTextAreaElement | null>(null)
+
+function planLink(): string {
+  return `${window.location.origin}/plan#plan=${encodeURIComponent(encodePlan(plan.value))}`
+}
+
+async function copyCode() {
+  const link = planLink()
+  try {
+    await navigator.clipboard.writeText(link)
+    codeNotice.value = { text: $t('plan.codeCopied'), tone: 'ok' }
+  } catch {
+    // No clipboard (an older WebView, a denied permission): show the link to
+    // copy by hand, in the same box the other device pastes into.
+    pasting.value = true
+    pasteText.value = link
+    codeNotice.value = { text: $t('plan.codeCopyFailed'), tone: 'bad' }
+    nextTick(() => pasteBox.value?.select())
+  }
+}
+
+function openPaste() {
+  pasting.value = true
+  pasteText.value = ''
+  codeNotice.value = null
+  nextTick(() => pasteBox.value?.focus())
+}
+
+function importCode(text: string) {
+  const failure = importedCode(text)
+  if (failure) {
+    codeNotice.value = { text: $t(failure), tone: 'bad' }
+    return
+  }
+  pasting.value = false
+  pasteText.value = ''
+  codeNotice.value = { text: $t('plan.codeImported', { name: plan.value.name || $t('plans.untitled') }), tone: 'ok' }
+}
+
+// A link made by copyCode opens the plan it carries as a new plan, then drops
+// the code from the address bar so a reload does not import it twice. The
+// same happens when the link is pasted into the address bar of a tab that is
+// already on this page, which only changes the hash.
+function readHash() {
+  const hash = window.location.hash
+  if (!hash.includes('plan=')) return
+  const code = findPlanCode(hash)
+  if (code) importCode(code)
+  history.replaceState(history.state, '', window.location.pathname + window.location.search)
+}
+onMounted(() => {
+  readHash()
+  window.addEventListener('hashchange', readHash)
+})
+onBeforeUnmount(() => window.removeEventListener('hashchange', readHash))
+
 const showOptional = ref(false)
 function togglePeriod(period: string) {
   const at = plan.value.periods.indexOf(period)
@@ -758,6 +824,12 @@ useSeoMeta({ title: () => $t('plan.title') })
                 <PlanIcon name="upload" />{{ $t('plan.import') }}
                 <input type="file" accept="application/json" @change="fromMenu(upload)($event)" />
               </label>
+              <button class="tool" type="button" @click="fromMenu(copyCode)()">
+                <PlanIcon name="copy" />{{ $t('plan.copyCode') }}
+              </button>
+              <button class="tool" type="button" @click="fromMenu(openPaste)()">
+                <PlanIcon name="page" />{{ $t('plan.pasteCode') }}
+              </button>
               <button class="tool" type="button" @click="fromMenu(print)()">
                 <PlanIcon name="print" />{{ $t('plan.print') }}
               </button>
@@ -771,6 +843,25 @@ useSeoMeta({ title: () => $t('plan.title') })
     </header>
 
     <p v-if="importError" class="banner banner--bad" role="alert">{{ importError }}</p>
+    <p v-if="codeNotice" class="banner" :class="codeNotice.tone === 'ok' ? 'banner--ok' : 'banner--bad'" role="status">
+      {{ codeNotice.text }}
+    </p>
+    <form v-if="pasting" class="paste" @submit.prevent="importCode(pasteText)">
+      <label class="paste-label" for="plan-code">{{ $t('plan.pasteCode') }}</label>
+      <textarea
+        id="plan-code"
+        ref="pasteBox"
+        v-model="pasteText"
+        class="paste-box"
+        rows="3"
+        :placeholder="$t('plan.codePlaceholder')"
+        spellcheck="false"
+      />
+      <div class="paste-actions">
+        <button class="btn" type="submit" :disabled="!pasteText.trim()">{{ $t('plan.codeImport') }}</button>
+        <button class="tool" type="button" @click="pasting = false">{{ $t('plan.codeCancel') }}</button>
+      </div>
+    </form>
 
     <div class="split">
       <section class="board" :aria-label="$t('plan.title')">
@@ -1170,6 +1261,20 @@ useSeoMeta({ title: () => $t('plan.title') })
 
 .banner { margin: 0 0 var(--s3); padding: var(--s2) var(--s3); border-radius: var(--radius-sm); font-size: 0.85rem; }
 .banner--bad { background: var(--danger-bg); color: var(--danger); }
+.banner--ok { background: var(--success-bg); color: var(--success); }
+
+.paste {
+  display: grid; gap: var(--s2); margin: 0 0 var(--s4); padding: var(--s3) var(--s4);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.paste-label { font-size: 0.85rem; font-weight: 600; }
+.paste-box {
+  width: 100%; resize: vertical; padding: var(--s2) var(--s3); font: inherit; font-size: 0.85rem;
+  font-family: var(--font-mono); line-height: 1.5; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); word-break: break-all;
+}
+.paste-box:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+.paste-actions { display: flex; gap: var(--s2); align-items: center; }
 
 .split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s4); align-items: start; }
 

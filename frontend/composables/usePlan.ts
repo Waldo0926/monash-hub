@@ -13,6 +13,8 @@
  * to the real one). They live together under one key as a small library with
  * one plan marked active; the course map always edits the active one.
  */
+import { decodePlan } from '../utils/planCode'
+
 const KEY = 'mh_plans_v1'
 /** Where the single plan lived before there could be more than one. Read once, on upgrade. */
 const OLD_KEY = 'mh_plan_v1'
@@ -405,25 +407,38 @@ export function usePlan() {
     return JSON.stringify({ version: 1, ...plan.value }, null, 2)
   }
 
+  // An imported plan arrives as a new plan rather than on top of the one on
+  // screen, so importing a friend's plan never costs you your own. At the
+  // limit it has nowhere else to go, so it replaces the active one.
+  function adopt(cleaned: PlanState) {
+    if (library.value.plans.length < MAX_PLANS) {
+      const made = fresh(cleaned)
+      library.value.plans.push(made)
+      switchTo(made.id)
+    } else {
+      plan.value = cleaned
+    }
+  }
+
   /** Returns an error key, or null. An unreadable file must not wipe the plan. */
   function imported(text: string): string | null {
     try {
       const cleaned = sanitise(JSON.parse(text))
       if (!cleaned) return 'plan.importShape'
-      // An imported plan arrives as a new plan rather than on top of the one
-      // on screen, so importing a friend's plan never costs you your own.
-      // At the limit it has nowhere else to go, so it replaces the active one.
-      if (library.value.plans.length < MAX_PLANS) {
-        const made = fresh(cleaned)
-        library.value.plans.push(made)
-        switchTo(made.id)
-      } else {
-        plan.value = cleaned
-      }
+      adopt(cleaned)
       return null
     } catch {
       return 'plan.importParse'
     }
+  }
+
+  /** A plan from a pasted plan code (see utils/planCode). Returns an error key, or null. */
+  function importedCode(text: string): string | null {
+    const raw = decodePlan(text)
+    const cleaned = raw && sanitise(raw)
+    if (!cleaned) return 'plan.codeShape'
+    adopt(cleaned)
+    return null
   }
 
   return {
@@ -438,6 +453,7 @@ export function usePlan() {
     removeYear,
     exported,
     imported,
+    importedCode,
     undo,
     redo,
     canUndo,

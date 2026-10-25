@@ -4,6 +4,16 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (course map: a plan code for moving a plan between devices)
+
+- "Copy plan code" in the course map's More menu puts a link to this page on
+  the clipboard with the plan written into it after the "#", which a browser
+  never sends to the server. On the other device the link opens the plan as a
+  new plan, or the link or the bare code goes into "Paste plan code" there. The
+  code is one readable line (`MH1|name|start year|years|campus|degree|periods|
+  units`), so a chat app passes it along as it is. The note under the plan
+  names it next to Export.
+
 ### Fixed (phones: the add-unit dialog and the bar at the bottom)
 
 - On a phone the add-unit dialog gave the list of units a third of the screen
