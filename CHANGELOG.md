@@ -18,6 +18,12 @@ All notable changes to Monash Hub are documented here.
   change units on different dates (FIT3161 is gone in Australia and runs to S2
   2027 in Malaysia), so neither is used to fill a gap in the other: a campus
   whose list leaves the unit out says so. The unit page uses the same notice.
+### Fixed (WAM needed this semester)
+
+- "What do I need this semester" on `/marks` took one level for every planned
+  unit, so a semester mixing Level 1 units with Level 2 or 3 units gave the
+  wrong mark: Level 1 counts half towards the WAM. It now asks how many planned
+  units are at Level 1 and how many at Level 2 or above, and weights each.
 
 ### Fixed (pages about past years)
 

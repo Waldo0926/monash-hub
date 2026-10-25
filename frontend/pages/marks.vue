@@ -332,16 +332,19 @@ const groups = computed<Group[]>(() => {
 
 // --- the projection -------------------------------------------------------
 const target = ref(70)
-const plannedCount = ref(4)
+// Level 1 units count at a lower weight than the rest, so a semester that mixes
+// them (FIT1045 next to FIT2004 and FIT3155) is entered as two counts. Levels 2
+// and up share one weight, so they need no further split.
+const plannedFirstYear = ref(0)
+const plannedLater = ref(4)
 const plannedCredit = ref(6)
-const plannedLevel = ref(2)
 
 const plannedWeight = computed(() => {
   if (!reference.value) return 0
-  const weight = plannedLevel.value === 1
-    ? reference.value.level_weights.first_year
-    : reference.value.level_weights.other
-  return plannedCount.value * plannedCredit.value * weight
+  const { first_year, other } = reference.value.level_weights
+  const count = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0)
+  const credit = count(plannedCredit.value)
+  return credit * (count(plannedFirstYear.value) * first_year + count(plannedLater.value) * other)
 })
 
 const needed = computed(() =>
@@ -647,16 +650,16 @@ useSeoMeta({
               <input v-model.number="target" class="ctl-input" type="number" min="0" max="100" inputmode="decimal">
             </label>
             <label class="ctl">
-              <span class="ctl-label">{{ $t('marks.plannedCount') }}</span>
-              <input v-model.number="plannedCount" class="ctl-input" type="number" min="1" max="12" inputmode="numeric">
+              <span class="ctl-label">{{ $t('marks.plannedFirstYear') }}</span>
+              <input v-model.number="plannedFirstYear" class="ctl-input" type="number" min="0" max="12" inputmode="numeric">
+            </label>
+            <label class="ctl">
+              <span class="ctl-label">{{ $t('marks.plannedLater') }}</span>
+              <input v-model.number="plannedLater" class="ctl-input" type="number" min="0" max="12" inputmode="numeric">
             </label>
             <label class="ctl">
               <span class="ctl-label">{{ $t('marks.plannedCredit') }}</span>
               <input v-model.number="plannedCredit" class="ctl-input" type="number" min="1" max="48" inputmode="numeric">
-            </label>
-            <label class="ctl">
-              <span class="ctl-label">{{ $t('marks.plannedLevel') }}</span>
-              <input v-model.number="plannedLevel" class="ctl-input" type="number" min="0" max="9" inputmode="numeric">
             </label>
           </div>
 
