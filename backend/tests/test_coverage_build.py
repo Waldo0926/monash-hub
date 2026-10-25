@@ -107,6 +107,8 @@ def test_a_listed_page_now_at_another_address_is_kept_once():
     old = f"{MY}/it/current-students/Course-Offered/postgraduates/transfers"
     new = f"{MY}/it/current-students/postgraduate/postgraduates/transfers"
     previous = (("my-old-transfers", old, "Transfers", "enrolment", (), "medium", "malaysia"),)
-    texts = {old: {"text": "x" * 2000, "hash": "same"}}
-    rows = build([page(new, "same")], texts, [], {old: "my-old-transfers"}, previous)
+    text = "Students who wish to transfer to another course must apply. " * 30
+    texts = {old: {"text": text, "hash": "made by an older extractor"}}
+    moved = {**page(new, "new hash"), "len": len(text) + 4, "head": text[:300]}
+    rows = build([moved], texts, [], {old: "my-old-transfers"}, previous)
     assert urls(rows) == [new]

@@ -26,6 +26,7 @@ Malaysia students.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import re
 import sys
@@ -430,6 +431,20 @@ def tier(url: str) -> str:
     return "medium" if SEMESTERLY.search(url) else "stable"
 
 
+def _same_text_kept(text: str, kept) -> bool:
+    """Whether a kept page has this text: length within 3 per cent and the
+    opening (discovery keeps the first 300 characters) nearly the same."""
+    head = re.sub(r"\s+", " ", text[:300]).strip()
+    for page in kept:
+        size = page.get("len") or 0
+        if not size or abs(size - len(text)) > 0.03 * size:
+            continue
+        other = re.sub(r"\s+", " ", page.get("head") or "").strip()
+        if other and difflib.SequenceMatcher(None, head, other).ratio() >= 0.85:
+            return True
+    return False
+
+
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
           known: dict[str, str] | None = None, previous: tuple = ()) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
@@ -497,7 +512,9 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
                 continue
             # The same page at the address the sitemap gives now: IT's
             # Course-Offered/postgraduates pages moved under current-students.
-            if stored.get("hash") in by_hash:
+            # Hashes cannot tell: the stored one was made by an older
+            # extractor and covers the title too. The text can.
+            if _same_text_kept(stored.get("text") or "", kept.values()):
                 continue
         elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
             continue
