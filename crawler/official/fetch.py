@@ -171,6 +171,10 @@ class OfficialFetcher:
             return self._robots_browser(url)
         return response.status_code, response.text
 
+    def text_file(self, url: str) -> tuple[int, str]:
+        """A text resource such as a sitemap: status and body, read like robots.txt."""
+        return self._robots_text(url)
+
     def _robots_browser(self, url: str) -> tuple[int, str]:
         response = self._browser_page().goto(url, wait_until="domcontentloaded",
                                              timeout=self.timeout * 1000)
@@ -279,6 +283,12 @@ class OfficialFetcher:
                               "redirect outside approved pages")
         if not is_html(response.headers.get("content-type", "")):
             return PageResult(url, status, None, BROWSER_TRANSPORT, "non-HTML response")
+        # The DOM is there at domcontentloaded, but tabs and accordions are
+        # often filled in after it, which is how a page with eighteen thousand
+        # characters came back "too short". A page that keeps polling never
+        # goes idle, and still has its text.
+        with contextlib.suppress(Exception):
+            page.wait_for_load_state("networkidle", timeout=10_000)
         html = page.content()
         error = html_error(html)
         return PageResult(url, 200, None if error else html, BROWSER_TRANSPORT,

@@ -24,8 +24,10 @@ university is monash-abroad-tracker's data; the Hub keeps the rules.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import logging
+import os
 import re
 from collections import deque
 from urllib.parse import urldefrag, urljoin, urlparse
@@ -129,8 +131,111 @@ SITES: dict[str, dict] = {
     },
 }
 
+# Faculties outside the IT, Business, Engineering and Science sitemaps keep their
+# current-student pages under their own sections; these are walked.
+SITES["aufac"] = {
+    "hosts": (AU,),
+    "hubs": [f"https://{AU}/{p}/current-students" for p in (
+        "arts", "law", "medicine", "pharm", "mada", "education",
+    )],
+    "prefixes": tuple(f"/{p}/current-students" for p in (
+        "arts", "law", "medicine", "pharm", "mada", "education",
+    )),
+}
+
+#: Sites read from their own sitemaps rather than walked: every address they
+#: list, less what is not for students. Walking from a few hubs found the
+#: section front pages and some of what they link to; the sitemap is the whole
+#: site, including pages no menu points at.
+NOT_FOR_STUDENTS = re.compile(
+    r"(^|/)(news|news-and-events|events?|latest|articles|alumni|staff|people|profiles?|"
+    r"timeline|media|featured-items|__data|seaco|education-training-academy)(/|$)|"
+    r"^/(openday|intake|apday|pg-|peak-)|"
+    r"\.(pdf|docx?|xlsx?|pptx?|zip|jpe?g|png|gif|mp4)$",
+    re.IGNORECASE,
+)
+LOC = re.compile(r"<loc>\s*(.*?)\s*</loc>", re.DOTALL)
+SITEMAPS: dict[str, dict] = {
+    "my-all": {
+        "sitemaps": [f"https://{MY}/sitemap.xml"],
+        "hosts": (MY,),
+        "include": None,
+    },
+    "au-students": {
+        "sitemaps": [f"https://{AU}/{p}/sitemap.xml" for p in (
+            "students", "admissions", "it", "business", "engineering", "science",
+        )],
+        "hosts": (AU,),
+        # The faculty sitemaps are the faculties' whole sites; only their
+        # current-student sections are for this index.
+        "include": re.compile(r"^/(students|admissions)(/|$)|^/[a-z-]+/current-students(/|$)",
+                              re.IGNORECASE),
+    },
+}
+
+
+def sitemap_urls(fetcher: OfficialFetcher, name: str) -> list[str]:
+    """Every page a site's sitemaps list that is for students, in sitemap order."""
+    spec = SITEMAPS[name]
+    queue = list(spec["sitemaps"])
+    seen_maps: set[str] = set()
+    urls: list[str] = []
+    seen: set[str] = set()
+    while queue:
+        sitemap = queue.pop(0)
+        if sitemap in seen_maps:
+            continue
+        seen_maps.add(sitemap)
+        status, text = fetcher.text_file(sitemap)
+        if status != 200 or "<loc>" not in text:
+            log.warning("%s: HTTP %s, no sitemap read", sitemap, status)
+            continue
+        locs = [html.unescape(loc.strip()) for loc in LOC.findall(text)]
+        if "<sitemapindex" in text:
+            queue += locs
+            continue
+        for loc in locs:
+            url = normalise(loc)
+            path = urlparse(url).path
+            if (urlparse(url).netloc not in spec["hosts"] or url in seen
+                    or NOT_FOR_STUDENTS.search(path) or SKIP.search(path)
+                    or (spec["include"] and not spec["include"].search(path))):
+                continue
+            seen.add(url)
+            urls.append(url)
+        log.info("%s: %d addresses kept so far", sitemap, len(urls))
+    return urls
+
+
+def discover_sitemap(name: str, *, max_pages: int, out: str, min_interval: float) -> list[dict]:
+    """Read every page a sitemap lists, once. Resumes from ``out`` if it exists."""
+    found: list[dict] = []
+    if os.path.exists(out):
+        with open(out, encoding="utf-8") as handle:
+            found = json.load(handle)
+    done = {page["url"] for page in found}
+    with OfficialFetcher(Throttle(RateLimit(min_interval=min_interval))) as fetcher:
+        urls = [u for u in sitemap_urls(fetcher, name) if u not in done][:max_pages]
+        log.info("%s: %d pages to read, %d already read", name, len(urls), len(done))
+        for index, url in enumerate(urls, start=1):
+            result = fetcher.fetch(url)
+            if result.ok:
+                page, _ = _describe(result.final_url or url, result.html, 1)
+                found.append({**page, "url": url})
+            else:
+                found.append({"url": url, "status": result.status, "depth": 1,
+                              "error": result.error})
+            if index % 20 == 0:
+                _save(found, out)
+                log.info("%d/%d read", index, len(urls))
+    _save(found, out)
+    return found
+
+
 # Never worth following: page fragments, files, and things that are not pages.
-SKIP = re.compile(r"/accordion|/__data/|\.pdf$|\.docx?$|/news|/events|/_|/tabs?/|/print",
+# "/print" is the print view of a page; "/printing" is how to print on campus,
+# and matching both kept every printing page out of the index.
+SKIP = re.compile(r"/accordion|/__data/|\.pdf$|\.docx?$|/news|/events|/_|/tabs?/|/print(/|$)",
                   re.IGNORECASE)
 
 
@@ -214,15 +319,20 @@ def _save(found: list[dict], out: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Find official student pages to index")
-    parser.add_argument("--site", required=True, choices=[*SITES, "extra"])
+    parser.add_argument("--site", required=True, choices=[*SITES, *SITEMAPS, "extra"])
     parser.add_argument("--out", required=True)
     parser.add_argument("--max", type=int, default=600, help="stop after this many pages")
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--min-interval", type=float, default=3.0)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    found = discover(args.site, max_pages=args.max, max_depth=args.depth, out=args.out,
-                     min_interval=max(args.min_interval, 2.0))
+    interval = max(args.min_interval, 2.0)
+    if args.site in SITEMAPS:
+        found = discover_sitemap(args.site, max_pages=args.max, out=args.out,
+                                 min_interval=interval)
+    else:
+        found = discover(args.site, max_pages=args.max, max_depth=args.depth, out=args.out,
+                         min_interval=interval)
     log.info("done: %d pages", len(found))
 
 

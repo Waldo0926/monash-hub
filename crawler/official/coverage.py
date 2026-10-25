@@ -79,7 +79,9 @@ SCOPE_OVERRIDES: dict[str, tuple[str, str]] = {
         ("australia", "an Australian statement; the page does not say Malaysia issues it"),
 }
 
-MIN_LENGTH = 450
+#: Shorter than this and a page is a menu or a landing tile. 450 also dropped
+#: real short answers (printing, opening hours); the crawl itself stops at 200.
+MIN_LENGTH = 250
 LEAVE_OUT = re.compile(
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
@@ -357,10 +359,23 @@ def slugify(url: str, taken: set[str], known: dict[str, str] | None = None) -> s
     return slug
 
 
+#: The pages that change with the semester: admin, fees, applying, visas.
+SEMESTERLY = re.compile(
+    r"/students/admin|student-services/(student-admin|international|financial)|"
+    r"/finance|/fees|/study/apply|/admissions/|/student-pass",
+    re.IGNORECASE,
+)
+
+
 def tier(url: str) -> str:
     if re.search(r"dates|timetable", url):
         return "dynamic"
-    return "stable" if re.search(r"polic|procedure|glossary|rules", url) else "medium"
+    if re.search(r"polic|procedure|glossary|rules", url):
+        return "stable"
+    # With every page of both sites listed, re-reading the faculty, library
+    # and support pages every two days would keep the crawler busy all day
+    # for text that changes a few times a year.
+    return "medium" if SEMESTERLY.search(url) else "stable"
 
 
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
