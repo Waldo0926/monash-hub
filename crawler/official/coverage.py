@@ -109,6 +109,12 @@ TOPIC_TAGS: list[tuple[str, list[str], list[str]]] = [
     (r"\bfees?\b|payment|\bpay\b", ["学费", "缴费"], ["fees"]),
     (r"refund", ["退款", "退费"], ["refund"]),
     (r"discount", ["学费折扣", "优惠"], ["discount"]),
+    (r"instal+ment", ["分期付款", "分期"], ["instalment"]),
+    (r"\bepf\b", ["公积金", "EPF 提取"], ["epf"]),
+    (r"\bsst\b", ["服务税", "SST"], ["sst"]),
+    (r"e-invoic", ["电子发票"], ["e-invoice"]),
+    (r"encumbrance", ["欠费限制", "欠费"], ["encumbrance"]),
+    (r"fee statement", ["学费账单", "账单"], ["fee statement"]),
     (r"loan|hecs|fee-help|sa-help", ["贷款"], ["loan"]),
     (r"scholarship|award", ["奖学金"], ["scholarship"]),
     (r"visa|student pass|emgs|immigration", ["签证", "学生签证", "学生准证"], ["visa"]),
@@ -287,8 +293,9 @@ def category(url: str) -> str:
         return "enrolment"
     if "examinations-results" in path or "/assessments" in path:
         return "assessment"
-    if any(k in path for k in ("/fees", "fee-payment", "financial-assistance", "scholarship",
-                               "/government-support", "principal-dates", "/dates", "jompay")):
+    if any(k in path for k in ("/fees", "/finance", "fee-payment", "financial-assistance",
+                               "scholarship", "/government-support", "principal-dates",
+                               "/dates", "jompay")):
         return "fees-dates"
     if "international" in path or "student-pass" in path or "insurance" in path:
         return "international"

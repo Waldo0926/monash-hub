@@ -63,8 +63,13 @@ SITES: dict[str, dict] = {
             "student-services/student-admin/examinations-results",
             "student-services/support-services",
             "study/apply/application-form/fee-payment-methods", "study/apply",
+            # The Finance office's own section: fee statements, instalment
+            # plans, EPF withdrawal, SST, e-invoicing and the encumbrance rules.
+            # Nothing under it had been indexed.
+            "finance",
         )],
-        "prefixes": ("/student-services", "/study/apply", "/study/fees", "/study/scholarships"),
+        "prefixes": ("/student-services", "/study/apply", "/study/fees", "/study/scholarships",
+                     "/finance"),
     },
     "my-study": {
         "hosts": (MY,),
