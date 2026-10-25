@@ -127,7 +127,7 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、官方指南和学生�
 
 **仓库公开可见，并不意味着本项目属于开源软件。**
 
-Copyright © 2026 Shuoxun Wen. All rights reserved.
+Copyright © 2026 Waldo. All rights reserved.
 
 本仓库源码公开用于作品展示、教育性审阅和代码检查。除非事先取得版权所有者的书面许可，否则不授予复制、修改、分发、再授权、出售、商业使用、部署为竞争性服务，或基于本软件制作衍生产品的权利。
 
