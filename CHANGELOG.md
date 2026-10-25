@@ -4,6 +4,19 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (guides that are not guidance)
+
+- 174 pages from the Monash Malaysia schools' sites leave the guides: their
+  about sections (leadership, staff lists, departments, vision and mission,
+  rankings), competitions and their galleries, the 2005-2017 study-trip
+  posts, lab and research team pages, CMS listings and site maps, news posts
+  and test copies. Accreditation pages and the study-trips overview stay.
+  They are retired at the next scheduled refresh; nothing is fetched for it.
+- A school's page is filed under enrolment only when its address is about
+  courses (course, unit, enrol, timetable, current students...); the rest go
+  under support. Every faculty page used to default to enrolment, which made
+  选课与课程规划 hold 1,331 pages.
+
 ### Fixed (answers that hold for one country only)
 
 - The curated answers on intermission, withdrawing from a unit, work hours,
