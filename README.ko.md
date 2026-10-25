@@ -15,6 +15,8 @@
 
 ---
 
+<p align="center"><img src="./docs/images/home-en.webp" alt="Monash Hub 홈 화면: 검색, 말레이시아와 호주의 주요 일정, 유닛·수강 계획·가이드 바로가기" width="900" /></p>
+
 ## Monash Hub이란?
 
 Monash Hub은 모나쉬 대학교 학생을 위한 독립 정보 플랫폼입니다. 특히 영어가 모국어가 아닌 학생이 학업 및 캠퍼스 생활과 관련된 Monash 정보를 더 쉽게 검색하고, 이해하고, 확인할 수 있도록 설계되었습니다.
@@ -22,6 +24,20 @@ Monash Hub은 모나쉬 대학교 학생을 위한 독립 정보 플랫폼입니
 Handbook, 대학 웹사이트, 규정 페이지, 학생 토론을 오갈 필요 없이 한 곳에서 필요한 정보를 찾고 각 결과의 출처를 확인할 수 있습니다.
 
 > Monash Hub은 Monash University와 제휴하거나 공식 승인을 받은 서비스가 아닙니다. 수강 신청, 비자, 평가 및 학사 규정과 관련된 중요한 사항은 Monash 공식 웹사이트, Handbook, Moodle 또는 WES에서 반드시 확인하세요.
+
+## 왜 사이트를 하나 더 만들었나요?
+
+전에는 학생이 궁금한 것이 생기면 세 곳을 찾아봐야 했고, 어느 곳도 전부를 다루지는 않았습니다.
+
+| 어디서 | 잘하는 것 | 부족한 것 |
+| --- | --- | --- |
+| [Monash Handbook](https://handbook.monash.edu) | 유닛과 과정의 공식 기록 | 영어만 있고 유닛과 과정만 다룸. 규정, 비자, 주요 일정은 다른 사이트에 있음 |
+| monash.edu와 monash.edu.my | 캠퍼스별 공식 가이드 | 두 사이트를 합치면 약 3,100페이지이고, 캠퍼스마다 규정이 다름(비자, 보험, 유닛 변경) |
+| 학생 단체 채팅방과 공유 문서 | 중국어로 빠르게 답을 얻음 | 출처가 없고, 지난 학년도나 다른 캠퍼스 정보인 경우가 많음 |
+
+학생이 만든 도구는 전에도 있었습니다. [MonPlan](https://github.com/MonPlan)은 학생이 만든 수강 계획 도구로, 공개된 크롤러([MonScrape](https://github.com/MonPlan/MonScrape))는 2017년에 마지막으로 업데이트되었고 예전 Handbook 페이지를 읽습니다. monashcoding의 [TheBetterHandbookAPI](https://github.com/monashcoding/TheBetterHandbookAPI)는 Handbook 검색 엔드포인트 사용법을 정리해 두었습니다(마지막 커밋 2022년 9월). 둘 다 규정이나 다른 언어는 다루지 않습니다.
+
+Monash Hub는 이들이 잘한 점, 즉 Handbook에서 바로 가져온 데이터는 그대로 두고 나머지를 더했습니다. 두 사이트의 공식 페이지를 유닛과 함께 보여 주고, 모든 결과에 출처와 마지막 확인 날짜를 표시하며, 말레이시아와 호주의 규정이 다르면 나란히 보여 주고, 중국어 번역에는 영어 원문 링크를 붙였습니다. 사이트 도우미는 이 자료들을 검색할 뿐, 생성형 모델로 답을 쓰지 않습니다.
 
 ## 기술 스택
 
@@ -36,6 +52,18 @@ Handbook, 대학 웹사이트, 규정 페이지, 학생 토론을 오갈 필요 
 - **운영 환경:** [monashhub.secureview.tech](https://monashhub.secureview.tech)
 
 운영 요청 경로는 웹 화면이 Nginx → Nuxt SSR, `/api/*`가 Nginx → FastAPI이며, PostgreSQL은 비공개 Docker 네트워크에서 동작합니다. 현재 시스템 설계는 [architecture](docs/ARCHITECTURE.md)를 참고하세요.
+
+## 숫자로 보기 (2026년 10월 25일 기준)
+
+| | |
+| --- | --- |
+| 가이드에 수록한 공식 페이지 | 두 사이트의 sitemap에서 약 3,100페이지 (이전 662페이지) |
+| 백엔드 테스트 | 테스트 함수 799개, CI에서 실제 PostgreSQL로 실행 |
+| 프런트엔드와 브라우저 테스트 | Vitest 48개, 데스크톱과 휴대폰 크기에서 Playwright 13개 |
+| 번역 모델 | Zhipu의 무료 모델 `glm-4.5-flash`. 무료 모델 세 개의 번역을 영어 원문과 70단락 비교한 뒤 선택 (`glm-4-flash`는 조건을 반대로 번역함) |
+| 배포 | `main`에 병합할 때마다 자동 배포. 배포 후 실제 사이트에 스모크 검사를 하고, 실패하면 이전 버전으로 되돌림 |
+
+출처: [변경 기록](CHANGELOG.md)과 `backend/tests`, `frontend`, `e2e`의 테스트 파일.
 
 ## 할 수 있는 일
 

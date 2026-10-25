@@ -13,7 +13,7 @@
 import type { MamoPost } from '~/data/mamo'
 
 export type SiteToolId =
-  | 'marks' | 'plan' | 'tree' | 'courses' | 'units' | 'exchange' | 'guides' | 'community' | 'mamo'
+  | 'marks' | 'plan' | 'tree' | 'courses' | 'units' | 'exchange' | 'guides' | 'community' | 'mamo' | 'dates'
 
 export interface SiteTool {
   id: SiteToolId
@@ -103,6 +103,17 @@ export const SITE_TOOLS: SiteTool[] = [
       '社区', '论坛', '发帖', '问学长', '问学姐', '学长', '学姐',
       'コミュニティ', '先輩',
       '커뮤니티', '선배'
+    ]
+  },
+  {
+    id: 'dates',
+    to: '/dates',
+    words: [
+      'key dates', 'important dates', 'academic calendar', 'census date', 'swot vac',
+      'exam period', 'results release', 'public holiday',
+      '重要日期', '校历', '学校日历', '考试周', '复习周', '出成绩', '公布成绩', '公共假期', '放假',
+      '重要な日程', '学年暦', '試験期間', '成績発表',
+      '주요 일정', '학사 일정', '시험 기간', '성적 발표'
     ]
   },
   {

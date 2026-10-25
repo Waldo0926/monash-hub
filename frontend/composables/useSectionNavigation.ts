@@ -8,7 +8,7 @@ export function useSectionNavigation() {
     { to: '/plan', label: $t('nav.plan'), icon: '☷' },
     { to: '/tree', label: $t('nav.tree'), icon: '⑂' },
     { to: '/marks', label: $t('nav.marks'), icon: '%' },
-    { to: '/community', label: $t('nav.community'), icon: '☰' },
-    { to: '/mamo', label: $t('nav.mamo'), icon: 'M' }
+    { to: '/mamo', label: $t('nav.mamo'), icon: 'M' },
+    { to: '/community', label: $t('nav.community'), icon: '☰' }
   ])
 }
