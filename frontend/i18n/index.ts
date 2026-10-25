@@ -409,7 +409,7 @@ const en: Messages = {
   'footer.monashStudents': 'Monash current students',
   'footer.about': 'An independent student platform',
   'footer.conceptBy': 'Concept by',
-  'footer.copyright': '© 2026 Shuoxun Wen. All rights reserved.',
+  'footer.copyright': '© 2026 Waldo. All rights reserved.',
 
   // --- installed app (PWA) ---------------------------------------------
   'pwa.description': 'Monash units, degrees, official guides and student community',
@@ -1474,7 +1474,7 @@ const zh: Messages = {
   'footer.monashStudents': 'Monash 在读学生页',
   'footer.about': '独立学生平台',
   'footer.conceptBy': '创意：',
-  'footer.copyright': '© 2026 Shuoxun Wen。保留所有权利。',
+  'footer.copyright': '© 2026 Waldo。保留所有权利。',
 
   // --- installed app (PWA) ---------------------------------------------
   'pwa.description': 'Monash 课程、学位、官方指南和学生社区',
@@ -2513,7 +2513,7 @@ const ja: Messages = {
   'footer.monashStudents': 'Monash 在学生ページ',
   'footer.about': '独立した学生プラットフォーム',
   'footer.conceptBy': '企画：',
-  'footer.copyright': '© 2026 Shuoxun Wen. 無断転載を禁じます。',
+  'footer.copyright': '© 2026 Waldo. 無断転載を禁じます。',
 
   // --- installed app (PWA) ---------------------------------------------
   'pwa.description': 'Monash の科目・学位・公式ガイド・学生コミュニティ',
@@ -3565,7 +3565,7 @@ const ko: Messages = {
   'footer.monashStudents': 'Monash 재학생 페이지',
   'footer.about': '독립 학생 플랫폼',
   'footer.conceptBy': '기획:',
-  'footer.copyright': '© 2026 Shuoxun Wen. 모든 권리 보유.',
+  'footer.copyright': '© 2026 Waldo. 모든 권리 보유.',
 
   // --- installed app (PWA) ---------------------------------------------
   'pwa.description': 'Monash 과목, 학위, 공식 가이드, 학생 커뮤니티',
