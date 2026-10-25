@@ -7,8 +7,9 @@ desktop size and at a phone size.
 They run against the real stack, not mocks: PostgreSQL, the FastAPI app, the
 production build of the Nuxt app, and `proxy.mjs`, which puts the API under
 `/api` on the same origin the way nginx does in production. `seed.py` loads
-three synthetic units (FIT1008, FIT2004, FIT2102) into an otherwise empty
-database before the API starts, so every run begins from the same data.
+three synthetic units (FIT1008, FIT2004, FIT2102) and two invented faculty
+teach-out lists, one per campus, into an otherwise empty database before the
+API starts, so every run begins from the same data.
 
 ## Running them locally
 

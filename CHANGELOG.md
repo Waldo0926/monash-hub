@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (searching a unit that has closed)
+
+- Searching a unit code that an earlier Handbook has but this year's does not
+  (FIT1008, gone from 2027) used to say only that the Handbook has no such
+  unit. It now says which Handbook last had it, shows the faculty's teach-out
+  notice word for word and links to the unit's last page. A code in no Handbook
+  at all is still treated as a typo.
+- A unit still running that its faculty is closing (FIT1043, final offering S1
+  2027 at Monash Malaysia) shows the same notice above its search result.
+- The notice shows Monash Malaysia and the Australian campuses side by side,
+  the reader's campus first, each with a link to its faculty page. The two lists
+  change units on different dates (FIT3161 is gone in Australia and runs to S2
+  2027 in Malaysia), so neither is used to fill a gap in the other: a campus
+  whose list leaves the unit out says so. The unit page uses the same notice.
 ### Fixed (WAM needed this semester)
 
 - "What do I need this semester" on `/marks` took one level for every planned

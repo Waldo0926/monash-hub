@@ -99,10 +99,16 @@ def region(campus: str | None) -> str | None:
 
 
 def lookup(db: Session, codes: list[str], campus: str | None = None) -> dict[str, dict]:
-    """``{code: {"entries": [...], "sources": {...}}}`` for the codes that have a notice.
+    """``{code: {"entries": [...], "sources": {...}, "pages": {...}}}`` for each
+    code that has a notice.
 
     With a campus, only the pages for that campus (or for every campus) count.
     Without one, every page does, and each entry says which campus it is for.
+
+    ``sources`` are the pages that list the code. ``pages`` are all the pages
+    that were read, so a campus whose list leaves the code out can still be
+    linked: the two campuses change their units on different dates, and a
+    student needs to see the other list to know that.
     """
     wanted = {c.upper() for c in codes}
     if not wanted:
@@ -114,18 +120,22 @@ def lookup(db: Session, codes: list[str], campus: str | None = None) -> dict[str
     if where:
         query = query.where(OfficialPage.applies_to.in_((where, "all")))
     pages = sorted(db.scalars(query).all(), key=lambda p: SOURCES.index(p.slug))
-    result: dict[str, dict] = {}
-    for page in pages:
-        meta = {
+    metas = {
+        page.slug: {
             "title": page.title,
             "url": page.canonical_url,
             "last_checked": page.last_checked.isoformat() if page.last_checked else None,
             "applies_to": page.applies_to,
         }
+        for page in pages
+    }
+    result: dict[str, dict] = {}
+    for page in pages:
+        meta = metas[page.slug]
         for entry in _entries(page):
             if entry.code not in wanted:
                 continue
-            slot = result.setdefault(entry.code, {"entries": [], "sources": {}})
+            slot = result.setdefault(entry.code, {"entries": [], "sources": {}, "pages": metas})
             slot["entries"].append({
                 "change": entry.change,
                 "course": entry.course,

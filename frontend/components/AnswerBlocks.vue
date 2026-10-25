@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<{
   onAsk?: (question: string) => void
 }>(), { suggest: true, onAsk: undefined })
 const { $t, $term, $assessmentName } = useNuxtApp()
+// A faculty's teach-out notice opens on the reader's campus, Malaysia by default.
+const { plan } = usePlan()
 
 /** One of our sentences in the reader's language, English if the key is unknown. */
 function say(key: string | null | undefined, text: string | null | undefined, params?: any, terms?: Record<string, TermKind>) {
@@ -126,6 +128,15 @@ function ask(question: string) {
           </li>
         </ul>
       </div>
+
+      <TeachOutNotice
+        v-else-if="block.type === 'teach_out'"
+        :entries="block.entries"
+        :sources="block.sources"
+        :pages="block.pages"
+        :campus="plan.campus || 'Malaysia'"
+        class="block"
+      />
 
       <NuxtLink
         v-else-if="block.type === 'link'"
