@@ -4,6 +4,26 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (answers that hold for one country only)
+
+- The curated answers on intermission, withdrawing from a unit, work hours,
+  the CoE and census dates are written in an Australia part and a Malaysia
+  part, each from that campus's official page, and cite both pages. The
+  intermission answer used to tell every student on a student visa that
+  intermission changes their CoE; a CoE is Australian, and in Malaysia the
+  Student Pass rules apply (medical intermission can stay, any other cancels
+  the pass, and coming back needs a new eVAL 4 to 2 months before the
+  semester). Such an answer carries no single-campus label.
+- New answer: do international students need health insurance (OSHC in
+  Australia; the medical insurance Monash Malaysia buys with the Student Pass).
+- The GPA answer said N is worth 0. A fail is 0.3 on Monash's scale; the
+  answer now gives the whole scale and Malaysia's CGPA values.
+- The automatic conferral answer adds how to delay conferral (3 months in the
+  system, up to 12 through Monash Connect), as the graduations office
+  confirmed in October 2026; no page says it yet.
+- A test fails when an answer names a rule of one country (CoE, OSHC,
+  Student Pass, eVAL...) without naming the country, in English or Chinese.
+
 ### Changed (official pages)
 
 - The guides cover both Monash sites from their sitemaps: about 3,100

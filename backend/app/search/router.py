@@ -24,7 +24,9 @@ from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.knowledge import translations
+from app.knowledge.faq_seed import MALAYSIA_PAGES
 from app.models.handbook import Unit
+from app.models.knowledge import OfficialPage
 from app.models.translation import FAQ_ENTRY
 from app.search import service
 from app.search.keywords import (
@@ -376,6 +378,24 @@ def _faq_answer(db: Session, entry, locale: str | None) -> dict[str, Any]:
     """A curated FAQ as the answer, in the reader's language where one is stored."""
     tr = translations.load(db, locale, FAQ_ENTRY, entry.slug, global_key=None)
     page = entry.official_page
+    slugs = MALAYSIA_PAGES.get(entry.slug, ())
+    found = {p.slug: p for p in db.scalars(
+        select(OfficialPage).where(OfficialPage.slug.in_(slugs)))} if slugs else {}
+    sources = [{
+        "kind": "official",
+        "label": page.title if page else "Monash University",
+        "url": entry.official_url or (page.canonical_url if page else None),
+        "last_checked": page.last_checked.isoformat() if page and page.last_checked else None,
+    }]
+    sources += [
+        {
+            "kind": "official",
+            "label": other.title,
+            "url": other.canonical_url,
+            "last_checked": other.last_checked.isoformat() if other.last_checked else None,
+        }
+        for other in (found[slug] for slug in slugs if slug in found)
+    ]
     return {
         "answer_type": "official_faq",
         "faq_slug": entry.slug,
@@ -388,18 +408,13 @@ def _faq_answer(db: Session, entry, locale: str | None) -> dict[str, Any]:
         # Marked like every other translated source: unofficial, and whether a
         # person or a machine wrote it.
         "translation": tr.meta(),
-        "applies_to": page.applies_to if page else None,
+        # An answer written for both campuses names each one in its text, so
+        # it carries no single-campus label.
+        "applies_to": None if entry.slug in MALAYSIA_PAGES
+        else (page.applies_to if page else None),
         "caveat": OFFICIAL_CAVEAT,
         "caveat_key": "answer.caveat.official",
-        "sources": [
-            {
-                "kind": "official",
-                "label": page.title if page else "Monash University",
-                "url": entry.official_url or (page.canonical_url if page else None),
-                "last_checked": page.last_checked.isoformat()
-                if page and page.last_checked else None,
-            }
-        ],
+        "sources": sources,
     }
 
 

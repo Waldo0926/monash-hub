@@ -221,6 +221,24 @@ def test_an_faq_answer_names_its_official_page(client, seeded):
     assert client.get(f"/api/v1/guides/{body['page_slug']}").status_code == 200
 
 
+def test_an_answer_for_both_campuses_cites_both(client, seeded):
+    body = ask(client, "休学会影响学生签证吗", "zh")
+    assert body["faq_slug"] == "apply-for-intermission"
+    text = body["blocks"][0]["text"]
+    assert "澳大利亚" in text and "马来西亚" in text and "eVAL" in text
+    # Not one campus's chip on an answer for both.
+    assert body["applies_to"] is None
+    urls = [source["url"] for source in body["sources"]]
+    assert urls[0].startswith("https://www.monash.edu/")
+    assert any(url.startswith("https://www.monash.edu.my/") for url in urls[1:])
+
+
+def test_a_one_campus_answer_keeps_its_campus(client, seeded):
+    body = ask(client, "怎么申请特殊考虑", "zh")
+    assert body["applies_to"] == SEEDS_BY_SLUG[body["page_slug"]].applies_to
+    assert len(body["sources"]) == 1
+
+
 def test_a_code_that_does_not_exist_says_so(client, seeded):
     body = ask(client, "FIT9999 有考试吗")
     assert body["answer_type"] == "unit_not_found"
