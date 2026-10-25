@@ -121,19 +121,23 @@ HEADER = ["Unit Code", "Unit Title", "Change", "Course", "Teach out plan"]
 TEACH_OUT = [
     (teach_out.SOURCES[0], "https://www.monash.edu/it/e2e-teach-out", "australia", [
         HEADER,
-        ["FIT2004", "Synthetic algorithms", "No longer offered", "BCS", "Replace with FIT3901 (S1 and S2)"],
-        ["FIT2102", "Synthetic paradigms", "Final offering S2 2026", "BCS", "Replace with FIT3902 from 2027"],
+        ["FIT2004", "Synthetic algorithms", "No longer offered", "BCS",
+         "Replace with FIT3901 (S1 and S2)"],
+        ["FIT2102", "Synthetic paradigms", "Final offering S2 2026", "BCS",
+         "Replace with FIT3902 from 2027"],
     ]),
     (teach_out.SOURCES[1], "https://www.monash.edu.my/it/e2e-teach-out", "malaysia", [
         HEADER,
-        ["FIT2004", "Synthetic algorithms", "Final offering S2 2026", "BCS", "Replace with FIT3901 from 2027 (S1)"],
+        ["FIT2004", "Synthetic algorithms", "Final offering S2 2026", "BCS",
+         "Replace with FIT3901 from 2027 (S1)"],
     ]),
 ]
 
 
 def seed_teach_out(db) -> None:
     for slug, url, campus, rows in TEACH_OUT:
-        source = get_or_create_source(db, "monash-students", "Monash University", "https://www.monash.edu")
+        source = get_or_create_source(db, "monash-students", "Monash University",
+                                      "https://www.monash.edu")
         page = upsert_seed_page(
             db, source=source, slug=slug, url=url, title=f"IT teach-out ({campus})",
             category="enrolment", tags=[], refresh_tier="dynamic", applies_to=campus,
