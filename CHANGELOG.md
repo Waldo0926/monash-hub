@@ -27,7 +27,9 @@ All notable changes to Monash Hub are documented here.
   is now its own gzip member, and a file torn by an earlier stop is read up
   to each tear and on from the next member; before, reading stopped at the
   first tear, so the server loaded none of 680 pages and a resumed run read
-  them again.
+  them again. The server reads a harvest one page at a time and keeps each
+  compressed until it is stored; 723 pages held whole took more than the
+  crawler's 2 GB.
 - A full re-crawl (`--all`) no longer clears the date a page was last read
   before fetching it. On 2026-10-25 the 359 Malaysia pages it was refused on
   lost their "last checked" date; a page now keeps it until a read works.
