@@ -92,8 +92,8 @@ def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
 
 
 def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
-          fetcher=None) -> dict[str, int]:
-    """Fetch, clean and store each seed that is due.
+          fetcher=None, force: bool = False) -> dict[str, int]:
+    """Fetch, clean and store each seed that is due, or every seed with ``force``.
 
     ``fetcher`` replaces the network: a ``HarvestedFetcher`` answers from pages
     read on another machine (see ``crawler.official.harvest``), and everything
@@ -118,7 +118,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
             if page is None:
                 log.warning("%s is not registered - run --register first", seed.slug)
                 continue
-            if not is_due(page):
+            if not force and not is_due(page):
                 summary["not_due"] += 1
                 log.debug("%s: not due yet (tier=%s)", seed.slug, page.refresh_tier)
                 continue
@@ -202,21 +202,12 @@ def main() -> None:
     if args.register:
         return
 
-    if args.all or args.harvest:
-        # Clear the "checked recently" gate for this run only.
-        from app.models.knowledge import OfficialPage
-        from sqlalchemy import update
-
-        with SessionLocal() as db:
-            db.execute(
-                update(OfficialPage)
-                .where(OfficialPage.canonical_url.in_([s.url for s in seeds]))
-                .values(last_checked=None)
-            )
-            db.commit()
-
+    # --all skips the "checked recently" gate for this run only. It used to
+    # clear last_checked instead, so every page the run then failed to read
+    # lost the date of its last good read.
     summary = crawl(seeds, min_interval=max(args.min_interval, 2.0),
-                    transport="relayed" if args.harvest else args.transport, fetcher=fetcher)
+                    transport="relayed" if args.harvest else args.transport, fetcher=fetcher,
+                    force=bool(args.all or args.harvest))
     log.info("summary: %s", summary)
 
 

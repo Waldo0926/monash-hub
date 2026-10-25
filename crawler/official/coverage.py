@@ -445,13 +445,6 @@ def _same_text_kept(text: str, kept: dict[str, dict]) -> str | None:
     return None
 
 
-def _central(url: str) -> tuple[int, int]:
-    """Fewer path segments, then a shorter address: the student-admin page
-    before a faculty's copy of it."""
-    path = urlparse(url).path.strip("/")
-    return (path.count("/"), len(path))
-
-
 def build(pages: list[dict], texts: dict[str, dict], existing: list,
           known: dict[str, str] | None = None, previous: tuple = ()) -> list[dict]:
     """Seed rows from discovered pages; ``existing`` is the hand-picked list,
@@ -501,6 +494,7 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
         spelled[url.lower()] = url
 
     rows = []
+    moved: dict[str, str] = {}  # live address -> the slug it had at its old one
     failed = {page["url"].rstrip("/").lower(): page for page in pages
               if page.get("status") != 200 or page.get("error")}
     seen = {page["url"].rstrip("/").lower() for page in pages}
@@ -521,14 +515,19 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             # Course-Offered/postgraduates pages moved under current-students.
             # Hashes cannot tell: the stored one was made by an older
             # extractor and covers the title too. The text can.
-            # Of the two, the more central address is kept: Malaysia's
-            # student-admin re-enrol page, not the School of Science's copy.
+            # The live address is kept, under the old slug so the page keeps
+            # its translations: Monash lists the old one nowhere and may drop
+            # its redirect. Unless the live one is a school's copy of a central
+            # page - Malaysia's student-admin re-enrol page, not the School of
+            # Science's.
             twin = _same_text_kept(stored.get("text") or "", kept)
-            if twin and _central(twin) <= _central(url):
-                continue
-            if twin:
+            if twin and SCHOOL.search(twin) and not SCHOOL.search(url):
                 del kept[twin]
                 del spelled[twin.lower()]
+            elif twin:
+                if twin not in moved and twin.lower() not in known_urls:
+                    moved[twin] = slug
+                continue
         elif GONE.search(f"{page.get('status')} {page.get('error') or ''}"):
             continue
         spelled[url.lower()] = url
@@ -549,8 +548,13 @@ def build(pages: list[dict], texts: dict[str, dict], existing: list,
             applies_to, reason = page["applies_to"], "set by hand"
         if url in SCOPE_OVERRIDES:
             applies_to, reason = SCOPE_OVERRIDES[url]
+        slug = moved.get(url)
+        if slug and slug not in taken:
+            taken.add(slug)
+        else:
+            slug = slugify(url, taken, known)
         rows.append({
-            "slug": slugify(url, taken, known), "url": url, "title": title, "category": cat,
+            "slug": slug, "url": url, "title": title, "category": cat,
             "tags": tags(title, url, cat), "tier": tier(url), "applies_to": applies_to,
             "reason": reason, "depth": page.get("depth", 9), "prio": page.get("prio", 0),
         })

@@ -111,10 +111,11 @@ def test_a_listed_page_now_at_another_address_is_kept_once():
     texts = {old: {"text": text, "hash": "made by an older extractor"}}
     moved = {**page(new, "new hash"), "len": len(text) + 4, "head": text[:300]}
     rows = build([moved], texts, [], {old: "my-old-transfers"}, previous)
-    assert urls(rows) == [new]
+    # The address Monash lists now, under the slug its translations hang on.
+    assert [(row["url"], row["slug"]) for row in rows] == [(new, "my-old-transfers")]
 
 
-def test_of_two_addresses_with_the_same_text_the_central_one_is_kept():
+def test_a_schools_copy_does_not_replace_the_central_page():
     central = f"{MY}/student-services/student-admin/re-enrol"
     copy = f"{MY}/science/current/current/re-enrol"
     previous = (("malaysia-re-enrol", central, "Re-enrol", "enrolment", (), "medium", "malaysia"),)

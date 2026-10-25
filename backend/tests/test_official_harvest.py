@@ -106,3 +106,32 @@ def test_the_server_stores_a_harvested_page_with_its_own_cleaner(db, engine, tmp
     assert stored.status == "ok"
     assert any(b["type"] == "table" for b in stored.blocks)
     assert pages["my-gone"].status == "error"
+
+
+class Refused(Scripted):
+    def fetch(self, url):
+        self.asked.append(url)
+        return PageResult(url, 403, None, "playwright", "HTTP 403")
+
+
+def test_a_forced_run_that_cannot_read_a_page_keeps_its_last_good_date(db, engine, monkeypatch):
+    """The --all run on 2026-10-25 cleared last_checked before fetching, and
+    the 359 Malaysia pages it was refused on lost the date readers are shown."""
+    from app.models.knowledge import OfficialPage
+    from sqlalchemy import select
+    from sqlalchemy.orm import sessionmaker
+
+    from crawler.official import run
+
+    monkeypatch.setattr(run, "SessionLocal", sessionmaker(bind=engine))
+    seeds = SEEDS[:1]
+    run.register(seeds)
+    run.crawl(seeds, min_interval=0, transport="auto", fetcher=Scripted())
+    page = db.scalar(select(OfficialPage).where(OfficialPage.slug == "my-pass"))
+    read_at = page.last_checked
+    refused = Refused()
+    summary = run.crawl(seeds, min_interval=0, transport="auto", fetcher=refused, force=True)
+    assert refused.asked == [seeds[0].url] and summary["failed"] == 1
+    db.expire_all()
+    page = db.scalar(select(OfficialPage).where(OfficialPage.slug == "my-pass"))
+    assert page.last_checked == read_at and page.status == "ok"

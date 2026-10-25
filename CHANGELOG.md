@@ -11,7 +11,9 @@ All notable changes to Monash Hub are documented here.
   pages, less research news and research sections, staff and alumni pages,
   testimonials, conference and campaign sites, event sign-ups, CMS drafts
   and the 2020-22 COVID-19 notices. A page already listed stays when it is in
-  no sitemap but still has its text (the Malaysia eExam pages).
+  no sitemap but still has its text (the Malaysia eExam pages). A listed page
+  Monash moved keeps its slug and translations at the address the sitemap
+  gives now, unless that address is a school's copy of a central page.
 - A page Monash writes as a paragraph inside a list ("April 2026 ceremony in
   Malaysia, you'll get:" before its items) keeps the paragraph.
 - Among pages that match a question equally, the hand-picked ones come first.
@@ -21,6 +23,9 @@ All notable changes to Monash Hub are documented here.
   pages can be read on another computer (`crawler.official.harvest`) and
   stored by the server with its own code (`deployment/crawl.sh
   official-harvest FILE`).
+- A full re-crawl (`--all`) no longer clears the date a page was last read
+  before fetching it. On 2026-10-25 the 359 Malaysia pages it was refused on
+  lost their "last checked" date; a page now keeps it until a read works.
 
 - Tables keep their shape. A cell that spans rows or columns is drawn merged,
   as on monash.edu, instead of moving every cell below it one column left; a
