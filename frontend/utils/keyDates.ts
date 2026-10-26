@@ -39,7 +39,9 @@ export const KEY_DATE_TEXT = {
       allocate_pref_close: 'Allocate+ preference entry closes',
       allocate_adjust_open: 'Allocate+ timetable adjustment opens',
       allocate_adjust_close: 'Allocate+ timetable adjustment closes',
-      wes_open: 'WES opens for first enrolment'
+      wes_open: 'WES opens for first enrolment',
+      reenrol: 'WES re-enrolment for next year',
+      reenrol_late: 'Late WES re-enrolment (late fee applies)'
     } as Record<string, string>,
     period: { 'S1-01': 'Semester 1', 'S2-01': 'Semester 2', 'OCT-MY-01': 'October intake' } as Record<string, string>,
     today: 'today',
@@ -75,7 +77,9 @@ export const KEY_DATE_TEXT = {
       allocate_pref_close: 'Allocate+ 填时间偏好截止',
       allocate_adjust_open: 'Allocate+ 开放调整课表',
       allocate_adjust_close: 'Allocate+ 调整课表截止',
-      wes_open: 'WES 开放选课（新生首次选课）'
+      wes_open: 'WES 开放选课（新生首次选课）',
+      reenrol: 'WES 续注册（选下一学年的课）',
+      reenrol_late: 'WES 逾期续注册（要交逾期费）'
     } as Record<string, string>,
     period: { 'S1-01': '第一学期', 'S2-01': '第二学期', 'OCT-MY-01': '十月入学' } as Record<string, string>,
     today: '今天',
@@ -111,7 +115,9 @@ export const KEY_DATE_TEXT = {
       allocate_pref_close: 'Allocate+ 希望時間の登録締切',
       allocate_adjust_open: 'Allocate+ 時間割の調整開始',
       allocate_adjust_close: 'Allocate+ 時間割の調整締切',
-      wes_open: 'WES 履修登録開始（初回登録）'
+      wes_open: 'WES 履修登録開始（初回登録）',
+      reenrol: 'WES 継続登録（翌年度の履修登録）',
+      reenrol_late: 'WES 継続登録の遅延期間（延滞料あり）'
     } as Record<string, string>,
     period: { 'S1-01': '第1学期', 'S2-01': '第2学期', 'OCT-MY-01': '10月入学' } as Record<string, string>,
     today: '今日',
@@ -147,7 +153,9 @@ export const KEY_DATE_TEXT = {
       allocate_pref_close: 'Allocate+ 선호 시간 입력 마감',
       allocate_adjust_open: 'Allocate+ 시간표 조정 시작',
       allocate_adjust_close: 'Allocate+ 시간표 조정 마감',
-      wes_open: 'WES 수강 신청 시작(첫 등록)'
+      wes_open: 'WES 수강 신청 시작(첫 등록)',
+      reenrol: 'WES 재등록(다음 학년도 수강 신청)',
+      reenrol_late: 'WES 늦은 재등록(연체료 부과)'
     } as Record<string, string>,
     period: { 'S1-01': '1학기', 'S2-01': '2학기', 'OCT-MY-01': '10월 입학' } as Record<string, string>,
     today: '오늘',

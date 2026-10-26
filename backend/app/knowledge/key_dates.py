@@ -26,6 +26,10 @@ What is read, and from where:
   units from 12 October 2026" - the day WES opens for a first enrolment. The
   page has no campus tabs and sits on monash.edu, so it is listed for
   Australia only.
+- malaysia-re-enrol: a two-column table on monash.edu.my, "On-time
+  re-enrolment: / 12 October - 27 November 2026" and "Late re-enrolment via
+  WES: / 28 November - 11 December 2026" - when continuing Malaysia students
+  pick next year's units in WES. Malaysia only.
 
 The parsers are pure: rows in, items out. Anything that does not parse is
 skipped rather than approximated; a date we are unsure of is worse than a
@@ -47,6 +51,7 @@ CENSUS = "census-dates"
 FINALS = "final-assessment-dates"
 ALLOCATE = "allocate-dates"
 WES = "dates-wes-access"
+REENROL_MY = "malaysia-re-enrol"
 PRINCIPAL = {
     "malaysia": "malaysia-principal-dates-for-monash-university-malay",
     "australia": "principal-dates",
@@ -80,7 +85,7 @@ class KeyDate:
     end: date | None
     # census | withdraw | teaching_end | swot_vac | exams | results | holiday |
     # allocate_pref_open | allocate_pref_close | allocate_adjust_open |
-    # allocate_adjust_close | wes_open
+    # allocate_adjust_close | wes_open | reenrol | reenrol_late
     kind: str
     source: str
     period: str | None = None
@@ -287,6 +292,31 @@ def parse_wes(blocks: list[dict], source: str = WES) -> list[KeyDate]:
     return out
 
 
+_REENROL = (
+    (re.compile(r"on-?time re-?enrol", re.I), "reenrol"),
+    (re.compile(r"late re-?enrol", re.I), "reenrol_late"),
+)
+
+
+def parse_reenrol(rows: list[list[str]], source: str = REENROL_MY) -> list[KeyDate]:
+    """``On-time re-enrolment:\n12 October - 27 November 2026`` and the late row.
+
+    The label and the dates share the first cell. A row whose dates are not a
+    plain range ("Friday 11 December 2026 (subject to school's approval)") is
+    not a window and is left out.
+    """
+    out: list[KeyDate] = []
+    for row in rows:
+        if not row:
+            continue
+        label, _, rest = row[0].partition(":")
+        kind = next((k for pattern, k in _REENROL if pattern.search(label)), None)
+        parsed = parse_range(rest) if kind else None
+        if kind and parsed and parsed[1]:
+            out.append(KeyDate(parsed[0], parsed[1], kind, source))
+    return out
+
+
 def _calendar_rows(rows: list[list[str]]):
     """Yield ``("month", month, year|None)`` and ``("day", weekday, day, text)``.
 
@@ -424,6 +454,9 @@ def upcoming(
     items += [k for k in allocate if k.period in periods]
     if campus == "australia":
         items += [k for k in parse_wes(_blocks(pages.get(WES))) if k.period in periods]
+    else:
+        for rows in _tables(pages.get(REENROL_MY)):
+            items += parse_reenrol(rows)
 
     seen: set[tuple] = set()
     result: list[KeyDate] = []
@@ -437,7 +470,7 @@ def upcoming(
 
 
 def collect(db: Session, campus: str, limit: int = 6, now: datetime | None = None) -> dict:
-    slugs = (CENSUS, FINALS, PRINCIPAL[campus], ALLOCATE, WES)
+    slugs = (CENSUS, FINALS, PRINCIPAL[campus], ALLOCATE, WES, REENROL_MY)
     query = select(OfficialPage).where(OfficialPage.slug.in_(slugs))
     found = {p.slug: p for p in db.scalars(query)}
     pages = {slug: found.get(slug) for slug in slugs}
