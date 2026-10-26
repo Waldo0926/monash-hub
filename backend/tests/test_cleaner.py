@@ -439,3 +439,89 @@ def test_graphite_tab_buttons_label_their_own_panels():
         ("heading", 3, "Semester one 2027"),
         ("paragraph", None, "Preference entry closes\nTuesday 19 January, 10am"),
     ]
+
+
+def _lets_begin(panel: str, og_title: str = "Accept your offer") -> str:
+    """The shape of a monash.edu.my/lets-begin/... page: every address serves
+    the same tiles, with its own article preloaded in the slide-in panel."""
+    tiles = "".join(
+        f'<div id="s{i}" class="container"><h2>Section {i}</h2><ul class="left">'
+        f'<li class="block"><a href="/lets-begin/x/{i}" data-slidepanel="panel">'
+        f"<h3>Tile {i}</h3><p>Find out what you need to do at step {i}.</p></a></li>"
+        "</ul></div>"
+        for i in range(12)
+    )
+    return (
+        f'<html><head><title>Monash University - Let\'s Begin</title>'
+        f'<meta name="og:title" content="{og_title} "></head><body><div id="page-wrapper">'
+        '<main id="main"><div class="search-results hidden"><p>results found.</p></div>'
+        f'{tiles}<div id="loader">Now loading</div>'
+        '<div id="slidepanel" class="slide_panel"><a href="#" class="close">'
+        '<span class="sr-only">Content loaded - click to close</span></a>'
+        f'<div id="slidepanel-contents" class="slidepanel-contents">{panel}</div>'
+        "</div></main></div></body></html>"
+    )
+
+
+def test_a_lets_begin_page_is_its_panel_under_its_own_title():
+    page = clean_page(_lets_begin(
+        '<div class="steps" id="steps-tabs"><h3>Enrol</h3><ol><li><a href="#step1">'
+        '<span class="step">Step 1:</span><span class="descr">Create your account</span>'
+        "</a></li></ol></div>"
+        '<div class="inner"><h4>Congratulations and welcome to Monash University Malaysia!</h4>'
+        '<p>1. Print, complete and sign the <a href="https://www.monash.edu.my/form.pdf">'
+        'Student Acceptance form<span class="sr-only">This is an external link. Opens in a '
+        "new window</span></a>.</p><p>2. Pay your fees by the lapse date in your offer.</p>"
+        "</div>"), url="https://www.monash.edu.my/lets-begin/accept-your-offer/accept-an-offer")
+    assert page["title"] == "Accept your offer"
+    text = page["clean_text"]
+    assert text.startswith("Congratulations and welcome")
+    assert "Student Acceptance form." in text
+    for noise in ("Tile 3", "results found", "Now loading", "click to close",
+                  "external link", "Step 1:"):
+        assert noise not in text
+
+
+def test_a_short_lets_begin_panel_is_still_the_article():
+    page = clean_page(_lets_begin(
+        '<div class="inner"><p>See the campus health and safety page.</p></div>',
+        og_title="Campus Health & Safety"), url="u")
+    assert page["clean_text"] == "See the campus health and safety page."
+
+
+def test_the_lets_begin_index_keeps_its_tiles():
+    page = clean_page(_lets_begin("", og_title="Let's begin"), url="u")
+    assert page["title"] == "Let's begin"
+    assert "Tile 3" in page["clean_text"]
+    for noise in ("results found", "Now loading", "click to close"):
+        assert noise not in page["clean_text"]
+
+
+ALL_THEAD = """<html><body><main><h1>Important dates</h1>
+<p>Classes start on the week of Monday, 26 October 2026, and run until the end
+of January. These are the dates new students ask about most often.</p>
+<table><thead>
+<tr><th><p>21 Dec to</p><p>25 Dec 2026</p></th><th><p><strong>Semester break.</strong></p></th></tr>
+<tr><th><p>4 Jan 2027</p></th><th><p>Exam timetable is published.</p></th></tr>
+<tr><th><p>1 Feb to 12 Feb 2027</p></th><th><p>Examination Dates</p></th></tr>
+</thead></table></main></body></html>"""
+
+
+def test_a_table_written_entirely_in_thead_keeps_every_row():
+    page = clean_page(ALL_THEAD, url="u")
+    [table] = [b for b in page["blocks"] if b["type"] == "table"]
+    assert table["columns"] == ["", ""]
+    assert "head" not in table
+    assert [row[0] for row in table["rows"]] == [
+        "21 Dec to\n25 Dec 2026", "4 Jan 2027", "1 Feb to 12 Feb 2027"]
+    assert "1 Feb to 12 Feb 2027 | Examination Dates" in page["clean_text"]
+
+
+def test_a_second_header_row_reaches_the_search_text():
+    html = ("<html><body><main><h1>Fees</h1><p>" + "Fees for each course. " * 12 + "</p>"
+            "<table><thead><tr><th>Item</th><th>Fee</th></tr>"
+            "<tr><th>Domestic</th><th>International</th></tr></thead>"
+            "<tbody><tr><td>Tuition</td><td>RM 1,000</td></tr></tbody></table>"
+            "</main></body></html>")
+    text = clean_page(html, url="u")["clean_text"]
+    assert "Item | Fee\nDomestic | International\nTuition | RM 1,000" in text

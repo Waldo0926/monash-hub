@@ -52,6 +52,15 @@ def test_only_the_hosts_public_pages_are_read_and_a_rerun_resumes(tmp_path, monk
     assert again.asked == []
 
 
+def test_slugs_reads_only_those_pages(tmp_path, monkeypatch):
+    monkeypatch.setattr(harvest, "SEEDS", SEEDS)
+    fetcher = Scripted()
+    harvest.harvest("www.monash.edu.my", str(tmp_path / "one.jsonl.gz"), min_interval=0,
+                    fetcher=fetcher, slugs={"my-pass", "au-page"})
+    # au-page is on the other host, so a host's harvest still leaves it out.
+    assert fetcher.asked == [SEEDS[0].url]
+
+
 def _write(path, records):
     with gzip.open(path, "wt", encoding="utf-8") as handle:
         for record in records:

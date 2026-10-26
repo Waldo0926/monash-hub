@@ -10,6 +10,8 @@
 #   deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
 #                                           # store pages read on another machine
 #                                           # (crawler.official.harvest)
+#   deployment/crawl.sh gaps                # linked official pages not indexed
+#                                           # (reads the database only)
 #   deployment/crawl.sh seed                # curated FAQ rows
 #   deployment/crawl.sh reindex-zh          # make the stored Chinese searchable
 #   deployment/crawl.sh reindex-zh --stats  # coverage only, writes nothing
@@ -47,6 +49,10 @@ case "$target" in
     "${COMPOSE[@]}" run --rm -v "$dir:/harvest:ro" crawler \
       python -m crawler.official.run --harvest "/harvest/$(basename "$file")" "$@"
     ;;
+  gaps)
+    # Read-only: official pages the stored pages link to that no seed covers.
+    "${COMPOSE[@]}" run --rm crawler python -m crawler.official.gaps "$@"
+    ;;
   seed)
     "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
     ;;
@@ -57,7 +63,7 @@ case "$target" in
     "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh "$@"
     ;;
   *)
-    echo "usage: $0 {handbook|official|official-harvest|seed|reindex-zh} [args]" >&2
+    echo "usage: $0 {handbook|official|official-harvest|gaps|seed|reindex-zh} [args]" >&2
     exit 2
     ;;
 esac

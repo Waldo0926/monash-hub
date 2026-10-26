@@ -383,6 +383,13 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
             head_merged = [m for m in body_merged if m[0] == 0]
             body_merged = [[r - 1, *rest] for r, *rest in body_merged if r > 0]
 
+    if len(header_rows) > 1 and not body_rows:
+        # Every row in <thead>, every cell a <th>: the Let's Begin important
+        # dates are two tables of "date | what happens" written this way. That
+        # is a body in the wrong tag, not five header rows over no data.
+        body_rows, header_rows = header_rows, []
+        body_merged, head_merged = head_merged, []
+
     foot_rows, foot_merged = _table_rows(foot.find_all("tr")) if foot else ([], [])
     columns = header_rows[0] if header_rows else []
 
@@ -757,7 +764,7 @@ def blocks_to_text(blocks: list[dict[str, Any]]) -> str:
             columns = [c for c in block["columns"] if c]
             if columns:
                 lines.append(" | ".join(columns))
-            for row in block["rows"] + block.get("foot", []):
+            for row in block.get("head", []) + block["rows"] + block.get("foot", []):
                 lines.append(" | ".join(c for c in row if c))
         lines.append("")
     return BLANK_RE.sub("\n\n", "\n".join(lines)).strip()
@@ -869,6 +876,9 @@ def clean_page(html: str, *, url: str) -> dict:
         heading_text = h1.get_text(" ", strip=True)
         if heading_text:
             title = heading_text
+    panel = _slide_panel(soup)
+    if soup.select_one("#slidepanel") is not None:
+        title = _meta(soup, "og:title") or title
     title = re.sub(r"\s*\|\s*Monash University\s*$", "", title).strip()
     title = re.sub(r"\s*-\s*Current students\s*$", "", title).strip()
 
@@ -879,6 +889,8 @@ def clean_page(html: str, *, url: str) -> dict:
     body = next((found for found in matched if len(found.get_text(strip=True)) > 200), None)
     if body is None:
         body = matched[0] if matched else soup.body or soup
+    if panel is not None:
+        body = panel
 
     # Before the outline and the search text are derived from them, so all
     # three agree about what is on the page.
@@ -899,6 +911,38 @@ def clean_page(html: str, *, url: str) -> dict:
         "summary": summary,
         "content_hash": content_hash(title, clean_text, blocks=blocks),
     }
+
+
+def _slide_panel(soup: BeautifulSoup) -> Tag | None:
+    """The article of a Monash Malaysia "Let's Begin" page, or None.
+
+    The 35 pages for new students under /lets-begin/ are one page: every
+    address serves the same tiles for every step, with that address's own
+    article preloaded in a slide-in panel inside the same <main>. Read like any
+    other page, each of them came out as the 34 tile titles, then the article,
+    under the title "Monash University - Let's Begin". The index itself has an
+    empty panel and keeps its tiles.
+    """
+    if soup.select_one("#slidepanel") is None:
+        return None
+    # The site search's empty results ("results found.") and the panel's
+    # loading and close labels, on the index as well.
+    for tag in soup.select(".search-results, #loader, #slidepanel > .close"):
+        tag.decompose()
+    panel = soup.select_one("#slidepanel-contents")
+    if panel is None or not panel.get_text(strip=True):
+        return None
+    # Screen-reader text ("This is an external link. Opens in a new window")
+    # ran into the link text before it, and the step navigator repeats every
+    # step heading that follows it.
+    for tag in panel.select(".sr-only, .steps"):
+        tag.decompose()
+    return panel
+
+
+def _meta(soup: BeautifulSoup, name: str) -> str:
+    tag = soup.find("meta", attrs={"name": name}) or soup.find("meta", attrs={"property": name})
+    return (tag.get("content") or "").strip() if tag else ""
 
 
 def _first_meaningful_paragraph(blocks: list[dict[str, Any]]) -> str | None:
