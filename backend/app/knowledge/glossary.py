@@ -24,6 +24,7 @@ English on an official page: they have to be able to match the two up.
 """
 from __future__ import annotations
 
+import functools
 import re
 
 LOCALES = ("zh", "ja", "ko")
@@ -1036,7 +1037,16 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "Parkville キャンパス",
         "ko": "Parkville 캠퍼스",
     },
+    # The country, in a sentence: "Bank Negara Malaysia", "study in Malaysia",
+    # "a Malaysian student pass". As 马来西亚校区 it put the central bank and the
+    # immigration department on campus. The campus is "Monash Malaysia" or
+    # "Malaysia campus", and a campus label on its own is an ENUMS value.
     "Malaysia": {
+        "zh": "马来西亚",
+        "ja": "マレーシア",
+        "ko": "말레이시아",
+    },
+    "Malaysia campus": {
         "zh": "马来西亚校区",
         "ja": "マレーシアキャンパス",
         "ko": "말레이시아 캠퍼스",
@@ -3471,6 +3481,9 @@ STRUCTURE_TERMS: dict[str, dict[str, str]] = {
 # "disciplinary action", which the model gets right. So it is pinned for units
 # and degrees and left alone for the guides.
 HANDBOOK_TERMS: dict[str, dict[str, str]] = {
+    # In the Handbook "Malaysia" is where a unit is taught: "Part C. Applied
+    # studies - Malaysia". On a guide it is the country.
+    "Malaysia": {"zh": "马来西亚校区", "ja": "マレーシアキャンパス", "ko": "말레이시아 캠퍼스"},
     "discipline": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
     "disciplinary": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
     # The Handbook's attendance modes. On a guide the words are ordinary
@@ -3888,6 +3901,72 @@ def currencies_kept(source: str, translated: str) -> bool:
         name in named or _CURRENCY_SOURCE[name].search(translated) for name in have
     )
 
+
+
+# A number of three digits or more - a year, a phone number, a meeting ID, an
+# amount - is copied as written, so one the translation does not have was
+# changed or dropped. February 2021 intake came back as 2022年2月, July 2026 as
+# 2027年7月, a Zoom ID 89367936761 as an apology, and +61 3 990 59987 was left
+# out. Grouping is not a change (45,000 and 45000), nor is a magnitude written
+# the Chinese way (250 million is 2.5亿), nor a decade (the 1980s is 20 世纪 80 年代).
+_LONG_NUMBER = re.compile(r"(?<![\d.])\d{3,}(?![\d]|['’]?s\b)")
+_GROUPED = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+_MAGNITUDE = re.compile(r"\s?(?:million|billion|thousand|bn|m|k)(?![A-Za-z])", re.IGNORECASE)
+_ADDRESS = re.compile(_URL + "|" + _EMAIL)
+
+
+def numbers_kept(source: str, translated: str) -> bool:
+    """Whether every long number in the English is in the translation."""
+    text = _GROUPED.sub("", _ADDRESS.sub(" ", source))
+    target = _GROUPED.sub("", translated)
+    # Spaces inside a number are layout: 990 59987 and 99059987.
+    joined = re.sub(r"(?<=\d)\s+(?=\d)", "", target)
+    for found in _LONG_NUMBER.finditer(text):
+        if _MAGNITUDE.match(text, found.end()):
+            continue
+        if found.group(0) not in target and found.group(0) not in joined:
+            return False
+    return True
+
+
+# The model saying it will not translate, stored as the translation:
+# 很抱歉，我无法提供该会议的链接 in place of a Zoom meeting ID.
+_REFUSAL = re.compile(
+    r"很抱歉|抱歉[，,]?\s?我|我(?:无法|不能)|无法(?:为您)?(?:翻译|提供|协助|处理)"
+    r"|作为(?:一个)?(?:AI|人工智能)|申し訳(?:ありません|ございません)|できかねます"
+    r"|죄송합니다|번역할 수 없|(?i:\bI(?:'m| am) sorry\b|\bI (?:cannot|can't)\b|\bas an AI\b)"
+)
+_APOLOGY = re.compile(r"\b(?:sorry|apologi[sz]e|unable|cannot|can't|regret)\b", re.IGNORECASE)
+
+
+def refused(source: str, translated: str) -> bool:
+    """Whether the translation is the model declining, not a translation."""
+    return bool(_REFUSAL.search(translated)) and not _APOLOGY.search(source)
+
+
+@functools.lru_cache(maxsize=100_000)
+def facts_kept(source: str, translated: str) -> bool:
+    """Everything a translation copies as written is still there: the money in
+    its currency, every web and email address, every long number. And it is a
+    translation, not the model declining. Checked when a string is translated,
+    when a stored one is reused, and when a machine one is read, so a string
+    that fails is shown in English until it is translated again."""
+    # Read for every machine string on every page, so the slow checks only
+    # where they can fail.
+    return (
+        (not _MAY_BE_MONEY.search(source + translated) or currencies_kept(source, translated))
+        and (not _HAS_LONG_NUMBER.search(source) or numbers_kept(source, translated))
+        and (not _MAY_BE_ADDRESS.search(source) or not addresses_lost(source, translated))
+        and not refused(source, translated)
+    )
+
+
+_MAY_BE_MONEY = re.compile(
+    r"RM|MYR|AUD|USD|\$|(?i:ringgit|dollar)|令吉|林吉特|马币|马来西亚[币元]|澳[元币幣]|澳大利亚元|美[元金]"
+    r"|リンギット|ドル|링깃|달러"
+)
+_HAS_LONG_NUMBER = re.compile(r"\d{3}")
+_MAY_BE_ADDRESS = re.compile(r"@|://|www\.|\.(?:edu|com|org|net|gov)\b", re.IGNORECASE)
 
 def restore(
     text: str, replacements: list[str], mask: tuple[str, str] = MASKS[0]
