@@ -4,6 +4,29 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Let's Begin pages for new Monash Malaysia students)
+
+- The 30 pages of Monash Malaysia's "Let's Begin" guide for new students are
+  indexed: accepting the offer, the visa, arriving, enrolment step by step,
+  orientation, weeks 1 to 3 and week 4. They are in no sitemap and were only
+  linked from the index tiles. Five one-line pointer pages and a video page
+  are left out.
+- Each of those addresses serves the same tiles with its own article in a
+  slide-in panel. The cleaner now reads the panel alone, under the page's own
+  title, instead of the 34 tile titles followed by the article under
+  "Monash University - Let's Begin".
+- A table written entirely in `<thead>` (the Let's Begin important dates) keeps
+  every row as data. Before, only the first row was kept as the header and the
+  rest were left out of the search text. Second header rows now reach the
+  search text too.
+
+### Added (crawler tools)
+
+- `deployment/crawl.sh gaps` lists official pages that stored pages link to
+  but no seed covers, most linked first. It reads the database only.
+- `crawler.official.harvest --slugs` reads only the named pages, so one page
+  can be re-read on a member's computer without reading the whole site.
+
 ### Added (key dates: Malaysia WES re-enrolment)
 
 - The Malaysia key dates list the WES re-enrolment window for next year and

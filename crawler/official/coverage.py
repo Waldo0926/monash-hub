@@ -59,6 +59,32 @@ EXTRA: dict[str, dict] = {
     # MIN_LENGTH in the walk, and a question students ask every semester.
     "https://www.monash.edu.my/its/our-services/students/printing-services": {"keep": True},
     "https://www.monash.edu.my/sass/current/undergraduate/monash-study-abroad-program": {},
+    # Let's Begin, Monash Malaysia's step-by-step guide for new students: in no
+    # sitemap and only reached from the tiles of its index page. Each address
+    # serves the index with its own article in a slide-in panel (see
+    # cleaner._slide_panel). Left out: Campus Health & Safety, Scholarships,
+    # Monash Malaysia Connect and Info for parents are one line pointing to a
+    # page already indexed, and "Enrolling at Monash for the first time" is
+    # only a video.
+    **{f"https://www.monash.edu.my/lets-begin/{path}": {"keep": True} for path in (
+        "accept-your-offer/accept-an-offer", "accept-your-offer/visa-application",
+        "prepare-to-arrive/before-you-arrive", "prepare-to-arrive/pre-orientation-briefing",
+        "prepare-to-arrive/airport-pick-up", "prepare-to-arrive/where-to-stay",
+        "prepare-to-arrive/pre-departure-checklist", "prepare-to-arrive/general-studies",
+        "prepare-to-arrive/student-pass-endorsement",
+        "enrolment/enrolment2", "enrolment/enrolment",
+        "about-uni-life/getting-around-sunway", "about-uni-life/online-systems-and-apps",
+        "about-uni-life/money-matters", "about-uni-life/survival-tips",
+        "orientation/orientation-week-22-26-july", "orientation/timetable",
+        "orientation/general-studies", "orientation/services-and-support2",
+        "weeks-1-3/want-to-make-unit-changes", "weeks-1-3/adjust-your-timetable",
+        "weeks-1-3/compulsory-unit-modules-academic-integrity-and-respect-at-monash",
+        "weeks-1-3/how-we-support-your-study", "weeks-1-3/program-to-help-your-studies",
+        "weeks-1-3/events-and-activities",
+        "week-4/important-dates", "week-4/still-have-a-unit-you-want-to-drop",
+        "good-to-know/get-to-know-the-library", "good-to-know/uni-is-different",
+        "good-to-know/your-student-body",
+    )},
 }
 
 #: Where reading the text gets it wrong, the decision and why. Most are pages

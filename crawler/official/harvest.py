@@ -2,6 +2,9 @@
 
     # Where the site answers - a member's own computer:
     python -m crawler.official.harvest --host www.monash.edu.my --out my.jsonl.gz
+    # Or only some pages:
+    python -m crawler.official.harvest --host www.monash.edu.my --out re.jsonl.gz \
+        --slugs malaysia-re-enrol
     # Copy the file to the server (scp), then there:
     deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
 
@@ -135,10 +138,13 @@ def seeds_on(host: str) -> list[Seed]:
 
 
 def harvest(host: str, out: str, *, min_interval: float, transport: str = "auto",
-            fetcher: OfficialFetcher | None = None) -> dict[str, int]:
-    """Fetch every seed page on ``host`` into ``out``; resumes from what is there."""
+            fetcher: OfficialFetcher | None = None,
+            slugs: set[str] | None = None) -> dict[str, int]:
+    """Fetch every seed page on ``host`` into ``out``, or only ``slugs``;
+    resumes from what is there."""
     done = {record["url"] for record in _records(out)}
-    seeds = [s for s in seeds_on(host) if s.url not in done]
+    seeds = [s for s in seeds_on(host)
+             if s.url not in done and (slugs is None or s.slug in slugs)]
     log.info("%s: %d pages to read, %d already read", host, len(seeds), len(done))
     summary = {"ok": 0, "failed": 0}
     fetcher = fetcher or OfficialFetcher(Throttle(RateLimit(min_interval=min_interval)),
@@ -212,10 +218,13 @@ def main() -> None:
     parser.add_argument("--out", required=True, help=".jsonl or .jsonl.gz; resumed if it exists")
     parser.add_argument("--transport", default="auto", choices=["auto", "httpx", "playwright"])
     parser.add_argument("--min-interval", type=float, default=3.0)
+    parser.add_argument("--slugs",
+                        help="comma separated seed slugs; default every page on the host")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    slugs = {s.strip() for s in args.slugs.split(",") if s.strip()} if args.slugs else None
     harvest(args.host, args.out, min_interval=max(args.min_interval, 2.0),
-            transport=args.transport)
+            transport=args.transport, slugs=slugs)
 
 
 if __name__ == "__main__":
