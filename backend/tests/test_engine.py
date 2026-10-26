@@ -502,7 +502,8 @@ def test_month_and_year_are_written_year_first():
 
 def test_a_term_is_not_followed_by_the_models_own_word_for_it():
     """"the Malaysia campus" came back as マレーシアキャンパスキャンパス."""
-    engine = translator(lambda text: text.replace("Students at the Zqa campus", "Zqaキャンパスの学生"))
+    # "Malaysia campus" is one term now; the model still adds its own キャンパス.
+    engine = translator(lambda text: text.replace("Students at the Zqa", "Zqaキャンパスの学生"))
     engine.locale = "ja"
     assert engine.text("Students at the Malaysia campus") == "マレーシアキャンパスの学生"
 

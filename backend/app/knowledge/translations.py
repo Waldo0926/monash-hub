@@ -11,12 +11,13 @@ gets English, and that is the intended outcome rather than a degraded one.
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.knowledge.glossary import currencies_kept, whole_value
+from app.knowledge.glossary import facts_kept, whole_value
 from app.models.translation import (
     CURATED,
     GLOBAL,
@@ -36,7 +37,7 @@ class Translation:
 
     __slots__ = (
         "fields", "human_fields", "human_strings", "locale", "machine", "reviewed",
-        "source_hash", "stale", "strings",
+        "source_hash", "stale", "strings", "updated",
     )
 
     def __init__(self, locale: str) -> None:
@@ -60,6 +61,10 @@ class Translation:
         # machine body with a few paragraphs corrected by hand.
         self.machine = False
         self.reviewed = False
+        # When this target's own rows last changed. The page's English can stay
+        # the same for weeks while its translation grows, and anything that
+        # keeps a copy of the page (the WeChat bot's index) has to know.
+        self.updated: datetime | None = None
 
     def __bool__(self) -> bool:
         return bool(self.fields or self.strings)
@@ -128,6 +133,7 @@ class Translation:
             "unofficial": True,
             "machine": self.machine,
             "reviewed": self.reviewed,
+            "updated": self.updated.isoformat() if self.updated else None,
         }
 
 
@@ -212,6 +218,10 @@ def load_many(
                 _apply(translation, row)
                 continue
             _apply(translation, row)
+            if row.updated_at and (
+                translation.updated is None or row.updated_at > translation.updated
+            ):
+                translation.updated = row.updated_at
             translation.source_hash = translation.source_hash or row.source_hash
             current = (source_hashes or {}).get(key)
             # Only a whole-field translation can go quietly out of date: it
@@ -275,9 +285,10 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
             if _is_scaffold(source, translated):
                 continue
             # A machine string with the money in another currency (每页 1.10 澳元
-            # for RM1.10 per page) is read as the English until it is translated
-            # again. A person's wording is theirs to get right.
-            if row.provenance == MACHINE and not currencies_kept(source, translated):
+            # for RM1.10 per page), a broken link, a changed year or the model's
+            # apology is read as the English until it is translated again. A
+            # person's wording is theirs to get right.
+            if row.provenance == MACHINE and not facts_kept(source, translated):
                 continue
             translation.strings[source.strip()] = _part_colon(translated)
             # "Wins over a machine rendering of the whole field it sits in" is

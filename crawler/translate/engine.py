@@ -30,8 +30,7 @@ from app.knowledge.glossary import (
     GENERAL,
     MASKS,
     addresses_kept,
-    addresses_lost,
-    currencies_kept,
+    facts_kept,
     has_verbatim,
     is_critical,
     is_only_placeholders,
@@ -283,15 +282,13 @@ def stored_ok(source: str, target: str) -> bool:
     Not a reply that carried the prompt with it ("GLOSSARY:" before a
     person's name), stored before the reply check looked past the glossary,
     not one that lost an address (reused as they were, a --refresh pass
-    on 2026-10-25 put 179 such strings back), and not one whose money is in
-    another currency. They are translated again.
+    on 2026-10-25 put 179 such strings back), not one whose money is in
+    another currency (1.10 澳元 for RM1.10), a year or a phone number changed,
+    or the model's apology. They are translated again.
     """
     if "GLOSSARY:" in target or "TEXT:" in target:
         return False
-    # 1.10 澳元 for RM1.10, stored before amounts were masked and currencies checked.
-    if not currencies_kept(source, target):
-        return False
-    return not addresses_lost(source, target)
+    return facts_kept(source, target)
 
 
 class Translator:
@@ -442,6 +439,7 @@ class Translator:
                     not _invented(result, source)
                     and not _wrong_script(result, self.locale)
                     and result != source
+                    and facts_kept(source, addresses_kept(source, result))
                 ):
                     result = addresses_kept(source, result)
                     self._cache[source] = result
@@ -510,7 +508,7 @@ class Translator:
         if (
             _invented(result, source)
             or _wrong_script(result, self.locale)
-            or not currencies_kept(source, result)
+            or not facts_kept(source, addresses_kept(source, result))
         ):
             # Better the English than a sentence nobody wrote. An untranslated
             # string stays in English; it is never approximated.
