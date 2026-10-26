@@ -32,6 +32,8 @@ import time
 import urllib.error
 import urllib.request
 
+from app.knowledge.glossary import currencies_kept
+
 from crawler.translate.errors import MAX_CONSECUTIVE_FAILURES, Blocked
 
 log = logging.getLogger(__name__)
@@ -155,13 +157,17 @@ def prompt(source: str) -> str:
 def faithful(source: str, reply: str, terms: list[tuple[str, str]]) -> bool:
     """Whether a reply kept what a translation must keep.
 
-    Every agreed wording that applies is in it, every unit code is, and every
-    number is. A reply that fails is not shown: the caller falls back to masking
-    the terms, which cannot drop them.
+    Every agreed wording that applies is in it, every unit code is, every
+    number is, and the money is in the same currency. A reply that fails is
+    not shown: the caller falls back to masking the terms, which cannot drop
+    them.
     """
     if any(agreed not in reply for _english, agreed in terms):
         return False
     if any(code not in reply for code in _CODE.findall(source)):
+        return False
+    # The number alone is not enough: RM1.10 came back as 1.10 澳元.
+    if not currencies_kept(source, reply):
         return False
     # A list keeps its bullets: the model likes to drop the "- " and tidy.
     def bullets(text: str) -> int:

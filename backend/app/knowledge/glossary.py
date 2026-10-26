@@ -3650,12 +3650,21 @@ _URL = (
 )
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
 # (S2-01, MO-TP1-01).
+# An amount of money with its currency: RM1.10, RM 45,000, A$50, $31. The
+# Malaysia printing page's "RM1.10 per page / per side" was published as
+# 每页/每面 1.10 澳元 - the right number in the wrong country's dollars. The
+# number check passed it. Kept as written, the amount reads the same in every
+# language, and ``currencies_kept`` below catches a currency put next to it.
+_MONEY = (
+    r"(?:RM|MYR|AUD|USD|A\$|AU\$|US\$|\$)\s?\d+(?:,\d{3})*(?:\.\d+)?"
+    r"(?:\s?(?:million|billion|bn|m|k)(?![A-Za-z]))?"
+)
 _UNIT_CODE = r"[A-Z]{2,4}\d{4}"
 _PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
 
 VERBATIM = re.compile(
     r"(?<![A-Za-z0-9])(?:"
-    + "|".join((_EMAIL, _URL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + "|".join((_EMAIL, _URL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _MONEY, _UNIT_CODE, _PERIOD_CODE))
     + r")(?![A-Za-z0-9])"
 )
 _SPAN_ONLY = re.compile(rf"^{_SPAN}$")
@@ -3830,6 +3839,54 @@ def addresses_lost(source: str, translated: str) -> bool:
     an address that does not exist."""
     kept = addresses_kept(source, translated)
     return any(found.group(0) not in kept for found in re.finditer(_URL + "|" + _EMAIL, source))
+
+
+# Which currencies a text is in. On the English side "RM" counts only in front
+# of a number or as a column's unit, "Fee (RM)" (it is also a room, and a
+# person's initials), and the codes only in capitals ("for aud" is not money).
+# "$" in front of an amount is how the Australian pages write Australian
+# dollars, so 澳元 is a fair rendering of it and 美元 is not; the word "dollars"
+# alone can be either ("billions of dollars invested through foreign aid"). The
+# translated side lists the ways the three languages write each currency.
+_CURRENCY_SOURCE = {
+    "MYR": re.compile(r"(?<![A-Za-z])(?:RM\s?\d|RM(?=\s*\))|MYR(?![A-Za-z]))|(?i:\bringgit)"),
+    "AUD": re.compile(r"(?<![A-Za-z])(?:AUD(?![A-Za-z])|AU?\$)|(?i:\bAustralian dollars?)"),
+    "USD": re.compile(r"(?<![A-Za-z])(?:USD(?![A-Za-z])|US\$)|(?i:\bUS dollars?)"),
+}
+_DOLLAR_SIGN = re.compile(r"(?<![A-Za-z$])\$\s?\d")
+_DOLLAR_WORD = re.compile(r"\bdollars?\b", re.IGNORECASE)
+_CURRENCY_TARGET = {
+    "MYR": re.compile(
+        r"(?<![A-Za-z-])(?:RM|MYR)(?![A-Za-z])|令吉|林吉特|马币|马来西亚币|马来西亚元|リンギット|링깃"
+    ),
+    "AUD": re.compile(
+        r"(?<![A-Za-z])(?:AUD(?![A-Za-z])|AU?\$)"
+        r"|澳元|澳币|澳幣|澳大利亚元|豪ドル|オーストラリアドル|호주\s?달러"
+    ),
+    # 去美元化 is de-dollarisation, a word and not an amount.
+    "USD": re.compile(r"(?<![A-Za-z])(?:USD(?![A-Za-z])|US\$)|美元(?!化)|美金|米ドル|미국\s?달러"),
+}
+
+
+def currencies_kept(source: str, translated: str) -> bool:
+    """Whether a translation is in the same currencies as its English.
+
+    Fails when it names a currency the English does not (1.10 澳元 for
+    RM1.10), or drops one the English has (1.10 元). A failed string is not
+    used: the reader gets the English, which at least has the right money.
+    """
+    have = {name for name, rx in _CURRENCY_SOURCE.items() if rx.search(source)}
+    allowed = set(have)
+    if _DOLLAR_SIGN.search(source):
+        allowed.add("AUD")
+    if _DOLLAR_WORD.search(source):
+        allowed |= {"AUD", "USD"}
+    named = {name for name, rx in _CURRENCY_TARGET.items() if rx.search(translated)}
+    if named - allowed:
+        return False
+    return all(
+        name in named or _CURRENCY_SOURCE[name].search(translated) for name in have
+    )
 
 
 def restore(
