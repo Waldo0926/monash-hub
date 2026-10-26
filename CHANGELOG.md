@@ -4,6 +4,14 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (course map: the settings row lines up)
+
+- Campus, degree, start year and the verdict pill sit on one baseline. The
+  pill used to hang below the inputs, and choosing a degree added a note under
+  it that pushed the campus and year boxes down; the note now takes a row of
+  its own under the degree only. The pill has a label, "Check", like the
+  inputs beside it; on a phone it keeps a row of its own, without the label.
+
 ### Changed (home page: the searches shown are the ones people make)
 
 - The row under the home search box shows the terms searched most in the last
