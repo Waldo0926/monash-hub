@@ -4,6 +4,29 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (what a translation must keep)
+
+- The same audit read every stored translation for more than money. It found
+  a year changed (February 2021 intake as 2022年2月, July 2026 as 2027年7月),
+  a phone number left out, a Zoom meeting ID replaced by the model's apology
+  (很抱歉，我无法提供…), and links with the glossary inside the path, so they
+  went nowhere.
+- A translation now keeps every number of three digits or more (a year, a
+  phone number, an ID, an amount) and every web and email address, and is not
+  an apology. Grouping (45,000 and 45000), spacing inside a phone number, a
+  magnitude in Chinese (2.5亿) and a decade (20 世纪 80 年代) are not changes.
+  The check runs on every path: when a string is translated, when a stored one
+  is reused (so the next pass translates it again), and when a machine string
+  is read (it shows as the English until then). A person's wording is not
+  second-guessed.
+- "Malaysia" in a sentence is the country (马来西亚): "Bank Negara Malaysia"
+  had become 马来西亚校区的…. "Malaysia campus", "Monash Malaysia" and the
+  campus labels stay 马来西亚校区, and so does "Malaysia" in the Handbook.
+- A page's translation says when it last changed (`translation.updated`), so
+  the WeChat bot, which keeps its own copy of each page, reads it again after
+  the Hub translates more of it. Before this the bot's copy of 896 pages was
+  far behind.
+
 ### Fixed (money in translations)
 
 - The Chinese Malaysia printing page said colour printing costs 每页/每面 1.10

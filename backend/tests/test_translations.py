@@ -185,7 +185,10 @@ def test_a_translation_of_text_that_has_changed_is_flagged(db):
 
     current = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="hash-when-translated")
     assert current.stale is False
-    assert current.meta() == {
+    meta = current.meta()
+    # When the page's own translation last changed, for whoever keeps a copy.
+    assert meta.pop("updated")
+    assert meta == {
         "locale": "zh",
         "stale": False,
         "unofficial": True,
@@ -363,7 +366,9 @@ def test_a_checked_translation_wins_over_a_machine_one(db):
     tr = translations.load(db, "zh", OFFICIAL_PAGE, "census-dates")
     assert tr.string("census date") == "课程退选截止日"
     # And the page says both things happened to it.
-    assert tr.meta() == {
+    meta = tr.meta()
+    assert meta.pop("updated")
+    assert meta == {
         "locale": "zh",
         "stale": False,
         "unofficial": True,
