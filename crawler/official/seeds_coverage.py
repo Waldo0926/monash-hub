@@ -4067,7 +4067,7 @@ COVERAGE: tuple[tuple[str, str, str, str, tuple[str, ...], str, str], ...] = (
      "Important dates - Let's Begin (Monash Malaysia)", "support",
      ("malaysia", "dates", "日期", "校历", "马来西亚", "new students", "新生"),
      "dynamic", "malaysia"),
-    ("malaysia-lets-begin-still-have-a-unit-you-want-to-dr",
+    ("malaysia-lets-begin-still-want-to-drop-a-unit",
      "https://www.monash.edu.my/lets-begin/week-4/still-have-a-unit-you-want-to-drop",
      "Still have a unit you want to drop? - Let's Begin (Monash Malaysia)", "support",
      ("malaysia", "马来西亚", "new students", "新生"),
