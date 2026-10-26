@@ -74,6 +74,9 @@ Monash Hub 保留了它们做对的地方，数据直接来自 Handbook，再补
 - 查看开课校区、教学期、考核、考试、先修/同修要求、学习成果和预期工作量
 - 通过 Handbook 原始链接和最近检查时间核实信息
 
+<p align="center"><img src="./docs/images/unit-en.webp" alt="FIT2004 课程页：院系通知、学分、校区、考核、开课学期和 Handbook 来源链接" width="900" /></p>
+<p align="center"><sub>本页截图来自浏览器测试用的整套环境：真实站点跑在三门虚构课程（FIT1008、FIT2004、FIT2102）和一个虚构学位上，课程名、分数和规划都是编的，线上显示的是 Handbook 数据。</sub></p>
+
 ### 查 Monash 官方信息
 
 - 搜索 WAM、Special Consideration、Census Date、签证、交换和校园服务等常见主题
@@ -94,12 +97,16 @@ Monash Hub 保留了它们做对的地方，数据直接来自 Handbook，再补
 
 规划只保存在你自己的浏览器里，不会存进账号。每次核对时会把规划发给接口和 Handbook 比对，核对完不会保留。规划不会跟着你到别的设备，要转移请用「导出」。
 
+<p align="center"><img src="./docs/images/plan-en.webp" alt="课程地图：四门课排进学期，每门按校区、教学期和先修逐一检查，右侧是对照学位要求的进度" width="900" /></p>
+
 ### 算 WAM / GPA
 
 - 输入课程代码，学分和课程级别直接从 Handbook 带出来，级别权重不用自己记
 - 马来西亚校区用的是 CGPA，那是另一套刻度，可以切换
 - 也可以上传 WES 成绩截图或粘贴文本，自动识别成表格
 - 分数只在你的浏览器里计算，不会存进账号。只有你输入的课程代码会发给接口查学分和级别，分数本身不离开你的设备
+
+<p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA 计算器：三门课按年级分组，右侧显示 WAM 和 CGPA" width="900" /></p>
 
 ### 参与学生社区
 
@@ -151,6 +158,20 @@ Monash Hub 保留了它们做对的地方，数据直接来自 Handbook，再补
 - [更新日志](CHANGELOG.md)
 
 开发改动请使用 `feat/*`、`fix/*` 或 `chore/*` 分支，发起 Pull Request 审查后再合并到 `main`。
+
+### 本地运行
+
+浏览器测试自带了整套运行环境：PostgreSQL、API、前端的生产构建，以及一个把它们放到同一来源的小代理（线上由 nginx 做这件事），数据是合成的。
+
+```sh
+createdb monashhub_e2e
+pip install -r backend/requirements.txt
+(cd frontend && npm ci && npm run build)
+(cd e2e && npm ci && npx playwright install chromium)
+cd e2e && DATABASE_URL=postgresql+psycopg://USER:PASSWORD@localhost:5432/monashhub_e2e npx playwright test
+```
+
+Playwright 会跑迁移、载入 `e2e/seed.py`、在 8100、3101、3100 端口起三个服务，跑完测试再停掉。想留着站点自己看，就按 [e2e/README.md](e2e/README.md) 里列的命令手动启动。真实的 Handbook 和官方页面数据由爬虫抓取，见[抓取说明](docs/CRAWLING.md)。后端测试在 `backend/` 下跑 `pytest`，前端测试在 `frontend/` 下跑 `npm test`。
 
 ## 版权与使用许可
 

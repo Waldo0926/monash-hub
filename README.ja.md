@@ -74,6 +74,9 @@ Monash Hub はそれらの良いところ、つまり Handbook から直接取�
 - 開講キャンパス、学期、評価、試験、履修要件、学習成果、学習時間を確認
 - Handbook の原文リンクと最終確認日で情報を確認
 
+<p align="center"><img src="./docs/images/unit-en.webp" alt="FIT2004 のユニットページ：学部からの通知、単位数、キャンパス、評価、開講学期、Handbook へのリンク" width="900" /></p>
+<p align="center"><sub>このページのスクリーンショットはブラウザテスト用の環境で撮ったものです。実際のサイトを架空の 3 ユニット（FIT1008、FIT2004、FIT2102）と架空の学位で動かしているため、名前・点数・計画はすべて作り物です。本番サイトは Handbook のデータを表示します。</sub></p>
+
 ### Monash の公式情報を調べる
 
 - WAM、Special Consideration、census date、ビザ、交換留学、キャンパスサービスなどを検索
@@ -94,12 +97,16 @@ Monash Hub はそれらの良いところ、つまり Handbook から直接取�
 
 計画はご自身のブラウザーにのみ保存され、アカウントには保存されません。チェックのたびに計画は API に送られて Handbook と照合されますが、結果が返った後は何も保持されません。計画は別の端末には引き継がれないので、移すには「エクスポート」を使ってください。
 
+<p align="center"><img src="./docs/images/plan-en.webp" alt="履修計画：学期に置いた 4 ユニットをキャンパス、開講学期、前提条件で確認し、右側に学位要件に対する進捗を表示" width="900" /></p>
+
 ### WAM / GPA を計算する
 
 - ユニットコードを入力すると単位数とレベルが Handbook から入り、レベル係数を覚える必要はありません
 - マレーシアキャンパスは CGPA という別の尺度です。切り替えられます
 - WES の成績のスクリーンショットを読み込ませる、あるいはテキストを貼り付けて表に取り込むこともできます
 - 点数はブラウザー内で計算され、アカウントには保存されません。API に送られるのは入力したユニットコードだけで、単位数とレベルの参照に使われます。点数そのものは端末の外に出ません
+
+<p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA 計算機：3 ユニットをレベルごとにまとめ、右側に WAM と CGPA を表示" width="900" /></p>
 
 ### 学生コミュニティに参加する
 
@@ -140,6 +147,20 @@ WeChat 公式アカウント「马莫百科」の記事の索引です。検索�
 この README は製品利用者向けです。プロジェクト作業については、[architecture](docs/ARCHITECTURE.md)、[decision records](docs/adr/README.md)、[deployment](docs/DEPLOYMENT.md)、[crawling](docs/CRAWLING.md)、[public-release checklist](docs/PUBLIC-RELEASE.md)、[roadmap](docs/ROADMAP-STATUS.md)、[contribution rules](AGENTS.md)、[changelog](CHANGELOG.md) を確認してください。
 
 開発の変更は `feat/*`、`fix/*`、`chore/*` ブランチで行い、Pull Request でレビューしてから `main` にマージします。
+
+### ローカルで動かす
+
+ブラウザテストには、実際のスタックを合成データで動かすのに必要なものが揃っています（PostgreSQL、API、フロントエンドの本番ビルド、本番の nginx と同じく同一オリジンにまとめる小さなプロキシ）。
+
+```sh
+createdb monashhub_e2e
+pip install -r backend/requirements.txt
+(cd frontend && npm ci && npm run build)
+(cd e2e && npm ci && npx playwright install chromium)
+cd e2e && DATABASE_URL=postgresql+psycopg://USER:PASSWORD@localhost:5432/monashhub_e2e npx playwright test
+```
+
+Playwright がマイグレーションと `e2e/seed.py` の読み込みを行い、ポート 8100、3101、3100 で 3 つのサーバーを起動してテスト後に停止します。サイトを立ち上げたままにしたい場合は [e2e/README.md](e2e/README.md) のコマンドを手動で実行してください。実際の Handbook と公式ページのデータはクローラーが取得します（[crawling](docs/CRAWLING.md)）。バックエンドのテストは `backend/` で `pytest`、フロントエンドのテストは `frontend/` で `npm test` です。
 
 ## ライセンスと著作権
 

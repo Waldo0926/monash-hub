@@ -74,6 +74,9 @@ Monash Hub는 이들이 잘한 점, 즉 Handbook에서 바로 가져온 데이�
 - 개설 캠퍼스, 수업 기간, 평가, 시험, 선수/동시 이수 요건, 학습 성과 및 학습량 확인
 - Handbook 원문 링크와 최종 확인일로 정보 검증
 
+<p align="center"><img src="./docs/images/unit-en.webp" alt="FIT2004 유닛 페이지: 학부 공지, 학점, 캠퍼스, 평가, 개설 학기, Handbook 출처 링크" width="900" /></p>
+<p align="center"><sub>이 페이지의 스크린샷은 브라우저 테스트용 환경에서 찍은 것입니다. 실제 사이트를 가상의 유닛 3개(FIT1008, FIT2004, FIT2102)와 가상의 학위로 실행했기 때문에 이름, 점수, 계획은 모두 지어낸 것이며, 실제 사이트는 Handbook 데이터를 보여줍니다.</sub></p>
+
 ### Monash 공식 정보 찾기
 
 - WAM, Special Consideration, census date, 비자, 교환학생, 캠퍼스 서비스 등의 주제 검색
@@ -94,12 +97,16 @@ Monash Hub는 이들이 잘한 점, 즉 Handbook에서 바로 가져온 데이�
 
 계획은 본인 브라우저에만 저장되며 계정에는 저장되지 않습니다. 확인할 때마다 계획이 API로 전송되어 Handbook과 대조되지만, 결과가 돌아온 뒤에는 아무것도 보관하지 않습니다. 계획은 다른 기기로 따라가지 않으니 옮기려면 '내보내기'를 쓰세요.
 
+<p align="center"><img src="./docs/images/plan-en.webp" alt="수강 계획: 학기에 배치한 유닛 4개를 캠퍼스, 개설 학기, 선수 과목 기준으로 확인하고 오른쪽에 학위 요건 대비 진행 상황을 표시" width="900" /></p>
+
 ### WAM / GPA 계산하기
 
 - 과목 코드를 입력하면 학점과 레벨이 Handbook에서 채워지며, 레벨 가중치를 외울 필요가 없습니다
 - 말레이시아 캠퍼스는 CGPA라는 다른 척도를 씁니다. 전환할 수 있습니다
 - WES 성적 스크린샷을 올리거나 텍스트를 붙여 넣어 표로 읽어들일 수도 있습니다
 - 점수는 브라우저에서 계산되며 계정에는 저장되지 않습니다. API로 전송되는 것은 입력한 과목 코드뿐이며 학점과 레벨을 조회하는 데 쓰입니다. 점수 자체는 기기 밖으로 나가지 않습니다
+
+<p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA 계산기: 유닛 3개를 레벨별로 묶고 오른쪽에 WAM과 CGPA를 표시" width="900" /></p>
 
 ### 학생 커뮤니티 참여하기
 
@@ -140,6 +147,20 @@ WeChat 공식 계정 「马莫百科」 글의 색인입니다. 검색과 주제
 이 README는 제품 사용자를 위한 문서입니다. 프로젝트 작업은 [architecture](docs/ARCHITECTURE.md), [decision records](docs/adr/README.md), [deployment](docs/DEPLOYMENT.md), [crawling](docs/CRAWLING.md), [public-release checklist](docs/PUBLIC-RELEASE.md), [roadmap](docs/ROADMAP-STATUS.md), [contribution rules](AGENTS.md), [changelog](CHANGELOG.md)를 참고하세요.
 
 개발 변경은 `feat/*`, `fix/*`, `chore/*` 브랜치에서 하고, Pull Request로 리뷰한 뒤 `main`에 병합합니다.
+
+### 로컬에서 실행하기
+
+브라우저 테스트에는 실제 스택을 합성 데이터로 실행하는 데 필요한 것이 모두 들어 있습니다. PostgreSQL, API, 프런트엔드 프로덕션 빌드, 그리고 프로덕션의 nginx처럼 같은 출처로 묶어 주는 작은 프록시입니다.
+
+```sh
+createdb monashhub_e2e
+pip install -r backend/requirements.txt
+(cd frontend && npm ci && npm run build)
+(cd e2e && npm ci && npx playwright install chromium)
+cd e2e && DATABASE_URL=postgresql+psycopg://USER:PASSWORD@localhost:5432/monashhub_e2e npx playwright test
+```
+
+Playwright가 마이그레이션을 실행하고 `e2e/seed.py`를 불러온 뒤 8100, 3101, 3100 포트에서 서버 세 개를 띄워 테스트하고 종료합니다. 사이트를 켜 둔 채 보고 싶다면 [e2e/README.md](e2e/README.md)에 적힌 명령을 직접 실행하세요. 실제 Handbook과 공식 페이지 데이터는 크롤러가 가져옵니다([crawling](docs/CRAWLING.md)). 백엔드 테스트는 `backend/`에서 `pytest`, 프런트엔드 테스트는 `frontend/`에서 `npm test`로 실행합니다.
 
 ## 라이선스와 저작권
 
