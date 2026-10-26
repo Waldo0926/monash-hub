@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Chinese for the sentences the machine could not translate)
+
+- 234 sentences on 177 guides stayed in English after every translation pass:
+  the free model's content filter refused a few (a sexual-health glossary), and
+  for the rest its rendering failed the facts check - a dollar amount read as
+  澳元, a date or number changed, "I can't…" taken for the model's apology.
+  They now have Chinese in `backend/app/knowledge/official_zh_gaps.py`, drafted
+  by AI and checked against the English only, stored as curated wording in a
+  row of their own per guide. Amounts, dates, codes, addresses and names are
+  copied as written.
+
 ### Fixed (what a translation must keep)
 
 - The same audit read every stored translation for more than money. It found
