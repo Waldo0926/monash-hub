@@ -16,7 +16,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.knowledge.glossary import whole_value
+from app.knowledge.glossary import currencies_kept, whole_value
 from app.models.translation import (
     CURATED,
     GLOBAL,
@@ -273,6 +273,11 @@ def _apply(translation: Translation, row: ContentTranslation) -> None:
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
             if _is_scaffold(source, translated):
+                continue
+            # A machine string with the money in another currency (每页 1.10 澳元
+            # for RM1.10 per page) is read as the English until it is translated
+            # again. A person's wording is theirs to get right.
+            if row.provenance == MACHINE and not currencies_kept(source, translated):
                 continue
             translation.strings[source.strip()] = _part_colon(translated)
             # "Wins over a machine rendering of the whole field it sits in" is

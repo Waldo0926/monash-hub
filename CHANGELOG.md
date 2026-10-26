@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (money in translations)
+
+- The Chinese Malaysia printing page said colour printing costs 每页/每面 1.10
+  澳元. The English and the official page say RM1.10. The chat model changed
+  the currency and kept the number, so the number check let it through.
+- An amount with its currency (RM1.10, RM 45,000, A$50, $31, $13 billion) is
+  now kept out of the model's hands like a date or a unit code, and put back
+  exactly as Monash wrote it.
+- A translation in another currency than its English (澳元 or 元 for RM, 美元
+  for an Australian page's $, 澳元 on a Malaysia fee table) is not used, on any
+  path through the translator. A stored machine string like that is read as
+  the English until it is translated again, and the next pass translates it
+  again. An audit of the live rows on 2026-10-26 found 97 Chinese strings
+  (95 on guide pages, 2 in units), 13 Japanese and 28 Korean.
+
 ### Added (Let's Begin pages for new Monash Malaysia students)
 
 - The 30 pages of Monash Malaysia's "Let's Begin" guide for new students are
