@@ -877,7 +877,7 @@ def clean_page(html: str, *, url: str) -> dict:
         if heading_text:
             title = heading_text
     panel = _slide_panel(soup)
-    if panel is not None:
+    if soup.select_one("#slidepanel") is not None:
         title = _meta(soup, "og:title") or title
     title = re.sub(r"\s*\|\s*Monash University\s*$", "", title).strip()
     title = re.sub(r"\s*-\s*Current students\s*$", "", title).strip()
@@ -923,6 +923,12 @@ def _slide_panel(soup: BeautifulSoup) -> Tag | None:
     under the title "Monash University - Let's Begin". The index itself has an
     empty panel and keeps its tiles.
     """
+    if soup.select_one("#slidepanel") is None:
+        return None
+    # The site search's empty results ("results found.") and the panel's
+    # loading and close labels, on the index as well.
+    for tag in soup.select(".search-results, #loader, #slidepanel > .close"):
+        tag.decompose()
     panel = soup.select_one("#slidepanel-contents")
     if panel is None or not panel.get_text(strip=True):
         return None

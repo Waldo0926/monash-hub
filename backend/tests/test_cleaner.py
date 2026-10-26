@@ -491,7 +491,10 @@ def test_a_short_lets_begin_panel_is_still_the_article():
 
 def test_the_lets_begin_index_keeps_its_tiles():
     page = clean_page(_lets_begin("", og_title="Let's begin"), url="u")
+    assert page["title"] == "Let's begin"
     assert "Tile 3" in page["clean_text"]
+    for noise in ("results found", "Now loading", "click to close"):
+        assert noise not in page["clean_text"]
 
 
 ALL_THEAD = """<html><body><main><h1>Important dates</h1>
