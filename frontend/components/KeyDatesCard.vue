@@ -168,7 +168,7 @@ const options = ['malaysia', 'australia'] as const
 .list { list-style: none; margin: 0; padding: 0; }
 .list li {
   display: grid;
-  grid-template-columns: 7.6em minmax(0, 1fr) auto;
+  grid-template-columns: 8.8em minmax(0, 1fr) auto;
   gap: var(--s3);
   align-items: baseline;
   padding: 10px 0;

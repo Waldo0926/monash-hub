@@ -136,7 +136,7 @@ COVERAGE: tuple[tuple[str, str, str, str, tuple[str, ...], str, str], ...] = (
      "https://www.monash.edu.my/student-services/student-admin/enrol-and-re-enrol/re-enrol",
      "Re-enrolment for coursework students (Monash Malaysia)", "enrolment",
      ("malaysia", "enrolment", "re-enrol", "选课", "注册", "重新注册", "马来西亚"),
-     "medium", "malaysia"),
+     "dynamic", "malaysia"),
     ("malaysia-resources-monash-email-account",
      "https://www.monash.edu.my/student-services/student-admin/enrol-and-re-enrol/resources/monash-email-account",
      "Monash Email Account (Monash Malaysia)", "enrolment",

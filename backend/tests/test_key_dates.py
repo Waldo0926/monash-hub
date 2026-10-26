@@ -320,3 +320,28 @@ def test_key_dates_source_titles_follow_the_language(client, db, on_4_october):
     assert titles() == {"Census dates"}
     # No Japanese row yet: the English title, not an empty link.
     assert titles(locale="ja") == {"Census dates"}
+
+
+REENROL_ROWS = [
+    ["On-time re-enrolment:\n12 October - 27 November 2026",
+     "Re-enrol for both semesters or apply for intermission"],
+    ["Late re-enrolment via WES:\n28 November - 11 December 2026",
+     "You can still re-enrol but a RM200 late fee will apply."],
+    # A deadline with a condition, not a window.
+    ["After late re-enrolment closes:\nFriday 11 December 2026 (subject to school's approval)",
+     "Contact your School to obtain special permission"],
+]
+
+
+def test_malaysia_re_enrolment_windows():
+    got = [(k.kind, k.start, k.end) for k in kd.parse_reenrol(REENROL_ROWS)]
+    assert got == [
+        ("reenrol", date(2026, 10, 12), date(2026, 11, 27)),
+        ("reenrol_late", date(2026, 11, 28), date(2026, 12, 11)),
+    ]
+    pages = {kd.REENROL_MY: _page([REENROL_ROWS])}
+    # A window that has started but not ended is still listed; Australia
+    # never gets the Malaysian page.
+    on_26_oct = kd.upcoming(pages, "malaysia", date(2026, 10, 26), 20)
+    assert [k.kind for k in on_26_oct] == ["reenrol", "reenrol_late"]
+    assert kd.upcoming(pages, "australia", date(2026, 10, 26), 20) == []

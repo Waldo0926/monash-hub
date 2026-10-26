@@ -4,6 +4,15 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (key dates: Malaysia WES re-enrolment)
+
+- The Malaysia key dates list the WES re-enrolment window for next year and
+  the late re-enrolment window after it, read from the table on the official
+  Monash Malaysia re-enrolment page. Australia does not get them. That page is
+  now refreshed with the other date pages.
+- The date column on the home-page card is a little wider, so a range across
+  two months ("11月28日–12月11日") stays on one line.
+
 ### Added (key dates: Allocate+ and WES)
 
 - The home-page key dates card and /dates now list the Allocate+ dates

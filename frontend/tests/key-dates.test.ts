@@ -32,6 +32,8 @@ describe('key date wording', () => {
     expect(keyDateLabel(close, 'en')).toEqual({ main: 'Allocate+ timetable adjustment closes', sub: 'October intake · 17:00' })
     const wes = item({ kind: 'wes_open', period: 'S2-01', source: 'dates-wes-access' })
     expect(keyDateLabel(wes, 'zh')).toEqual({ main: 'WES 开放选课（新生首次选课）', sub: '第二学期' })
+    const reenrol = item({ kind: 'reenrol', period: null, date: '2026-10-12', end: '2026-11-27', source: 'malaysia-re-enrol' })
+    expect(keyDateLabel(reenrol, 'zh')).toEqual({ main: 'WES 续注册（选下一学年的课）', sub: null })
   })
 
   it('reports the latest check across the sources', () => {

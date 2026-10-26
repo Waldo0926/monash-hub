@@ -488,7 +488,8 @@ SEMESTERLY = re.compile(
 
 
 def tier(url: str) -> str:
-    if re.search(r"dates|timetable", url):
+    # The re-enrolment page carries the year's WES re-enrolment window.
+    if re.search(r"dates|timetable|/re-enrol$", url):
         return "dynamic"
     if re.search(r"polic|procedure|glossary|rules", url):
         return "stable"
