@@ -529,9 +529,38 @@ def _list_runs(node: Tag, add_paragraph) -> list[dict[str, Any]]:
     return out
 
 
+def _label_tab_panels(soup: BeautifulSoup) -> None:
+    """Write each ``role=tab`` button's text onto the panel it opens.
+
+    The newer "graphite" tabs label their panels with ``<button role=tab>``,
+    and buttons are dropped as page controls, so the Allocate+ dates page lost
+    its "Australia" and "Malaysia" labels - worse, the accordion pass turned the
+    two buttons into headings above both panels, so every Malaysian date read
+    as if it were under "Malaysia" and every Australian one did too. The label
+    is copied onto the panel before the buttons go, and the button removed.
+    """
+    for button in soup.select("[role=tab]"):
+        text = _clean(button.get_text(" ", strip=True)).strip()
+        panel = None
+        target = button.get("aria-controls")
+        if target:
+            panel = soup.find(id=target)
+        if panel is None and button.get("id"):
+            panel = soup.find(attrs={"aria-labelledby": button["id"]})
+        if panel is not None and text:
+            panel["data-tab-label"] = text
+        button.decompose()
+
+
 def _is_tab_group(node: Tag) -> bool:
     classes = set(node.get("class") or [])
-    return "tabs" in classes and node.select_one(".tabs__target") is not None
+    if "tabs" in classes and node.select_one(".tabs__target") is not None:
+        return True
+    # Graphite tabs: the panels labelled by _label_tab_panels sit directly in
+    # the group.
+    return any(
+        isinstance(child, Tag) and child.has_attr("data-tab-label") for child in node.children
+    )
 
 
 def _tab_panels(node: Tag) -> list[tuple[str, Tag]]:
@@ -544,7 +573,8 @@ def _tab_panels(node: Tag) -> list[tuple[str, Tag]]:
             labels[target] = text
 
     panels = [
-        (labels.get(panel.get("id") or "", ""), panel) for panel in node.select(".tabs__target")
+        (labels.get(panel.get("id") or "", "") or panel.get("data-tab-label", ""), panel)
+        for panel in node.select(".tabs__target, [data-tab-label]")
     ]
     return [(label, panel) for label, panel in panels if label]
 
@@ -818,6 +848,12 @@ def clean_page(html: str, *, url: str) -> dict:
     for comment in soup.find_all(string=lambda node: isinstance(node, Comment)):
         comment.extract()
 
+    _label_tab_panels(soup)
+    # A date card's title ("Semester one 2027" on the Allocate+ dates page) is a
+    # styled <div>; read as a paragraph it looked like one more line of the
+    # card above it.
+    for card_title in soup.select(".semester-title"):
+        card_title.name = "h3"
     _accordion_questions(soup)
     for tag in soup(list(DROP_TAGS)):
         tag.decompose()

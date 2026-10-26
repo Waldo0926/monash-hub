@@ -395,3 +395,47 @@ def test_a_list_inside_an_item_stays_under_that_item():
     assert [b.get("depth", 0) for b in lists] == [0, 1, 0, 1, 0]
     assert "2. Only allowed to work in:\n\n  • restaurants" in result["clean_text"]
     assert "4. Not allowed to work more than 20 hours" in result["clean_text"]
+
+
+GRAPHITE_TABS = """
+<html><body><main><div class="content-inner__main">
+  <h1>Allocate+ dates</h1>
+  <section class="graphite-tabs no-mobile-accordion">
+    <div class="graphite-tabs__tab-list" role="tablist">
+      <button id="t-01" type="button" role="tab" class="graphite-tabs__link"
+              aria-controls="p-01">Australia</button>
+      <button id="t-02" type="button" role="tab" class="graphite-tabs__link">Malaysia</button>
+    </div>
+    <div id="p-01" class="graphite-tabs__target" role="tabpanel" aria-labelledby="t-01">
+      <div class="semester-box"><div class="semester-title">Semester one 2027</div>
+        <div class="semester-object"><strong>Preference entry closes</strong><br>Tuesday 19 January, 5pm</div>
+      </div>
+    </div>
+    <div id="p-02" class="graphite-tabs__target" role="tabpanel" aria-labelledby="t-02" hidden>
+      <div class="semester-box"><div class="semester-title">Semester one 2027</div>
+        <div class="semester-object"><strong>Preference entry closes</strong><br>Tuesday 19 January, 10am</div>
+      </div>
+    </div>
+    <div id="p-03" class="graphite-tabs__target" role="tabpanel" aria-labelledby="t-03" hidden></div>
+  </section>
+</div></main></body></html>
+"""
+
+
+def test_graphite_tab_buttons_label_their_own_panels():
+    """Allocate+ dates: the buttons became two headings above both panels, so
+    the Malaysian 10am deadline read as if it sat under "Australia" too."""
+    blocks = clean_page(GRAPHITE_TABS, url="u")["blocks"]
+    shape = [
+        (b["type"], b.get("variant") or b.get("level"),
+         b.get("text") or rich_to_text(b.get("spans") or []))
+        for b in blocks
+    ]
+    assert shape == [
+        ("heading", "tab", "Australia"),
+        ("heading", 3, "Semester one 2027"),
+        ("paragraph", None, "Preference entry closes\nTuesday 19 January, 5pm"),
+        ("heading", "tab", "Malaysia"),
+        ("heading", 3, "Semester one 2027"),
+        ("paragraph", None, "Preference entry closes\nTuesday 19 January, 10am"),
+    ]

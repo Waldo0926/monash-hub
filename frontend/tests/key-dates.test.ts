@@ -26,6 +26,14 @@ describe('key date wording', () => {
     expect(keyDateRange(item({ date: '2027-03-31' }), 'zh', '2026-10-25')).toBe('2027年3月31日')
   })
 
+  it('puts the printed time beside the teaching period', () => {
+    const close = item({ kind: 'allocate_adjust_close', period: 'OCT-MY-01', time: '17:00', source: 'allocate-dates' })
+    expect(keyDateLabel(close, 'zh')).toEqual({ main: 'Allocate+ 调整课表截止', sub: '十月入学 · 17:00' })
+    expect(keyDateLabel(close, 'en')).toEqual({ main: 'Allocate+ timetable adjustment closes', sub: 'October intake · 17:00' })
+    const wes = item({ kind: 'wes_open', period: 'S2-01', source: 'dates-wes-access' })
+    expect(keyDateLabel(wes, 'zh')).toEqual({ main: 'WES 开放选课（新生首次选课）', sub: '第二学期' })
+  })
+
   it('reports the latest check across the sources', () => {
     const sources = [{ last_checked: '2026-10-17T02:00:00Z' }, { last_checked: '2026-10-20T08:00:00Z' }, { last_checked: null }]
     expect(checkedOnLabel(sources, 'zh')).toBe('10月20日')
@@ -38,5 +46,7 @@ describe('the assistant offers the dates page', () => {
   it('for a question about the calendar', () => {
     expect(matchTools('期末考试周是什么时候').map(t => t.id)).toContain('dates')
     expect(matchTools('When is the census date?').map(t => t.id)).toContain('dates')
+    expect(matchTools('什么时候选课').map(t => t.id)).toContain('dates')
+    expect(matchTools('When does WES open?').map(t => t.id)).toContain('dates')
   })
 })
