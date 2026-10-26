@@ -3934,9 +3934,15 @@ def numbers_kept(source: str, translated: str) -> bool:
 _REFUSAL = re.compile(
     r"很抱歉|抱歉[，,]?\s?我|我(?:无法|不能)|无法(?:为您)?(?:翻译|提供|协助|处理)"
     r"|作为(?:一个)?(?:AI|人工智能)|申し訳(?:ありません|ございません)|できかねます"
-    r"|죄송합니다|번역할 수 없|(?i:\bI(?:'m| am) sorry\b|\bI (?:cannot|can't)\b|\bas an AI\b)"
+    r"|죄송합니다|번역할 수 없|(?i:\bI(?:['’]m| am) sorry\b|\bI (?:cannot|can['’]t)\b|\bas an AI\b)"
 )
-_APOLOGY = re.compile(r"\b(?:sorry|apologi[sz]e|unable|cannot|can't|regret)\b", re.IGNORECASE)
+# Monash writes the apostrophe curly ("I can’t log in"), so both spellings: a
+# straight-only match threw away every rendering of those FAQ questions.
+_APOLOGY = re.compile(
+    r"\b(?:sorry|apologi[sz]e|unable|cannot|can['’]?t|can not|could(?:n['’]?t| not)"
+    r"|not able|won['’]?t be able|regret)\b",
+    re.IGNORECASE,
+)
 
 
 def refused(source: str, translated: str) -> bool:

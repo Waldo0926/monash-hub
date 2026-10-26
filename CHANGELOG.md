@@ -14,6 +14,30 @@ All notable changes to Monash Hub are documented here.
   by AI and checked against the English only, stored as curated wording in a
   row of their own per guide. Amounts, dates, codes, addresses and names are
   copied as written.
+- The apology check let an English "I can't" through only with a straight
+  apostrophe. Monash writes it curly ("I can’t log in"), so 我无法登录 was
+  thrown away as the model declining, and those questions stayed English. Both
+  spellings count now, and so do "couldn’t", "can not" and "won’t be able".
+
+### Added (pages the index was missing)
+
+- `deployment/crawl.sh gaps` listed 865 addresses that indexed pages link to
+  and no seed covers. Most were already here under another address, a landing
+  page of links, or gone; 435 had never been read. Read on a machine Monash
+  does not refuse, 46 of those turned out to be real pages the index did not
+  hold.
+- 24 of them are added: Monash Malaysia's Academic Integrity compulsory module,
+  and on the Australian side how to read the Handbook (its help pages, the unit
+  abbreviation key, course maps), the Arts, Engineering, Medicine and Science
+  faculty pages on majors, minors and course planning, Student Academic
+  Success and its consultations, the Safer Community Unit, Security, the sexual
+  harm page, Business industry experience and placements, IT's industry-based
+  learning, Prato, the study-abroad getting-started page, scholarships, and
+  help with results.
+- The rest are left out: 10 are the School of IT's course maps at a second
+  address (their `/Course-Offered/` spelling), which the index already holds;
+  the others are for applicants rather than students, or a tab of a page that
+  is already in.
 
 ### Fixed (what a translation must keep)
 
