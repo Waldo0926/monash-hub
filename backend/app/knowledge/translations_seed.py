@@ -32,6 +32,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from app.knowledge.official_zh_gaps import OFFICIAL_ZH_GAPS
 from app.knowledge.structure_zh import STRUCTURE_ZH
 from app.models.translation import CURATED, FAQ_ENTRY, GLOBAL, HUMAN, OFFICIAL_PAGE, UNIT
 
@@ -9465,6 +9466,17 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
             note="人工翻译：机器因保留术语无法处理的句子",
         )
         for slug, strings in GUIDE_BODIES.items()
+    ]
+    # A field of their own, so they are a separate row from a guide's
+    # hand-written "body" and keep their curated standing.
+    seeds += [
+        TranslationSeed(
+            ZH, OFFICIAL_PAGE, slug, "gaps",
+            strings=strings,
+            note="AI 起草，仅对照英文逐条核对：机器翻译拒绝或校验未通过的句子",
+            provenance=CURATED,
+        )
+        for slug, strings in OFFICIAL_ZH_GAPS.items()
     ]
     seeds += [
         TranslationSeed(

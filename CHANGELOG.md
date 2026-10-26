@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Chinese for the sentences the machine could not translate)
+
+- 234 sentences on 177 guides stayed in English after every translation pass:
+  the free model's content filter refused a few (a sexual-health glossary), and
+  for the rest its rendering failed the facts check - a dollar amount read as
+  澳元, a date or number changed, "I can't…" taken for the model's apology.
+  They now have Chinese in `backend/app/knowledge/official_zh_gaps.py`, drafted
+  by AI and checked against the English only, stored as curated wording in a
+  row of their own per guide. Amounts, dates, codes, addresses and names are
+  copied as written.
+- The apology check let an English "I can't" through only with a straight
+  apostrophe. Monash writes it curly ("I can’t log in"), so 我无法登录 was
+  thrown away as the model declining, and those questions stayed English. Both
+  spellings count now, and so do "couldn’t", "can not" and "won’t be able".
+
 ### Added (pages the index was missing)
 
 - `deployment/crawl.sh gaps` listed 865 addresses that indexed pages link to

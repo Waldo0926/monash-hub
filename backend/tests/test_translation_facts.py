@@ -51,6 +51,12 @@ def test_the_models_apology_is_not_a_translation():
     assert not refused("Sorry, this page cannot be found", "很抱歉，找不到此页面")
     # 无法 on its own is an ordinary word.
     assert not refused("If you cannot log in, contact ITS", "如果无法登录，请联系 ITS")
+    # Monash's own apostrophe is curly, and its FAQ asks in the first person.
+    assert not refused("I can’t log in to Moodle", "我无法登录 Moodle")
+    assert not refused("I can't log in to Moodle", "我无法登录 Moodle")
+    assert not refused("What if I couldn’t attend my exam?", "如果我无法参加考试怎么办？")
+    assert not refused("I won’t be able to submit on time", "我无法按时提交")
+    assert refused("Next", "I’m sorry, I can’t help with that.")
 
 
 def test_an_address_with_the_glossary_in_its_path_is_not_kept():
