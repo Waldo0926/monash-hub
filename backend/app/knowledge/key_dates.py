@@ -18,6 +18,14 @@ What is read, and from where:
   under month headings. Only the "University closed" rows are taken - the
   public holidays - because every academic date in them is also in the two
   tables above, in a shape that does not need guessing.
+- allocate-dates: one tab per campus, a card per teaching period ("Semester
+  one 2027"), and a bold label over a date on each line - "Preference entry
+  closes / Tuesday 19 January, 5pm". The year is usually only in the card
+  title, so the printed weekday decides it.
+- dates-wes-access: a list of "semester one (S1-01) 2027, you can enrol in
+  units from 12 October 2026" - the day WES opens for a first enrolment. The
+  page has no campus tabs and sits on monash.edu, so it is listed for
+  Australia only.
 
 The parsers are pure: rows in, items out. Anything that does not parse is
 skipped rather than approximated; a date we are unsure of is worse than a
@@ -37,6 +45,8 @@ from app.models.knowledge import OfficialPage
 
 CENSUS = "census-dates"
 FINALS = "final-assessment-dates"
+ALLOCATE = "allocate-dates"
+WES = "dates-wes-access"
 PRINCIPAL = {
     "malaysia": "malaysia-principal-dates-for-monash-university-malay",
     "australia": "principal-dates",
@@ -68,10 +78,14 @@ _WEEKDAY_WORD = re.compile(r"\b(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\b\.?", re.I
 class KeyDate:
     start: date
     end: date | None
-    kind: str  # census | withdraw | teaching_end | swot_vac | exams | results | holiday
+    # census | withdraw | teaching_end | swot_vac | exams | results | holiday |
+    # allocate_pref_open | allocate_pref_close | allocate_adjust_open |
+    # allocate_adjust_close | wes_open
+    kind: str
     source: str
     period: str | None = None
     name: str | None = None
+    time: str | None = None  # "17:00", only where the page prints a time
 
     def as_dict(self) -> dict:
         return {
@@ -80,6 +94,7 @@ class KeyDate:
             "kind": self.kind,
             "period": self.period,
             "name": self.name,
+            "time": self.time,
             "source": self.source,
         }
 
@@ -151,6 +166,124 @@ def parse_finals(rows: list[list[str]], source: str = FINALS) -> list[KeyDate]:
             parsed = parse_range(cell)
             if parsed:
                 out.append(KeyDate(parsed[0], parsed[1], kind, source, code))
+    return out
+
+
+_ALLOCATE_KINDS = {
+    "preference entry opens": "allocate_pref_open",
+    "preference entry closes": "allocate_pref_close",
+    # The OCT-MY-01 card says "open"; the others say "opens".
+    "allocation adjustment opens": "allocate_adjust_open",
+    "allocation adjustment open": "allocate_adjust_open",
+    "allocation adjustment closes": "allocate_adjust_close",
+    "allocation adjustment close": "allocate_adjust_close",
+}
+_SEMESTER = {"one": "S1-01", "two": "S2-01"}
+_ALLOCATE_DATE = re.compile(
+    r"(?:([A-Za-z]+)\s+)?(\d{1,2})\s+([A-Za-z]+)(?:\s+(\d{4}))?"
+    r"(?:,\s*(\d{1,2})(?:[:.](\d{2}))?\s*([ap]m))?(?:\s*\([A-Z]{2,5}\))?\.?"
+)
+
+
+def _card_period(title: str) -> str | None:
+    """``Semester one 2027`` is S1-01; a title with a code in brackets is that code."""
+    code = _period_code(title)
+    if code:
+        return code
+    m = re.match(r"\s*semester\s+(one|two)\b", title, re.I)
+    return _SEMESTER[m[1].lower()] if m else None
+
+
+def parse_allocate_line(text: str, years: list[int]) -> tuple[date, str | None] | None:
+    """``Tuesday 19 January, 5pm`` or ``Monday 9 November 2026, 5pm (MYT)``.
+
+    With no year printed, the year is one the card title names (or, for an
+    October to December date, the one before it - a preference round that
+    opens before the year starts) on which the printed weekday falls. A line
+    that fits none of them, or more than one, is left out.
+    """
+    m = _ALLOCATE_DATE.fullmatch(" ".join((text or "").split()))
+    if not m or not _month(m[3]):
+        return None
+    weekday = WEEKDAYS.get((m[1] or "")[:3].lower()) if m[1] else None
+    if m[1] and weekday is None:
+        return None
+    month, day = _month(m[3]), int(m[2])
+    if m[4]:
+        candidates = [int(m[4])]
+    elif weekday is not None and years:
+        candidates = sorted(set(years) | ({min(years) - 1} if month >= 10 else set()))
+    else:
+        return None
+    fits = []
+    for year in candidates:
+        try:
+            d = date(year, month, day)
+        except ValueError:
+            continue
+        if weekday is None or d.weekday() == weekday:
+            fits.append(d)
+    if len(fits) != 1:
+        return None
+    time = None
+    if m[5]:
+        hour = int(m[5]) % 12 + (12 if m[7].lower() == "pm" else 0)
+        time = f"{hour:02d}:{m[6] or '00'}"
+    return fits[0], time
+
+
+def parse_allocate(blocks: list[dict], source: str = ALLOCATE) -> dict[str, list[KeyDate]]:
+    """Allocate+ dates by campus tab: ``{"australia": [...], "malaysia": [...]}``."""
+    out: dict[str, list[KeyDate]] = {}
+    campus = period = None
+    years: list[int] = []
+    for block in blocks:
+        if block.get("type") == "heading":
+            text = (block.get("text") or "").strip()
+            if block.get("variant") == "tab":
+                campus = text.lower() if text.lower() in TIMEZONE else None
+                period, years = None, []
+            elif block.get("level", 2) >= 3:
+                period = _card_period(text)
+                years = [int(y) for y in re.findall(r"\b(20\d{2})\b", text)]
+            continue
+        spans = block.get("spans") or []
+        if block.get("type") != "paragraph" or not campus or not period or not spans:
+            continue
+        if not spans[0].get("bold"):
+            continue
+        kind = _ALLOCATE_KINDS.get(" ".join(spans[0].get("text", "").split()).lower())
+        if not kind:
+            continue
+        rest = "".join(sp.get("text", "") for sp in spans[1:]).strip()
+        parsed = parse_allocate_line(rest, years)
+        if parsed:
+            out.setdefault(campus, []).append(
+                KeyDate(parsed[0], None, kind, source, period, time=parsed[1]))
+    return out
+
+
+_WES_ITEM = re.compile(
+    r"\(([A-Z0-9]+(?:-[A-Z0-9]+)*)\)\s*\d{4}(?:\s*[–—-]\s*\d{4})?\s*,"
+    r".*?\bfrom\s+(\d{1,2}\s+[A-Za-z]+\s+\d{4})\.?\s*$",
+    re.I,
+)
+
+
+def parse_wes(blocks: list[dict], source: str = WES) -> list[KeyDate]:
+    """First-enrolment WES opening days from the list on dates-wes-access."""
+    out: list[KeyDate] = []
+    for block in blocks:
+        if block.get("type") != "list":
+            continue
+        for item in block.get("items") or []:
+            text = " ".join("".join(sp.get("text", "") for sp in item).split())
+            m = _WES_ITEM.search(text)
+            if not m:
+                continue
+            parsed = parse_range(m[2])
+            if parsed and parsed[1] is None:
+                out.append(KeyDate(parsed[0], None, "wes_open", source, m[1]))
     return out
 
 
@@ -266,10 +399,14 @@ def parse_holidays(tables: list[list[list[str]]], source: str, around: int) -> l
     return out
 
 
-def _tables(page: OfficialPage | None) -> list[list[list[str]]]:
+def _blocks(page: OfficialPage | None) -> list[dict]:
     if page is None or page.status != "ok":
         return []
-    return [b.get("rows") or [] for b in (page.blocks or []) if b.get("type") == "table"]
+    return list(page.blocks or [])
+
+
+def _tables(page: OfficialPage | None) -> list[list[list[str]]]:
+    return [b.get("rows") or [] for b in _blocks(page) if b.get("type") == "table"]
 
 
 def upcoming(
@@ -283,6 +420,10 @@ def upcoming(
     for rows in _tables(pages.get(FINALS)):
         items += [k for k in parse_finals(rows) if k.period in periods]
     items += parse_holidays(_tables(pages.get(PRINCIPAL[campus])), PRINCIPAL[campus], today.year)
+    allocate = parse_allocate(_blocks(pages.get(ALLOCATE))).get(campus, [])
+    items += [k for k in allocate if k.period in periods]
+    if campus == "australia":
+        items += [k for k in parse_wes(_blocks(pages.get(WES))) if k.period in periods]
 
     seen: set[tuple] = set()
     result: list[KeyDate] = []
@@ -296,7 +437,7 @@ def upcoming(
 
 
 def collect(db: Session, campus: str, limit: int = 6, now: datetime | None = None) -> dict:
-    slugs = (CENSUS, FINALS, PRINCIPAL[campus])
+    slugs = (CENSUS, FINALS, PRINCIPAL[campus], ALLOCATE, WES)
     query = select(OfficialPage).where(OfficialPage.slug.in_(slugs))
     found = {p.slug: p for p in db.scalars(query)}
     pages = {slug: found.get(slug) for slug in slugs}

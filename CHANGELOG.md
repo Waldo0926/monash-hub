@@ -4,6 +4,29 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (key dates: Allocate+ and WES)
+
+- The home-page key dates card and /dates now list the Allocate+ dates
+  (preference entry opens and closes, timetable adjustment opens and closes)
+  for Semester 1, Semester 2 and, in Malaysia, the October intake, with the
+  time the page prints. Malaysia and Australia come from their own tab of the
+  official Allocate+ dates page, which differ (Malaysian preference entry
+  closes at 10am, Australian at 5pm).
+- The day WES opens for a first enrolment, from the official "Dates for WES
+  access" page, is listed for Australia. That page has no Malaysia section, so
+  it is not shown for Malaysia.
+- Both are read from the pages on every refresh, like the census and exam
+  dates, so a change on monash.edu reaches the card without a code change.
+  The source links under the card name the pages the dates came from.
+
+### Fixed (official pages: campus tabs on the newer tab layout)
+
+- Pages using the newer tab layout (buttons with `role=tab`) lost their
+  "Australia" and "Malaysia" labels: both labels came out as headings above
+  the first panel, so the Malaysian dates read as Australian. Each panel now
+  gets its own label as a tab heading, and a date card's title ("Semester one
+  2027") is a heading rather than a line of the card above it.
+
 ### Fixed (course map: the settings row lines up)
 
 - Campus, degree, start year and the verdict pill sit on one baseline. The

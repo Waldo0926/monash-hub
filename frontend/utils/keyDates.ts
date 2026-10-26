@@ -12,6 +12,8 @@ export type KeyDate = {
   kind: string
   period: string | null
   name: string | null
+  /** "17:00", only where the official page prints a time. */
+  time?: string | null
   source: string
 }
 export type KeyDates = {
@@ -32,7 +34,12 @@ export const KEY_DATE_TEXT = {
       swot_vac: 'Swot vac',
       exams: 'Final assessments',
       results: 'Results released',
-      holiday: 'University closed'
+      holiday: 'University closed',
+      allocate_pref_open: 'Allocate+ preference entry opens',
+      allocate_pref_close: 'Allocate+ preference entry closes',
+      allocate_adjust_open: 'Allocate+ timetable adjustment opens',
+      allocate_adjust_close: 'Allocate+ timetable adjustment closes',
+      wes_open: 'WES opens for first enrolment'
     } as Record<string, string>,
     period: { 'S1-01': 'Semester 1', 'S2-01': 'Semester 2', 'OCT-MY-01': 'October intake' } as Record<string, string>,
     today: 'today',
@@ -45,7 +52,7 @@ export const KEY_DATE_TEXT = {
     switcher: 'Campus',
     viewAll: 'All key dates',
     pageTitle: 'Key dates',
-    pageLead: 'Census, withdrawal, swot vac, exam and results dates for the main teaching periods, and the days the university is closed. Read from the official Monash date pages.',
+    pageLead: 'Census, withdrawal, Allocate+ timetable, WES enrolment, swot vac, exam and results dates for the main teaching periods, and the days the university is closed. Read from the official Monash date pages.',
     periods: { malaysia: 'Semester 1, Semester 2 and the October intake', australia: 'Semester 1 and Semester 2' },
     periodsLabel: 'Teaching periods shown: ',
     otherPeriods: 'Summer, winter, Monash Online and other teaching periods are on the official pages below.',
@@ -63,7 +70,12 @@ export const KEY_DATE_TEXT = {
       swot_vac: '复习周 Swot vac',
       exams: '期末考核',
       results: '公布成绩',
-      holiday: '学校休息'
+      holiday: '学校休息',
+      allocate_pref_open: 'Allocate+ 开始填上课时间偏好',
+      allocate_pref_close: 'Allocate+ 填时间偏好截止',
+      allocate_adjust_open: 'Allocate+ 开放调整课表',
+      allocate_adjust_close: 'Allocate+ 调整课表截止',
+      wes_open: 'WES 开放选课（新生首次选课）'
     } as Record<string, string>,
     period: { 'S1-01': '第一学期', 'S2-01': '第二学期', 'OCT-MY-01': '十月入学' } as Record<string, string>,
     today: '今天',
@@ -76,7 +88,7 @@ export const KEY_DATE_TEXT = {
     switcher: '校区',
     viewAll: '查看全部日期',
     pageTitle: '重要日期',
-    pageLead: '主要教学期的 Census、退课、复习周、考试和公布成绩日期，以及学校休息日。全部从 Monash 官方日期页面读取。',
+    pageLead: '主要教学期的 Census、退课、Allocate+ 排课、WES 选课、复习周、考试和公布成绩日期，以及学校休息日。全部从 Monash 官方日期页面读取。',
     periods: { malaysia: '第一学期、第二学期、十月入学', australia: '第一学期、第二学期' },
     periodsLabel: '列出的教学期：',
     otherPeriods: '夏季、冬季、Monash Online 等其他教学期请看下面的官方页面。',
@@ -94,7 +106,12 @@ export const KEY_DATE_TEXT = {
       swot_vac: '試験準備期間 Swot vac',
       exams: '期末評価',
       results: '成績発表',
-      holiday: '大学休業日'
+      holiday: '大学休業日',
+      allocate_pref_open: 'Allocate+ 希望時間の登録開始',
+      allocate_pref_close: 'Allocate+ 希望時間の登録締切',
+      allocate_adjust_open: 'Allocate+ 時間割の調整開始',
+      allocate_adjust_close: 'Allocate+ 時間割の調整締切',
+      wes_open: 'WES 履修登録開始（初回登録）'
     } as Record<string, string>,
     period: { 'S1-01': '第1学期', 'S2-01': '第2学期', 'OCT-MY-01': '10月入学' } as Record<string, string>,
     today: '今日',
@@ -107,7 +124,7 @@ export const KEY_DATE_TEXT = {
     switcher: 'キャンパス',
     viewAll: 'すべての日程',
     pageTitle: '重要な日程',
-    pageLead: '主な学期の Census、履修取消、試験準備期間、試験、成績発表の日程と大学休業日です。Monash の公式日程ページから読み取っています。',
+    pageLead: '主な学期の Census、履修取消、Allocate+ の時間割、WES の履修登録、試験準備期間、試験、成績発表の日程と大学休業日です。Monash の公式日程ページから読み取っています。',
     periods: { malaysia: '第1学期、第2学期、10月入学', australia: '第1学期、第2学期' },
     periodsLabel: '表示している学期：',
     otherPeriods: '夏期、冬期、Monash Online などほかの学期は下の公式ページを見てください。',
@@ -125,7 +142,12 @@ export const KEY_DATE_TEXT = {
       swot_vac: '시험 준비 기간 Swot vac',
       exams: '기말 평가',
       results: '성적 발표',
-      holiday: '대학 휴무일'
+      holiday: '대학 휴무일',
+      allocate_pref_open: 'Allocate+ 선호 시간 입력 시작',
+      allocate_pref_close: 'Allocate+ 선호 시간 입력 마감',
+      allocate_adjust_open: 'Allocate+ 시간표 조정 시작',
+      allocate_adjust_close: 'Allocate+ 시간표 조정 마감',
+      wes_open: 'WES 수강 신청 시작(첫 등록)'
     } as Record<string, string>,
     period: { 'S1-01': '1학기', 'S2-01': '2학기', 'OCT-MY-01': '10월 입학' } as Record<string, string>,
     today: '오늘',
@@ -138,7 +160,7 @@ export const KEY_DATE_TEXT = {
     switcher: '캠퍼스',
     viewAll: '전체 일정',
     pageTitle: '주요 일정',
-    pageLead: '주요 학기의 Census, 수강 철회, 시험 준비 기간, 시험, 성적 발표 일정과 대학 휴무일입니다. Monash 공식 일정 페이지에서 읽어 옵니다.',
+    pageLead: '주요 학기의 Census, 수강 철회, Allocate+ 시간표, WES 수강 신청, 시험 준비 기간, 시험, 성적 발표 일정과 대학 휴무일입니다. Monash 공식 일정 페이지에서 읽어 옵니다.',
     periods: { malaysia: '1학기, 2학기, 10월 입학', australia: '1학기, 2학기' },
     periodsLabel: '표시하는 학기: ',
     otherPeriods: '하계, 동계, Monash Online 등 다른 학기는 아래 공식 페이지를 확인하세요.',
@@ -238,7 +260,10 @@ export function keyDateLabel(item: KeyDate, lang: KeyDateLang): { main: string; 
     return { main: name, sub: null }
   }
   const period = item.period ? (t.period[item.period] ?? item.period) : ''
-  return { main: t.kind[item.kind] ?? item.kind, sub: period || null }
+  // The time goes beside the period rather than the date, so the date column
+  // keeps its width.
+  const sub = [period, item.time].filter(Boolean).join(' · ')
+  return { main: t.kind[item.kind] ?? item.kind, sub: sub || null }
 }
 
 export const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

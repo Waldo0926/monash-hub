@@ -110,8 +110,10 @@ export const SITE_TOOLS: SiteTool[] = [
     to: '/dates',
     words: [
       'key dates', 'important dates', 'academic calendar', 'census date', 'swot vac',
-      'exam period', 'results release', 'public holiday',
+      'exam period', 'results release', 'public holiday', 'allocate+ dates', 'allocate dates',
+      'preference entry', 'when does wes open', 'wes opens',
       '重要日期', '校历', '学校日历', '考试周', '复习周', '出成绩', '公布成绩', '公共假期', '放假',
+      '选课时间', '什么时候选课', '排课时间', '调课时间', 'allocate 什么时候', 'wes 什么时候',
       '重要な日程', '学年暦', '試験期間', '成績発表',
       '주요 일정', '학사 일정', '시험 기간', '성적 발표'
     ]

@@ -117,6 +117,108 @@ def test_table_whose_weekdays_fit_no_year_is_dropped():
     assert kd.parse_holidays([rows], "my", around=2026) == []
 
 
+def _h(text, level=3, tab=False):
+    block = {"type": "heading", "level": 2 if tab else level, "text": text, "id": text}
+    if tab:
+        block["variant"] = "tab"
+    return block
+
+
+def _line(label, value):
+    return {"type": "paragraph", "spans": [{"text": label, "bold": True}, {"text": f"\n{value}"}]}
+
+
+# The cleaner's shape for the Allocate+ dates page: a tab heading per campus, a
+# card title per teaching period, a bold label over a date.
+ALLOCATE_BLOCKS = [
+    _h("Australia", tab=True),
+    _h("Semester one 2027"),
+    _line("Preference entry opens", "Wednesday 6 January, 10am"),
+    _line("Preference entry closes", "Tuesday 19 January, 5pm"),
+    {"type": "paragraph", "spans": [{"text": "Allocate+ in read-only mode", "bold": True}]},
+    _h("Summer A 2026 and Summer B 2027"),
+    _line("Allocation adjustment closes", "As specified by your faculty"),
+    _h("Malaysia", tab=True),
+    _h("October teaching period (OCT-MY-01) 2026–2027"),
+    _line("Allocation adjustment open", "Monday 5 October 2026, 10am (MYT)"),
+    _line("Allocation adjustment closes", "Monday 9 November 2026, 5pm (MYT)"),
+    _h("Semester one 2027"),
+    _line("Preference entry closes", "Tuesday 19 January, 10am"),
+    # A weekday that is wrong for every candidate year is a typo, not a date.
+    _line("Allocation adjustment opens", "Monday 9 February, 10am"),
+]
+
+
+def test_allocate_dates_are_read_per_campus_tab():
+    got = {
+        campus: [(k.kind, k.period, k.start, k.time) for k in items]
+        for campus, items in kd.parse_allocate(ALLOCATE_BLOCKS).items()
+    }
+    assert got == {
+        "australia": [
+            ("allocate_pref_open", "S1-01", date(2027, 1, 6), "10:00"),
+            ("allocate_pref_close", "S1-01", date(2027, 1, 19), "17:00"),
+        ],
+        "malaysia": [
+            ("allocate_adjust_open", "OCT-MY-01", date(2026, 10, 5), "10:00"),
+            ("allocate_adjust_close", "OCT-MY-01", date(2026, 11, 9), "17:00"),
+            ("allocate_pref_close", "S1-01", date(2027, 1, 19), "10:00"),
+        ],
+    }
+
+
+@pytest.mark.parametrize(
+    "text,years,expected",
+    [
+        ("Tuesday 19 January, 5pm", [2027], (date(2027, 1, 19), "17:00")),
+        # A preference round for 2027 that opens in December 2026.
+        ("Tuesday 8 December, 10am", [2027], (date(2026, 12, 8), "10:00")),
+        ("Monday 9 November 2026, 5pm (MYT)", [2026, 2027], (date(2026, 11, 9), "17:00")),
+        ("Monday 9 February, 10am", [2027], None),
+        ("19 January, 5pm", [2027], None),
+        ("As specified by your faculty", [2027], None),
+    ],
+)
+def test_allocate_line_year_comes_from_the_weekday(text, years, expected):
+    assert kd.parse_allocate_line(text, years) == expected
+
+
+WES_BLOCKS = [
+    {"type": "heading", "level": 2, "text": "Enrolling for the first time", "id": "x"},
+    {"type": "list", "ordered": False, "items": [
+        [{"text": "semester one", "bold": True},
+         {"text": " (S1-01) 2027, you can enrol in units from "},
+         {"text": "12 October 2026", "bold": True}],
+        [{"text": "November", "bold": True},
+         {"text": " (NOV12) 2026–2027, you can enrol in units from "},
+         {"text": "1 August 2026", "bold": True}],
+        [{"text": "semester two", "bold": True},
+         {"text": " (S2-01) 2027, you can enrol in units from "},
+         {"text": "12 February 2027", "bold": True}, {"text": "."}],
+    ]},
+]
+
+
+def test_wes_opening_days_come_from_the_first_enrolment_list():
+    got = [(k.period, k.start) for k in kd.parse_wes(WES_BLOCKS)]
+    assert got == [("S1-01", date(2026, 10, 12)), ("NOV12", date(2026, 8, 1)),
+                   ("S2-01", date(2027, 2, 12))]
+
+
+def test_allocate_and_wes_join_the_campus_lists():
+    pages = {
+        kd.ALLOCATE: SimpleNamespace(status="ok", blocks=ALLOCATE_BLOCKS),
+        kd.WES: SimpleNamespace(status="ok", blocks=WES_BLOCKS),
+    }
+    my = [(k.kind, k.period) for k in kd.upcoming(pages, "malaysia", date(2026, 10, 26), 20)]
+    au = [(k.kind, k.period) for k in kd.upcoming(pages, "australia", date(2026, 10, 26), 20)]
+    assert my == [("allocate_adjust_close", "OCT-MY-01"), ("allocate_pref_close", "S1-01")]
+    # The WES page has no Malaysia tab, so it is only on the Australian list;
+    # NOV12 is not one of the periods shown.
+    assert au == [("allocate_pref_open", "S1-01"), ("allocate_pref_close", "S1-01"),
+                  ("wes_open", "S2-01")]
+
+
 def _page(rows_list, status="ok"):
     return SimpleNamespace(status=status, blocks=[{"type": "table", "rows": r} for r in rows_list])
 
