@@ -908,30 +908,33 @@ useSeoMeta({ title: () => $t('plan.title') })
               <span class="ctl-label">{{ $t('plan.startYear') }}</span>
               <input v-model.number="plan.startYear" class="ctl-input" type="number" min="2020" max="2040" />
             </label>
+            <!-- The verdict on the whole plan, where the eye already is, in the
+                 same row as the inputs so it lines up with them. The side panel
+                 has the numbers; this only says whether to look. -->
+            <div class="ctl ctl--verdict">
+              <span class="ctl-label">{{ $t('plan.verdict') }}</span>
+              <p class="pill-wrap" role="status" aria-live="polite">
+              <button
+                v-if="status === 'error' || status === 'warn'"
+                class="pill pill--jump"
+                :class="`pill--${status}`"
+                type="button"
+                :title="$t('plan.jumpToIssue')"
+                @click="jumpToIssue"
+              >
+                <PlanIcon name="alert" :size="14" />
+                {{ status === 'error' ? $t('plan.errors', { n: errorCount }) : $t('plan.warnings', { n: warningCount }) }}
+                <span class="visually-hidden">. {{ $t('plan.jumpToIssue') }}</span>
+              </button>
+              <span v-else class="pill" :class="`pill--${status}`">
+                <template v-if="status === 'empty'">{{ $t('plan.empty') }}</template>
+                <template v-else-if="status === 'checking'"><PlanIcon name="spinner" :size="14" />{{ $t('plan.checking') }}</template>
+                <template v-else-if="status === 'failed'"><PlanIcon name="alert" :size="14" />{{ $t('plan.checkFailed') }}</template>
+                <template v-else><PlanIcon name="check" :size="14" />{{ $t('plan.allClear') }}</template>
+              </span>
+              </p>
+            </div>
           </div>
-
-          <!-- The verdict on the whole plan, where the eye already is. The
-               side panel has the numbers; this only says whether to look. -->
-          <p class="pill-wrap" role="status" aria-live="polite">
-            <button
-              v-if="status === 'error' || status === 'warn'"
-              class="pill pill--jump"
-              :class="`pill--${status}`"
-              type="button"
-              :title="$t('plan.jumpToIssue')"
-              @click="jumpToIssue"
-            >
-              <PlanIcon name="alert" :size="14" />
-              {{ status === 'error' ? $t('plan.errors', { n: errorCount }) : $t('plan.warnings', { n: warningCount }) }}
-              <span class="visually-hidden">. {{ $t('plan.jumpToIssue') }}</span>
-            </button>
-            <span v-else class="pill" :class="`pill--${status}`">
-              <template v-if="status === 'empty'">{{ $t('plan.empty') }}</template>
-              <template v-else-if="status === 'checking'"><PlanIcon name="spinner" :size="14" />{{ $t('plan.checking') }}</template>
-              <template v-else-if="status === 'failed'"><PlanIcon name="alert" :size="14" />{{ $t('plan.checkFailed') }}</template>
-              <template v-else><PlanIcon name="check" :size="14" />{{ $t('plan.allClear') }}</template>
-            </span>
-          </p>
         </div>
 
         <!-- An empty plan opens with what to do first, in order. It goes as
@@ -1306,12 +1309,15 @@ useSeoMeta({ title: () => $t('plan.title') })
 }
 /* Named tracks plus min-width: 0. The degree <select> holds 200 long titles,
    which gives it a max-content width in the thousands of pixels; without the
-   minmax(0, ...) that width decides the layout instead of the screen. */
+   minmax(0, ...) that width decides the layout instead of the screen.
+   Each control is a label over a 40px input; the rows are fixed so a note
+   under the degree (a third row of that control alone) cannot push the others
+   about, and the verdict pill sits in the input row like one of them. */
 .settings {
-  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 96px;
-  gap: var(--s3); flex: 1 1 560px; min-width: 0;
+  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 96px auto;
+  gap: var(--s3); flex: 1 1 560px; min-width: 0; align-items: start;
 }
-.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl { display: grid; grid-template-rows: auto 40px; align-content: start; gap: 4px; min-width: 0; }
 .ctl-label {
   font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--muted);
@@ -1339,7 +1345,7 @@ select.ctl-input {
 .pill--ok { color: var(--success); background: var(--success-bg); border-color: #b7e4d0; }
 .pill--error, .pill--failed { color: var(--danger); background: var(--danger-bg); border-color: #f1c4c4; }
 .pill--warn { color: var(--warning); background: var(--warning-bg); border-color: #f5dcae; }
-.pill-wrap { margin: 0; }
+.pill-wrap { display: flex; align-items: center; height: 40px; margin: 0; }
 .pill--jump { font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 .pill--jump:hover { text-decoration: underline; }
 
@@ -1605,6 +1611,10 @@ button.part-line:hover, button.part-line:focus-visible { background: var(--tone-
   .board-head { padding: var(--s4); }
   .settings { grid-template-columns: minmax(0, 1fr) 96px; flex-basis: 100%; }
   .ctl--wide { grid-column: 1 / -1; grid-row: 1; }
+  /* The pill has a row of its own here and needs no label over it. */
+  .ctl--verdict { grid-column: 1 / -1; grid-template-rows: none; }
+  .ctl--verdict .ctl-label { display: none; }
+  .ctl--verdict .pill-wrap { height: auto; }
   .periods { padding: var(--s3) var(--s4); }
   .plan-title { flex-wrap: wrap; row-gap: var(--s1); }
   .start { grid-template-columns: minmax(0, 1fr); padding: var(--s4); }
@@ -1634,6 +1644,7 @@ button.part-line:hover, button.part-line:focus-visible { background: var(--tone-
   .split { grid-template-columns: minmax(0, 1fr); }
   .board, .panel { box-shadow: none; border-color: #c9d2dc; }
   .board-head { padding: 8px 12px; }
+  .ctl { grid-template-rows: none; }
   .ctl-input { border: 0; padding: 0; height: auto; background-image: none; }
   .plan-all { display: none; }
   .year { break-inside: avoid; }
