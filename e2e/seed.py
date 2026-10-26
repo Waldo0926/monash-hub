@@ -10,6 +10,7 @@ fixtures in backend/tests: real-looking codes and periods, no Handbook text.
 from __future__ import annotations
 
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
@@ -20,6 +21,7 @@ from app.handbook.parser import compute_content_hash
 from app.handbook.repository import upsert_unit
 from app.knowledge import teach_out
 from app.knowledge.repository import get_or_create_source, upsert_seed_page
+from app.models.search_terms import SearchTerm
 from sqlalchemy import text
 
 YEAR = 2026
@@ -201,15 +203,29 @@ def seed_teach_out(db) -> None:
         page.content_hash = f"e2e-{slug}"
 
 
+# What the home page shows as "searched lately": three terms, each searched on
+# two days, which is the least the page lists instead of its examples.
+SEARCHES = [("fit1008", "FIT1008", 9), ("census date", "census date", 4), ("fit2004", "FIT2004", 3)]
+
+
+def seed_searches(db) -> None:
+    today = date.today()
+    for term, label, hits in SEARCHES:
+        for day in (today, today - timedelta(days=1)):
+            db.add(SearchTerm(term=term, label=label, day=day, hits=hits))
+
+
 def main() -> None:
     with SessionLocal() as db:
         db.execute(text(
-            "TRUNCATE units, unit_reviews, courses, areas_of_study RESTART IDENTITY CASCADE"
+            "TRUNCATE units, unit_reviews, courses, areas_of_study, search_terms "
+            "RESTART IDENTITY CASCADE"
         ))
         for record in UNITS:
             upsert_unit(db, record)
         upsert_course(db, COURSE)
         seed_teach_out(db)
+        seed_searches(db)
         db.commit()
     print(f"seeded {len(UNITS)} units and 1 course for {YEAR}")
 

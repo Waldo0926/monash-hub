@@ -36,6 +36,7 @@ from app.models.knowledge import (  # noqa: F401
     OfficialSource,
 )
 from app.models.review import UnitReview  # noqa: F401
+from app.models.search_terms import SearchTerm  # noqa: F401
 from app.models.translation import ContentTranslation  # noqa: F401
 from app.models.user import (  # noqa: F401
     AuthThrottle,
