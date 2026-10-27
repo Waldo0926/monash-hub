@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (the crawl alert counted pages the run never asked for)
+
+- The official refresh only reads the pages that are due, but the alert
+  measured its failures against the whole seed list. On 2026-10-27 every page
+  the run tried failed and the mail said 194 of 2917, and a run with fewer
+  than 146 due pages could have failed all of them without a mail. The share
+  is now taken over the targets the run tried, with the list size alongside.
+- The mail lists the three most common kinds of failure under the line, so it
+  no longer takes a SELECT on the server to see what went wrong. When most of
+  an official run was refused (robots.txt unreadable or HTTP 403), it says the
+  site is turning the server away and points at `crawler.official.harvest`.
+  By 2026-10-27 www.monash.edu refused the server too, not only
+  www.monash.edu.my.
+
 ### Added (Chinese for the sentences the machine could not translate)
 
 - 234 sentences on 177 guides stayed in English after every translation pass:

@@ -9,8 +9,9 @@
     deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
 
 Since 2026-10-25 Monash Malaysia's site answers the server's address with 403,
-in the browser as well as over HTTP, while a student's own computer reads every
-page normally. Getting past that refusal is not ours to do; reading the pages
+in the browser as well as over HTTP, and by 2026-10-27 www.monash.edu did
+the same, robots.txt included. A student's own computer reads every page
+normally. Getting past that refusal is not ours to do; reading the pages
 where they are served, at the same pace and with the same robots rules, is.
 
 This side only fetches: one JSON line per seed page - the address, what came
