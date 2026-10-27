@@ -120,15 +120,26 @@ def test_a_job_left_running_by_an_older_run_is_closed(db):
 def _job(**kwargs):
     defaults = {"id": 7, "status": "ok", "targets": 200, "failed": 0, "notes": None,
                 "started_at": datetime(2026, 10, 25, 2, 10, tzinfo=UTC)}
-    return SimpleNamespace(**(defaults | kwargs))
+    job = defaults | kwargs
+    # By default the run asked about every target on its list.
+    job.setdefault("fetched", job["targets"] - job["failed"])
+    return SimpleNamespace(**job)
 
 
 @pytest.mark.parametrize("job, expected", [
     (_job(), None),
     (_job(status="partial", failed=4), None),
-    (_job(status="partial", targets=40, failed=5), "5 of 40 targets failed"),
+    (_job(status="partial", targets=40, failed=5), "5 of the 40 targets it tried failed"),
     (_job(status="partial", failed=9), None),
-    (_job(status="partial", failed=11), "11 of 200 targets failed"),
+    (_job(status="partial", failed=11), "11 of the 200 targets it tried failed"),
+    # The official refresh on 2026-10-27: every due page failed, and the mail
+    # called it 194 of 2917.
+    (_job(status="partial", targets=2917, fetched=0, failed=194),
+     "194 of the 194 targets it tried failed (2917 on its list)"),
+    # 8 of 2917 is under the share, 8 of the 28 pages that were due is not.
+    (_job(status="partial", targets=2917, fetched=20, failed=8),
+     "8 of the 28 targets it tried failed"),
+    (_job(status="partial", targets=2917, fetched=180, failed=8), None),
     (_job(status="failed", notes="UpstreamDown: 30 targets failed in a row"), "UpstreamDown"),
     (_job(status="running"), "still marked running"),
     (None, "no run on record"),
@@ -139,6 +150,38 @@ def test_what_is_worth_an_email(job, expected):
         assert found == []
     else:
         assert len(found) == 1 and expected in found[0]
+
+
+def test_the_mail_says_what_went_wrong():
+    reasons = [("HTTP 404", 6), ("TimeoutError: Page.goto: Timeout 45000ms exceeded.", 3),
+               ("HTTP 500", 2), ("HTTP 502", 1)]
+    found = alert.problems(_job(status="partial", failed=12), "official", reasons)
+    assert found[1:] == ["  6 x HTTP 404",
+                         "  3 x TimeoutError: Page.goto: Timeout 45000ms exceeded.",
+                         "  2 x HTTP 500"]
+
+
+def test_a_refused_server_is_told_to_harvest():
+    reasons = [("robots.txt unavailable - crawl permission unknown", 190), ("HTTP 404", 4)]
+    job = _job(status="partial", targets=2917, fetched=0, failed=194)
+    assert "crawler.official.harvest" in alert.problems(job, "official", reasons)[-1]
+    # The Handbook has no harvest, and a few refusals among other failures
+    # are not the server being turned away.
+    assert "harvest" not in "\n".join(alert.problems(job, "handbook", reasons))
+    mixed = [("HTTP 404", 100), ("HTTP 403", 94)]
+    assert "harvest" not in "\n".join(alert.problems(job, "official", mixed))
+
+
+@pytest.mark.parametrize("message, label", [
+    (None, "no message"),
+    ("", "no message"),
+    ("HTTP 403", "HTTP 403"),
+    ("redirected to https://www.monash.edu/students/x", "redirected to <url>"),
+    ("Error: Page.goto: net::ERR_ABORTED at https://www.monash.edu.my/a\n"
+     "Call log:\n  - navigating to ...", "Error: Page.goto: net::ERR_ABORTED at <url>"),
+])
+def test_failures_are_grouped_by_kind(message, label):
+    assert alert.reason(message) == label
 
 
 def test_health_shows_the_last_run_of_each_kind(client, db):
