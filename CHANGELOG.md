@@ -14,6 +14,10 @@ All notable changes to Monash Hub are documented here.
 - In that mode the alert also mails when the newest stored harvest is older
   than `OFFICIAL_HARVEST_MAX_HOURS` (72 by default), since a harvest that
   stopped arriving would otherwise look like a clean run forever.
+- `deployment/harvest-relay.sh` and `monash-hub-harvest.timer` do that read
+  daily on a home machine. The server still decides what is due
+  (`crawl.sh official-due HOST`), so Monash is asked for the pages a crawl on
+  the server would have asked for, not all 1,450 on each site every day.
 
 ### Fixed (the crawl alert counted pages the run never asked for)
 

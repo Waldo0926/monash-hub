@@ -10,6 +10,8 @@
 #   deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
 #                                           # store pages read on another machine
 #                                           # (crawler.official.harvest)
+#   deployment/crawl.sh official-due www.monash.edu.my
+#                                           # slugs a harvest should read
 #   deployment/crawl.sh gaps                # linked official pages not indexed
 #                                           # (reads the database only)
 #   deployment/crawl.sh seed                # curated FAQ rows
@@ -48,6 +50,11 @@ case "$target" in
     dir="$(cd "$(dirname "$file")" && pwd)"
     "${COMPOSE[@]}" run --rm -v "$dir:/harvest:ro" crawler \
       python -m crawler.official.run --harvest "/harvest/$(basename "$file")" "$@"
+    ;;
+  official-due)
+    # Read-only: the due pages on one host, comma separated, for a harvest on
+    # another machine (deployment/harvest-relay.sh asks for this over ssh).
+    "${COMPOSE[@]}" run --rm -T crawler python -m crawler.official.due "$@"
     ;;
   gaps)
     # Read-only: official pages the stored pages link to that no seed covers.
