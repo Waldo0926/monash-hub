@@ -172,6 +172,20 @@ def test_a_refused_server_is_told_to_harvest():
     assert "harvest" not in "\n".join(alert.problems(job, "official", mixed))
 
 
+def test_a_harvest_that_stopped_coming_is_reported():
+    # _job() started at 2026-10-25 02:10 UTC.
+    limit = timedelta(hours=72)
+    assert alert.too_old(_job(), "official", limit,
+                         now=datetime(2026, 10, 28, 2, 0, tzinfo=UTC)) == []
+    found = alert.too_old(_job(), "official", limit,
+                          now=datetime(2026, 10, 29, 6, 10, tzinfo=UTC))
+    assert len(found) == 1
+    assert "#7 (2026-10-25 02:10 UTC), is 4d 4h old, past the 72 hours" in found[0]
+    assert "official-harvest" in found[0]
+    # No run at all is the other check's to say.
+    assert alert.too_old(None, "official", limit) == []
+
+
 @pytest.mark.parametrize("message, label", [
     (None, "no message"),
     ("", "no message"),

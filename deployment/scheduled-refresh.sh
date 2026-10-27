@@ -42,6 +42,16 @@ locales="${locales:-zh ja ko}"
 # with three or four in flight 17 to 19 of them were refused with 429.
 workers="$(sed -n 's/^TRANSLATE_WORKERS=//p' .env 2>/dev/null | tail -1)"
 
+# OFFICIAL_FETCH=harvest: official pages are read on another machine and stored
+# with crawl.sh official-harvest, so this server does not ask for them. From
+# 2026-10-25 Monash refused the VPS address, by 2026-10-27 on both sites, and
+# every run here failed each due page and mailed about it. Everything after
+# the fetch still runs; the alert instead says when the newest harvest is too
+# old to trust.
+official_fetch="$(sed -n 's/^OFFICIAL_FETCH=//p' .env 2>/dev/null | tail -1 | tr -d '[:space:]')"
+harvest_max_hours="$(sed -n 's/^OFFICIAL_HARVEST_MAX_HOURS=//p' .env 2>/dev/null \
+  | tail -1 | tr -d '[:space:]')"
+
 # One failed pass (a provider that stops answering, one language the engine
 # cannot do) is logged and the next one still runs, as does the reindex.
 translate() {
@@ -65,9 +75,14 @@ fi
 
 case "${1:-}" in
   official)
-    # Only pages whose tier says they are due, so running this often costs a
-    # handful of requests, not the whole seed list.
-    "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run || failed=1
+    if [[ "$official_fetch" == harvest ]]; then
+      echo "OFFICIAL_FETCH=harvest: official pages come from crawl.sh official-harvest;" \
+        "not fetching them here"
+    else
+      # Only pages whose tier says they are due, so running this often costs
+      # a handful of requests, not the whole seed list.
+      "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run || failed=1
+    fi
     ;;
 
   handbook)
@@ -88,12 +103,20 @@ esac
 # day for each kind, since the official refresh runs four times a day and
 # Cloudflare refusing the VPS tends to last. crawler.sync.alert prints nothing
 # when the last runs look fine.
+alert_args=()
 case "$1" in
-  official) job_types=(official) ;;
+  official)
+    job_types=(official)
+    # The last official run is now the last harvest stored, and a harvest that
+    # stopped coming would otherwise look like a clean run forever.
+    if [[ "$official_fetch" == harvest ]]; then
+      alert_args=(--max-age-hours "${harvest_max_hours:-72}")
+    fi
+    ;;
   handbook) job_types=(handbook handbook_course handbook_aos) ;;
 esac
-problems="$("${COMPOSE[@]}" run --rm crawler python -m crawler.sync.alert "${job_types[@]}" \
-  2>/dev/null || echo "could not read crawl_jobs")"
+problems="$("${COMPOSE[@]}" run --rm crawler python -m crawler.sync.alert \
+  "${alert_args[@]}" "${job_types[@]}" 2>/dev/null || echo "could not read crawl_jobs")"
 if [[ -z "$problems" && "$failed" -ne 0 ]]; then
   problems="a crawl step exited with an error before it recorded a run"
 fi

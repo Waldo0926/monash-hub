@@ -86,6 +86,39 @@ and reindex Chinese search afterwards.
 | `monash-hub-refresh-official.timer` | every six hours | official pages whose refresh tier is due |
 | `monash-hub-refresh-handbook.timer` | Sunday overnight | every unit, then every degree and area of study |
 
+When Monash refuses the server's address, set `OFFICIAL_FETCH=harvest` in
+`.env`. The official refresh then stops fetching pages itself, and they are
+read on a machine Monash answers (`python -m crawler.official.harvest`) and
+stored with `deployment/crawl.sh official-harvest FILE`. Translation, the
+search reindex and the next-Handbook check still run every six hours, and the
+alert mails once the last stored harvest is older than
+`OFFICIAL_HARVEST_MAX_HOURS` (72 by default). Remove the line to fetch on the
+server again.
+
+### The harvest machine
+
+Any Linux machine Monash answers, with ssh access to the server.
+`deployment/harvest-relay.sh` asks the server which pages are due
+(`crawl.sh official-due HOST`), reads only those, copies the file over and
+stores it. Once:
+
+```bash
+mkdir -p /data/monash-hub-harvest && cd /data/monash-hub-harvest
+git clone https://github.com/Waldo0926/monash-hub.git repo
+python3 -m venv venv
+PLAYWRIGHT_BROWSERS_PATH=$PWD/ms-playwright venv/bin/pip install playwright
+PLAYWRIGHT_BROWSERS_PATH=$PWD/ms-playwright venv/bin/python -m playwright install --with-deps chromium
+echo 'SERVER=my-vps' > /etc/monash-hub-harvest.env      # an ssh host that logs in as the server's root
+sudo install -m 644 repo/deployment/systemd/monash-hub-harvest.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now monash-hub-harvest.timer
+sudo systemctl start monash-hub-harvest.service        # the first run, now
+journalctl -u monash-hub-harvest -f
+```
+
+It runs daily at about 01:20. The script pulls the repository and installs
+the pinned packages itself, so the seed list stays the server's.
+
 Install or update them:
 
 ```bash
