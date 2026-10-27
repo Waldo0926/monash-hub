@@ -86,6 +86,15 @@ and reindex Chinese search afterwards.
 | `monash-hub-refresh-official.timer` | every six hours | official pages whose refresh tier is due |
 | `monash-hub-refresh-handbook.timer` | Sunday overnight | every unit, then every degree and area of study |
 
+When Monash refuses the server's address, set `OFFICIAL_FETCH=harvest` in
+`.env`. The official refresh then stops fetching pages itself, and they are
+read on a machine Monash answers (`python -m crawler.official.harvest`) and
+stored with `deployment/crawl.sh official-harvest FILE`. Translation, the
+search reindex and the next-Handbook check still run every six hours, and the
+alert mails once the last stored harvest is older than
+`OFFICIAL_HARVEST_MAX_HOURS` (72 by default). Remove the line to fetch on the
+server again.
+
 Install or update them:
 
 ```bash

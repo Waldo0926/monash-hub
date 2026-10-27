@@ -4,6 +4,17 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (official pages read elsewhere, without the server failing them)
+
+- `OFFICIAL_FETCH=harvest` in `.env` stops the six-hourly official refresh
+  from fetching pages on the server. Monash refuses the VPS address on both
+  sites, so every run failed each due page and mailed about it; the pages are
+  now read on a home machine and stored with `crawl.sh official-harvest`.
+  Translation, the search reindex and the next-Handbook check run as before.
+- In that mode the alert also mails when the newest stored harvest is older
+  than `OFFICIAL_HARVEST_MAX_HOURS` (72 by default), since a harvest that
+  stopped arriving would otherwise look like a clean run forever.
+
 ### Fixed (the crawl alert counted pages the run never asked for)
 
 - The official refresh only reads the pages that are due, but the alert

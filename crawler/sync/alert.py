@@ -2,17 +2,23 @@
 
     python -m crawler.sync.alert official
     python -m crawler.sync.alert handbook handbook_courses handbook_aos
+    python -m crawler.sync.alert --max-age-hours 72 official
 
 Prints one line per problem with the last run of each job type, and nothing
 when they all look fine. scheduled-refresh.sh mails whatever it prints. A
 failed Handbook week, or a refresh where Cloudflare refused half the official
 pages, used to be visible only to someone reading journalctl.
+
+``--max-age-hours`` also reports a last run older than that. With
+OFFICIAL_FETCH=harvest the server stops reading official pages itself, and the
+last official run is the last harvest someone stored.
 """
 from __future__ import annotations
 
+import argparse
 import re
-import sys
 from collections import Counter
+from datetime import UTC, datetime, timedelta
 
 from app.core.db import SessionLocal
 from app.models.crawl import CrawlHistory, CrawlJob
@@ -91,18 +97,39 @@ def problems(job: CrawlJob | None, job_type: str,
     return found
 
 
-def main(job_types: list[str]) -> None:
+def too_old(job: CrawlJob | None, job_type: str, max_age: timedelta,
+            *, now: datetime | None = None) -> list[str]:
+    """A last run older than ``max_age``. A missing run is already reported."""
+    if job is None or job.started_at is None:
+        return []
+    age = (now or datetime.now(UTC)) - job.started_at
+    if age <= max_age:
+        return []
+    when = job.started_at.strftime("%Y-%m-%d %H:%M %Z")
+    return [f"{job_type}: the last run, #{job.id} ({when}), is {age.days}d "
+            f"{age.seconds // 3600}h old, past the {max_age.total_seconds() / 3600:g} hours "
+            f"allowed. With OFFICIAL_FETCH=harvest nothing is read here: store a new "
+            f"harvest with deployment/crawl.sh official-harvest."]
+
+
+def main(job_types: list[str], max_age: timedelta | None = None) -> None:
     found: list[str] = []
     with SessionLocal() as db:
         for job_type in job_types:
             job = db.scalar(select(CrawlJob).where(CrawlJob.job_type == job_type)
                             .order_by(CrawlJob.id.desc()).limit(1))
+            if max_age is not None:
+                found += too_old(job, job_type, max_age)
             reasons = failure_reasons(db, job) if job is not None and job.failed else []
             found += problems(job, job_type, reasons)
     print("\n".join(found))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise SystemExit("usage: python -m crawler.sync.alert JOB_TYPE [JOB_TYPE ...]")
-    main(sys.argv[1:])
+    parser = argparse.ArgumentParser(description="What the last crawl of each kind needs")
+    parser.add_argument("job_types", nargs="+", metavar="JOB_TYPE")
+    parser.add_argument("--max-age-hours", type=float,
+                        help="also report a last run older than this")
+    args = parser.parse_args()
+    main(args.job_types,
+         timedelta(hours=args.max_age_hours) if args.max_age_hours else None)
