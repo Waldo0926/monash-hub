@@ -9,7 +9,7 @@
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
-  DEGREE_SOURCE, ENGLISH_SOURCE, ENTRY_SCORES, ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MYR_TO_CNY,
+  DEGREE_SOURCE, ENGLISH_SOURCE, ENTRY_COURSES, ENTRY_ROWS, ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MYR_TO_CNY,
   RANKINGS, RANKINGS_SOURCE, SCORE_METHOD_URL, SUBJECT_RANKING, TRANSFER, VISA
 } from '~/data/parents'
 import type { FeeRow } from '~/utils/tuition'
@@ -127,27 +127,57 @@ useHead({
     <section id="entry" class="block">
       <h2>录取要求</h2>
       <p>
-        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB 国际文凭等，每个专业有各自的分数线和先修科目。下面是中国学生常读的几个专业在官网列出的最低要求：
+        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP 和美国高中等，每个专业有各自的分数线和单科要求。下表是中国学生读得最多的几个专业：
       </p>
-      <div class="scores">
-        <article v-for="e in ENTRY_SCORES" :key="e.course" class="score-card">
-          <h3>{{ e.course }} <span class="code mono">{{ e.code }}</span></h3>
-          <dl>
-            <div><dt>高考</dt><dd>总分 {{ e.gaokao }}%<span class="sub">满分 750 分约合 {{ score(e.gaokao) }} 分</span></dd></div>
-            <div><dt>A-Level</dt><dd :class="{ missing: e.aLevel == null }">{{ e.aLevel ?? '见英文原文' }}<template v-if="e.aLevel"> 分</template></dd></div>
-            <div><dt>IB 文凭</dt><dd :class="{ missing: e.ib == null }">{{ e.ib ?? '见英文原文' }}<template v-if="e.ib"> 分</template></dd></div>
-            <div><dt>MUFY 预科</dt><dd :class="{ missing: e.mufy == null }">{{ e.mufy ?? '见英文原文' }}</dd></div>
-            <div><dt>先修科目</dt><dd>{{ e.prerequisite }}</dd></div>
-          </dl>
-          <a :href="e.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
-        </article>
+      <div class="entry-wrap">
+        <table class="entry">
+          <thead>
+            <tr>
+              <th scope="col"><span class="visually-hidden">项目</span></th>
+              <th v-for="c in ENTRY_COURSES" :key="c.code" scope="col">
+                <span class="long">{{ c.name }}</span><span class="short">{{ c.short }}</span>
+                <span class="code mono">{{ c.code }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">学制</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.years }} 年</td>
+            </tr>
+            <tr>
+              <th scope="row">入学月份</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.intakes }}</td>
+            </tr>
+            <tr class="group">
+              <th scope="row">高考总分</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code">
+                <b>{{ c.gaokao }}%</b><span class="sub"><span class="long">750 分制</span>约 {{ score(c.gaokao) }} 分</span>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">高考单科</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code" class="text">{{ c.gaokaoSubjects }}</td>
+            </tr>
+            <tr v-for="(row, n) in ENTRY_ROWS" :key="row.key" :class="{ group: n === 0 }">
+              <th scope="row">{{ row.label }}</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.scores[row.key] }}</td>
+            </tr>
+            <tr class="group">
+              <th scope="row">原文</th>
+              <td v-for="c in ENTRY_COURSES" :key="c.code">
+                <a :href="c.url" target="_blank" rel="noopener external"><span class="long">查看英文原文</span><span class="short">查看</span></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <p class="note">
-        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。A-Level 取两年内最好的三门成绩，A* 和 A 记 5 分，B 记 4 分，C 记 3 分，依此类推，A* 另有加分。工程学士的分数取自机械工程页面，土木、电子工程页面列出的分数相同。AP 等其他体系的计分方法见官网计分说明。以上分数官网注明适用于 2024 年入读 MUFY 的学生，每年可能调整，以录取当年官网为准。
+        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。工程学士下设土木、化学、材料、电气与计算机、机械、机器人与机电、软件等方向，录取要求相同；生物医学工程只在 2 月入学。A-Level、AP、IB 的计分方法见官网计分说明。每年的要求可能调整，以录取当年官网为准。
       </p>
       <h3>先读预科再升本科</h3>
       <p>
-        没有参加高考，或成绩未达到直接入读要求的学生，可以先在马来西亚校区读一年 Monash 大学预科（MUFY），按预科成绩升读本科，各专业要求的预科成绩见上表。也有学生先在其他院校读加拿大国际大学预科（CIMP）等课程，再申请本科。
+        没有参加高考，或成绩未达到直接入读要求的学生，可以先在马来西亚校区读一年 Monash 大学预科（MUFY），按预科成绩升读本科。也有学生在其他院校读加拿大国际大学预科（CIMP），取得安大略省高中文凭（OSSD）后申请。两种预科各专业要求的成绩见上表。
       </p>
       <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文。</p>
       <p class="src">
@@ -306,16 +336,19 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: var(--s4) 0; }
-.score-card { padding: var(--s4); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.score-card h3 { margin: 0 0 var(--s3); font-size: 1rem; }
-.score-card .code { color: var(--muted-2); font-size: 0.8rem; font-weight: 400; }
-.score-card dl { margin: 0 0 var(--s3); }
-.score-card dl div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: var(--s2); padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-.score-card dt { color: var(--muted); }
-.score-card dd { margin: 0; font-weight: 500; }
-.score-card dd.missing { color: var(--muted-2); font-weight: 400; }
-.score-card .sub { display: block; color: var(--muted-2); font-size: 0.8rem; font-weight: 400; }
+.entry-wrap { margin: var(--s4) 0; overflow-x: auto; }
+.entry { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.entry thead th:first-child { width: 7.5em; }
+.entry th, .entry td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: top; }
+.entry thead th { padding-bottom: 10px; border-bottom: 1px solid var(--ink); font-weight: 600; line-height: 1.4; }
+.entry th { font-size: inherit; letter-spacing: normal; text-transform: none; }
+.entry tbody th { color: var(--muted); font-weight: 400; text-align: left; white-space: nowrap; }
+.entry .short { display: none; }
+.entry .code { display: block; color: var(--muted-2); font-size: 0.75rem; font-weight: 400; }
+.entry .sub { display: block; color: var(--muted-2); font-size: 0.75rem; }
+.entry td.text { font-size: 0.82rem; line-height: 1.5; }
+.entry tr.group th, .entry tr.group td { padding-top: 14px; }
+.entry a { color: var(--brand); font-size: 0.78rem; }
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
 .programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
@@ -350,8 +383,14 @@ useHead({
 }
 .agent { padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
 
-@media (max-width: 640px) {
-  .scores { grid-template-columns: 1fr; }
+@media (max-width: 520px) {
+  .entry { font-size: 0.8rem; }
+  .entry th, .entry td { padding: 7px 3px; }
+  .entry thead th:first-child { width: 6.4em; }
+  .entry thead th { white-space: normal; }
+  .entry td.text { font-size: 0.75rem; }
+  .entry .long { display: none; }
+  .entry .short { display: inline; }
 }
 @media (max-width: 520px) {
   .page { padding-top: var(--s4); }

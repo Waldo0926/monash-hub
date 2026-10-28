@@ -45,61 +45,79 @@ export const ENGLISH_SOURCE: ParentSource = {
 }
 
 /**
- * Each degree's published entry scores. The course pages say the figures are
- * for students who started MUFY in 2024. A null is a score the page did not
- * show when it was read, not a degree that refuses the qualification.
+ * Entry scores for the degrees most Chinese students at the Malaysia campus
+ * take, from a checked summary of the Monash Malaysia course pages. The
+ * official course page is linked for each.
  */
-export interface EntryScores {
-  course: string
+export interface EntryCourse {
+  name: string
+  /** For the column heading on a phone. */
+  short: string
   code: string
   url: string
+  years: number
+  intakes: string
   gaokao: number
-  aLevel: number | null
-  ib: number | null
-  mufy: string | null
-  prerequisite: string
+  gaokaoSubjects: string
+  scores: Record<EntryKey, string>
 }
 
-export const ENTRY_SCORES: EntryScores[] = [
+export type EntryKey = 'aLevel' | 'ib' | 'ap' | 'sat' | 'act' | 'mufy' | 'cimp'
+
+export const ENTRY_ROWS: { key: EntryKey; label: string }[] = [
+  { key: 'aLevel', label: 'A-Level' },
+  { key: 'ib', label: 'IB 文凭' },
+  { key: 'ap', label: 'AP' },
+  { key: 'sat', label: 'SAT' },
+  { key: 'act', label: 'ACT' },
+  { key: 'mufy', label: 'MUFY 预科' },
+  { key: 'cimp', label: 'CIMP / OSSD' }
+]
+
+export const ENTRY_COURSES: EntryCourse[] = [
   {
-    course: '商业与贸易学士',
+    name: '商务和商业学士',
+    short: '商科',
     code: 'B2026',
     url: 'https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce',
+    years: 3,
+    intakes: '2、7、10',
     gaokao: 60,
-    aLevel: null,
-    ib: null,
-    mufy: null,
-    prerequisite: '数学'
+    gaokaoSubjects: '数学 60%，或高二数学及格',
+    scores: { aLevel: '7', ib: '25', ap: '6', sat: '1120', act: '22', mufy: '60%', cimp: '75.40%' }
   },
   {
-    course: '数字媒体与传播学士',
+    name: '数字媒体与传播学士',
+    short: '传媒',
     code: 'A2011',
     url: 'https://www.monash.edu.my/study/undergraduate/arts-social-sciences/bachelor-of-digital-media-and-communication',
+    years: 3,
+    intakes: '2、7、10',
     gaokao: 60,
-    aLevel: 7,
-    ib: null,
-    mufy: '60%',
-    prerequisite: '无'
+    gaokaoSubjects: '无',
+    scores: { aLevel: '7', ib: '25', ap: '6', sat: '1120', act: '22', mufy: '60%', cimp: '75.40%' }
   },
   {
-    course: '计算机科学学士',
+    name: '计算机科学学士',
+    short: '计算机',
     code: 'C2001',
     url: 'https://www.monash.edu.my/study/undergraduate/information-technology/bachelor-computer-science/entry-score',
+    years: 3,
+    intakes: '2、7、10',
     gaokao: 70,
-    aLevel: 9,
-    ib: 28,
-    mufy: '70%',
-    prerequisite: '数学'
+    gaokaoSubjects: '数学 60%',
+    scores: { aLevel: '9', ib: '28', ap: '7', sat: '1190', act: '24', mufy: '70%', cimp: '81.60%' }
   },
   {
-    course: '工程学士（荣誉）',
+    name: '工程学士（荣誉）',
+    short: '工程',
     code: 'E3001',
     url: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-engineering-honours-in-mechanical-engineering/entry-score',
+    years: 4,
+    intakes: '2、7、10',
     gaokao: 75,
-    aLevel: 10,
-    ib: null,
-    mufy: '76.25%',
-    prerequisite: '数学，以及化学或物理其中一门'
+    gaokaoSubjects: '数学 60%，物理或化学 60%',
+    scores: { aLevel: '10', ib: '30', ap: '7', sat: '1240', act: '26', mufy: '76.25%', cimp: '84.80%' }
   }
 ]
 
@@ -162,7 +180,7 @@ export const LIVING = {
  * row covers on /ugfees. Engineering is one row for all its honours degrees.
  */
 export const FEE_EXAMPLES = [
-  { label: '商业与贸易学士', match: 'Bachelor of Business and Commerce' },
+  { label: '商务和商业学士', match: 'Bachelor of Business and Commerce' },
   { label: '数字媒体与传播学士', match: 'Bachelor of Digital Media and Communication' },
   { label: '计算机科学学士', match: 'Bachelor of Computer Science' },
   { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' }
