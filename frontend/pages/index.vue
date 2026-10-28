@@ -238,7 +238,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 
     <NotificationPanel class="notifications" />
 
-    <section v-if="seasonGuides.length" class="sec" aria-labelledby="season-title">
+    <section v-if="seasonGuides.length" class="sec sec--season" aria-labelledby="season-title">
       <div class="sec-head">
         <h2 id="season-title">{{ $t(`home.season.${season}`) }}</h2>
         <NuxtLink to="/guides" class="more small">{{ $t('home.allGuides') }}</NuxtLink>
@@ -298,9 +298,12 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: clamp(32px, 5vw, 72px);
-  align-items: start;
-  padding-block: clamp(16px, 4vw, 48px) clamp(32px, 5vw, 56px);
+  align-items: stretch;
+  padding-block: clamp(16px, 4vw, 48px) var(--s6);
 }
+/* Both columns end on the same line: the entry tiles and the systems box take
+   up whatever height the other column leaves. */
+.hero-main { display: flex; flex-direction: column; }
 .hero h1 {
   margin: 0 0 var(--s5);
   font-size: clamp(1.9rem, 1.2rem + 2.4vw, 2.9rem);
@@ -323,14 +326,17 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .notifications { margin-bottom: var(--s6); }
 
 .sec { padding-block: var(--s6) var(--s7); border-top: 1px solid var(--border); }
+.sec--season { padding-top: var(--s4); border-top: 0; }
 .sec h2 { margin: 0 0 var(--s4); }
 .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; margin-bottom: var(--s4); }
 .sec-head h2 { margin: 0; }
 .more { color: var(--brand); white-space: nowrap; }
 
 .tools {
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: var(--s2);
   margin-top: var(--s6);
 }
@@ -368,7 +374,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .gt { font-weight: 500; }
 .gm { white-space: nowrap; }
 
-.hero-side { display: grid; gap: var(--s4); }
+.hero-side { display: grid; grid-template-rows: auto 1fr; gap: var(--s4); }
 .systems-box {
   padding: var(--s4) var(--s5);
   border: 1px solid var(--border);
