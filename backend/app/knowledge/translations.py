@@ -360,6 +360,36 @@ WHOLE_RUN = 0.9
 # Punctuation an anchor may end in and the sentence around it may not.
 _EDGE = " :：.。,，;；、-–—"
 
+# Anchors that say nothing about where they go. Monash pages hang most of their
+# PDF guides on "click here", and that phrase is never sent for translation on
+# its own, so _relinked had nothing to look for and dropped the link. The whole
+# printing page lost all ten of its guides that way in Chinese. These are the
+# ways each language writes the same words, longest first so "请点击此处" is not
+# split at "此处".
+_GENERIC_ANCHORS = {
+    "click here": {
+        "zh": ("点击此处", "点击这里", "单击此处", "此处", "这里"),
+        "ja": ("ここをクリック", "こちらをクリック", "こちら", "ここ"),
+        "ko": ("여기를 클릭", "여기를 누르", "여기"),
+    },
+    "here": {
+        "zh": ("此处", "这里"),
+        "ja": ("こちら", "ここ"),
+        "ko": ("여기",),
+    },
+    "read more": {
+        "zh": ("阅读更多", "了解更多", "更多信息"),
+        "ja": ("続きを読む", "詳細はこちら", "詳しくは"),
+        "ko": ("자세히 보기", "더 읽기", "자세히"),
+    },
+}
+
+
+def _generic_needles(anchor: str, locale: str) -> tuple[str, ...]:
+    """The local wording of a "click here" style anchor, or nothing."""
+    key = anchor.strip().rstrip(_EDGE).lower()
+    return _GENERIC_ANCHORS.get(key, {}).get(locale, ())
+
 
 def _translate_spans(spans: list[dict[str, Any]], tr: Translation) -> list[dict[str, Any]]:
     joined = "".join(s.get("text", "") for s in spans).strip()
@@ -394,6 +424,9 @@ def _relinked(
     got a paragraph that was blue from end to end and opened their mail client
     wherever they clicked in it.
 
+    A bare "click here" has no translation of its own, so its usual wording in
+    the target language is tried last.
+
     A link whose anchor cannot be found is dropped rather than guessed at. The
     sentence still reads; a link on the wrong words does not.
     """
@@ -404,7 +437,8 @@ def _relinked(
         anchor = span.get("text", "").strip()
         if not url or not anchor:
             continue
-        for candidate in (tr.strings.get(anchor), anchor):
+        candidates = (tr.strings.get(anchor), anchor, *_generic_needles(anchor, tr.locale))
+        for candidate in candidates:
             needle = (candidate or "").strip()
             if needle and needle not in rest:
                 # The anchor often ends in punctuation the translation writes
