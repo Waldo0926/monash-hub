@@ -21,7 +21,12 @@ const primaryItems = computed(() => [
     : { to: '/login', label: $t('nav.account'), icon: '◍', badge: 0 }
 ])
 
-const sectionItems = useSectionNavigation()
+const sectionNavigation = useSectionNavigation()
+const sectionItems = computed(() => [
+  ...sectionNavigation.value,
+  { to: '/fees', label: $t('nav.fees'), icon: '¤' },
+  { to: '/parents', label: $t('nav.parents'), icon: '♡' }
+])
 
 const sectionActive = computed(() => sectionItems.value.some(item =>
   item.to !== '/mamo' &&

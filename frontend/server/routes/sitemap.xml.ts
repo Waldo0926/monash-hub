@@ -24,7 +24,7 @@ export default defineCachedEventHandler(async event => {
 
   const urls: string[] = [
     '/', '/units', '/courses', '/guides', '/community', '/exchange',
-    '/plan', '/tree', '/marks', '/mamo', '/dates', '/fees'
+    '/plan', '/tree', '/marks', '/mamo', '/dates', '/fees', '/parents'
   ]
 
   // The API caps a page at 100 results, so walk it rather than asking for
