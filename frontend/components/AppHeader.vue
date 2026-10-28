@@ -14,7 +14,23 @@ onMounted(async () => {
 })
 onBeforeUnmount(stop)
 
-const links = useSectionNavigation()
+const links = useHeaderNavigation()
+
+// The planning tools open as a small menu. It closes on a page change, a click
+// elsewhere or Escape, and it is a real button so a keyboard reaches it.
+const openMenu = ref<string | null>(null)
+const menuRoot = ref<HTMLElement | null>(null)
+function toggleMenu(label: string) {
+  openMenu.value = openMenu.value === label ? null : label
+}
+function closeOnOutside(event: MouseEvent) {
+  if (openMenu.value && menuRoot.value && !menuRoot.value.contains(event.target as Node)) openMenu.value = null
+}
+watch(() => route.fullPath, () => { openMenu.value = null })
+onMounted(() => document.addEventListener('click', closeOnOutside))
+onBeforeUnmount(() => document.removeEventListener('click', closeOnOutside))
+const groupActive = (children: { to: string }[]) =>
+  children.some(c => route.path === c.to || route.path.startsWith(`${c.to}/`))
 
 // Shown in the avatar circle when there is no picture. Array.from keeps a
 // Chinese or emoji first character whole.
@@ -36,10 +52,27 @@ function search(value: string) {
         <span class="brand-text">Monash Hub</span>
       </NuxtLink>
 
-      <nav class="nav" :aria-label="$t('nav.mainLabel')">
-        <NuxtLink v-for="link in links" :key="link.to" :to="link.to" class="nav-link">
-          {{ link.label }}
-        </NuxtLink>
+      <nav ref="menuRoot" class="nav" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
+        <template v-for="link in links" :key="link.label">
+          <NuxtLink v-if="link.to" :to="link.to" class="nav-link">
+            {{ link.label }}
+          </NuxtLink>
+          <div v-else class="nav-group">
+            <button
+              type="button"
+              class="nav-link nav-button"
+              :class="{ 'router-link-active': groupActive(link.children || []) }"
+              :aria-expanded="openMenu === link.label"
+              @click="toggleMenu(link.label)"
+            >
+              {{ link.label }}
+              <PlanIcon name="chevron-down" :size="14" />
+            </button>
+            <div v-if="openMenu === link.label" class="nav-menu">
+              <NuxtLink v-for="child in link.children" :key="child.to" :to="child.to">{{ child.label }}</NuxtLink>
+            </div>
+          </div>
+        </template>
       </nav>
 
       <div class="header-search">
@@ -116,8 +149,8 @@ function search(value: string) {
   display: flex;
   align-items: stretch;
   justify-content: space-evenly;
-  flex: 1 1 760px;
-  max-width: 880px;
+  flex: 1 1 560px;
+  max-width: 680px;
   min-width: 0;
   gap: clamp(10px, 1vw, 24px);
   padding-inline: clamp(2px, 0.35vw, 8px);
@@ -137,6 +170,33 @@ function search(value: string) {
 }
 .nav-link:hover { color: var(--text); text-decoration: none; }
 .nav .router-link-active { color: var(--text); border-bottom-color: var(--text); }
+.nav-group { position: relative; display: flex; }
+.nav-button {
+  gap: 2px;
+  border-top: 0;
+  border-inline: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+.nav-button:hover { color: var(--text); }
+.nav-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  min-width: 10em;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.nav-menu a { padding: 8px 12px; border-radius: 6px; color: var(--text); font-size: 0.875rem; white-space: nowrap; }
+.nav-menu a:hover { background: var(--surface-2); text-decoration: none; }
+.nav-menu .router-link-active { color: var(--brand); }
 
 /* Search can give up a little width before the navigation does. This keeps long
    destinations such as WAM/GPA calculator visually separate from Community. */
@@ -218,10 +278,10 @@ function search(value: string) {
   box-sizing: content-box;
 }
 
-/* Below this width there is not enough room for eight intrinsic-width labels,
+/* Below this width there is not enough room for six intrinsic-width labels,
    search and account controls without crowding. Navigation moves to the bottom
    bar and search lives on the page instead. */
-@media (max-width: 1420px) {
+@media (max-width: 1180px) {
   .nav, .header-search, .nickname-text { display: none; }
   .nickname { padding: 0 4px; }
   .account { margin-left: auto; }

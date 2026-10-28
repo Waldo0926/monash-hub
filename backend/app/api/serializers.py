@@ -76,6 +76,8 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         "credit_points": unit.credit_points,
         "level": tr.value(unit.level),
         "faculty": tr.value(unit.faculty),
+        # Untranslated, for links that filter the unit list by faculty.
+        "faculty_raw": unit.faculty,
         "has_exam": unit.has_exam,
         "assessment_count": len(unit.assessments),
         "offerings": [

@@ -23,6 +23,8 @@ import {
 } from '~/utils/keyDates'
 
 const campus = defineModel<'malaysia' | 'australia'>('campus', { required: true })
+// The home page leaves the source list to /dates, where there is room for it.
+const props = withDefaults(defineProps<{ showSources?: boolean }>(), { showSources: true })
 
 // Enough rows that a run of holidays cannot leave the headline without an
 // academic date, but only LISTED of them are shown under it.
@@ -115,7 +117,7 @@ const options = ['malaysia', 'australia'] as const
 
     <NuxtLink to="/dates" class="all small">{{ t.viewAll }} →</NuxtLink>
 
-    <p class="src tiny muted">
+    <p v-if="props.showSources" class="src tiny muted">
       <template v-if="sources.length">{{ t.source }}:
         <template v-for="(s, i) in sources" :key="s.url">
           <a :href="s.url" rel="noopener external" target="_blank">{{ s.title }}</a><template v-if="i < sources.length - 1"> · </template>

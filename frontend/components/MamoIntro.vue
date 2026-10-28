@@ -98,7 +98,6 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         </p>
         <p class="hint tiny muted hint--desktop">{{ $t('home.mamo.scanDesktop') }}</p>
         <p class="hint tiny muted hint--touch">{{ $t('home.mamo.scanPhone') }}</p>
-        <p class="tiny muted note">{{ $t('mamo.notOfficial') }}</p>
       </div>
       <span class="visually-hidden" aria-live="polite">{{ copied ? $t('mamo.copied') : '' }}</span>
     </div>
@@ -113,7 +112,6 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
   grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
   gap: var(--s6);
   align-items: center;
-  margin-bottom: var(--s7);
   padding: clamp(20px, 3vw, 36px);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -208,7 +206,6 @@ h2 {
 .copy:hover { background: var(--surface-2); }
 .hint:lang(ko), .body:lang(ko) { word-break: keep-all; }
 .hint--touch { display: none; }
-.note { margin-top: var(--s3) !important; padding-top: var(--s3); border-top: 1px solid var(--border); }
 
 /* Touch screens get the long-press hint instead of "scan with WeChat". */
 @media (hover: none) and (pointer: coarse) {
@@ -223,7 +220,7 @@ h2 {
   .follow {
     grid-template-columns: 112px minmax(0, 1fr);
     justify-items: start;
-    align-items: center;
+    align-items: start;
     padding: var(--s4);
     text-align: left;
   }
