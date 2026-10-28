@@ -31,11 +31,11 @@ cd "$PROJECT_DIR"
 # model). It matters: a page that changes is translated again here, and the
 # offline model would put back what the chat model had just replaced.
 engine="$(sed -n 's/^TRANSLATE_ENGINE=//p' .env 2>/dev/null | tail -1)"
-# Every language the site offers. Each pass only sends what changed since the
+# Every language the site offers (Chinese; English is the source). Each pass only sends what changed since the
 # last one (it skips any target whose English hash it has already translated),
 # so after the first fill this is minutes, not hours.
 locales="$(sed -n 's/^TRANSLATE_LOCALES=//p' .env 2>/dev/null | tail -1)"
-locales="${locales:-zh ja ko}"
+locales="${locales:-zh}"
 
 # Two strings at a time. Zhipu's free tier answers glm-4.5-flash two at a
 # time: measured from the VPS, 40 requests two in flight all came back, and

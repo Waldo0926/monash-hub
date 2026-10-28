@@ -23,11 +23,14 @@ export interface LocaleOption {
   htmlLang: string
 }
 
+// Japanese and Korean were offered until October 2026. The site is read by
+// Chinese students, and keeping two more languages translated cost time and
+// translation quota nobody was using. Their message tables below stay for now
+// so nothing that still names them breaks; a ja or ko cookie is no longer a
+// valid choice and falls back to the browser language.
 export const LOCALES: readonly LocaleOption[] = [
   { code: 'en', label: 'English', htmlLang: 'en' },
-  { code: 'zh', label: '简体中文', htmlLang: 'zh-Hans' },
-  { code: 'ja', label: '日本語', htmlLang: 'ja' },
-  { code: 'ko', label: '한국어', htmlLang: 'ko' }
+  { code: 'zh', label: '简体中文', htmlLang: 'zh-Hans' }
 ]
 
 export const DEFAULT_LOCALE: LocaleCode = 'en'
@@ -181,6 +184,8 @@ const en: Messages = {
   'nav.fees': 'Malaysia fees',
   // --- course map ----------------------------------------------------------
   'nav.plan': 'Course map',
+  'nav.tools': 'Planning',
+  'nav.parents': 'For parents',
   'plans.title': 'My plans',
   'plans.lede': 'Every course plan kept in this browser. Open one to edit it on the course map, or keep a second one to try a different major.',
   'plans.untitled': 'Untitled plan',
@@ -474,7 +479,7 @@ const en: Messages = {
   'footer.systemsMalaysia': 'Malaysia systems',
   'footer.monashMalaysia': 'Monash Malaysia students',
   'footer.monashStudents': 'Monash current students',
-  'footer.about': 'An independent student platform',
+  'footer.about': 'Student-run · not affiliated with Monash',
   'footer.conceptBy': 'Concept by',
   'footer.copyright': '© 2026 Waldo. All rights reserved.',
 
@@ -520,17 +525,26 @@ const en: Messages = {
   'home.lead':
     'Unit data from the 2026 Handbook, the Monash pages students use most, and a public community for questions.',
   'home.trending': 'Try',
-  'home.searchedLately': 'Searched lately',
+  'home.searchedLately': 'Popular searches',
   'home.startHere': 'Start here',
-  'home.toolHint.units': 'Assessment, requisites, when it runs',
+  'home.toolHint.units': 'Assessment, requisites, semesters',
   'home.toolHint.guides': 'Special consideration, census, visas',
-  'home.toolHint.tree': 'Prerequisites and what a unit unlocks',
-  'home.toolHint.plan': 'Plan semesters against the Handbook',
+  'home.toolHint.tree': 'What comes before and after a unit',
+  'home.toolHint.plan': 'Semester by semester, requisites checked',
   'home.toolHint.courses': 'Structure, core units and majors',
-  'home.toolHint.marks': 'Type marks in or read a transcript',
-  'home.toolHint.community': 'Ask students who took the unit',
+  'home.toolHint.marks': 'Type marks in or upload a screenshot',
+  'home.toolHint.community': 'Ask other students',
   'home.toolHint.mamo': 'Life and admin at the Malaysia campus',
   'home.moreTools': 'Also here',
+  'home.toolHint.fees': 'Tuition by course and year',
+  'home.season.exams': 'Exam weeks',
+  'home.season.enrol': 'Enrolling for next year',
+  'home.season.start': 'Start of semester',
+  'home.season.term': 'During the semester',
+  'home.systems': 'Monash systems',
+  'home.mamoLatest': 'Latest from 马莫百科',
+  'home.mamoJoin': 'Join the group',
+  'home.facultyUnits': 'All {faculty} units',
   'home.mamo.eyebrow': '马莫百科 · WeChat account, in Chinese',
   'home.mamo.title': 'MUM Guide, written by Monash Malaysia students',
   'home.mamo.body': "Arrival and enrolment, student pass renewal, exchange and new university rules, written from the author's own experience and the official pages. You can add the author on WeChat and ask.",
@@ -1325,6 +1339,8 @@ const zh: Messages = {
   'nav.fees': '马莫学费',
   // --- 课程规划 -----------------------------------------------------------
   'nav.plan': '选课规划',
+  'nav.tools': '选课工具',
+  'nav.parents': '给家长看',
   'plans.title': '我的规划',
   'plans.lede': '这台设备上保存的所有选课规划。点“打开”在选课规划页里编辑，也可以另存一份试试换专业。',
   'plans.untitled': '未命名规划',
@@ -1613,7 +1629,7 @@ const zh: Messages = {
   'footer.systemsMalaysia': '马来西亚校区系统',
   'footer.monashMalaysia': 'Monash 马来西亚校区学生网站',
   'footer.monashStudents': 'Monash 在读学生页',
-  'footer.about': '独立学生平台',
+  'footer.about': '学生自建 · 非 Monash 官方',
   'footer.conceptBy': '创意：',
   'footer.copyright': '© 2026 Waldo。保留所有权利。',
 
@@ -1657,17 +1673,26 @@ const zh: Messages = {
   'home.lead':
     '2026 Handbook 的课程数据、常用的 Monash 官方页面，还有一个可以公开提问的社区。',
   'home.trending': '试试搜',
-  'home.searchedLately': '最近常搜',
+  'home.searchedLately': '大家在搜',
   'home.startHere': '从这里开始',
-  'home.toolHint.units': '考核方式、先修要求、哪个校区哪学期开',
-  'home.toolHint.guides': '特殊考虑、Census date、学生签证',
-  'home.toolHint.tree': '一门课要先修什么，修完能解锁什么',
-  'home.toolHint.plan': '按学期排课，按当年 Handbook 检查先修',
-  'home.toolHint.courses': '学位结构、必修课和专业方向',
-  'home.toolHint.marks': '手动输入，或上传成绩单截图识别',
-  'home.toolHint.community': '提问，看同学怎么说',
+  'home.toolHint.units': '考核方式、先修、哪学期开',
+  'home.toolHint.guides': '特殊考虑、Census date、签证',
+  'home.toolHint.tree': '前后要修哪些课',
+  'home.toolHint.plan': '按学期排课，自动查先修',
+  'home.toolHint.courses': '学位结构、必修课、专业方向',
+  'home.toolHint.marks': '输成绩或传截图',
+  'home.toolHint.community': '问问同学',
   'home.toolHint.mamo': '马来西亚校区的生活和办事',
   'home.moreTools': '还有',
+  'home.toolHint.fees': '各专业每年学费',
+  'home.season.exams': '期末考这几周',
+  'home.season.enrol': '选明年的课',
+  'home.season.start': '开学这几周',
+  'home.season.term': '这学期常用',
+  'home.systems': '常用系统',
+  'home.mamoLatest': '马莫百科最近更新',
+  'home.mamoJoin': '进群提问',
+  'home.facultyUnits': '{faculty}的全部课程',
   'home.mamo.eyebrow': '马莫百科 · 微信公众号',
   'home.mamo.title': '马莫同学写的公众号',
   'home.mamo.body': '新生入境报到、学生签证续签、国际交换、学校新规定，按自己的经历和官方页面整理。有问题可以加作者微信问。',
@@ -4572,8 +4597,6 @@ export function matchLocale(header: string | undefined | null): LocaleCode | nul
     const tag = part.split(';')[0]!.trim().toLowerCase()
     if (!tag) continue
     if (tag.startsWith('zh')) return 'zh'
-    if (tag.startsWith('ja')) return 'ja'
-    if (tag.startsWith('ko')) return 'ko'
     if (tag.startsWith('en')) return 'en'
   }
   return null
