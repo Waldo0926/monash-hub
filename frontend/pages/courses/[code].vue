@@ -124,6 +124,10 @@ useSeoMeta({
         </p>
       </div>
 
+      <!-- The fees are Malaysia campus fees, so the card goes away when the page
+           is read as another campus. -->
+      <TuitionCard v-if="course.tuition && (!campus || campus === 'Malaysia')" :fee="course.tuition" />
+
       <p v-if="course.overview" class="overview">{{ course.overview }}</p>
 
       <section class="structure">

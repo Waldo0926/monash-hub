@@ -101,6 +101,18 @@ def test_a_unit_the_campus_does_not_teach_is_marked_in_the_degree(client, degree
     assert body["units"]["FIT1047"]["offered_at_campus"] is False
 
 
+def test_a_malaysia_degree_carries_the_fee_from_the_indexed_page(client, degrees):
+    from tests.test_tuition import _store
+
+    assert client.get("/api/v1/courses/C2001").json()["tuition"] is None
+    _store(degrees)
+    fee = client.get("/api/v1/courses/C2001").json()["tuition"]
+    assert fee["year"] == 2027
+    row = fee["rows"][0]
+    assert (row["domestic"][0]["value"], row["international"][0]["value"]) == (48480, 57600)
+    assert row["basis"] == "per_year"
+
+
 def test_a_unit_missing_from_the_year_is_reported_not_omitted(client, degrees):
     """The synthetic Part A names units that are not loaded into this test database.
 

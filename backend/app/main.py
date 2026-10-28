@@ -18,6 +18,7 @@ from app.api.v1 import (
     courses,
     dates,
     exchange,
+    fees,
     guides,
     health,
     marks,
@@ -65,7 +66,7 @@ app.include_router(health.router, prefix="/api")
 
 for module in (
     units, courses, plan, search, ask, guides, community, auth, exchange, notifications,
-    marks, profile, dates, reviews,
+    marks, profile, dates, reviews, fees,
 ):
     app.include_router(module.router, prefix=settings.api_prefix)
 

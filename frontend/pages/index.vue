@@ -172,7 +172,11 @@ const directory = computed(() =>
     return item ? [{ to, icon, label: item.label, hint: $t(`home.toolHint.${key}`) }] : []
   })
 )
-const moreTools = computed(() => sectionItems.value.filter(i => MORE_TOOLS.includes(i.to)))
+// The fees page is not in the header, which is full, so it is added here by hand.
+const moreTools = computed(() => [
+  ...sectionItems.value.filter(i => MORE_TOOLS.includes(i.to)),
+  { to: '/fees', label: $t('nav.fees') }
+])
 
 // The query stays English, which is what the official pages are indexed by.
 const POPULAR = {
