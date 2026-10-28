@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (a page for parents)
+
+- `/parents` is a Chinese page for parents looking at the Malaysia campus:
+  world rankings, the degree certificate, the 高考 percentage each sample
+  degree asks for and what that is out of 750, the 2+2 move to Clayton,
+  tuition with a yuan estimate, the student visa fee, living costs, and how
+  to get in touch through 马莫百科. Each official fact links to the English
+  page it came from and says when it was checked.
+- Tuition is read from the same table as `/fees`. Yuan figures use 1 MYR =
+  1.65 CNY, set in `data/parents.ts`.
+- The page has its own share title, description and 1200x630 image for
+  WeChat. "For parents" is in the header and in the phone's More menu, which
+  now also lists Malaysia fees, and `/parents` is in the sitemap.
+
 ### Changed (a shorter home page and header)
 
 - The home page heading is now 查课程、查政策、排选课 / "Find units, check
