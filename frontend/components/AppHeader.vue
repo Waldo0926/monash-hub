@@ -84,6 +84,8 @@ function search(value: string) {
         />
       </div>
 
+      <NuxtLink to="/parents" class="parents-link">{{ $t('nav.parents') }}</NuxtLink>
+
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
            group instead of a row of separate boxes. -->
@@ -212,6 +214,15 @@ function search(value: string) {
   background: var(--surface-2);
 }
 
+.parents-link {
+  flex: none;
+  margin-left: var(--s2);
+  color: var(--muted);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+.parents-link:hover, .parents-link.router-link-active { color: var(--text); text-decoration: none; }
+
 /* The raised piece in the tray: sign in, or your own name once signed in. */
 .chip {
   display: inline-flex;
@@ -282,7 +293,7 @@ function search(value: string) {
    search and account controls without crowding. Navigation moves to the bottom
    bar and search lives on the page instead. */
 @media (max-width: 1180px) {
-  .nav, .header-search, .nickname-text { display: none; }
+  .nav, .header-search, .parents-link, .nickname-text { display: none; }
   .nickname { padding: 0 4px; }
   .account { margin-left: auto; }
 }
