@@ -150,8 +150,8 @@ const ENTRIES = [
   { to: '/tree', key: 'tree', icon: 'tree' },
   { to: '/marks', key: 'marks', icon: 'percent' },
   { to: '/guides', key: 'guides', icon: 'page' },
-  { to: '/community', key: 'community', icon: 'chat' },
-  { to: '/fees', key: 'fees', icon: 'calendar' }
+  { to: '/fees', key: 'fees', icon: 'calendar' },
+  { to: '/community', key: 'community', icon: 'chat' }
 ]
 
 // One phrase per line under each entry title.
