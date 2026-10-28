@@ -7,7 +7,7 @@
  * row; this page is for comparing, and for the rows that are not one degree
  * (Monash English, a PhD in each school, the two DHES streams).
  */
-import { feeNote, feeTitle, filterFees, formatAmount, type FeeRow } from '~/utils/tuition'
+import { deltaAt, feeNote, feeTitle, filterFees, formatAmount, type FeeRow } from '~/utils/tuition'
 
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
@@ -15,6 +15,7 @@ type Table = {
   sections: { source: string; level: string; schools: { school: string; rows: FeeRow[] }[] }[]
   general: string[]
   sources: Record<string, Source>
+  previous: { year: number; kind: 'versions' | 'printed'; sources: Record<string, { title: string; url: string; read_on?: string }> } | null
 }
 
 const { $t } = useNuxtApp()
@@ -96,6 +97,13 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
           <li>{{ $t('fees.keyBasis') }}</li>
           <li>{{ $t('fees.excludes') }}</li>
           <li>{{ $t('fees.noTotal') }}</li>
+          <li v-if="data?.previous">
+            {{ $t(data.previous.kind === 'printed' ? 'fees.previousNote' : 'fees.previousNoteStored', { year: data.previous.year }) }}
+            <template v-for="([key, source], n) in Object.entries(data.previous.sources)" :key="key">
+              <template v-if="n">, </template>
+              <a :href="source.url" rel="noopener external" target="_blank">{{ source.title }}</a>
+            </template>
+          </li>
         </ul>
 
         <p v-if="!sections.length" class="small muted">{{ $t('fees.noMatch', { q: query }) }}</p>
@@ -135,11 +143,13 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
                 <span class="money" role="cell" :data-label="$t('fees.domestic')">
                   <span v-for="(a, n) in row.domestic" :key="n">
                     {{ formatAmount(a) }}<small v-if="a.label"> {{ a.label }}</small>
+                    <FeeDelta :delta="deltaAt(row.change, 'domestic', n)" :year="row.change?.year" />
                   </span>
                 </span>
                 <span class="money" role="cell" :data-label="$t('fees.international')">
                   <span v-for="(a, n) in row.international" :key="n">
                     {{ formatAmount(a) }}<small v-if="a.label"> {{ a.label }}</small>
+                    <FeeDelta :delta="deltaAt(row.change, 'international', n)" :year="row.change?.year" />
                   </span>
                 </span>
                 <span role="cell" :data-label="$t('fees.basis')">
@@ -191,7 +201,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 .covers, .note, .warn { overflow-wrap: anywhere; }
 .warn { color: var(--warning); }
 .money { display: grid; gap: 2px; font: 600 0.95rem var(--font-mono); color: var(--navy); }
-.money small { display: block; font: 400 0.75rem var(--font-body, inherit); color: var(--muted); }
+.money small { display: block; font: 400 0.75rem var(--font); color: var(--muted); }
 .basis {
   display: inline-block; padding: 0 var(--s2); border-radius: 999px;
   font-size: 0.8rem; font-weight: 600; border: 1px solid currentColor; white-space: nowrap;
@@ -209,7 +219,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
   .name { grid-column: 1 / -1; }
   .tr > [data-label]::before {
     content: attr(data-label); display: block;
-    font: 400 0.7rem var(--font-body, inherit); color: var(--muted);
+    font: 400 0.7rem var(--font); color: var(--muted);
   }
 }
 </style>
