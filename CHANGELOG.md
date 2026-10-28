@@ -50,6 +50,10 @@ All notable changes to Monash Hub are documented here.
   Intelligence) shows none.
 - From 2028 the previous year comes from the stored versions of the same
   fee pages, so the printed table is only needed this once.
+- /ugfees and /pgfees are re-read every two days instead of every fourteen.
+  The "/fees" rule that puts fee pages on the medium tier did not match
+  them, so when Monash printed the pharmacy fee as "74,40" and then fixed
+  it, the site would have kept the wrong amount for up to two weeks.
 
 ### Added (official pages read elsewhere, without the server failing them)
 
