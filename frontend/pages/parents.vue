@@ -295,7 +295,7 @@ useHead({
       <div class="wechat">
         <img src="/img/mamo/qr-wechat.png" alt="作者微信二维码" width="132" height="132" loading="lazy">
         <div>
-          <p>作者是马来西亚校区在读学生，也是莫纳什大学马来西亚校区的授权招生代理。选专业、申请、缴费和学生签证都可以添加微信咨询。</p>
+          <p>作者是马来西亚校区在读学生，也是莫纳什大学马来西亚校区的授权招生代理。申请和入学的各类问题都可以添加微信咨询。</p>
           <p class="id">
             微信号：<span class="mono">{{ MAMO_ACCOUNT.wechatId }}</span>
             <button type="button" class="copy" @click="copyId">{{ copied ? '已复制' : '复制' }}</button>
@@ -303,7 +303,7 @@ useHead({
         </div>
       </div>
       <p class="agent">
-        通过作者以学校授权代理渠道办理申请，从选专业、递交申请到缴费和学生签证全程协助，不收取中介费，不收取押金。
+        通过作者以学校授权代理渠道办理申请，从选专业、整理材料、递交申请、办理学生签证，到入学报到和在校指引，全程协助，不收取中介费、手续费和押金。
       </p>
     </section>
   </div>

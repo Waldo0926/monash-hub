@@ -6,6 +6,10 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 const sectionLinks = useSectionNavigation()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
+const route = useRoute()
+// The parents page has its own contact section and does not carry the
+// student disclaimer.
+const showDisclaimer = computed(() => route.path !== '/parents')
 
 // The account name is a link to /mamo, so the sentence is split around it.
 // The name stays in Chinese in every language because that is what people
@@ -41,7 +45,7 @@ const featuresHeading = computed(() => {
             </span>
           </span>
         </p>
-        <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
+        <p v-if="showDisclaimer" class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
         <!-- Always here, for anyone who closed the hint at the top of the page.
              Not shown inside the installed app, where it has nothing to do. -->
         <ClientOnly>
