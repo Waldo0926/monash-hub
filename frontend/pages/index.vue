@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Home: a search box, eight entries, the next dates at the student's campus,
- * the guides for this part of the semester, the systems people log into, the
- * latest 马莫百科 posts, and one unit per faculty.
+ * Home: a search box and eight entries, with the next dates at the student's
+ * campus and the systems people log into beside them. Under that, the guides
+ * for this part of the semester, the 马莫百科 block, and one unit per faculty.
  *
  * For a signed-in reader it also carries the notification list, because the
  * point of being told your question was answered is that you see it without
@@ -14,7 +14,6 @@
  * list could not be right for both.
  */
 import { MONASH_SYSTEMS } from '~/data/systems'
-import { MAMO_POSTS } from '~/data/mamo'
 import type { KeyDates } from '~/utils/keyDates'
 import { SEASON_GUIDES, SEASON_LIMIT, pickSeason } from '~/utils/season'
 
@@ -158,7 +157,6 @@ const ENTRIES = [
 const systems = computed(() =>
   campus.value === 'malaysia' ? MONASH_SYSTEMS : MONASH_SYSTEMS.filter(s => s.appliesTo === 'all')
 )
-const mamoPosts = MAMO_POSTS.slice(0, 3).map(p => ({ ...p, title: p.title.replace(/^马莫百科｜/, '') }))
 
 const exampleTerms = computed(() => [
   { query: 'C2001', text: 'C2001', code: true },
@@ -223,7 +221,19 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
           </NuxtLink>
         </nav>
       </div>
-      <KeyDatesCard v-model:campus="campus" :show-sources="false" />
+      <div class="hero-side">
+        <KeyDatesCard v-model:campus="campus" :show-sources="false" />
+        <section class="systems-box" aria-labelledby="systems-title">
+          <h2 id="systems-title">{{ $t('home.systems') }}</h2>
+          <ul class="systems">
+            <li v-for="s in systems" :key="s.url">
+              <a :href="s.url" target="_blank" rel="noopener external">
+                {{ s.name }}<PlanIcon name="external" :size="13" />
+              </a>
+            </li>
+          </ul>
+        </section>
+      </div>
     </section>
 
     <NotificationPanel class="notifications" />
@@ -243,31 +253,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
       </ul>
     </section>
 
-    <div class="pair">
-      <section class="sec" aria-labelledby="systems-title">
-        <h2 id="systems-title">{{ $t('home.systems') }}</h2>
-        <ul class="systems">
-          <li v-for="s in systems" :key="s.url">
-            <a :href="s.url" target="_blank" rel="noopener external">
-              {{ s.name }}<PlanIcon name="external" :size="13" />
-            </a>
-          </li>
-        </ul>
-      </section>
-      <section class="sec" aria-labelledby="mamo-title">
-        <div class="sec-head">
-          <h2 id="mamo-title">{{ $t('home.mamoLatest') }}</h2>
-          <NuxtLink to="/mamo#follow" class="more small">{{ $t('home.mamoJoin') }} →</NuxtLink>
-        </div>
-        <ul class="mamo">
-          <li v-for="post in mamoPosts" :key="post.date + post.title">
-            <a v-if="post.url" :href="post.url" target="_blank" rel="noopener external">{{ post.title }}</a>
-            <span v-else>{{ post.title }}</span>
-            <span class="tiny muted mono">{{ post.date }}</span>
-          </li>
-        </ul>
-      </section>
-    </div>
+    <MamoIntro class="mamo-block" />
 
     <section class="sec" aria-labelledby="units-title">
       <div class="sec-head">
@@ -382,34 +368,30 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .gt { font-weight: 500; }
 .gm { white-space: nowrap; }
 
-.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 0 clamp(32px, 5vw, 72px); }
+.hero-side { display: grid; gap: var(--s4); }
+.systems-box {
+  padding: var(--s4) var(--s5);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.systems-box h2 { margin: 0 0 var(--s3); font-family: var(--font); font-size: 0.95rem; font-weight: 600; }
 .systems { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
 .systems a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 var(--s3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 .systems a:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
 .systems a .icon { color: var(--muted-2); }
-.mamo { margin: 0; padding: 0; list-style: none; }
-.mamo li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s4);
-  padding: var(--s3) 0;
-  border-bottom: 1px solid var(--border);
-}
-.mamo li:first-child { border-top: 1px solid var(--border); }
-.mamo a { color: var(--text); font-weight: 500; }
-.mamo a:hover { color: var(--brand); text-decoration: none; }
-.mamo .mono { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.mamo-block { margin-bottom: var(--s7); }
 
 .units { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink); }
 .unit {
@@ -444,7 +426,6 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
-  .pair { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
   .tools { gap: var(--s4) var(--s2); margin-top: var(--s5); }
@@ -466,7 +447,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   .title { grid-column: 1 / -1; grid-row: 2; }
   .periods { grid-column: 2; grid-row: 1; justify-content: flex-end; }
   .guides a { flex-direction: column; gap: 2px; }
-  .mamo li { flex-direction: column; gap: 2px; }
+  .systems-box { padding: var(--s4); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tool { transition: none; }

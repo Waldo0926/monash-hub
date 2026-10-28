@@ -14,9 +14,9 @@ All notable changes to Monash Hub are documented here.
   and shows exam pages near exams, enrolment pages while re-enrolment is open,
   census and timetable pages at the start of a semester, and the usual
   special consideration pages otherwise.
-- Monash systems and the three latest 马莫百科 posts share one row. The
-  sync-frequency grid, the community line and the 马莫百科 block with its QR
-  codes are gone from the home page.
+- Monash systems sit under the key dates. The 马莫百科 block follows the
+  season guides, without its "not an official account" line. The
+  sync-frequency grid and the community line are gone from the home page.
 - Each faculty row links its faculty name to the filtered unit list and shows
   the teaching periods at the chosen campus. When a unit from that faculty is
   among the popular searches, the most searched one takes the example's place.
