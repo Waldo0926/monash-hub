@@ -78,6 +78,8 @@ def test_only_semester_pages_and_dates_are_checked_often():
     assert tier(f"{MY}/student-services/student-admin/principal-dates") == "dynamic"
     assert tier(f"{MY}/finance/encumbrance") == "medium"
     assert tier(f"{AU}/students/admin/fees/payment-options") == "medium"
+    assert tier(f"{MY}/ugfees") == tier(f"{MY}/pgfees") == "medium"
+    assert tier(f"{MY}/ugfees-archive") == "stable"
     assert tier(f"{MY}/library/services-facilities/printing") == "stable"
     assert tier(f"{AU}/policy-bank/policies-and-procedures/academic") == "stable"
 

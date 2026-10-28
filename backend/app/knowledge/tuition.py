@@ -30,6 +30,11 @@ guessed. In October 2026 /ugfees printed the Bachelor of Pharmacy (Honours)
 international fee as "74,40". Showing 74,400 would be our guess, so the page
 shows what Monash wrote and points at the source.
 
+Each row also carries how it moved since last year. Last year's tables come
+from the stored versions of the same two pages when the index has them, and
+for 2026, which the index never saw, from Monash's printed 2026 fee tables in
+``tuition_2026.py``.
+
 Rows are matched to Handbook degrees on the English title. A title several
 schools price (Doctor of Philosophy, Master of Philosophy) also needs the
 school to agree with the degree's faculty, and a degree that matches nothing
@@ -43,7 +48,8 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.knowledge import OfficialPage
+from app.knowledge import tuition_2026
+from app.models.knowledge import OfficialPage, OfficialPageVersion
 
 #: The indexed pages that carry the fee tables, undergraduate first.
 SOURCES = ("malaysia-ugfees", "malaysia-pgfees")
@@ -434,7 +440,7 @@ def _amount(a: Amount) -> dict:
     return {"value": a.value, "written": a.written, "label": a.label or None}
 
 
-def _row(fee: Fee, title: str | None = None) -> dict:
+def _row(fee: Fee, title: str | None = None, base: Baseline | None = None) -> dict:
     title = title or fee.titles[0]
     note = NOTES.get(norm(title))
     return {
@@ -451,25 +457,143 @@ def _row(fee: Fee, title: str | None = None) -> dict:
         "international": [_amount(a) for a in fee.international],
         "unreadable": not all(a.readable for a in (*fee.domestic, *fee.international)),
         "note": note,
+        "change": change(fee, title, base),
     }
 
 
-def year_of(pages: list[OfficialPage]) -> int | None:
-    """The fee year as the pages state it ("2027 tuition fees are outlined...")."""
-    for page in pages:
-        for block in (page.blocks or [])[:4]:
-            if block.get("type") != "paragraph":
-                continue
-            text = "".join(s.get("text", "") for s in block.get("spans") or [])
-            m = re.search(r"\b(20\d\d)\b[^.]{0,20}\bfees\b", text, re.I)
-            if m:
-                return int(m.group(1))
+def year_in(blocks: list[dict]) -> int | None:
+    """The fee year a page states in its opening lines ("2027 tuition fees are...")."""
+    for block in (blocks or [])[:4]:
+        if block.get("type") != "paragraph":
+            continue
+        text = "".join(s.get("text", "") for s in block.get("spans") or [])
+        m = re.search(r"\b(20\d\d)\b[^.]{0,20}\bfees\b", text, re.I)
+        if m:
+            return int(m.group(1))
     return None
+
+
+def year_of(pages: list[OfficialPage]) -> int | None:
+    for page in pages:
+        year = year_in(page.blocks or [])
+        if year:
+            return year
+    return None
+
+
+# --- Last year's fees, for the change ----------------------------------------
+#
+# A row's change is worked out only when last year's row is the same thing:
+# same title (and length, for Monash English), same basis, the same number of
+# prices in the cell, and every amount readable on both sides. Anything else
+# leaves the change blank, because a difference between a per year fee and a
+# whole course fee, or between two different streams, is not a price rise.
+
+
+@dataclass(frozen=True)
+class Before:
+    domestic: tuple[int | None, ...]
+    international: tuple[int | None, ...]
+    basis: str | None
+    school: str | None
+    source: str
+
+
+@dataclass
+class Baseline:
+    year: int
+    rows: dict[tuple[str, str], list[Before]]
+    sources: dict[str, dict]
+    # "versions" when last year's fee pages were stored, "printed" otherwise.
+    kind: str = "versions"
+
+
+def _variant_key(text: str | None) -> str:
+    return re.sub(r"\s+", " ", (text or "").lower()).strip()
+
+
+def _from_versions(db: Session, year: int) -> Baseline | None:
+    """Last year's tables, if the index kept a version of the fee pages from then."""
+    rows: dict[tuple[str, str], list[Before]] = {}
+    sources: dict[str, dict] = {}
+    for page in _pages(db):
+        versions = db.scalars(
+            select(OfficialPageVersion)
+            .where(OfficialPageVersion.page_id == page.id)
+            .order_by(OfficialPageVersion.captured_at.desc())
+        ).all()
+        version = next((v for v in versions if year_in(v.blocks or []) == year), None)
+        if version is None:
+            continue
+        key = f"{page.slug}@{version.captured_at.date().isoformat()}"
+        sources[key] = {"title": f"{page.title} ({year})", "url": page.canonical_url,
+                        "read_on": version.captured_at.date().isoformat()}
+        for fee in parse_blocks(version.blocks or [], page.slug):
+            before = Before(tuple(a.value for a in fee.domestic),
+                            tuple(a.value for a in fee.international),
+                            fee.basis, fee.school, key)
+            for title in fee.titles:
+                rows.setdefault((norm(title), _variant_key(fee.variant)), []).append(before)
+    return Baseline(year, rows, sources) if rows else None
+
+
+def _printed(year: int) -> Baseline | None:
+    if year != tuition_2026.YEAR:
+        return None
+    rows: dict[tuple[str, str], list[Before]] = {}
+    for r in tuition_2026.ROWS:
+        rows.setdefault((norm(r.title), _variant_key(r.variant)), []).append(
+            Before(r.domestic, r.international, r.basis, r.school, r.source))
+    sources = {k: {**v, "read_on": tuition_2026.READ_ON}
+               for k, v in tuition_2026.SOURCES.items()}
+    return Baseline(year, rows, sources, "printed")
+
+
+def baseline(db: Session, year: int | None) -> Baseline | None:
+    """Fees for the year before ``year``: stored page versions first, then the
+    printed 2026 table."""
+    if not year:
+        return None
+    return _from_versions(db, year - 1) or _printed(year - 1)
+
+
+def _diff(now: list[Amount], before: tuple[int | None, ...]) -> list[dict] | None:
+    if len(now) != len(before) or not now:
+        return None
+    out = []
+    for a, b in zip(now, before, strict=True):
+        if a.value is None or b is None:
+            out.append(None)
+            continue
+        diff = a.value - b
+        out.append({"previous": b, "diff": diff,
+                    "pct": round(diff * 100 / b, 1) if b else None})
+    return out if any(out) else None
+
+
+def change(fee: Fee, title: str, base: Baseline | None) -> dict | None:
+    """How this row moved since last year, or None when that is not known."""
+    if base is None:
+        return None
+    found = base.rows.get((norm(title), _variant_key(fee.variant)), [])
+    same_school = [b for b in found if b.school == fee.school]
+    candidates = same_school or [b for b in found if b.school is None]
+    before = next((b for b in candidates if b.basis == fee.basis), None)
+    if before is None:
+        return None
+    domestic = _diff(fee.domestic, before.domestic)
+    international = _diff(fee.international, before.international)
+    if domestic is None and international is None:
+        return None
+    return {"year": base.year, "domestic": domestic, "international": international,
+            "source": before.source}
 
 
 def table(db: Session) -> dict:
     """Everything the fees page shows, grouped by page and then by school."""
     pages = _pages(db)
+    year = year_of(pages)
+    base = baseline(db, year)
     sections = []
     general: list[str] = []
     for page in pages:
@@ -477,18 +601,20 @@ def table(db: Session) -> dict:
         general += [g for g in extra if g not in general]
         schools: dict[str, list[dict]] = {}
         for fee in fees:
-            schools.setdefault(fee.school, []).append(_row(fee))
+            schools.setdefault(fee.school, []).append(_row(fee, base=base))
         sections.append({
             "source": page.slug,
             "level": LEVEL[page.slug],
             "schools": [{"school": k, "rows": v} for k, v in schools.items()],
         })
     return {
-        "year": year_of(pages),
+        "year": year,
         "currency": "MYR",
         "sections": sections,
         "general": general,
         "sources": {page.slug: _meta(page) for page in pages},
+        "previous": {"year": base.year, "kind": base.kind, "sources": base.sources}
+        if base else None,
     }
 
 
@@ -528,10 +654,17 @@ def for_course(db: Session, title: str | None, faculty: str | None,
     if not hits and not missing:
         return None
     used = {f.page for f, _ in hits} or {pages[-1].slug}
+    year = year_of(pages)
+    base = baseline(db, year)
+    rows = [_row(f, t, base) for f, t in hits]
+    cited = {r["change"]["source"] for r in rows if r["change"]}
     return {
-        "year": year_of(pages),
+        "year": year,
         "currency": "MYR",
-        "rows": [_row(f, t) for f, t in hits],
+        "rows": rows,
+        "previous": {"year": base.year, "kind": base.kind,
+                     "sources": {k: v for k, v in base.sources.items() if k in cited}}
+        if base and cited else None,
         "not_listed": missing if not hits else None,
         "sources": {p.slug: _meta(p) for p in pages if p.slug in used},
     }

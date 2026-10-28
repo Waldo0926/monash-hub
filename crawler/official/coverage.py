@@ -506,9 +506,11 @@ def slugify(url: str, taken: set[str], known: dict[str, str] | None = None) -> s
 
 
 #: The pages that change with the semester: admin, fees, applying, visas.
+#: Monash Malaysia's two tuition tables sit at /ugfees and /pgfees, which the
+#: "/fees" test missed, so a wrong amount stayed up for two weeks at "stable".
 SEMESTERLY = re.compile(
     r"/students/admin|student-services/(student-admin|international|financial)|"
-    r"/finance|/fees|/study/apply|/admissions/|/student-pass",
+    r"/finance|/fees|/(?:ug|pg)fees$|/study/apply|/admissions/|/student-pass",
     re.IGNORECASE,
 )
 

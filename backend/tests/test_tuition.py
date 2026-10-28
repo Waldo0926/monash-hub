@@ -263,3 +263,163 @@ def test_a_degree_known_to_be_unpriced_says_so(db):
                          "Faculty of Medicine, Nursing and Health Sciences", ["Malaysia"])
     assert card["rows"] == []
     assert "fee table" in card["not_listed"]["en"]
+
+
+# --- The change since last year ----------------------------------------------
+
+from app.knowledge import tuition_2026  # noqa: E402
+
+PRINTED = tu._printed(2026)
+
+
+def _change(title, faculty=None, variant=None):
+    hits = tu.match(_fees(), title, faculty)
+    if variant:
+        hits = [(f, t) for f, t in hits if f.variant == variant]
+    assert len(hits) == 1, hits
+    fee, matched = hits[0]
+    return tu.change(fee, matched, PRINTED)
+
+
+def _diffs(side):
+    return [d and d["diff"] for d in side or []]
+
+
+def test_a_degree_shows_both_rises():
+    got = _change("Bachelor of Computer Science")
+    assert got["year"] == 2026
+    assert got["domestic"] == [{"previous": 47040, "diff": 1440, "pct": 3.1}]
+    assert got["international"] == [{"previous": 54720, "diff": 2880, "pct": 5.3}]
+
+
+def test_each_stream_is_compared_with_its_own_stream():
+    got = _change("Diploma in Higher Education Studies")
+    assert _diffs(got["domestic"]) == [960, 1440]
+    assert _diffs(got["international"]) == [3360, 3840]
+
+
+def test_monash_english_is_compared_by_length():
+    assert _diffs(_change("Monash English", variant="20 weeks")["international"]) == [600]
+    assert _diffs(_change("Monash English", variant="10 weeks")["domestic"]) == [200]
+
+
+def test_an_unreadable_amount_has_no_change_but_the_other_side_does():
+    got = _change("Bachelor of Pharmacy (Honours)")
+    assert _diffs(got["domestic"]) == [1920]
+    assert got["international"] is None
+
+
+def test_an_unchanged_fee_says_zero():
+    got = _change("Master of Philosophy", "Faculty of Pharmacy and Pharmaceutical Sciences")
+    assert _diffs(got["domestic"]) == [0] and _diffs(got["international"]) == [0]
+
+
+def test_a_shared_research_row_applies_to_every_school():
+    got = _change("Doctor of Philosophy", "Faculty of Information Technology")
+    assert _diffs(got["international"]) == [2880]
+
+
+def test_a_full_course_fee_is_compared_with_a_full_course_fee():
+    got = _change("Master of Data Science")
+    assert _diffs(got["domestic"]) == [0]
+    assert _diffs(got["international"]) == [3600]
+
+
+def test_a_different_basis_is_not_a_rise():
+    fee = _one("Master of Data Science")
+    fee_per_year = tu.Fee(fee.titles, fee.school, fee.page, basis="per_year",
+                          domestic=fee.domestic, international=fee.international)
+    assert tu.change(fee_per_year, "Master of Data Science", PRINTED) is None
+
+
+def test_no_baseline_means_no_change():
+    assert tu.change(_one("Bachelor of Computer Science"), "Bachelor of Computer Science", None) is None
+    assert tu._printed(2027) is None
+
+
+# The international rises a 2027 fee list in circulation gives for undergraduate
+# courses, against 2027 international fees from the official page. Every one
+# has to come out of the printed 2026 table, or a 2026 row is wrong.
+CIRCULATED = {
+    "Bachelor of Arts and Social Sciences": (53280, 3360),
+    "Bachelor of Digital Media and Communication": (53280, 3360),
+    "Bachelor of Business and Commerce": (54240, 2400),
+    "Bachelor of Digital Business": (54240, 2400),
+    "Bachelor of Actuarial Analytics": (57600, 2880),
+    "Bachelor of Business and Commerce and Bachelor of Computer Science": (57600, 2880),
+    "Bachelor of Business and Commerce and Bachelor of Digital Media and Communication": (54240, 2400),
+    "Bachelor of Computer Science": (57600, 2880),
+    "Bachelor of Computer Science in Data Science": (57600, 2880),
+    "Bachelor of Civil Engineering (Honours)": (68160, 3360),
+    "Bachelor of Biomedical Engineering (Honours)": (68160, 3360),
+    "Bachelor of Chemical Engineering (Honours)": (68160, 3360),
+    "Bachelor of Materials Engineering (Honours)": (68160, 3360),
+    "Bachelor of Electrical and Computer Systems Engineering (Honours)": (68160, 3360),
+    "Bachelor of Mechanical Engineering (Honours)": (68160, 3360),
+    "Bachelor of Robotics and Mechatronics Engineering (Honours)": (68160, 3360),
+    "Bachelor of Software Engineering (Honours)": (68160, 3360),
+    "Bachelor of Psychology": (53280, 3360),
+    "Bachelor of Medical Science and Doctor of Medicine": (148320, 9600),
+    "Bachelor of Human Nutrition": (63360, 2880),
+    "Bachelor of Pharmacy (Honours)": (74400, 3360),
+    "Bachelor of Pharmaceutical Science": (63360, 2880),
+    "Bachelor of Science": (63360, 2880),
+    "Bachelor of Applied Data Science": (63360, 2880),
+    "Bachelor of Food Science and Technology": (63360, 2880),
+    "Bachelor of Medical Bioscience": (64800, 4320),
+    "Diploma of Business": (42240, 1920),
+}
+
+
+def test_the_printed_2026_table_matches_the_circulated_rises():
+    for title, (fee_2027, rise) in CIRCULATED.items():
+        rows = PRINTED.rows[(tu.norm(title), "")]
+        assert fee_2027 - rows[0].international[0] == rise, title
+    dhes = PRINTED.rows[(tu.norm("Diploma of Higher Education Studies"), "")][0]
+    assert (49440 - dhes.international[0], 55680 - dhes.international[1]) == (3360, 3840)
+
+
+def test_every_printed_row_names_a_source():
+    for row in tuition_2026.ROWS:
+        assert row.source in tuition_2026.SOURCES
+        assert len(row.domestic) == len(row.international)
+        assert all(d < i for d, i in zip(row.domestic, row.international, strict=True))
+
+
+def test_a_stored_version_from_last_year_wins_over_the_printed_table(db):
+    from app.models.knowledge import OfficialPageVersion
+
+    _store(db)
+    page = db.scalar(select_page("malaysia-ugfees"))
+    old = [
+        _p("2026 tuition fees are outlined in the dropdown menu below for undergraduate courses."),
+        _h("School of Information Technology"),
+        _t(UG_COLS, [UG_HEAD, ["Bachelor of Computer Science", "3", "47,000", "54,000"]]),
+    ]
+    db.add(OfficialPageVersion(page_id=page.id, content_hash="old", title=page.title,
+                               blocks=old, headings=[],
+                               captured_at=datetime(2025, 11, 1, tzinfo=UTC)))
+    db.commit()
+    card = tu.for_course(db, "Bachelor of Computer Science",
+                         "Faculty of Information Technology", ["Malaysia"])
+    got = card["rows"][0]["change"]
+    assert _diffs(got["international"]) == [3600]
+    assert got["source"] == "malaysia-ugfees@2025-11-01"
+    assert card["previous"]["year"] == 2026
+    assert card["previous"]["kind"] == "versions"
+
+
+def test_the_endpoint_falls_back_to_the_printed_table(client, db):
+    _store(db)
+    body = client.get("/api/v1/fees").json()
+    assert body["previous"]["year"] == 2026
+    assert body["previous"]["kind"] == "printed"
+    assert set(body["previous"]["sources"]) == set(tuition_2026.SOURCES)
+    it = next(g for g in body["sections"][0]["schools"] if g["school"] == "it")
+    assert it["rows"][0]["change"]["international"][0]["diff"] == 2880
+
+
+def select_page(slug):
+    from sqlalchemy import select
+
+    return select(OfficialPage).where(OfficialPage.slug == slug)
