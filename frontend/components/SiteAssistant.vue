@@ -20,7 +20,7 @@
  * tell readers apart.
  */
 import { MAMO_ACCOUNT, MAMO_POSTS, type MamoPost } from '~/data/mamo'
-import { matchMamo, matchTools, type SiteTool } from '~/utils/assistant'
+import { OPEN_ASSISTANT, matchMamo, matchTools, type SiteTool } from '~/utils/assistant'
 
 interface Turn {
   id: number
@@ -261,8 +261,13 @@ watch(() => route.fullPath, () => {
   if (isPhone()) hide(false)
 })
 
-onMounted(restore)
+const openFromPage = () => { if (!hidden.value) show() }
+onMounted(() => {
+  restore()
+  window.addEventListener(OPEN_ASSISTANT, openFromPage)
+})
 onBeforeUnmount(() => {
+  if (import.meta.client) window.removeEventListener(OPEN_ASSISTANT, openFromPage)
   if (import.meta.client) document.body.style.overflow = previousBodyOverflow
 })
 </script>

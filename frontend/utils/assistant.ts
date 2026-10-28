@@ -201,3 +201,9 @@ export function matchMamo(question: string, posts: MamoPost[], limit = 2): MamoP
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit).map(entry => entry.post)
 }
+
+/**
+ * Opens the Ask panel from anywhere on the page, such as the 马莫百科 block's
+ * "ask here" line: window.dispatchEvent(new Event(OPEN_ASSISTANT)).
+ */
+export const OPEN_ASSISTANT = 'monashhub:ask'

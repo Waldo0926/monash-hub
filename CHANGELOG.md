@@ -15,6 +15,8 @@ All notable changes to Monash Hub are documented here.
   to the 公众号, with its QR code, where the author can reply later.
 - "你好" and "你是谁" get an introduction instead of a search, and "谢谢" a
   short reply.
+- The 马莫百科 block on the home and parents pages has a line that opens the
+  panel: 也可以点右下角「提问」，在网页上直接问.
 - The bot is optional: with `WXBOT_URL` or `WXBOT_WEB_SECRET` unset, or the
   bot down, the panel works as before. Questions passed to the bot are
   limited to 60 an hour per network.
