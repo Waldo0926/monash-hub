@@ -62,6 +62,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
       ALERT_EMAIL: ${ALERT_EMAIL:-}
+      WXBOT_URL: ${WXBOT_URL:-}
+      WXBOT_WEB_SECRET: ${WXBOT_WEB_SECRET:-}
       AVATAR_DIR: /data/avatars
     volumes:
       # Profile pictures. The API writes here; the host's nginx serves the same

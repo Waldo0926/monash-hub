@@ -33,6 +33,7 @@ CODE_REQUEST_IP = "code_request_ip"
 REPORT = "report"
 REVIEW = "review"
 REVIEW_IP = "review_ip"
+BOT_QUESTION_IP = "bot_question_ip"
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,10 @@ REVIEWS_PER_AUTHOR = Limit(REVIEW, 30, 24 * 60 * 60)
 # likes, so the key alone limits nothing. Generous for the same reason as
 # signing in: a whole campus can share one address.
 REVIEWS_PER_ADDRESS = Limit(REVIEW_IP, 100, 24 * 60 * 60)
+# Questions passed on to the WeChat bot, which may call a free chat model with
+# its own quota. The bot limits each browser too, but a browser can make up a
+# new id, so the network is what counts here.
+BOT_QUESTIONS_PER_ADDRESS = Limit(BOT_QUESTION_IP, 60, 60 * 60)
 
 
 class Throttled(Exception):

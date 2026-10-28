@@ -4,6 +4,21 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (the Ask panel asks the 马莫百科 bot too)
+
+- The 提问 panel sends each question to the 马莫百科 WeChat bot as well as to
+  `/v1/ask`, through `POST /v1/assistant/bot`. What the bot knows that this
+  API does not (answers the owner taught it, 马莫百科 posts, sentences quoted
+  from official pages) shows up under 来自马莫百科. A reply that only repeats
+  Monash Hub is left out.
+- When neither has an answer, the panel asks the reader to send the question
+  to the 公众号, with its QR code, where the author can reply later.
+- "你好" and "你是谁" get an introduction instead of a search, and "谢谢" a
+  short reply.
+- The bot is optional: with `WXBOT_URL` or `WXBOT_WEB_SECRET` unset, or the
+  bot down, the panel works as before. Questions passed to the bot are
+  limited to 60 an hour per network.
+
 ### Added (a page for parents)
 
 - `/parents` is a Chinese page for parents looking at the Malaysia campus:
