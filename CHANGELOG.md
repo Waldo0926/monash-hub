@@ -4,6 +4,16 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (links on "click here" survive translation)
+
+- A translated paragraph lost any link sitting on "click here", "here" or
+  "read more". Those words are never translated on their own, so there was
+  nothing to look for in the Chinese sentence and the link was dropped. The
+  printing services page lost all ten of its PDF guides this way and showed
+  plain 点击此处 text. The usual wording in Chinese, Japanese and Korean is
+  now looked for after the anchor's own translation and the English.
+- Takes effect on the next request, no re-translation needed.
+
 ### Added (Monash Malaysia tuition fees, from the pages already indexed)
 
 - `/fees` lists every row on Monash Malaysia's /ugfees and /pgfees, grouped

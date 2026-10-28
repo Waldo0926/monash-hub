@@ -328,6 +328,70 @@ def test_a_link_whose_words_cannot_be_found_is_dropped_not_moved():
     assert item == [{"text": "你随时可以在选课系统里查看最新的 GPA。"}]
 
 
+PDF = "https://www.monash.edu.my/__data/assets/pdf_file/0010/2896039/First-Time-Login.pdf"
+
+
+def _translated_paragraph(spans, strings, locale="zh"):
+    tr = translations.Translation(locale)
+    tr.strings = strings
+    blocks = translations.translate_blocks([{"type": "paragraph", "spans": spans}], tr)
+    return blocks[0]["spans"]
+
+
+def test_click_here_at_the_end_keeps_its_link():
+    """The printing page: "click here" has no translation of its own."""
+    spans = _translated_paragraph(
+        [
+            {"text": "To read more about self register, "},
+            {"text": "click here", "url": PDF},
+            {"text": "."},
+        ],
+        {"To read more about self register, click here.": "要了解更多关于自我注册的信息，请点击此处。"},
+    )
+    assert spans == [
+        {"text": "要了解更多关于自我注册的信息，请"},
+        {"text": "点击此处", "url": PDF},
+        {"text": "。"},
+    ]
+
+
+def test_click_here_at_the_start_keeps_its_link():
+    english = "Click here for the complete guide on scanning to email."
+    spans = _translated_paragraph(
+        [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on scanning to email."}],
+        {english: "点击此处获取扫描至电子邮件的完整指南。"},
+    )
+    assert [s["text"] for s in spans if s.get("url")] == ["点击此处"]
+    assert "".join(s["text"] for s in spans) == "点击此处获取扫描至电子邮件的完整指南。"
+
+
+def test_click_here_with_its_full_stop_inside_the_link():
+    english = "To read more about how to login to the printer, click here."
+    spans = _translated_paragraph(
+        [{"text": "To read more about how to login to the printer, "}, {"text": "click here.", "url": PDF}],
+        {english: "要了解如何登录打印机，请点击这里。"},
+    )
+    assert [s["text"] for s in spans if s.get("url")] == ["点击这里"]
+
+
+def test_click_here_in_japanese_and_korean():
+    spans = [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on printing credit top-up"}]
+    english = "Click here for the complete guide on printing credit top-up"
+    ja = _translated_paragraph(spans, {english: "印刷クレジットのチャージ方法はこちらをクリックしてください"}, "ja")
+    ko = _translated_paragraph(spans, {english: "인쇄 크레딧 충전 가이드는 여기를 클릭하세요"}, "ko")
+    assert [s["text"] for s in ja if s.get("url")] == ["こちらをクリック"]
+    assert [s["text"] for s in ko if s.get("url")] == ["여기를 클릭"]
+
+
+def test_click_here_is_still_dropped_when_the_translation_never_says_it():
+    english = "Click here for the complete guide on scanning to email."
+    spans = _translated_paragraph(
+        [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on scanning to email."}],
+        {english: "扫描至电子邮件的完整指南见附件。"},
+    )
+    assert spans == [{"text": "扫描至电子邮件的完整指南见附件。"}]
+
+
 def test_the_outline_and_the_headings_cannot_disagree(gpa_blocks):
     tr = translations.Translation("zh")
     tr.strings = {"Methodology": "计算方法"}
