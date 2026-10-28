@@ -22,3 +22,5 @@ ignore = [
 # Same reasoning: a wording table, read one key at a time.
 "backend/app/knowledge/structure_zh.py" = ["E501"]
 "backend/app/knowledge/official_zh_gaps.py" = ["E501"]
+# The fee table keeps each Chinese note on one line for the same reason.
+"backend/app/knowledge/tuition.py" = ["E501"]

@@ -19,7 +19,7 @@ from app.api.serializers import (
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook.years import available_years, loaded_years, resolve_year
-from app.knowledge import teach_out, translations
+from app.knowledge import teach_out, translations, tuition
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
@@ -390,6 +390,10 @@ def get_course(
     payload["not_in_year"] = not_in_year
     payload["available_years"] = available_years(db, Course.course_code, Course.academic_year, code)
     payload["campus"] = campus
+    # Malaysia campus fees from the indexed fee pages, matched on the English
+    # title. None when Malaysia does not teach the degree or the pages do not
+    # price it.
+    payload["tuition"] = tuition.for_course(db, course.title, course.faculty, course.campuses)
     payload["containers"] = containers
     payload["units"] = units
     _name_units(containers, units)

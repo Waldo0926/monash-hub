@@ -4,6 +4,32 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (Monash Malaysia tuition fees, from the pages already indexed)
+
+- `/fees` lists every row on Monash Malaysia's /ugfees and /pgfees, grouped
+  by level and school, with a filter by course name. Each degree page viewed
+  as Malaysia also gets a card with its own fee. The amounts come from the
+  table blocks the official refresh already stores (`malaysia-ugfees`,
+  `malaysia-pgfees`), so a price change on monash.edu.my shows up after the
+  next harvest without anything being typed in.
+- Per year or whole course is read for every row. The undergraduate page
+  says per year in its column header; the postgraduate page writes it inside
+  each fee cell, and most coursework master's fees are for the whole course
+  while the Master of Pharmaceutical Science is per year.
+- The first cell is read for every degree it names, so Engineering's single
+  row covers all eight honours degrees, and a list of majors does not turn
+  into degrees. Two prices in one cell (the DHES streams) keep their labels,
+  and Monash English's untitled second row carries on from the first.
+- An amount that does not read as a number is shown as Monash printed it,
+  with a warning. In October 2026 the Bachelor of Pharmacy (Honours)
+  international fee was printed as "74,40".
+- A few facts the tables leave out sit next to the fee: Software Engineering
+  takes no new students from S1 2028, Materials and Biomedical Engineering
+  charge the Malaysia fee for the first two years only, and the Master of
+  Professional Counselling has no 2027 fee.
+- Links to the page from the degree list and the home page's "Also here"
+  line. The header navigation is unchanged.
+
 ### Added (official pages read elsewhere, without the server failing them)
 
 - `OFFICIAL_FETCH=harvest` in `.env` stops the six-hourly official refresh

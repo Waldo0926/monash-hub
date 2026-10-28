@@ -228,6 +228,7 @@ useSeoMeta({ title: () => $t('courses.title') })
     <header class="intro">
       <h1>{{ $t('courses.title') }}</h1>
       <p class="lede">{{ $t('courses.lede') }}</p>
+      <p class="fees-link small"><NuxtLink to="/fees">{{ $t('fees.listLink') }} →</NuxtLink></p>
     </header>
 
     <div class="controls">
@@ -317,6 +318,7 @@ useSeoMeta({ title: () => $t('courses.title') })
 .page { max-width: var(--container); margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .intro h1 { margin: 0 0 var(--s2); }
 .lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
+.fees-link { margin: calc(-1 * var(--s4)) 0 var(--s5); }
 
 /* Search, campus and year share one row and one control height. On a phone
    the search takes its own row and the two selects split the next one. */
