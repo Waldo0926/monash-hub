@@ -2,10 +2,13 @@
 /**
  * The "Ask" button in the corner of every page, and the chat panel it opens.
  *
- * It is the same zero-AI router as the search page (POST /v1/ask), drawn as a
+ * It is the same router as the search page (POST /v1/ask), drawn as a
  * conversation so a student can ask from wherever they are without losing the
- * page. No model is called and no key is needed, the same way SecureView's
- * Help Assistant works: every answer is a stored field or a link to one.
+ * page. The same question also goes to the 马莫百科 WeChat bot through
+ * /v1/assistant/bot, which knows what the owner has taught it, the 马莫百科
+ * posts, and can quote sentences from official pages. Its reply is shown
+ * apart, under its own name. When neither has an answer the reader is sent
+ * to the 公众号, where the owner can answer them later.
  *
  * On top of the router's answer it adds the site's own tools and the 马莫百科
  * posts the question names (utils/assistant.ts), the student posts the router
@@ -13,10 +16,11 @@
  *
  * The chat is kept in sessionStorage so it survives a page change and a
  * reload, and is gone when the tab closes. Nothing is sent anywhere except the
- * question itself.
+ * question itself and a random id for this browser, which the bot uses to
+ * tell readers apart.
  */
-import { MAMO_POSTS, type MamoPost } from '~/data/mamo'
-import { matchMamo, matchTools, type SiteTool } from '~/utils/assistant'
+import { MAMO_ACCOUNT, MAMO_POSTS, type MamoPost } from '~/data/mamo'
+import { OPEN_ASSISTANT, matchMamo, matchTools, type SiteTool } from '~/utils/assistant'
 
 interface Turn {
   id: number
@@ -25,10 +29,12 @@ interface Turn {
   answer: any
   tools: SiteTool[]
   mamo: MamoPost[]
+  bot: { available: boolean; route: string | null; reply: string | null } | null
   error: string
 }
 
 const STORAGE_KEY = 'monashhub.assistant.v1'
+const VISITOR_KEY = 'monashhub.assistant.visitor'
 const MAX_TURNS = 12
 const MOVA = 'https://www.monash.edu.my/student-services/connect?chatbot=open'
 
@@ -108,7 +114,7 @@ async function ask(text?: string) {
   draft.value = ''
 
   turns.value.push({
-    id: nextId++, question, state: 'loading', answer: null, tools: [], mamo: [], error: ''
+    id: nextId++, question, state: 'loading', answer: null, tools: [], mamo: [], bot: null, error: ''
   })
   if (turns.value.length > MAX_TURNS) turns.value.splice(0, turns.value.length - MAX_TURNS)
   // The reactive copy, so the changes below reach the template.
@@ -119,13 +125,20 @@ async function ask(text?: string) {
   if (unitCode.value) body.unit_code = unitCode.value
   if (year.value) body.year = year.value
 
-  try {
-    turn.answer = await apiFetch<any>(`/v1/ask?locale=${locale.value}`, { method: 'POST', body })
+  // Both at once. The bot can take a few seconds when it quotes official
+  // pages; a bot that is down or slow only means its part is missing.
+  const [router, bot] = await Promise.allSettled([
+    apiFetch<any>(`/v1/ask?locale=${locale.value}`, { method: 'POST', body }),
+    apiFetch<any>('/v1/assistant/bot', { method: 'POST', body: { query: question, visitor: visitorId() } })
+  ])
+  if (router.status === 'fulfilled') {
+    turn.answer = router.value
     turn.tools = matchTools(question)
     turn.mamo = matchMamo(question, MAMO_POSTS)
+    turn.bot = bot.status === 'fulfilled' ? bot.value : null
     turn.state = 'done'
-  } catch (caught) {
-    turn.error = apiErrorMessage(caught, $t)
+  } else {
+    turn.error = apiErrorMessage(router.reason, $t)
     turn.state = 'error'
   }
   persist()
@@ -148,9 +161,62 @@ function routerAnswered(turn: Turn) {
   return !!turn.answer && turn.answer.answer_type !== 'community_fallback'
 }
 
+// For when the bot is not there to tell: a greeting or "who are you" is not a
+// search, and searching for it only says nothing was found.
+const SMALL_TALK = /^(你好|您好|嗨|哈喽|在吗|hi|hello|hey|你是谁|你是什么|你能做什么|你能干什么|你会什么|你可以做什么|who are you|what can you do)[\s!！?？。.~]*$/i
+
+/** Small talk: answered with an introduction or a short line, nothing searched. */
+function smallTalk(turn: Turn): 'intro' | 'chat' | null {
+  if (turn.bot?.route === 'intro') return 'intro'
+  if (turn.bot?.route === 'chat' && turn.bot.reply) return 'chat'
+  if (!turn.bot?.available && SMALL_TALK.test(turn.question.trim())) return 'intro'
+  return null
+}
+
+/**
+ * The bot's own answer, when it has one this page does not already show. A
+ * reply that came from Monash Hub alone repeats the card above it.
+ */
+function botReply(turn: Turn): string | null {
+  const bot = turn.bot
+  if (!bot?.reply || bot.route === 'hub') return null
+  return bot.reply
+}
+
 function foundNothing(turn: Turn) {
-  return !routerAnswered(turn) && !turn.tools.length && !turn.mamo.length &&
+  return !routerAnswered(turn) && !botReply(turn) && !turn.tools.length && !turn.mamo.length &&
     !turn.answer?.related_community?.length
+}
+
+/** Plain text with its links made clickable, a line at a time. */
+function linked(text: string): { text: string; href?: string }[] {
+  return text.split(/(https?:\/\/[^\s，。）)]+)/).filter(Boolean).map(part =>
+    /^https?:\/\//.test(part) ? { text: part, href: part } : { text: part })
+}
+
+function visitorId(): string {
+  try {
+    const saved = localStorage.getItem(VISITOR_KEY)
+    if (saved) return saved
+    const made = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Array.from({ length: 4 }, () => Math.random().toString(16).slice(2, 10)).join('-')
+    localStorage.setItem(VISITOR_KEY, made)
+    return made
+  } catch {
+    return 'no-storage'
+  }
+}
+
+const copiedName = ref(false)
+async function copyAccountName() {
+  try {
+    await navigator.clipboard.writeText(MAMO_ACCOUNT.name)
+    copiedName.value = true
+    setTimeout(() => { copiedName.value = false }, 2000)
+  } catch {
+    copiedName.value = false
+  }
 }
 
 function onKeydown(event: KeyboardEvent) {
@@ -195,8 +261,13 @@ watch(() => route.fullPath, () => {
   if (isPhone()) hide(false)
 })
 
-onMounted(restore)
+const openFromPage = () => { if (!hidden.value) show() }
+onMounted(() => {
+  restore()
+  window.addEventListener(OPEN_ASSISTANT, openFromPage)
+})
 onBeforeUnmount(() => {
+  if (import.meta.client) window.removeEventListener(OPEN_ASSISTANT, openFromPage)
   if (import.meta.client) document.body.style.overflow = previousBodyOverflow
 })
 </script>
@@ -276,6 +347,10 @@ onBeforeUnmount(() => {
             <button type="button" class="btn btn--small" @click="retry(turn)">{{ $t('assistant.retry') }}</button>
           </div>
 
+          <div v-else-if="smallTalk(turn)" class="bubble bubble--bot">
+            <p>{{ smallTalk(turn) === 'intro' ? $t('assistant.intro') : turn.bot?.reply }}</p>
+          </div>
+
           <div v-else class="reply">
             <div v-if="turn.tools.length" class="tools">
               <p class="tiny muted section-label">{{ $t('assistant.tools') }}</p>
@@ -286,6 +361,16 @@ onBeforeUnmount(() => {
                 </span>
                 <PlanIcon name="chevron" :size="16" />
               </NuxtLink>
+            </div>
+
+            <div v-if="botReply(turn)" class="bubble bubble--bot bot-reply">
+              <p class="tiny muted section-label">{{ $t('assistant.botLabel') }}</p>
+              <p class="bot-text">
+                <template v-for="(part, n) in linked(botReply(turn)!)" :key="n">
+                  <a v-if="part.href" :href="part.href" rel="noopener external" target="_blank">{{ part.text }}</a>
+                  <template v-else>{{ part.text }}</template>
+                </template>
+              </p>
             </div>
 
             <AnswerBlocks
@@ -333,15 +418,28 @@ onBeforeUnmount(() => {
               </NuxtLink>
             </div>
 
-            <div v-if="foundNothing(turn)" class="bubble bubble--bot">
-              <p>{{ $t('assistant.nothing') }}</p>
+            <div v-if="foundNothing(turn)" class="bubble bubble--bot wechat">
+              <p>{{ $t('assistant.wechatBody') }}</p>
+              <div class="wechat-follow">
+                <img src="/img/mamo/qr-official-account.png" :alt="$t('mamo.accountQrAlt')" width="96" height="96" loading="lazy">
+                <div>
+                  <p class="wechat-name">
+                    <span>{{ MAMO_ACCOUNT.name }}</span>
+                    <button type="button" class="chip-btn" @click="copyAccountName">
+                      {{ copiedName ? $t('mamo.copied') : $t('mamo.copy') }}
+                    </button>
+                  </p>
+                  <p class="tiny muted">{{ $t('home.mamo.scanDesktop') }}</p>
+                </div>
+              </div>
             </div>
 
             <div class="way-on">
               <NuxtLink :to="{ path: '/search', query: { q: turn.question } }" class="tiny">
                 {{ $t('assistant.allResults') }}
               </NuxtLink>
-              <template v-if="!routerAnswered(turn)">
+              <NuxtLink v-if="!foundNothing(turn)" to="/mamo#follow" class="tiny">{{ $t('assistant.wechatMore') }}</NuxtLink>
+              <template v-if="!routerAnswered(turn) && !botReply(turn)">
                 <NuxtLink to="/community" class="tiny">{{ $t('units.askCommunity') }}</NuxtLink>
                 <a :href="MOVA" class="tiny" rel="noopener external" target="_blank">{{ $t('assistant.askMova') }}</a>
               </template>
@@ -375,6 +473,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.bot-text { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.bot-text a { color: var(--brand); }
+.wechat p { margin: 0 0 var(--s2); }
+.wechat-follow { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s2); }
+.wechat-follow img { flex: none; padding: 4px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.wechat-name { display: flex; align-items: center; gap: var(--s2); font-weight: 600; }
+
 /* Above the page and the phone tab bar (z-index 30), below dialogs (50). */
 .assistant { position: fixed; right: var(--s5); bottom: var(--s5); z-index: 35; }
 

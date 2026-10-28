@@ -14,6 +14,7 @@
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import { translate } from '~/i18n'
+import { OPEN_ASSISTANT } from '~/utils/assistant'
 
 // The parents page is Chinese whatever the interface language is, and its
 // one-line description is about applying rather than student life.
@@ -27,6 +28,10 @@ const recent = MAMO_POSTS.slice(0, 3).map(post => ({
   ...post,
   short: post.title.replace(/^马莫百科[｜|]\s*/, '')
 }))
+
+function askHere() {
+  window.dispatchEvent(new Event(OPEN_ASSISTANT))
+}
 
 const copied = ref(false)
 let copiedTimer: ReturnType<typeof setTimeout> | undefined
@@ -78,6 +83,9 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         <NuxtLink to="/mamo" class="btn">{{ t('home.mamo.open') }}</NuxtLink>
         <NuxtLink to="/mamo#follow" class="ask small">{{ t('home.mamo.ask') }} →</NuxtLink>
       </div>
+      <p class="ask-here small">
+        <button type="button" @click="askHere">{{ t('home.mamo.askHere') }}</button>
+      </p>
     </div>
 
     <div class="follow">
@@ -171,6 +179,17 @@ h2 {
 
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); }
 .ask { color: var(--brand); font-weight: 500; }
+.ask-here { margin: var(--s3) 0 0; color: var(--muted); }
+.ask-here button {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ask-here button:hover { color: var(--brand); border-color: var(--brand); }
 
 .follow {
   display: grid;

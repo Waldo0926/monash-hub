@@ -80,6 +80,15 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
 
+    # --- 马莫百科 bot ---------------------------------------------------------
+    # The Ask panel also asks the WeChat bot (github.com/Waldo0926/wechat-bot,
+    # POST /web/ask), which has the owner's taught answers, the 马莫百科 posts
+    # and quoted answers from the official pages. Either empty turns it off and
+    # the panel answers from this API alone.
+    wxbot_url: str = ""
+    wxbot_web_secret: str = ""
+    wxbot_timeout_seconds: float = 15
+
     # --- Avatars ------------------------------------------------------------
     # Written by the API, served by nginx straight off disk - a request for a
     # profile picture should not wake Python up. The directory is a mounted
