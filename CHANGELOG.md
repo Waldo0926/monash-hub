@@ -15,6 +15,9 @@ All notable changes to Monash Hub are documented here.
   the student visa fee, living costs, and how to get in touch through 马莫百科.
   Each official fact links to the English page it came from and says when it
   was checked.
+- The end of the page links to degrees, fees, guides and 马莫百科, then shows
+  the same 马莫百科 block as the home page, always in Chinese, with the
+  latest posts and the account's QR code, followed by the author's WeChat.
 - Tuition is read from the same table as `/fees`. Yuan figures use 1 MYR =
   1.65 CNY, set in `data/parents.ts`.
 - The page has its own share title, description and 1200x630 image for

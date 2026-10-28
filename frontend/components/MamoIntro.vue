@@ -13,8 +13,12 @@
  * the code does work, and the hint says so on touch screens.
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
+import { translate } from '~/i18n'
 
+// The parents page is Chinese whatever the interface language is.
+const props = defineProps<{ zh?: boolean }>()
 const { $t } = useNuxtApp()
+const t = (key: string) => (props.zh ? translate('zh', key) : $t(key))
 
 // Every title starts with the account name; on the home page it is already in
 // the heading above, so the list reads better without it.
@@ -44,12 +48,12 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
     <div class="about">
       <p class="eyebrow">
         <img src="/mamo-avatar.jpg" alt="" width="28" height="28" class="avatar">
-        <span>{{ $t('home.mamo.eyebrow') }}</span>
+        <span>{{ t('home.mamo.eyebrow') }}</span>
       </p>
-      <h2 id="mamo-intro-title">{{ $t('home.mamo.title') }}</h2>
-      <p class="body">{{ $t('home.mamo.body') }}</p>
+      <h2 id="mamo-intro-title">{{ t('home.mamo.title') }}</h2>
+      <p class="body">{{ t('home.mamo.body') }}</p>
 
-      <h3 class="recent-title">{{ $t('home.mamo.recent') }}</h3>
+      <h3 class="recent-title">{{ t('home.mamo.recent') }}</h3>
       <ul class="recent">
         <li v-for="post in recent" :key="post.title">
           <a
@@ -70,8 +74,8 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       </ul>
 
       <div class="actions">
-        <NuxtLink to="/mamo" class="btn">{{ $t('home.mamo.open') }}</NuxtLink>
-        <NuxtLink to="/mamo#follow" class="ask small">{{ $t('home.mamo.ask') }} →</NuxtLink>
+        <NuxtLink to="/mamo" class="btn">{{ t('home.mamo.open') }}</NuxtLink>
+        <NuxtLink to="/mamo#follow" class="ask small">{{ t('home.mamo.ask') }} →</NuxtLink>
       </div>
     </div>
 
@@ -81,7 +85,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
       <a href="/img/mamo/qr-official-account.png" target="_blank" class="qr-link">
         <img
           src="/img/mamo/qr-official-account.png"
-          :alt="$t('mamo.accountQrAlt')"
+          :alt="t('mamo.accountQrAlt')"
           width="160"
           height="160"
           class="qr"
@@ -89,17 +93,17 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         >
       </a>
       <div class="follow-text">
-        <h3 class="follow-title">{{ $t('mamo.accountTitle') }}</h3>
+        <h3 class="follow-title">{{ t('mamo.accountTitle') }}</h3>
         <p class="name">
           <span class="value">{{ MAMO_ACCOUNT.name }}</span>
           <button type="button" class="copy" @click="copyName">
-            {{ copied ? $t('mamo.copied') : $t('mamo.copy') }}
+            {{ copied ? t('mamo.copied') : t('mamo.copy') }}
           </button>
         </p>
-        <p class="hint tiny muted hint--desktop">{{ $t('home.mamo.scanDesktop') }}</p>
-        <p class="hint tiny muted hint--touch">{{ $t('home.mamo.scanPhone') }}</p>
+        <p class="hint tiny muted hint--desktop">{{ t('home.mamo.scanDesktop') }}</p>
+        <p class="hint tiny muted hint--touch">{{ t('home.mamo.scanPhone') }}</p>
       </div>
-      <span class="visually-hidden" aria-live="polite">{{ copied ? $t('mamo.copied') : '' }}</span>
+      <span class="visually-hidden" aria-live="polite">{{ copied ? t('mamo.copied') : '' }}</span>
     </div>
   </section>
 </template>

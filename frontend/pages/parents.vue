@@ -45,6 +45,13 @@ const score = (percent: number) => Math.round((750 * percent) / 100)
 const exchangePosts = MAMO_POSTS.filter(p => p.topic === 'exchange' && p.url)
   .map(p => ({ ...p, title: p.title.replace(/^马莫百科[｜|]\s*/, '') }))
 
+const MORE = [
+  { to: '/courses', title: '专业与学位', text: '每个专业的课程结构、必修课和专业方向' },
+  { to: '/fees', title: '马莫学费', text: '马来西亚校区全部专业的每年学费' },
+  { to: '/guides', title: '官方指南', text: '学校官网上选课、考试、签证等规定的中文整理' },
+  { to: '/mamo', title: '马莫百科', text: '在读学生写的入境报到、签证续签、海外交换等文章' }
+]
+
 const copied = ref(false)
 async function copyId() {
   try {
@@ -91,6 +98,7 @@ useHead({
         <a href="#transfer">转澳洲校区</a>
         <a href="#exchange">海外交换</a>
         <a href="#cost">费用</a>
+        <a href="#more">更多</a>
         <a href="#contact">咨询</a>
       </nav>
     </header>
@@ -268,23 +276,31 @@ useHead({
       <p class="placeholder">校园照片正在整理，稍后补充。</p>
     </section>
 
+    <section id="more" class="block">
+      <h2>想进一步了解</h2>
+      <ul class="more">
+        <li v-for="m in MORE" :key="m.to">
+          <NuxtLink :to="m.to">
+            <b>{{ m.title }}</b>
+            <span>{{ m.text }}</span>
+          </NuxtLink>
+        </li>
+      </ul>
+    </section>
+
+    <MamoIntro zh class="mamo-block" />
+
     <section id="contact" class="block">
       <h2>咨询</h2>
-      <p>
-        如有疑问，可以关注微信公众号“{{ MAMO_ACCOUNT.name }}”，或添加作者微信咨询。作者是马来西亚校区在读学生。
-      </p>
-      <div class="qrs">
-        <figure>
-          <img src="/img/mamo/qr-official-account.png" alt="马莫百科公众号二维码" width="140" height="140" loading="lazy">
-          <figcaption>公众号：{{ MAMO_ACCOUNT.name }}</figcaption>
-        </figure>
-        <figure>
-          <img src="/img/mamo/qr-wechat.png" alt="作者微信二维码" width="140" height="140" loading="lazy">
-          <figcaption>
+      <div class="wechat">
+        <img src="/img/mamo/qr-wechat.png" alt="作者微信二维码" width="132" height="132" loading="lazy">
+        <div>
+          <p>有具体问题，可以添加作者微信咨询。作者是马来西亚校区在读学生。</p>
+          <p class="id">
             微信号：<span class="mono">{{ MAMO_ACCOUNT.wechatId }}</span>
             <button type="button" class="copy" @click="copyId">{{ copied ? '已复制' : '复制' }}</button>
-          </figcaption>
-        </figure>
+          </p>
+        </div>
       </div>
       <p class="agent">
         可通过作者以学校授权代理渠道递交申请，不收取中介费，不收取押金。
@@ -366,10 +382,25 @@ useHead({
 .src a { color: var(--brand); }
 .placeholder { padding: var(--s6) var(--s4); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); text-align: center; }
 
-.qrs { display: flex; flex-wrap: wrap; gap: var(--s5); margin: var(--s4) 0; }
-.qrs figure { margin: 0; text-align: center; }
-.qrs img { display: block; margin: 0 auto var(--s2); border: 1px solid var(--border); border-radius: 8px; background: #fff; }
-.qrs figcaption { font-size: 0.875rem; }
+.more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
+.more a {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: var(--s4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: inherit;
+}
+.more a:hover { border-color: var(--brand); text-decoration: none; }
+.more a:hover b { color: var(--brand); }
+.more span { color: var(--muted); font-size: 0.875rem; line-height: 1.6; }
+.mamo-block { margin-block: var(--s6); }
+.wechat { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s4); align-items: center; margin: 0 0 var(--s4); }
+.wechat img { border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.wechat p { margin: 0 0 var(--s2); }
+.id { font-size: 0.9rem; }
 .copy {
   margin-left: 6px;
   padding: 2px 10px;
@@ -396,6 +427,7 @@ useHead({
   .page { padding-top: var(--s4); }
   .ranks li { flex-direction: column; gap: 2px; }
   .table { font-size: 0.875rem; }
-  .qrs { justify-content: center; }
+  .more { grid-template-columns: 1fr; }
+  .wechat img { width: 112px; height: 112px; }
 }
 </style>
