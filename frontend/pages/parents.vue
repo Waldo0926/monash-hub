@@ -127,23 +127,23 @@ useHead({
     <section id="entry" class="block">
       <h2>录取要求</h2>
       <p>
-        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB 国际文凭等，每个专业有各自的分数线和先修科目。下面是三个专业在官网列出的最低要求：
+        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB 国际文凭等，每个专业有各自的分数线和先修科目。下面是中国学生常读的几个专业在官网列出的最低要求：
       </p>
       <div class="scores">
         <article v-for="e in ENTRY_SCORES" :key="e.course" class="score-card">
-          <h3>{{ e.course }}</h3>
+          <h3>{{ e.course }} <span class="code mono">{{ e.code }}</span></h3>
           <dl>
             <div><dt>高考</dt><dd>总分 {{ e.gaokao }}%<span class="sub">满分 750 分约合 {{ score(e.gaokao) }} 分</span></dd></div>
-            <div><dt>A-Level</dt><dd>{{ e.aLevel ?? '见英文原文' }}<template v-if="e.aLevel"> 分</template></dd></div>
-            <div><dt>IB 文凭</dt><dd>{{ e.ib ?? '见英文原文' }}<template v-if="e.ib"> 分</template></dd></div>
-            <div><dt>MUFY 预科</dt><dd>{{ e.mufy ?? '见英文原文' }}</dd></div>
+            <div><dt>A-Level</dt><dd :class="{ missing: e.aLevel == null }">{{ e.aLevel ?? '见英文原文' }}<template v-if="e.aLevel"> 分</template></dd></div>
+            <div><dt>IB 文凭</dt><dd :class="{ missing: e.ib == null }">{{ e.ib ?? '见英文原文' }}<template v-if="e.ib"> 分</template></dd></div>
+            <div><dt>MUFY 预科</dt><dd :class="{ missing: e.mufy == null }">{{ e.mufy ?? '见英文原文' }}</dd></div>
             <div><dt>先修科目</dt><dd>{{ e.prerequisite }}</dd></div>
           </dl>
           <a :href="e.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
         </article>
       </div>
       <p class="note">
-        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。A-Level 取两年内最好的三门成绩，A* 和 A 记 5 分，B 记 4 分，C 记 3 分，依此类推，A* 另有加分。AP 等其他体系的计分方法见官网计分说明。以上分数官网注明适用于 2024 年入读 MUFY 的学生，每年可能调整，以录取当年官网为准。
+        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。A-Level 取两年内最好的三门成绩，A* 和 A 记 5 分，B 记 4 分，C 记 3 分，依此类推，A* 另有加分。工程学士的分数取自机械工程页面，土木、电子工程页面列出的分数相同。AP 等其他体系的计分方法见官网计分说明。以上分数官网注明适用于 2024 年入读 MUFY 的学生，每年可能调整，以录取当年官网为准。
       </p>
       <h3>先读预科再升本科</h3>
       <p>
@@ -306,13 +306,15 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); margin: var(--s4) 0; }
+.scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: var(--s4) 0; }
 .score-card { padding: var(--s4); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .score-card h3 { margin: 0 0 var(--s3); font-size: 1rem; }
+.score-card .code { color: var(--muted-2); font-size: 0.8rem; font-weight: 400; }
 .score-card dl { margin: 0 0 var(--s3); }
 .score-card dl div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: var(--s2); padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 .score-card dt { color: var(--muted); }
 .score-card dd { margin: 0; font-weight: 500; }
+.score-card dd.missing { color: var(--muted-2); font-weight: 400; }
 .score-card .sub { display: block; color: var(--muted-2); font-size: 0.8rem; font-weight: 400; }
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
@@ -348,7 +350,7 @@ useHead({
 }
 .agent { padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .scores { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {

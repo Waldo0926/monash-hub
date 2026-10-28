@@ -51,6 +51,7 @@ export const ENGLISH_SOURCE: ParentSource = {
  */
 export interface EntryScores {
   course: string
+  code: string
   url: string
   gaokao: number
   aLevel: number | null
@@ -61,8 +62,29 @@ export interface EntryScores {
 
 export const ENTRY_SCORES: EntryScores[] = [
   {
+    course: '商业与贸易学士',
+    code: 'B2026',
+    url: 'https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce',
+    gaokao: 60,
+    aLevel: null,
+    ib: null,
+    mufy: null,
+    prerequisite: '数学'
+  },
+  {
+    course: '数字媒体与传播学士',
+    code: 'A2011',
+    url: 'https://www.monash.edu.my/study/undergraduate/arts-social-sciences/bachelor-of-digital-media-and-communication',
+    gaokao: 60,
+    aLevel: 7,
+    ib: null,
+    mufy: '60%',
+    prerequisite: '无'
+  },
+  {
     course: '计算机科学学士',
-    url: 'https://www.monash.edu.my/study/entry-requirements/academic/undergraduate',
+    code: 'C2001',
+    url: 'https://www.monash.edu.my/study/undergraduate/information-technology/bachelor-computer-science/entry-score',
     gaokao: 70,
     aLevel: 9,
     ib: 28,
@@ -70,22 +92,14 @@ export const ENTRY_SCORES: EntryScores[] = [
     prerequisite: '数学'
   },
   {
-    course: '土木工程学士（荣誉）',
-    url: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-engineering-honours-in-civil-engineering',
+    course: '工程学士（荣誉）',
+    code: 'E3001',
+    url: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-engineering-honours-in-mechanical-engineering/entry-score',
     gaokao: 75,
     aLevel: 10,
     ib: null,
     mufy: '76.25%',
     prerequisite: '数学，以及化学或物理其中一门'
-  },
-  {
-    course: '理学学士',
-    url: 'https://www.monash.edu.my/study/undergraduate/science/bachelor-science/entry-score',
-    gaokao: 65,
-    aLevel: 9,
-    ib: 28,
-    mufy: '72.5%',
-    prerequisite: '生物、化学、物理、数学等理科中至少一门'
   }
 ]
 
@@ -148,7 +162,8 @@ export const LIVING = {
  * row covers on /ugfees. Engineering is one row for all its honours degrees.
  */
 export const FEE_EXAMPLES = [
+  { label: '商业与贸易学士', match: 'Bachelor of Business and Commerce' },
+  { label: '数字媒体与传播学士', match: 'Bachelor of Digital Media and Communication' },
   { label: '计算机科学学士', match: 'Bachelor of Computer Science' },
-  { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' },
-  { label: '理学学士', match: 'Bachelor of Science' }
+  { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' }
 ]

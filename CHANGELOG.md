@@ -7,8 +7,8 @@ All notable changes to Monash Hub are documented here.
 ### Added (a page for parents)
 
 - `/parents` is a Chinese page for parents looking at the Malaysia campus:
-  world rankings, the degree certificate, entry scores for three sample
-  degrees by 高考 (with the score out of 750), A-Level, IB and MUFY, the
+  world rankings, the degree certificate, entry scores for business, digital
+  media, computer science and engineering by 高考 (with the score out of 750), A-Level, IB and MUFY, the
   MUFY foundation route, transferring to an Australian campus, the exchange
   and short programmes, tuition with a yuan estimate, the student visa fee,
   living costs, and how to get in touch through 马莫百科. Each official fact links to the English
