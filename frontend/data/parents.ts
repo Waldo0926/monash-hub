@@ -137,7 +137,7 @@ export const EXCHANGE = {
     },
     {
       name: 'Semester in Australia',
-      text: '到澳洲的校区读一个学期。学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次。',
+      text: '到澳大利亚的校区读一个学期。学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次。',
       url: 'https://www.monash.edu.my/study-abroad/outbound/Semester-in-Australia'
     },
     {

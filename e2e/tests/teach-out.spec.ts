@@ -15,7 +15,7 @@ test('searching a unit that is closing shows both campuses and links both lists'
   await expect(regions.nth(0).getByRole('heading')).toHaveText('马来西亚校区')
   await expect(regions.nth(0)).toContainText('Final offering S2 2026')
   await expect(regions.nth(0)).toContainText('Replace with FIT3901 from 2027 (S1)')
-  await expect(regions.nth(1).getByRole('heading')).toHaveText('澳洲校区')
+  await expect(regions.nth(1).getByRole('heading')).toHaveText('澳大利亚校区')
   await expect(regions.nth(1)).toContainText('No longer offered')
   await expect(regions.nth(0).getByRole('link')).toHaveAttribute('href', MY)
   await expect(regions.nth(1).getByRole('link')).toHaveAttribute('href', AU)

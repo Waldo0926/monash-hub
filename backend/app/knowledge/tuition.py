@@ -92,12 +92,12 @@ NOTES: dict[str, dict[str, str]] = {
     },
     "bachelor of materials engineering (honours)": {
         "en": "The Malaysia fee covers the first two years. The last two are at Clayton and charged Australian fees.",
-        "zh": "马来西亚学费只覆盖前两年，后两年在澳洲 Clayton，按澳洲学费另计。",
+        "zh": "马来西亚学费只覆盖前两年，后两年在澳大利亚 Clayton 校区，按澳大利亚校区学费另计。",
         "url": "https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-materials-engineering-honours",
     },
     "bachelor of biomedical engineering (honours)": {
         "en": "The Malaysia fee covers the first two years. The last two are at Clayton and charged Australian fees.",
-        "zh": "马来西亚学费只覆盖前两年，后两年在澳洲 Clayton，按澳洲学费另计。",
+        "zh": "马来西亚学费只覆盖前两年，后两年在澳大利亚 Clayton 校区，按澳大利亚校区学费另计。",
         "url": "https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-biomedical-engineering-honours",
     },
 }

@@ -150,9 +150,12 @@ const ENTRIES = [
   { to: '/tree', key: 'tree', icon: 'tree' },
   { to: '/marks', key: 'marks', icon: 'percent' },
   { to: '/guides', key: 'guides', icon: 'page' },
-  { to: '/community', key: 'community', icon: 'chat' },
-  { to: '/fees', key: 'fees', icon: 'calendar' }
+  { to: '/fees', key: 'fees', icon: 'calendar' },
+  { to: '/community', key: 'community', icon: 'chat' }
 ]
+
+// One phrase per line under each entry title.
+const hintLines = (key: string) => $t(`home.toolHint.${key}`).split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
 
 const systems = computed(() =>
   campus.value === 'malaysia' ? MONASH_SYSTEMS : MONASH_SYSTEMS.filter(s => s.appliesTo === 'all')
@@ -213,10 +216,12 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         </p>
         <nav class="tools" :aria-label="$t('nav.tools')">
           <NuxtLink v-for="item in ENTRIES" :key="item.to" :to="item.to" class="tool">
-            <span class="tool-icon"><PlanIcon :name="item.icon" :size="22" /></span>
+            <span class="tool-icon"><PlanIcon :name="item.icon" :size="26" /></span>
             <span class="tool-text">
               <b>{{ $t(`nav.${item.key}`) }}</b>
-              <span class="tool-hint">{{ $t(`home.toolHint.${item.key}`) }}</span>
+              <span class="tool-hint">
+                <span v-for="line in hintLines(item.key)" :key="line">{{ line }}</span>
+              </span>
             </span>
           </NuxtLink>
         </nav>
@@ -342,9 +347,11 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 .tool {
   display: grid;
+  justify-items: center;
   align-content: start;
   row-gap: var(--s3);
-  padding: var(--s4) var(--s3);
+  padding: var(--s6) var(--s3) var(--s5);
+  text-align: center;
   border-radius: 12px;
   background: var(--surface-2);
   color: inherit;
@@ -355,16 +362,16 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .tool-icon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   background: var(--surface);
   color: var(--brand);
   box-shadow: var(--shadow-sm), 0 0 0 1px var(--border);
 }
-.tool-text { display: grid; gap: 1px; }
-.tool b { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
-.tool-hint { color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+.tool-text { display: grid; gap: 4px; }
+.tool b { font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.tool-hint { display: grid; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
 
 .guides { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink); }
 .guides li { border-bottom: 1px solid var(--border); }
@@ -436,7 +443,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 @media (max-width: 560px) {
   .tools { gap: var(--s4) var(--s2); margin-top: var(--s5); }
   .tool {
-    justify-items: center;
+    align-content: start;
     row-gap: 6px;
     padding: 0;
     background: none;

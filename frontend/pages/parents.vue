@@ -64,7 +64,7 @@ async function copyId() {
 }
 
 const title = 'Monash 马来西亚校区：给家长的介绍'
-const description = '莫纳什大学马来西亚校区的世界排名、学位证书、高考和国际课程录取要求、转澳洲校区、海外交换和每年费用，内容来自学校官网。'
+const description = '莫纳什大学马来西亚校区的世界排名、学位证书、高考和国际课程录取要求、转澳大利亚校区、海外交换和每年费用，内容来自学校官网。'
 useSeoMeta({
   title,
   description,
@@ -95,7 +95,7 @@ useHead({
         <a href="#rankings">学校排名</a>
         <a href="#degree">毕业证书</a>
         <a href="#entry">录取要求</a>
-        <a href="#transfer">转澳洲校区</a>
+        <a href="#transfer">转澳大利亚校区</a>
         <a href="#exchange">海外交换</a>
         <a href="#cost">费用</a>
         <a href="#more">更多</a>
@@ -124,7 +124,7 @@ useHead({
     <section id="degree" class="block">
       <h2>毕业证书</h2>
       <p>
-        在马来西亚校区完成学业，获得的毕业证书和学位证书由莫纳什大学颁发，与澳洲本部毕业生相同。回国后可以在教育部留学服务中心办理国（境）外学历学位认证。
+        在马来西亚校区完成学业，获得的毕业证书和学位证书由莫纳什大学颁发，与澳大利亚本部毕业生相同。回国后可以在教育部留学服务中心办理国（境）外学历学位认证。
       </p>
       <p class="src">
         <a :href="DEGREE_SOURCE.url" target="_blank" rel="noopener external">查看英文原文</a>
@@ -197,9 +197,9 @@ useHead({
     </section>
 
     <section id="transfer" class="block">
-      <h2>转到澳洲校区</h2>
+      <h2>转到澳大利亚校区</h2>
       <p>
-        在读本科生在完成学业前，可以申请转到澳洲的校区，继续读同类学位。各学院对已修学分和平均成绩有各自的要求，由澳洲校区的学院审批。毕业证书同样由莫纳什大学颁发。
+        在读本科生在完成学业前，可以申请转到澳大利亚的校区，继续读同类学位。各学院对已修学分和平均成绩有各自的要求，由澳大利亚校区的学院审批。毕业证书同样由莫纳什大学颁发。
       </p>
       <p class="src">
         <a :href="TRANSFER.url" target="_blank" rel="noopener external">查看英文原文（Internal Course Transfer）</a>
