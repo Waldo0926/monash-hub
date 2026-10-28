@@ -1905,7 +1905,7 @@ const zh: Messages = {
   'teachOut.caution': '以下是学院页面上的原文，没有改动。马莫和澳莫的 IT 学院各有一份列表，有些课两边调整的时间不一样，所以两边都列出来。是否适用于你的学位和入学年份，请向学院确认。替代课程由学院决定，不是本站的判断。',
   'teachOut.none': '这个校区的列表里没有这门课的变更说明，最新情况以下面的页面为准。',
   'teachOut.region.malaysia': '马来西亚校区',
-  'teachOut.region.australia': '澳洲校区',
+  'teachOut.region.australia': '澳大利亚校区',
   'answer.source': '来源：',
   'answer.related': '相关问题',
   'answer.alsoAsk': '你还可以问',

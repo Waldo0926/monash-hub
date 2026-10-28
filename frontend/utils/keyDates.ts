@@ -64,7 +64,7 @@ export const KEY_DATE_TEXT = {
   },
   zh: {
     title: '重要日期',
-    campus: { malaysia: '马来西亚', australia: '澳洲' },
+    campus: { malaysia: '马来西亚', australia: '澳大利亚' },
     kind: {
       census: 'Census date（学籍统计日）',
       withdraw: '退课最后一天，之后记 Withdrawn Fail',
