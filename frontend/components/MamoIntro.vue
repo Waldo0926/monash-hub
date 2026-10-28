@@ -15,10 +15,11 @@
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import { translate } from '~/i18n'
 
-// The parents page is Chinese whatever the interface language is.
-const props = defineProps<{ zh?: boolean }>()
+// The parents page is Chinese whatever the interface language is, and its
+// one-line description is about applying rather than student life.
+const props = defineProps<{ parents?: boolean }>()
 const { $t } = useNuxtApp()
-const t = (key: string) => (props.zh ? translate('zh', key) : $t(key))
+const t = (key: string) => (props.parents ? translate('zh', key) : $t(key))
 
 // Every title starts with the account name; on the home page it is already in
 // the heading above, so the list reads better without it.
@@ -51,7 +52,7 @@ onBeforeUnmount(() => clearTimeout(copiedTimer))
         <span>{{ t('home.mamo.eyebrow') }}</span>
       </p>
       <h2 id="mamo-intro-title">{{ t('home.mamo.title') }}</h2>
-      <p class="body">{{ t('home.mamo.body') }}</p>
+      <p class="body">{{ t(parents ? 'home.mamo.bodyParents' : 'home.mamo.body') }}</p>
 
       <h3 class="recent-title">{{ t('home.mamo.recent') }}</h3>
       <ul class="recent">

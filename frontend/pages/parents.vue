@@ -288,7 +288,7 @@ useHead({
       </ul>
     </section>
 
-    <MamoIntro zh class="mamo-block" />
+    <MamoIntro parents class="mamo-block" />
 
     <section id="contact" class="block">
       <h2>咨询</h2>
