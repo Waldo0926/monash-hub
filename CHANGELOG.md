@@ -4,6 +4,26 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (a shorter home page and header)
+
+- The home page heading is now 查课程、查政策、排选课 / "Find units, check
+  policies, plan your degree", with no eyebrow or lead under it. Eight entries
+  sit under the search box: units, degrees, course map, unit tree, WAM/GPA,
+  guides, community and Malaysia fees.
+- The guide list under the hero follows the semester. It reads the key dates
+  and shows exam pages near exams, enrolment pages while re-enrolment is open,
+  census and timetable pages at the start of a semester, and the usual
+  special consideration pages otherwise.
+- Monash systems and the three latest 马莫百科 posts share one row. The
+  sync-frequency grid, the community line and the 马莫百科 block with its QR
+  codes are gone from the home page.
+- Each faculty row links its faculty name to the filtered unit list and shows
+  the teaching periods at the chosen campus. When a unit from that faculty is
+  among the popular searches, the most searched one takes the example's place.
+- The header has six entries; the course map, unit tree and WAM/GPA calculator
+  are under one Planning menu. The language switcher offers English and
+  简体中文 only, and the scheduled translation run defaults to Chinese.
+
 ### Fixed (links on "click here" survive translation)
 
 - A translated paragraph lost any link sitting on "click here", "here" or
