@@ -7,10 +7,11 @@ All notable changes to Monash Hub are documented here.
 ### Added (a page for parents)
 
 - `/parents` is a Chinese page for parents looking at the Malaysia campus:
-  world rankings, the degree certificate, the 高考 percentage each sample
-  degree asks for and what that is out of 750, the 2+2 move to Clayton,
-  tuition with a yuan estimate, the student visa fee, living costs, and how
-  to get in touch through 马莫百科. Each official fact links to the English
+  world rankings, the degree certificate, entry scores for three sample
+  degrees by 高考 (with the score out of 750), A-Level, IB and MUFY, the
+  MUFY foundation route, transferring to an Australian campus, the exchange
+  and short programmes, tuition with a yuan estimate, the student visa fee,
+  living costs, and how to get in touch through 马莫百科. Each official fact links to the English
   page it came from and says when it was checked.
 - Tuition is read from the same table as `/fees`. Yuan figures use 1 MYR =
   1.65 CNY, set in `data/parents.ts`.

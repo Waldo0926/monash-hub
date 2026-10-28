@@ -32,27 +32,93 @@ export const DEGREE_SOURCE: ParentSource = {
 }
 
 export const ENTRY_SOURCE: ParentSource = {
-  url: 'https://www.monash.edu.my/study/entry-requirements/academic',
-  checked: '2026-10-28'
+  url: 'https://www.monash.edu.my/study/entry-requirements/academic/undergraduate',
+  checked: '2026-10-29'
 }
+
+export const SCORE_METHOD_URL =
+  'https://www.monash.edu.my/study/entry-requirements/academic/undergraduate/calculating-entry-scores'
 
 export const ENGLISH_SOURCE: ParentSource = {
   url: 'https://www.monash.edu.my/study/entry-requirements/english',
   checked: '2026-10-28'
 }
 
-/** 高考总分的最低百分比，按满分 750 换算成分数。 */
-export const GAOKAO = [
-  { course: '计算机科学学士', percent: 70 },
-  { course: '土木工程学士（荣誉）', percent: 75 },
-  { course: '理学学士', percent: 65 }
+/**
+ * Each degree's published entry scores. The course pages say the figures are
+ * for students who started MUFY in 2024. A null is a score the page did not
+ * show when it was read, not a degree that refuses the qualification.
+ */
+export interface EntryScores {
+  course: string
+  url: string
+  gaokao: number
+  aLevel: number | null
+  ib: number | null
+  mufy: string | null
+  prerequisite: string
+}
+
+export const ENTRY_SCORES: EntryScores[] = [
+  {
+    course: '计算机科学学士',
+    url: 'https://www.monash.edu.my/study/entry-requirements/academic/undergraduate',
+    gaokao: 70,
+    aLevel: 9,
+    ib: 28,
+    mufy: '70%',
+    prerequisite: '数学'
+  },
+  {
+    course: '土木工程学士（荣誉）',
+    url: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-engineering-honours-in-civil-engineering',
+    gaokao: 75,
+    aLevel: 10,
+    ib: null,
+    mufy: '76.25%',
+    prerequisite: '数学，以及化学或物理其中一门'
+  },
+  {
+    course: '理学学士',
+    url: 'https://www.monash.edu.my/study/undergraduate/science/bachelor-science/entry-score',
+    gaokao: 65,
+    aLevel: 9,
+    ib: 28,
+    mufy: '72.5%',
+    prerequisite: '生物、化学、物理、数学等理科中至少一门'
+  }
 ]
 
 export const TRANSFER = {
-  course: '材料工程学士（荣誉）',
-  courseUrl: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-materials-engineering-honours',
-  ruleUrl: 'https://www.monash.edu/engineering/current-students/enrolment-and-re-enrolment/course-information/malaysia-clayton-transfer',
-  checked: '2026-10-28'
+  url: 'https://www.monash.edu.my/study/apply/internal-course-transfer',
+  rulesUrl: 'https://www.monash.edu/admissions/study-options/internal-transfer',
+  checked: '2026-10-29'
+}
+
+export const EXCHANGE = {
+  checked: '2026-10-29',
+  programs: [
+    {
+      name: 'Semester Exchange Program',
+      text: '到 Monash 的海外合作大学交换一到两个学期，所修学分计入 Monash 学位。',
+      url: 'https://www.monash.edu/study-abroad/overseas/monash-partner-programs/exchange'
+    },
+    {
+      name: 'Semester in Australia',
+      text: '到澳洲的校区读一个学期。学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次。',
+      url: 'https://www.monash.edu.my/study-abroad/outbound/Semester-in-Australia'
+    },
+    {
+      name: 'Global Summer Program / Global Winter Program',
+      text: '寒暑假期间到合作大学上 2 到 4 周的短期课程，可以计入学分。冬季项目在 6 至 7 月，夏季项目在 11 月至次年 2 月。',
+      url: 'https://www.monash.edu.my/study-abroad/outbound/short-term-programs'
+    },
+    {
+      name: 'Prato 中心（意大利）',
+      text: 'Monash 在意大利 Prato 设有自己的教学中心。2026 年 6 至 7 月，马来西亚校区的学生在这里参加了为期三周的短期课程。',
+      url: 'https://www.monash.edu.my/pages/latest/articles/2026/monash-malaysia-students-expand-global-perspectives-through-mgci-in-italy'
+    }
+  ]
 }
 
 /** 目前以 1 马币兑 1.65 人民币换算，具体以当天汇率为准。 */

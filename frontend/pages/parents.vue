@@ -7,10 +7,10 @@
  * Tuition comes from the same /v1/fees table as /fees; the rest is in
  * data/parents.ts.
  */
-import { MAMO_ACCOUNT } from '~/data/mamo'
+import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
-  DEGREE_SOURCE, ENGLISH_SOURCE, ENTRY_SOURCE, FEE_EXAMPLES, GAOKAO, LIVING, MYR_TO_CNY,
-  RANKINGS, RANKINGS_SOURCE, SUBJECT_RANKING, TRANSFER, VISA
+  DEGREE_SOURCE, ENGLISH_SOURCE, ENTRY_SCORES, ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MYR_TO_CNY,
+  RANKINGS, RANKINGS_SOURCE, SCORE_METHOD_URL, SUBJECT_RANKING, TRANSFER, VISA
 } from '~/data/parents'
 import type { FeeRow } from '~/utils/tuition'
 
@@ -39,10 +39,11 @@ const rm = (n: number) => `RM${group(n)}`
 const cny = (n: number) => `约 ${(n * MYR_TO_CNY / 10000).toFixed(1)} 万元`
 const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 10)} 元`
 
-const score = (percent: number) => {
-  const n = (750 * percent) / 100
-  return Number.isInteger(n) ? `${n} 分` : `约 ${Math.round(n)} 分`
-}
+const score = (percent: number) => Math.round((750 * percent) / 100)
+
+// The account's own posts on exchange, as further reading under the official programmes.
+const exchangePosts = MAMO_POSTS.filter(p => p.topic === 'exchange' && p.url)
+  .map(p => ({ ...p, title: p.title.replace(/^马莫百科[｜|]\s*/, '') }))
 
 const copied = ref(false)
 async function copyId() {
@@ -56,7 +57,7 @@ async function copyId() {
 }
 
 const title = 'Monash 马来西亚校区：给家长的介绍'
-const description = '莫纳什大学马来西亚校区的世界排名、学位证书、高考录取要求、2+2 转澳洲本部和每年费用，内容来自学校官网。'
+const description = '莫纳什大学马来西亚校区的世界排名、学位证书、高考和国际课程录取要求、转澳洲校区、海外交换和每年费用，内容来自学校官网。'
 useSeoMeta({
   title,
   description,
@@ -87,7 +88,8 @@ useHead({
         <a href="#rankings">学校排名</a>
         <a href="#degree">毕业证书</a>
         <a href="#entry">录取要求</a>
-        <a href="#transfer">转澳洲本部</a>
+        <a href="#transfer">转澳洲校区</a>
+        <a href="#exchange">海外交换</a>
         <a href="#cost">费用</a>
         <a href="#contact">咨询</a>
       </nav>
@@ -124,39 +126,69 @@ useHead({
 
     <section id="entry" class="block">
       <h2>录取要求</h2>
-      <p>学校接受高考成绩直接申请本科。下表是官网列出的最低要求，按高考总分的百分比计算：</p>
-      <table class="table">
-        <thead>
-          <tr><th>专业</th><th>高考总分要求</th><th>满分 750 分时</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="g in GAOKAO" :key="g.course">
-            <td>{{ g.course }}</td>
-            <td>{{ g.percent }}%</td>
-            <td>{{ score(g.percent) }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="note">
-        上海（满分 660 分）、海南（满分 900 分）等总分不同的省份，按本省满分乘以同样的百分比计算。每年的要求可能调整，以录取当年官网为准。此外还需要达到英语要求，雅思等考试的具体分数见英文原文。
+      <p>
+        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB 国际文凭等，每个专业有各自的分数线和先修科目。下面是三个专业在官网列出的最低要求：
       </p>
+      <div class="scores">
+        <article v-for="e in ENTRY_SCORES" :key="e.course" class="score-card">
+          <h3>{{ e.course }}</h3>
+          <dl>
+            <div><dt>高考</dt><dd>总分 {{ e.gaokao }}%<span class="sub">满分 750 分约合 {{ score(e.gaokao) }} 分</span></dd></div>
+            <div><dt>A-Level</dt><dd>{{ e.aLevel ?? '见英文原文' }}<template v-if="e.aLevel"> 分</template></dd></div>
+            <div><dt>IB 文凭</dt><dd>{{ e.ib ?? '见英文原文' }}<template v-if="e.ib"> 分</template></dd></div>
+            <div><dt>MUFY 预科</dt><dd>{{ e.mufy ?? '见英文原文' }}</dd></div>
+            <div><dt>先修科目</dt><dd>{{ e.prerequisite }}</dd></div>
+          </dl>
+          <a :href="e.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
+        </article>
+      </div>
+      <p class="note">
+        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。A-Level 取两年内最好的三门成绩，A* 和 A 记 5 分，B 记 4 分，C 记 3 分，依此类推，A* 另有加分。AP 等其他体系的计分方法见官网计分说明。以上分数官网注明适用于 2024 年入读 MUFY 的学生，每年可能调整，以录取当年官网为准。
+      </p>
+      <h3>先读预科再升本科</h3>
+      <p>
+        没有参加高考，或成绩未达到直接入读要求的学生，可以先在马来西亚校区读一年 Monash 大学预科（MUFY），按预科成绩升读本科，各专业要求的预科成绩见上表。也有学生先在其他院校读加拿大国际大学预科（CIMP）等课程，再申请本科。
+      </p>
+      <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文。</p>
       <p class="src">
-        <a :href="ENTRY_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（学术要求）</a>
+        <a :href="ENTRY_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（本科学术要求）</a>
+        <a :href="SCORE_METHOD_URL" target="_blank" rel="noopener external">查看英文原文（计分说明）</a>
         <a :href="ENGLISH_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（英语要求）</a>
         <span>核对于 {{ ENTRY_SOURCE.checked }}</span>
       </p>
     </section>
 
     <section id="transfer" class="block">
-      <h2>2+2 转澳洲本部</h2>
+      <h2>转到澳洲校区</h2>
       <p>
-        部分工程专业可以前两年在马来西亚校区就读，后两年转到墨尔本的 Clayton 校区完成学业，例如{{ TRANSFER.course }}。转校区需要前两年的加权平均成绩达到 55 分以上，并且在澳洲还有至少 48 学分的课程要修。毕业证书同样由莫纳什大学颁发。
+        在读本科生在完成学业前，可以申请转到澳洲的校区，继续读同类学位。各学院对已修学分和平均成绩有各自的要求，由澳洲校区的学院审批。毕业证书同样由莫纳什大学颁发。
       </p>
       <p class="src">
-        <a :href="TRANSFER.courseUrl" target="_blank" rel="noopener external">查看英文原文（专业介绍）</a>
-        <a :href="TRANSFER.ruleUrl" target="_blank" rel="noopener external">查看英文原文（转校区条件）</a>
+        <a :href="TRANSFER.url" target="_blank" rel="noopener external">查看英文原文（Internal Course Transfer）</a>
+        <a :href="TRANSFER.rulesUrl" target="_blank" rel="noopener external">查看英文原文（转校区条件）</a>
         <span>核对于 {{ TRANSFER.checked }}</span>
       </p>
+    </section>
+
+    <section id="exchange" class="block">
+      <h2>海外交换</h2>
+      <p>不转校区的学生，也可以通过以下项目到海外学习一段时间：</p>
+      <ul class="programs">
+        <li v-for="p in EXCHANGE.programs" :key="p.name">
+          <h3>{{ p.name }}</h3>
+          <p>{{ p.text }}</p>
+          <a :href="p.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
+        </li>
+      </ul>
+      <p class="src"><span>核对于 {{ EXCHANGE.checked }}</span></p>
+      <div v-if="exchangePosts.length" class="reading">
+        <p class="reading-title">马莫百科写过的交换经历和申请指南：</p>
+        <ul>
+          <li v-for="p in exchangePosts" :key="p.url">
+            <a :href="p.url" target="_blank" rel="noopener external">{{ p.title }}</a>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <section id="cost" class="block">
@@ -274,6 +306,26 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
+.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); margin: var(--s4) 0; }
+.score-card { padding: var(--s4); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.score-card h3 { margin: 0 0 var(--s3); font-size: 1rem; }
+.score-card dl { margin: 0 0 var(--s3); }
+.score-card dl div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: var(--s2); padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.score-card dt { color: var(--muted); }
+.score-card dd { margin: 0; font-weight: 500; }
+.score-card .sub { display: block; color: var(--muted-2); font-size: 0.8rem; font-weight: 400; }
+.src-link { color: var(--brand); font-size: 0.8rem; }
+
+.programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.programs li { padding: var(--s3) 0; border-bottom: 1px solid var(--border); }
+.programs h3 { margin: 0 0 var(--s1); font-size: 1rem; }
+.programs p { margin: 0 0 var(--s1); }
+.reading { margin-top: var(--s4); padding: var(--s4); border-radius: 10px; background: var(--surface-2); }
+.reading-title { margin: 0 0 var(--s2) !important; font-weight: 500; }
+.reading ul { margin: 0; padding-left: 1.2em; }
+.reading li { margin: 4px 0; line-height: 1.6; }
+.reading a { color: var(--brand); }
+
 .note { color: var(--muted); font-size: 0.875rem; }
 .src { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); color: var(--muted-2); font-size: 0.8rem; }
 .src a { color: var(--brand); }
@@ -296,6 +348,9 @@ useHead({
 }
 .agent { padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
 
+@media (max-width: 760px) {
+  .scores { grid-template-columns: 1fr; }
+}
 @media (max-width: 520px) {
   .page { padding-top: var(--s4); }
   .ranks li { flex-direction: column; gap: 2px; }
