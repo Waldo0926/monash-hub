@@ -8,13 +8,13 @@ All notable changes to Monash Hub are documented here.
 
 - `/parents` is a Chinese page for parents looking at the Malaysia campus:
   world rankings, the degree certificate, a table of entry scores for
-  business, digital media, computer science and engineering by 高考 (with
-  the score out of 750 and the single-subject rules), A-Level, IB, AP, SAT,
-  ACT, MUFY and CIMP, the
-  MUFY foundation route, transferring to an Australian campus, the exchange
-  and short programmes, tuition with a yuan estimate, the student visa fee,
-  living costs, and how to get in touch through 马莫百科. Each official fact links to the English
-  page it came from and says when it was checked.
+  business, digital media, computer science and engineering by 高考 (with the
+  score out of 750 and the single-subject rules), A-Level, IB, AP, SAT, ACT,
+  MUFY and CIMP, the MUFY foundation route, transferring to an Australian
+  campus, the exchange and short programmes, tuition with a yuan estimate,
+  the student visa fee, living costs, and how to get in touch through 马莫百科.
+  Each official fact links to the English page it came from and says when it
+  was checked.
 - Tuition is read from the same table as `/fees`. Yuan figures use 1 MYR =
   1.65 CNY, set in `data/parents.ts`.
 - The page has its own share title, description and 1200x630 image for
