@@ -7,7 +7,7 @@
  * course, and that it is tuition only. A number we could not read stays as
  * Monash printed it, with a line saying so.
  */
-import { feeNote, feeTitle, formatAmount, type FeeRow } from '~/utils/tuition'
+import { deltaAt, feeNote, feeTitle, formatAmount, type FeeRow } from '~/utils/tuition'
 
 type Source = { title: string; url: string; last_checked: string | null }
 
@@ -17,6 +17,7 @@ const props = defineProps<{
     rows: FeeRow[]
     not_listed: { en: string; zh: string; url?: string } | null
     sources: Record<string, Source>
+    previous?: { year: number; sources: Record<string, { title: string; url: string }> } | null
   }
 }>()
 
@@ -50,6 +51,7 @@ function rowLabel(row: FeeRow) {
           <dd>
             <span v-for="(a, n) in row.domestic" :key="n" class="amount">
               {{ formatAmount(a) }}<span v-if="a.label" class="tiny muted stream">{{ a.label }}</span>
+              <FeeDelta :delta="deltaAt(row.change, 'domestic', n)" :year="row.change?.year" />
             </span>
           </dd>
         </div>
@@ -58,6 +60,7 @@ function rowLabel(row: FeeRow) {
           <dd>
             <span v-for="(a, n) in row.international" :key="n" class="amount">
               {{ formatAmount(a) }}<span v-if="a.label" class="tiny muted stream">{{ a.label }}</span>
+              <FeeDelta :delta="deltaAt(row.change, 'international', n)" :year="row.change?.year" />
             </span>
           </dd>
         </div>
@@ -83,6 +86,13 @@ function rowLabel(row: FeeRow) {
       </template>
       · <NuxtLink to="/fees">{{ $t('fees.all') }}</NuxtLink>
     </p>
+    <p v-if="fee.previous" class="tiny muted sources">
+      {{ $t('fees.previousSource', { year: fee.previous.year }) }}
+      <template v-for="([key, source], n) in Object.entries(fee.previous.sources)" :key="key">
+        <template v-if="n">, </template>
+        <a :href="source.url" rel="noopener external" target="_blank">{{ source.title }}</a>
+      </template>
+    </p>
   </section>
 </template>
 
@@ -97,7 +107,7 @@ function rowLabel(row: FeeRow) {
 .amounts dt { font-size: 0.75rem; color: var(--muted); }
 .amounts dd { margin: 0; display: grid; gap: 2px; }
 .amount { font: 600 1.05rem var(--font-mono); color: var(--navy); }
-.stream { display: block; font-family: var(--font-body, inherit); font-weight: 400; }
+.stream { display: block; font-family: var(--font); font-weight: 400; }
 .basis {
   display: inline-block; padding: 0 var(--s2); border-radius: 999px;
   font-size: 0.85rem; font-weight: 600; border: 1px solid currentColor;

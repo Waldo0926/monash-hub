@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { feeNote, feeTitle, filterFees, formatAmount } from '../utils/tuition'
+import { deltaAt, feeNote, feeTitle, filterFees, formatAmount, formatDelta } from '../utils/tuition'
 
 describe('formatAmount', () => {
   it('groups thousands the same way on every machine', () => {
@@ -43,5 +43,24 @@ describe('filterFees', () => {
     expect(filterFees(rows, '数据')[0]?.title).toBe('Master of Data Science')
     expect(filterFees(rows, 'DATA')).toHaveLength(1)
     expect(filterFees(rows, '  ')).toHaveLength(2)
+  })
+})
+
+describe('formatDelta and deltaAt', () => {
+  it('signs the change and keeps one decimal of percent', () => {
+    expect(formatDelta({ previous: 54720, diff: 2880, pct: 5.3 })).toBe('+RM 2,880 (+5.3%)')
+    expect(formatDelta({ previous: 9600, diff: -400, pct: -4 })).toBe('−RM 400 (−4.0%)')
+  })
+
+  it('finds the delta for one stream and nothing when last year is unknown', () => {
+    const change = {
+      year: 2026,
+      domestic: [{ previous: 39840, diff: 960, pct: 2.4 }, { previous: 45120, diff: 1440, pct: 3.2 }],
+      international: null,
+      source: 'profile'
+    }
+    expect(deltaAt(change, 'domestic', 1)?.diff).toBe(1440)
+    expect(deltaAt(change, 'international', 0)).toBeNull()
+    expect(deltaAt(null, 'domestic', 0)).toBeNull()
   })
 })

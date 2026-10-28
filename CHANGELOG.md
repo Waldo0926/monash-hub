@@ -29,6 +29,17 @@ All notable changes to Monash Hub are documented here.
   Professional Counselling has no 2027 fee.
 - Links to the page from the degree list and the home page's "Also here"
   line. The header navigation is unchanged.
+- Every fee shows how it moved since 2026 under the amount, for Malaysian
+  and international students alike ("vs 2026: +RM 2,880 (+5.3%)"), with the
+  2026 amount on hover. The index first read the fee pages after they had
+  switched to 2027, so the 2026 amounts were typed into
+  `backend/app/knowledge/tuition_2026.py` from Monash Malaysia's printed 2026
+  University Profile and prospectuses, each row with its source. A change is
+  only shown between rows with the same basis and the same streams, and a
+  course with no printed 2026 fee (Computer Science in Artificial
+  Intelligence) shows none.
+- From 2028 the previous year comes from the stored versions of the same
+  fee pages, so the printed table is only needed this once.
 
 ### Added (official pages read elsewhere, without the server failing them)
 

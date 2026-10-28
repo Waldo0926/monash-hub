@@ -19,6 +19,30 @@ export type FeeRow = {
   international: FeeAmount[]
   unreadable: boolean
   note: { en: string; zh: string; url?: string } | null
+  change: FeeChange | null
+}
+
+/** One amount compared with the same amount last year. */
+export type FeeDelta = { previous: number; diff: number; pct: number | null }
+
+export type FeeChange = {
+  year: number
+  domestic: (FeeDelta | null)[] | null
+  international: (FeeDelta | null)[] | null
+  source: string
+}
+
+/** The delta for the n-th amount on one side of a row, if there is one. */
+export function deltaAt(change: FeeChange | null | undefined, side: 'domestic' | 'international', n: number): FeeDelta | null {
+  return change?.[side]?.[n] ?? null
+}
+
+/** "+RM 2,880 (+5.3%)", "-RM 400 (-1.2%)". Zero is the caller's to word. */
+export function formatDelta(delta: FeeDelta): string {
+  const sign = delta.diff > 0 ? '+' : delta.diff < 0 ? '−' : ''
+  const amount = String(Math.abs(delta.diff)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  const pct = delta.pct == null ? '' : ` (${sign}${Math.abs(delta.pct).toFixed(1)}%)`
+  return `${sign}RM ${amount}${pct}`
 }
 
 /**
