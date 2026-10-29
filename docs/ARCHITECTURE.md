@@ -95,14 +95,27 @@ difficulty score, because there is no honest way to compute one.
 Every page except `/search` has an Ask button in the corner
 (`frontend/components/SiteAssistant.vue`). It opens a chat panel that sends
 each question to the same `/v1/ask` endpoint, with the unit code when it is
-asked on a unit page and the Handbook year when the page has `?year=`. No
-model is called and there is no key to configure.
+asked on a unit page and the Handbook year when the page has `?year=`. This
+API calls no model and needs no model key.
 
 The panel adds two things the router does not know about, both plain word
 matching in `frontend/utils/assistant.ts`: the site's own tools a question
 names (WAM calculator, course map, unit tree and so on) and 马莫百科 posts that
-share at least two pairs of Chinese characters with it. When nothing matches
-it says so and links to the community and MoVA (Monash Connect Malaysia).
+share at least two pairs of Chinese characters with it.
+
+At the same time the panel sends the question to `POST /v1/assistant/bot`,
+which passes it on to the 马莫百科 WeChat bot (`backend/app/core/wxbot.py`).
+The bot is a separate service. It answers from what its owner has taught it,
+the 马莫百科 posts and sentences quoted from official pages, none of which this
+API holds. Its reply shows under 来自马莫百科, and a reply that only repeats
+Monash Hub is left out. The bot is optional: with `WXBOT_URL` or
+`WXBOT_WEB_SECRET` unset, or the bot down or slow, the panel shows the
+router's answer alone. Questions to the bot are limited to 60 an hour per
+network.
+
+When nothing matches anywhere, the panel shows the 马莫百科 QR code so the
+reader can send the question to the account and get a reply later, with
+links to the community and MoVA (Monash Connect Malaysia) under it.
 The chat is kept in `sessionStorage`, so it survives a page change and is
 gone with the tab.
 Requests go through the same nginx limit as the rest of `/api/`.

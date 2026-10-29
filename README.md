@@ -12,15 +12,15 @@
 </p>
 
 <p align="center"><a href="https://monashhub.secureview.tech">Visit Monash Hub</a></p>
-<p align="center"><strong>English</strong> | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a></p>
+<p align="center"><strong>English</strong> | <a href="./README.zh-CN.md">简体中文</a></p>
 
 ---
 
-<p align="center"><img src="./docs/images/home-en.webp" alt="Monash Hub home page: search, key dates for Malaysia and Australia, and entry points to units, course map and guides" width="900" /></p>
+<p align="center"><img src="./docs/images/home-en.webp" alt="Monash Hub home page: search box with eight entries under it, key dates, guides for this part of the semester and the 马莫百科 block" width="900" /></p>
 
 ## What is Monash Hub?
 
-Monash Hub brings Monash student essentials into one place: courses, degrees, study planning, WAM/GPA tools, official guides and a student community. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
+Monash Hub brings Monash student essentials into one place: units, degrees, study planning, WAM/GPA tools, key dates, Malaysia tuition fees, official guides and a student community. It is designed especially to help non-native English speakers search for, understand and verify information about study and campus life.
 
 Instead of switching between the Handbook, university websites, policy pages and student discussions, students can begin in one place and see clearly where each result comes from.
 
@@ -38,7 +38,7 @@ Before Monash Hub, a student with a question had three places to look, and each 
 
 Student tools came before this one. [MonPlan](https://github.com/MonPlan) was a student-built course planner; its open scrapers ([MonScrape](https://github.com/MonPlan/MonScrape)) were last updated in 2017 and read the old Handbook pages. monashcoding's [TheBetterHandbookAPI](https://github.com/monashcoding/TheBetterHandbookAPI) documents the Handbook's search endpoint (last commit September 2022). Neither covers policies or a second language.
 
-Monash Hub keeps what they got right, data straight from the Handbook, and adds the rest: official pages from both sites next to the units, every result labelled with its source and the date it was last checked, Malaysia and Australia shown side by side when they differ, and a Chinese translation linked to the English original. The site assistant searches these sources; it does not use a generative model to write answers.
+Monash Hub keeps what they got right, data straight from the Handbook, and adds the rest: official pages from both sites next to the units, every result labelled with its source and the date it was last checked, Malaysia and Australia shown side by side when they differ, and a Chinese translation linked to the English original. The Ask panel searches these sources and does not use a generative model to write answers. It also passes the question to the 马莫百科 WeChat bot, which answers from what its owner has taught it and from the account's posts. When those have nothing, the bot may let a free language model pick sentences from official pages, and each sentence is checked word for word against the page before it is sent. The bot's reply sits in its own block, labelled 来自马莫百科.
 
 ## Technology stack
 
@@ -54,13 +54,13 @@ The current production stack is:
 
 The production request path is Nginx → Nuxt SSR for the web interface and Nginx → FastAPI for `/api/*`, with PostgreSQL on a private Docker network. See [architecture](docs/ARCHITECTURE.md) for the current system design.
 
-## By the numbers (25 October 2026)
+## By the numbers (29 October 2026)
 
 | | |
 | --- | --- |
-| Official pages in the guides | About 3,100 from both sites' sitemaps, up from 662 |
-| Backend tests | 799 test functions, run against a real PostgreSQL in CI |
-| Frontend and browser tests | 48 Vitest tests; 13 Playwright tests at desktop and phone sizes |
+| Official pages in the guides | 2,917 listed from both sites' sitemaps, up from 662 |
+| Backend tests | 891 test functions, run against a real PostgreSQL in CI |
+| Frontend and browser tests | 77 Vitest tests; 22 Playwright tests at desktop and phone sizes |
 | Translation model | Zhipu's free `glm-4.5-flash`, chosen after reading three free models against the English over 70 paragraphs (`glm-4-flash` turned conditions around) |
 | Deploys | Every merge to `main`; a smoke check of the live site after each, and the previous version goes back if it fails |
 
@@ -75,7 +75,7 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 - Verify details through the Handbook link and last-checked date
 
 <p align="center"><img src="./docs/images/unit-en.webp" alt="Unit page for FIT2004: faculty notice, credit points, campus, assessment, offerings and the Handbook source link" width="900" /></p>
-<p align="center"><sub>The screenshots on this page come from the browser-test stack, which runs the real site on three invented units (FIT1008, FIT2004, FIT2102) and an invented degree. Names, marks and plans are made up; the live site shows the Handbook.</sub></p>
+<p align="center"><sub>The home page screenshot comes from the live site. The other screenshots come from the browser-test stack, which runs the real site on three invented units (FIT1008, FIT2004, FIT2102) and an invented degree. Names, marks and plans are made up; the live site shows the Handbook.</sub></p>
 
 ### Find official Monash information
 
@@ -85,7 +85,7 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 
 ### Understand information more easily
 
-- Use the interface in Simplified Chinese, English, Japanese or Korean
+- Use the interface in English or Simplified Chinese
 - Read translated support for Handbook and official-guide content
 - See translation provenance and links to the original page
 
@@ -95,7 +95,9 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 - **Course map**: put units into semesters and have each one checked for you: whether your campus offers it, whether that teaching period offers it, and whether what it requires is sitting earlier in the plan
 - **Unit tree**: follow a unit back to what it needs, or forward to what it unlocks; units your campus does not teach are marked rather than hidden
 
-A plan is stored only in your own browser and is never saved to an account. Each check sends the plan to the API so it can be compared with the Handbook, and nothing is kept once the answer comes back. A plan does not follow you to another device, so use Export to move it.
+The three of them sit under **Planning** in the header.
+
+A plan is stored only in your own browser and is never saved to an account. Each check sends the plan to the API so it can be compared with the Handbook, and nothing is kept once the answer comes back. To open a plan on another device, use **Copy plan code** in the course map's More menu: it copies a link with the plan written after the `#`, which the browser never sends to the server. Open the link on the other device, or paste it into **Paste plan code** there. Export still works if you would rather keep a file.
 
 <p align="center"><img src="./docs/images/plan-en.webp" alt="Course map: four units placed in semesters, each checked against the campus, teaching period and prerequisites, with progress against the degree on the right" width="900" /></p>
 
@@ -107,6 +109,26 @@ A plan is stored only in your own browser and is never saved to an account. Each
 - Marks are worked out in your browser and never stored on your account. Only the unit codes you type are sent to the API, to look up credit points and level; the marks themselves stay on your device
 
 <p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA calculator: three units with marks, grouped by level, WAM and CGPA on the right" width="900" /></p>
+
+### Check Malaysia tuition fees
+
+- `/fees` lists every row of Monash Malaysia's undergraduate and postgraduate fee pages, grouped by level and school, with a filter by course name
+- Each fee says whether it is per year or for the whole course, and how it moved since 2026 (for example "vs 2026: +RM 2,880 (+5.3%)")
+- A degree page viewed as Malaysia shows that degree's own fee
+- The amounts are read from the fee pages the site already indexes, which are re-read every two days, so a change on monash.edu.my shows up without anyone typing it in. An amount that does not read as a number is shown as Monash printed it, with a warning
+
+### Key dates
+
+- The home page shows the next few academic dates for your campus: census, withdrawal, SWOT vac, exams and results
+- `/dates` lists every upcoming date by month, including Allocate+ and WES re-enrolment windows, with public holidays you can hide
+
+### A page for parents
+
+`/parents` is written in Chinese for parents looking at the Malaysia campus: rankings, the degree certificate, entry scores by 高考, A-Level, IB, AP, SAT, ACT, MUFY and CIMP, the foundation route, transferring to an Australian campus, exchange, tuition with a yuan estimate, the visa fee and living costs. Each official fact links the English page it came from and says when it was checked.
+
+### Ask a question
+
+Every page except search has an Ask button in the corner. The panel answers from the Handbook, official pages and 马莫百科 posts, and also shows what the 马莫百科 bot knows (see [Why another site?](#why-another-site)). When neither has an answer, it shows the account's QR code so the question can be sent there and answered later.
 
 ### Join the student community
 
@@ -123,7 +145,7 @@ An index of the articles from the 马莫百科 WeChat account: searchable, group
 
 ## How to use it
 
-1. Search from the home page with a unit code, keyword or question.
+1. Search from the home page with a unit code, keyword or question, or pick one of the eight entries under the search box.
 2. Start with official results and open source links for important decisions.
 3. Read results labelled `Community` when you need student experience.
 4. Register with an email address to ask or answer questions.
