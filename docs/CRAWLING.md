@@ -99,6 +99,28 @@ serves `httpx` normally and never needs it.
 A browser does not establish that a page is readable: recognised challenge,
 sign-in, soft-404 and access-error shells are failures even when they return 200.
 
+## When Monash refuses the server
+
+By 27 October 2026 both www.monash.edu.my and www.monash.edu refused the
+production server's address, browser or not. The official pages are now read
+on a home machine instead and sent to the server:
+
+1. The server still decides what is due: `deployment/crawl.sh official-due HOST`
+   lists the pages whose refresh tier has come round, the same list a crawl on
+   the server would have used.
+2. The home machine reads only those pages with `python -m crawler.official.harvest`,
+   under the same user agent, `robots.txt` check and rate limit as above.
+3. The result goes back to the server and is stored with
+   `deployment/crawl.sh official-harvest FILE`, through the same extraction,
+   hashing and failure rules as any other crawl.
+
+`deployment/harvest-relay.sh` and `monash-hub-harvest.timer` do this once a
+day. On the server, `OFFICIAL_FETCH=harvest` stops the six-hourly refresh from
+fetching pages itself, and the crawl alert mails when the newest stored harvest
+is older than `OFFICIAL_HARVEST_MAX_HOURS`. Setup is in
+[deployment](DEPLOYMENT.md#the-harvest-machine). The Handbook is still read
+from the server.
+
 ## Failure handling
 
 | Case | What happens |
