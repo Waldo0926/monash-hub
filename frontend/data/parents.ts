@@ -252,22 +252,22 @@ export const EXCHANGE = {
   programs: [
     {
       name: 'Semester Exchange Program',
-      text: '到 Monash 的海外合作大学交换一到两个学期，所修学分计入 Monash 学位。',
+      text: '到 Monash 的海外合作大学交换一到两个学期，所修学分计入 Monash 学位',
       url: 'https://www.monash.edu/study-abroad/overseas/monash-partner-programs/exchange'
     },
     {
       name: 'Semester in Australia',
-      text: '到澳大利亚的校区读一个学期。学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次。',
+      text: '到澳大利亚的校区读一个学期，学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次',
       url: 'https://www.monash.edu.my/study-abroad/outbound/Semester-in-Australia'
     },
     {
       name: 'Global Summer Program / Global Winter Program',
-      text: '寒暑假期间到合作大学上 2 到 4 周的短期课程，可以计入学分。冬季项目在 6 至 7 月，夏季项目在 11 月至次年 2 月。',
+      text: '寒暑假期间到合作大学上 2 到 4 周的短期课程，可以计入学分，冬季项目在 6 至 7 月，夏季项目在 11 月至次年 2 月',
       url: 'https://www.monash.edu.my/study-abroad/outbound/short-term-programs'
     },
     {
       name: 'Prato 中心（意大利）',
-      text: 'Monash 在意大利 Prato 设有自己的教学中心。2026 年 6 至 7 月，马来西亚校区的学生在这里参加了为期三周的短期课程。',
+      text: 'Monash 在意大利 Prato 设有自己的教学中心，2026 年 6 至 7 月，马来西亚校区的学生在这里参加了为期三周的短期课程',
       url: 'https://www.monash.edu.my/pages/latest/articles/2026/monash-malaysia-students-expand-global-perspectives-through-mgci-in-italy'
     }
   ]
