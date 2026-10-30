@@ -46,19 +46,51 @@ const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 1
 const score = (percent: number) => Math.round((750 * percent) / 100)
 const feeYear = computed(() => fees.value?.year ?? 2027)
 
-// The swipe hint shows only when the table is wider than its box, on a
-// phone or a narrow desktop window alike.
+// The table scrolls both ways inside its own box. Parents did not see that
+// there was more to the right (A-Level, IB and the rest) or further down, so
+// each edge with more behind it gets a fade and a button, and the hint above
+// names only the directions that actually scroll.
 const entryWrap = ref<HTMLElement | null>(null)
+const entryMore = reactive({ right: false, down: false })
 const entryWide = ref(false)
+const entryTall = ref(false)
 let entryObserver: ResizeObserver | null = null
-const checkEntryWidth = () => {
+const checkEntryScroll = () => {
   const el = entryWrap.value
-  entryWide.value = !!el && el.scrollWidth > el.clientWidth + 1
+  if (!el) return
+  entryWide.value = el.scrollWidth > el.clientWidth + 1
+  entryTall.value = el.scrollHeight > el.clientHeight + 1
+  entryMore.right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+  entryMore.down = el.scrollTop + el.clientHeight < el.scrollHeight - 1
 }
+const entryHint = computed(() => {
+  if (entryWide.value && entryTall.value) return '表格可以上下、左右滑动：往右看 A-Level、IB 等其他学历的要求，往下看更多专业'
+  if (entryWide.value) return '表格可以左右滑动：往右看 A-Level、IB 等其他学历的要求'
+  if (entryTall.value) return '表格可以上下滑动，往下看更多专业'
+  return ''
+})
+const scrollEntry = (dx: number, dy: number) => {
+  const el = entryWrap.value
+  el?.scrollBy({ left: dx * el.clientWidth * 0.7, top: dy * el.clientHeight * 0.7, behavior: 'smooth' })
+}
+
+// Jump straight to the column for the child's qualification, scrolled to
+// sit just right of the frozen course names.
+const activeCol = ref('gaokao')
+const jumpToCol = (key: string) => {
+  const el = entryWrap.value
+  const th = el?.querySelector<HTMLElement>(`thead th[data-col="${key}"]`)
+  const frozen = el?.querySelector<HTMLElement>('thead th.sticky')
+  if (!el || !th || !frozen) return
+  activeCol.value = key
+  const offset = th.getBoundingClientRect().left - el.getBoundingClientRect().left
+  el.scrollTo({ left: el.scrollLeft + offset - frozen.offsetWidth, behavior: 'smooth' })
+}
+
 onMounted(() => {
-  checkEntryWidth()
+  checkEntryScroll()
   if (entryWrap.value && 'ResizeObserver' in window) {
-    entryObserver = new ResizeObserver(checkEntryWidth)
+    entryObserver = new ResizeObserver(checkEntryScroll)
     entryObserver.observe(entryWrap.value)
   }
 })
@@ -220,42 +252,86 @@ useHead({
       <p>
         下表列出马来西亚校区全部本科专业，可以先对照孩子的成绩，看看能选哪些专业
       </p>
-      <p v-if="entryWide" class="swipe-hint">表格较宽，可以左右滑动查看各专业的录取成绩要求</p>
-      <div ref="entryWrap" class="entry-wrap" role="region" aria-label="各专业录取要求" tabindex="0">
-        <table class="entry">
-          <thead>
-            <tr>
-              <th scope="col" class="sticky">专业</th>
-              <th scope="col">年限</th>
-              <th scope="col">开课月份</th>
-              <th scope="col">年学费<span class="sub">{{ feeYear }} 年，马币</span></th>
-              <th scope="col" class="gaokao">高考<span class="sub">括号内为单科要求</span></th>
-              <th v-for="col in ENTRY_COLUMNS" :key="col.key" scope="col">
-                {{ col.label }}<span v-if="col.sub" class="sub">{{ col.sub }}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody v-for="g in ENTRY_SCHOOLS" :key="g.school">
-            <tr class="school">
-              <th scope="rowgroup" class="sticky">{{ g.school }}</th>
-              <td :colspan="4 + ENTRY_COLUMNS.length" />
-            </tr>
-            <tr v-for="c in g.courses" :key="c.name">
-              <th scope="row" class="sticky">{{ c.name }}</th>
-              <td>{{ c.years }} 年</td>
-              <td>{{ c.intakes }}</td>
-              <td class="num">{{ courseFee(c.match, c.fee) }}</td>
-              <td class="gaokao">
-                <template v-if="c.gaokao != null">
-                  <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
-                  <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
-                </template>
-                <template v-else>/</template>
-              </td>
-              <td v-for="col in ENTRY_COLUMNS" :key="col.key">{{ c.scores[col.key] }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="entry-frame">
+        <div class="entry-jump">
+          <span class="entry-jump-label">按孩子的学历查看</span>
+          <button
+            v-for="col in [{ key: 'gaokao', label: '高考' }, ...ENTRY_COLUMNS]"
+            :key="col.key"
+            type="button"
+            :class="{ on: activeCol === col.key }"
+            @click="jumpToCol(col.key)"
+          >
+            {{ col.label }}
+          </button>
+        </div>
+        <p v-if="entryHint" class="swipe-hint">{{ entryHint }}</p>
+        <div class="entry-box">
+          <div
+            ref="entryWrap"
+            class="entry-wrap"
+            role="region"
+            aria-label="各专业录取要求"
+            tabindex="0"
+            @scroll.passive="checkEntryScroll"
+          >
+            <table class="entry">
+              <thead>
+                <tr>
+                  <th scope="col" class="sticky">专业</th>
+                  <th scope="col">年限</th>
+                  <th scope="col">开课月份</th>
+                  <th scope="col">年学费<span class="sub">{{ feeYear }} 年，马币</span></th>
+                  <th scope="col" class="gaokao" data-col="gaokao" :class="{ on: activeCol === 'gaokao' }">
+                    高考<span class="sub">括号内为单科要求</span>
+                  </th>
+                  <th v-for="col in ENTRY_COLUMNS" :key="col.key" scope="col" :data-col="col.key" :class="{ on: activeCol === col.key }">
+                    {{ col.label }}<span v-if="col.sub" class="sub">{{ col.sub }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody v-for="g in ENTRY_SCHOOLS" :key="g.school">
+                <tr class="school">
+                  <th scope="rowgroup" class="sticky">{{ g.school }}</th>
+                  <td :colspan="4 + ENTRY_COLUMNS.length" />
+                </tr>
+                <tr v-for="c in g.courses" :key="c.name">
+                  <th scope="row" class="sticky">{{ c.name }}</th>
+                  <td>{{ c.years }} 年</td>
+                  <td>{{ c.intakes }}</td>
+                  <td class="num">{{ courseFee(c.match, c.fee) }}</td>
+                  <td class="gaokao">
+                    <template v-if="c.gaokao != null">
+                      <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
+                      <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
+                    </template>
+                    <template v-else>/</template>
+                  </td>
+                  <td v-for="col in ENTRY_COLUMNS" :key="col.key">{{ c.scores[col.key] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="edge edge-right" :class="{ show: entryMore.right }" aria-hidden="true" />
+          <span class="edge edge-bottom" :class="{ show: entryMore.down }" aria-hidden="true" />
+          <button
+            v-show="entryMore.right"
+            type="button"
+            class="nudge nudge-right"
+            aria-label="向右滑动表格，查看其他学历的要求"
+            @click="scrollEntry(1, 0)"
+          >
+            →
+          </button>
+          <button
+            v-show="entryMore.down"
+            type="button"
+            class="nudge-down"
+            @click="scrollEntry(0, 1)"
+          >
+            往下还有更多专业 ↓
+          </button>
+        </div>
       </div>
       <ul class="note-list">
         <li>高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比</li>
@@ -564,17 +640,90 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.swipe-hint { margin: 0 0 var(--s2) !important; color: var(--muted); font-size: 0.85rem; }
-.swipe-hint::before { content: '↔ '; color: var(--brand); }
+/* The text column stays 760px for reading, but the table breaks out of it to
+   use the empty sides of a wide screen, up to 1240px with 24px left free on
+   each side (enough to clear a classic scrollbar), and never narrower than
+   the column. */
+.entry-frame {
+  --frame-w: max(100%, min(1240px, 100vw - 48px));
+  width: var(--frame-w);
+  margin: var(--s4) 0 var(--s4) calc(50% - var(--frame-w) / 2);
+}
+.entry-jump { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--s3); }
+.entry-jump-label { margin-right: 4px; color: var(--text); font-size: 0.875rem; font-weight: 500; }
+.entry-jump button {
+  padding: 3px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.entry-jump button:hover { border-color: var(--brand); color: var(--brand); }
+.entry-jump button.on { border-color: var(--brand); background: var(--brand); color: #fff; }
+.swipe-hint {
+  margin: 0 0 var(--s2) !important;
+  padding: 8px 12px;
+  border-left: 3px solid var(--brand);
+  border-radius: 6px;
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6 !important;
+}
+.entry-box { position: relative; }
 .entry-wrap {
   max-height: 72vh;
-  margin: var(--s3) 0 var(--s4);
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
   -webkit-overflow-scrolling: touch;
 }
+/* Fades over the edges that have more behind them, inside the border. */
+.edge { position: absolute; z-index: 4; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.edge.show { opacity: 1; }
+.edge-right { top: 1px; right: 1px; bottom: 1px; width: 56px; border-radius: 0 10px 10px 0; background: linear-gradient(to right, rgb(255 255 255 / 0), rgb(255 255 255 / 0.95)); }
+.edge-bottom { right: 1px; bottom: 1px; left: 1px; height: 56px; border-radius: 0 0 10px 10px; background: linear-gradient(to bottom, rgb(255 255 255 / 0), rgb(255 255 255 / 0.95)); }
+.nudge {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.nudge-right { right: 8px; animation: nudge 1.6s ease-in-out 3; }
+.nudge-down {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  z-index: 5;
+  padding: 5px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+@keyframes nudge { 50% { transform: translate(5px, -50%); } }
+@media (prefers-reduced-motion: reduce) { .nudge-right { animation: none; } }
 .entry-wrap:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .entry { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .entry th, .entry td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; vertical-align: top; }
@@ -594,6 +743,7 @@ useHead({
 .entry .sub { display: block; color: var(--muted-2); font-size: 0.72rem; font-weight: 400; }
 .entry .gaokao { min-width: 14em; white-space: normal; line-height: 1.5; text-align: left; }
 .entry .num { text-align: right; }
+.entry thead th.on { background: var(--blue-50); color: var(--brand-700); box-shadow: inset 0 -2px 0 var(--brand); }
 .entry tr.school th, .entry tr.school td { padding-top: 12px; background: var(--surface); color: var(--brand); font-weight: 600; }
 .entry-links { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
 .entry-links a { color: var(--brand); font-weight: 500; }
