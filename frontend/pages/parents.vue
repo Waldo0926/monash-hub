@@ -10,7 +10,7 @@
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
   ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COLUMNS, ENTRY_SCHOOLS,
-  ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
+  ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, FEE_LABELS, FEE_SCHOOLS, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
   SCHOLARSHIP, SCORE_METHOD_URL, SETARA_SOURCE, SST, SUBJECT_RANKINGS, TRANSFER, VISA
 } from '~/data/parents'
 import type { FeeRow } from '~/utils/tuition'
@@ -18,25 +18,54 @@ import type { FeeRow } from '~/utils/tuition'
 const config = useRuntimeConfig()
 const site = config.public.siteUrl.replace(/\/$/, '')
 
-type Table = { year: number | null; sections: { source: string; schools: { rows: FeeRow[] }[] }[] }
+type Table = { year: number | null; sections: { source: string; schools: { school: string; rows: FeeRow[] }[] }[] }
 const { data: fees } = await useApiFetch<Table>('/v1/fees')
 
 const norm = (s: string) => s.trim().toLowerCase()
-const ugRows = computed(() => (fees.value?.sections ?? [])
+const ugSchools = computed(() => (fees.value?.sections ?? [])
   .filter(s => s.source === 'malaysia-ugfees')
-  .flatMap(s => s.schools.flatMap(g => g.rows)))
+  .flatMap(s => s.schools))
+const ugRows = computed(() => ugSchools.value.flatMap(g => g.rows))
 const findFeeRow = (match: string) => match
   ? ugRows.value.find(r => norm(r.title) === norm(match) || r.covers.some(c => norm(c) === norm(match)))
   : undefined
-const feeRows = computed(() => {
-  return FEE_EXAMPLES.flatMap(({ label, match }) => {
-    const row = findFeeRow(match)
-    const amount = row?.international[0]?.value
-    if (!row || amount == null) return []
-    const years = Number(row.duration)
-    return [{ label, amount, years: Number.isFinite(years) && years > 0 ? years : null }]
-  })
-})
+
+// One line of the fee table. `years` is how many yearly fees a whole degree
+// takes; a fee charged once for the whole course ("20 weeks") has none and
+// is its own total.
+type FeeLine = { label: string; amount: number; years: number | null; length: string | null; once: boolean }
+const feeLines = (row: FeeRow, label?: string): FeeLine[] => {
+  const once = row.basis === 'full_course'
+  const years = once ? null : parseInt(row.duration ?? '', 10)
+  const name = label ?? row.title_zh ?? row.title
+  const length = once && row.duration ? row.duration.replace(/(\d+)\s*weeks?/i, '$1 周') : null
+  const priced = row.international.filter(a => a.value != null)
+  return priced.map(a => ({
+    label: priced.length > 1 && a.label ? `${name}（${FEE_LABELS[a.label] ?? a.label}）` : name,
+    amount: a.value as number,
+    years: years && years > 0 ? years : null,
+    length,
+    once
+  }))
+}
+const feeRows = computed(() => FEE_EXAMPLES.flatMap(({ label, match }) => {
+  const row = findFeeRow(match)
+  return row ? feeLines(row, label).slice(0, 1) : []
+}))
+// Every undergraduate fee on /fees, grouped by school, for parents who want
+// more than the four common degrees.
+const feeGroups = computed(() => ugSchools.value
+  .map(g => ({ school: FEE_SCHOOLS[g.school] ?? g.school, lines: g.rows.flatMap(r => feeLines(r)) }))
+  .filter(g => g.lines.length))
+const feeCount = computed(() => feeGroups.value.reduce((n, g) => n + g.lines.length, 0))
+const feeOpen = ref(false)
+// Folding the long list back up leaves the reader below it, so bring the
+// table back into view.
+const toggleFees = () => {
+  feeOpen.value = !feeOpen.value
+  if (!feeOpen.value) document.getElementById('cost')?.scrollIntoView()
+}
+const feeTotal = (f: FeeLine) => f.once ? withTax(f.amount) : f.years ? withTax(f.amount) * f.years : null
 
 const group = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 const rm = (n: number) => `RM${group(n)}`
@@ -111,7 +140,7 @@ const exchangePosts = MAMO_POSTS.filter(p => p.topic === 'exchange' && p.url)
 
 const MORE = [
   { to: '/courses', title: '专业与学位', text: '每个专业的课程结构、必修课和专业方向' },
-  { to: '/fees', title: '马莫学费', text: '马来西亚校区全部专业的每年学费' },
+  { to: '/units', title: '课程', text: '每门课的内容、开课学期和考核方式，可以按课程代码或关键词搜索' },
   { to: '/guides', title: '官方指南', text: '学校官网上选课、考试、签证等规定的中文整理' },
   { to: '/mamo', title: '马莫百科', text: '在读学生写的入境报到、签证续签、海外交换等文章' }
 ]
@@ -341,7 +370,7 @@ useHead({
       </ul>
       <p class="entry-links">
         <NuxtLink to="/courses">看各专业的课程介绍 →</NuxtLink>
-        <NuxtLink to="/fees">看全部专业学费 →</NuxtLink>
+        <a href="#cost">看各专业学费和人民币折算 ↓</a>
       </p>
       <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文</p>
       <p class="src">
@@ -465,25 +494,50 @@ useHead({
     <section id="cost" class="block">
       <h2>费用</h2>
       <h3>学费</h3>
-      <table v-if="feeRows.length" class="table">
+      <table v-if="feeRows.length" class="table fee-table">
         <thead>
-          <tr><th>专业</th><th>每年学费</th><th>加 {{ taxPercent }}% 服务税</th><th>折合人民币</th></tr>
+          <tr>
+            <th>专业</th>
+            <th>每年学费</th>
+            <th class="wide-only">加 {{ taxPercent }}% 服务税</th>
+            <th class="wide-only">每年折合人民币</th>
+            <th>读完全程折合人民币</th>
+          </tr>
         </thead>
-        <tbody>
+        <tbody v-if="!feeOpen">
           <tr v-for="f in feeRows" :key="f.label">
             <td>{{ f.label }}<span v-if="f.years" class="years">{{ f.years }} 年制</span></td>
             <td class="num">{{ rm(f.amount) }}</td>
-            <td class="num">{{ rm(withTax(f.amount)) }}</td>
-            <td class="num">{{ cny(withTax(f.amount)) }}</td>
+            <td class="num wide-only">{{ rm(withTax(f.amount)) }}</td>
+            <td class="num wide-only">{{ cny(withTax(f.amount)) }}</td>
+            <td class="num total">{{ feeTotal(f) ? cny(feeTotal(f)!) : '/' }}</td>
           </tr>
         </tbody>
+        <template v-else>
+          <tbody v-for="g in feeGroups" :key="g.school">
+            <tr class="fee-school"><th colspan="5" scope="rowgroup">{{ g.school }}</th></tr>
+            <tr v-for="f in g.lines" :key="f.label + f.amount">
+              <td>
+                {{ f.label }}
+                <span v-if="f.once" class="years">{{ f.length ? `${f.length}，` : '' }}全程一次性收费</span>
+                <span v-else-if="f.years" class="years">{{ f.years }} 年制</span>
+              </td>
+              <td class="num">{{ rm(f.amount) }}<span v-if="f.once" class="years">全程</span></td>
+              <td class="num wide-only">{{ rm(withTax(f.amount)) }}</td>
+              <td class="num wide-only">{{ f.once ? '/' : cny(withTax(f.amount)) }}</td>
+              <td class="num total">{{ feeTotal(f) ? cny(feeTotal(f)!) : '/' }}</td>
+            </tr>
+          </tbody>
+        </template>
       </table>
       <p v-else class="note">学费数据暂时无法读取，请查看各专业学费页</p>
+      <button v-if="feeGroups.length" type="button" class="fee-toggle" :aria-expanded="feeOpen" @click="toggleFees">
+        {{ feeOpen ? '收起，只看常见专业 ↑' : `展开全部 ${feeCount} 个专业和课程的学费 ↓` }}
+      </button>
       <ul class="note-list">
         <li>以上为{{ fees?.year ? ` ${fees.year} 年` : '' }}国际学生学费</li>
         <li>2025 年 7 月 1 日起，马来西亚政府对国际学生的学费、报名费、注册费等教育相关费用征收 {{ taxPercent }}% 服务税，由学校代收，学生签证和保险不收</li>
         <li>人民币按加税后的金额、以 1 马币兑 {{ MYR_TO_CNY }} 人民币换算，具体以当天汇率为准</li>
-        <li><NuxtLink to="/fees">看全部专业的学费 →</NuxtLink></li>
       </ul>
       <p class="src">
         <a :href="SST.url" target="_blank" rel="noopener external">查看英文原文（服务税）</a>
@@ -633,6 +687,23 @@ useHead({
 .table th { color: var(--muted); font-size: 0.82rem; font-weight: 500; }
 .table .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .years { display: block; color: var(--muted-2); font-size: 0.8rem; }
+.fee-table .total { color: var(--brand-700); font-weight: 600; }
+.fee-table tr.fee-school th { padding-top: var(--s4); color: var(--brand); font-size: 0.9rem; font-weight: 600; }
+.fee-toggle {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--s4);
+  padding: 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.fee-toggle:hover { border-color: var(--brand); }
 
 .living { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); column-gap: var(--s6); margin: 0 0 var(--s3); padding: 0; list-style: none; }
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -804,6 +875,8 @@ useHead({
   .page { padding: var(--s4) var(--s4) var(--s8); }
   .ranks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .table { font-size: 0.875rem; }
+  .fee-table .wide-only { display: none; }
+  .fee-table td:first-child { min-width: 8em; }
   .more { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wechat img { width: 112px; height: 112px; }
