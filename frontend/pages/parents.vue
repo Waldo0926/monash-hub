@@ -9,7 +9,7 @@
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
-  ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COURSES, ENTRY_ROWS,
+  ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COLUMNS, ENTRY_SCHOOLS,
   ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
   SCHOLARSHIP, SCORE_METHOD_URL, SETARA_SOURCE, SST, SUBJECT_RANKINGS, TRANSFER, VISA
 } from '~/data/parents'
@@ -22,12 +22,15 @@ type Table = { year: number | null; sections: { source: string; schools: { rows:
 const { data: fees } = await useApiFetch<Table>('/v1/fees')
 
 const norm = (s: string) => s.trim().toLowerCase()
+const ugRows = computed(() => (fees.value?.sections ?? [])
+  .filter(s => s.source === 'malaysia-ugfees')
+  .flatMap(s => s.schools.flatMap(g => g.rows)))
+const findFeeRow = (match: string) => match
+  ? ugRows.value.find(r => norm(r.title) === norm(match) || r.covers.some(c => norm(c) === norm(match)))
+  : undefined
 const feeRows = computed(() => {
-  const rows = (fees.value?.sections ?? [])
-    .filter(s => s.source === 'malaysia-ugfees')
-    .flatMap(s => s.schools.flatMap(g => g.rows))
   return FEE_EXAMPLES.flatMap(({ label, match }) => {
-    const row = rows.find(r => norm(r.title) === norm(match) || r.covers.some(c => norm(c) === norm(match)))
+    const row = findFeeRow(match)
     const amount = row?.international[0]?.value
     if (!row || amount == null) return []
     const years = Number(row.duration)
@@ -41,6 +44,14 @@ const cny = (n: number) => `约 ${(n * MYR_TO_CNY / 10000).toFixed(1)} 万元`
 const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 10)} 元`
 
 const score = (percent: number) => Math.round((750 * percent) / 100)
+const feeYear = computed(() => fees.value?.year ?? 2027)
+// The live /fees table first, so the page moves with it; the typed 2027
+// figure only when the API cannot be read.
+const courseFee = (match: string, fallback: number | string) => {
+  const live = findFeeRow(match)?.international[0]?.value
+  const n = live ?? fallback
+  return typeof n === 'number' ? group(n) : n
+}
 const withTax = (n: number) => n * (1 + SST.rate)
 const taxPercent = Math.round(SST.rate * 100)
 
@@ -171,53 +182,51 @@ useHead({
     <section id="entry" class="block">
       <h2>录取要求</h2>
       <p>
-        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP 和美国高中等，每个专业有各自的分数线和单科要求。下表是中国学生读得最多的几个专业：
+        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP、香港 DSE 和美国高中等，每个专业有各自的分数线和单科要求。下表列出马来西亚校区全部本科专业，可以先对照孩子的成绩，看看能选哪些专业。
       </p>
-      <div class="entry-wrap">
+      <p class="swipe-hint">表格较宽，可以左右、上下滑动查看。</p>
+      <div class="entry-wrap" role="region" aria-label="各专业录取要求" tabindex="0">
         <table class="entry">
           <thead>
             <tr>
-              <th scope="col"><span class="visually-hidden">项目</span></th>
-              <th v-for="c in ENTRY_COURSES" :key="c.code" scope="col">
-                <span class="long">{{ c.name }}</span><span class="short">{{ c.short }}</span>
-                <span class="code mono">{{ c.code }}</span>
+              <th scope="col" class="sticky">专业</th>
+              <th scope="col">年限</th>
+              <th scope="col">开课月份</th>
+              <th scope="col">年学费<span class="sub">{{ feeYear }} 年，马币</span></th>
+              <th scope="col" class="gaokao">高考<span class="sub">括号内为单科要求</span></th>
+              <th v-for="col in ENTRY_COLUMNS" :key="col.key" scope="col">
+                {{ col.label }}<span v-if="col.sub" class="sub">{{ col.sub }}</span>
               </th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <th scope="row">学制</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.years }} 年</td>
+          <tbody v-for="g in ENTRY_SCHOOLS" :key="g.school">
+            <tr class="school">
+              <th scope="rowgroup" class="sticky">{{ g.school }}</th>
+              <td :colspan="4 + ENTRY_COLUMNS.length" />
             </tr>
-            <tr>
-              <th scope="row">入学月份</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.intakes }}</td>
-            </tr>
-            <tr class="group">
-              <th scope="row">高考总分</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code">
-                <b>{{ c.gaokao }}%</b><span class="sub"><span class="long">750 分制</span>约 {{ score(c.gaokao) }} 分</span>
+            <tr v-for="c in g.courses" :key="c.name">
+              <th scope="row" class="sticky">{{ c.name }}</th>
+              <td>{{ c.years }} 年</td>
+              <td>{{ c.intakes }}</td>
+              <td class="num">{{ courseFee(c.match, c.fee) }}</td>
+              <td class="gaokao">
+                <template v-if="c.gaokao != null">
+                  <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
+                  <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
+                </template>
+                <template v-else>/</template>
               </td>
-            </tr>
-            <tr>
-              <th scope="row">高考单科</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code" class="text">{{ c.gaokaoSubjects }}</td>
-            </tr>
-            <tr v-for="(row, n) in ENTRY_ROWS" :key="row.key" :class="{ group: n === 0 }">
-              <th scope="row">{{ row.label }}</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code">{{ c.scores[row.key] }}</td>
-            </tr>
-            <tr class="group">
-              <th scope="row">原文</th>
-              <td v-for="c in ENTRY_COURSES" :key="c.code">
-                <a :href="c.url" target="_blank" rel="noopener external"><span class="long">查看英文原文</span><span class="short">查看</span></a>
-              </td>
+              <td v-for="col in ENTRY_COLUMNS" :key="col.key">{{ c.scores[col.key] }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p class="note">
-        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。工程学士下设土木、化学、材料、电气与计算机、机械、机器人与机电、软件等方向，录取要求相同；生物医学工程只在 2 月入学。A-Level、AP、IB 的计分方法见官网计分说明。每年的要求可能调整，最新要求可以直接咨询。
+        高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。学费为国际学生每年学费，另加 6% 服务税。表中是斜杠的项目，可以直接咨询。每年的要求可能调整，以学校最新公布为准。
+      </p>
+      <p class="entry-links">
+        <NuxtLink to="/courses">看各专业的课程介绍 →</NuxtLink>
+        <NuxtLink to="/fees">看全部专业学费 →</NuxtLink>
       </p>
       <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文。</p>
       <p class="src">
@@ -490,19 +499,38 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.entry-wrap { margin: var(--s4) 0; overflow-x: auto; }
-.entry { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
-.entry thead th:first-child { width: 7.5em; }
-.entry th, .entry td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: top; }
-.entry thead th { padding-bottom: 10px; border-bottom: 1px solid var(--ink); font-weight: 600; line-height: 1.4; }
+.swipe-hint { display: none; color: var(--muted-2); font-size: 0.8rem; }
+.entry-wrap {
+  max-height: 72vh;
+  margin: var(--s3) 0 var(--s4);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+.entry-wrap:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.entry { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.entry th, .entry td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; vertical-align: top; }
 .entry th { font-size: inherit; letter-spacing: normal; text-transform: none; }
-.entry tbody th { color: var(--muted); font-weight: 400; text-align: left; white-space: nowrap; }
-.entry .short { display: none; }
-.entry .code { display: block; color: var(--muted-2); font-size: 0.75rem; font-weight: 400; }
-.entry .sub { display: block; color: var(--muted-2); font-size: 0.75rem; }
-.entry td.text { font-size: 0.82rem; line-height: 1.5; }
-.entry tr.group th, .entry tr.group td { padding-top: 14px; }
-.entry a { color: var(--brand); font-size: 0.78rem; }
+.entry thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-strong);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.entry .sticky { position: sticky; left: 0; z-index: 1; background: var(--surface); text-align: left; box-shadow: 1px 0 0 var(--border); }
+.entry thead .sticky { z-index: 3; background: var(--surface-2); }
+.entry tbody th.sticky { min-width: 13em; max-width: 16em; white-space: normal; font-weight: 500; }
+.entry .sub { display: block; color: var(--muted-2); font-size: 0.72rem; font-weight: 400; }
+.entry .gaokao { min-width: 14em; white-space: normal; line-height: 1.5; text-align: left; }
+.entry .num { text-align: right; }
+.entry tr.school th, .entry tr.school td { padding-top: 12px; background: var(--surface); color: var(--brand); font-weight: 600; }
+.entry-links { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
+.entry-links a { color: var(--brand); font-weight: 500; }
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
 .programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
@@ -558,13 +586,9 @@ useHead({
 .agent { padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
 
 @media (max-width: 520px) {
+  .swipe-hint { display: block; }
   .entry { font-size: 0.8rem; }
-  .entry th, .entry td { padding: 7px 3px; }
-  .entry thead th:first-child { width: 6.4em; }
-  .entry thead th { white-space: normal; }
-  .entry td.text { font-size: 0.75rem; }
-  .entry .long { display: none; }
-  .entry .short { display: inline; }
+  .entry tbody th.sticky { min-width: 9em; max-width: 10em; }
 }
 @media (max-width: 520px) {
   .page { padding-top: var(--s4); }
