@@ -453,7 +453,7 @@ useHead({
       </ul>
       <p class="src"><span>核对于 {{ EXCHANGE.checked }}</span></p>
       <div v-if="exchangePosts.length" class="reading">
-        <p class="reading-title">马莫百科写过的交换经历和申请指南：</p>
+        <p class="reading-title">微信公众号「马莫百科」写过的交换经历和申请指南：</p>
         <ul>
           <li v-for="p in exchangePosts" :key="p.url">
             <a :href="p.url" target="_blank" rel="noopener external">{{ p.title }}</a>
@@ -740,8 +740,11 @@ useHead({
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
 .programs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
-.programs li { padding: var(--s4); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.programs h3, .programs h4 { margin: 0 0 var(--s1); font-size: 1rem; }
+/* Four cards go two by two rather than three and a lone one. */
+.programs:has(> li:nth-child(4):last-child) { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
+.programs li { display: flex; flex-direction: column; padding: var(--s4) var(--s5); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.programs h3, .programs h4 { margin: 0 0 var(--s2); font-size: 1rem; line-height: 1.5; }
+.programs .src-link { margin-top: auto; padding-top: var(--s2); }
 .programs p { margin: 0 0 var(--s1); }
 .reading { margin-top: var(--s4); padding: var(--s4); border-radius: 10px; background: var(--surface-2); }
 .reading-title { margin: 0 0 var(--s2) !important; font-weight: 500; }
