@@ -228,7 +228,14 @@ useSeoMeta({ title: () => $t('courses.title') })
     <header class="intro">
       <h1>{{ $t('courses.title') }}</h1>
       <p class="lede">{{ $t('courses.lede') }}</p>
-      <p class="fees-link small"><NuxtLink to="/fees">{{ $t('fees.listLink') }} →</NuxtLink></p>
+      <NuxtLink to="/fees" class="fees-card">
+        <span class="fees-card__icon" aria-hidden="true">RM</span>
+        <span class="fees-card__text">
+          <b>{{ $t('fees.listLink') }}</b>
+          <span>{{ $t('courses.feesHint') }}</span>
+        </span>
+        <span class="fees-card__arrow" aria-hidden="true">→</span>
+      </NuxtLink>
     </header>
 
     <div class="controls">
@@ -318,7 +325,36 @@ useSeoMeta({ title: () => $t('courses.title') })
 .page { max-width: var(--container); margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .intro h1 { margin: 0 0 var(--s2); }
 .lede { color: var(--muted); margin: 0 0 var(--s5); max-width: var(--measure-lede); }
-.fees-link { margin: calc(-1 * var(--s4)) 0 var(--s5); }
+.fees-card {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  margin: calc(-1 * var(--s2)) 0 var(--s5);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--brand);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  max-width: 100%;
+}
+.fees-card:hover { background: var(--surface-2); text-decoration: none; }
+.fees-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.fees-card__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.fees-card__text { display: grid; gap: 2px; min-width: 0; }
+.fees-card__text b { color: var(--brand); font-size: 1rem; }
+.fees-card__text span { color: var(--muted); font-size: 0.85rem; }
+.fees-card__arrow { color: var(--brand); font-size: 1.2rem; }
 
 /* Search, campus and year share one row and one control height. On a phone
    the search takes its own row and the two selects split the next one. */

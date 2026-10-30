@@ -72,79 +72,148 @@ export const ENGLISH_SOURCE: ParentSource = {
 }
 
 /**
- * Entry scores for the degrees most Chinese students at the Malaysia campus
- * take, from a checked summary of the Monash Malaysia course pages. The
- * official course page is linked for each.
+ * Entry scores for every undergraduate degree at the Malaysia campus, typed in
+ * from the owner's own summary table. Fees are the 2027 international rate:
+ * read live from /v1/fees by `match` (an English title or a degree a fee row
+ * covers), with `fee` as the fallback when the API is down.
  */
+export type EntryKey =
+  | 'mufy' | 'cimp' | 'aLevel' | 'atar' | 'ib' | 'sat' | 'act' | 'ap' | 'dse' | 'unsw' | 'mc'
+
+export const ENTRY_COLUMNS: { key: EntryKey; label: string; sub?: string }[] = [
+  { key: 'mufy', label: 'MUFY' },
+  { key: 'cimp', label: 'CIMP/OSSD' },
+  { key: 'aLevel', label: 'A-Level' },
+  { key: 'atar', label: 'ATAR' },
+  { key: 'ib', label: 'IB' },
+  { key: 'sat', label: 'SAT' },
+  { key: 'act', label: 'ACT' },
+  { key: 'ap', label: 'AP' },
+  { key: 'dse', label: 'DSE' },
+  { key: 'unsw', label: 'UNSW', sub: 'Foundation Studies' },
+  { key: 'mc', label: 'Monash College', sub: 'Diploma Part 2' }
+]
+
 export interface EntryCourse {
   name: string
-  /** For the column heading on a phone. */
-  short: string
-  code: string
-  url: string
   years: number
   intakes: string
-  gaokao: number
+  /** English fee-table title or covered degree. */
+  match: string
+  /** 2027 international fee, used when /v1/fees cannot be read. */
+  fee: number | string
+  /** Percentage of the gaokao total, or null when gaokao is not accepted. */
+  gaokao: number | null
   gaokaoSubjects: string
   scores: Record<EntryKey, string>
 }
 
-export type EntryKey = 'aLevel' | 'ib' | 'ap' | 'sat' | 'act' | 'mufy' | 'cimp'
+export interface EntrySchool {
+  school: string
+  courses: EntryCourse[]
+}
 
-export const ENTRY_ROWS: { key: EntryKey; label: string }[] = [
-  { key: 'aLevel', label: 'A-Level' },
-  { key: 'ib', label: 'IB 文凭' },
-  { key: 'ap', label: 'AP' },
-  { key: 'sat', label: 'SAT' },
-  { key: 'act', label: 'ACT' },
-  { key: 'mufy', label: 'MUFY 预科' },
-  { key: 'cimp', label: 'CIMP / OSSD' }
-]
+/** The 11 scores in ENTRY_COLUMNS order. */
+type Scores = [string, string, string, string, string, string, string, string, string, string, string]
+type Row = [string, number, string, string, number | string, number | null, string, ...Scores]
 
-export const ENTRY_COURSES: EntryCourse[] = [
+const row = ([name, years, intakes, match, fee, gaokao, gaokaoSubjects, ...s]: Row): EntryCourse => {
+  const [mufy, cimp, aLevel, atar, ib, sat, act, ap, dse, unsw, mc] = s
+  return {
+    name, years, intakes, match, fee, gaokao, gaokaoSubjects,
+    scores: { mufy, cimp, aLevel, atar, ib, sat, act, ap, dse, unsw, mc }
+  }
+}
+
+const ENG: Scores = ['76.25%', '84.80%', '10', '85', '30', '1240', '26', '7', '19', '8', '60%']
+const ENG_GAOKAO = '高考数学 60%，高考物理或化学 60%'
+const engineering = (name: string, match: string, intakes = '2、7、10'): Row =>
+  [name, 4, intakes, match, 68160, 75, ENG_GAOKAO, ...ENG]
+
+export const ENTRY_SCHOOLS: EntrySchool[] = [
   {
-    name: '商务和商业学士',
-    short: '商科',
-    code: 'B2026',
-    url: 'https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce',
-    years: 3,
-    intakes: '2、7、10',
-    gaokao: 60,
-    gaokaoSubjects: '数学 60%，或高二数学及格',
-    scores: { aLevel: '7', ib: '25', ap: '6', sat: '1120', act: '22', mufy: '60%', cimp: '75.40%' }
+    school: '艺术与社会科学学院',
+    courses: ([
+      ['文学与社会科学学士（含 5 个方向）', 3, '2、7、10', 'Bachelor of Arts and Social Sciences', 53280, 60, '无高考单科要求',
+        '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '50%'],
+      ['数字媒体与传播学士', 3, '2、7、10', 'Bachelor of Digital Media and Communication', 53280, 60, '无高考单科要求',
+        '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '50%']
+    ] as Row[]).map(row)
   },
   {
-    name: '数字媒体与传播学士',
-    short: '传媒',
-    code: 'A2011',
-    url: 'https://www.monash.edu.my/study/undergraduate/arts-social-sciences/bachelor-of-digital-media-and-communication',
-    years: 3,
-    intakes: '2、7、10',
-    gaokao: 60,
-    gaokaoSubjects: '无',
-    scores: { aLevel: '7', ib: '25', ap: '6', sat: '1120', act: '22', mufy: '60%', cimp: '75.40%' }
+    school: '商学院',
+    courses: ([
+      ['商务和商业学士（含 10 个方向）', 3, '2、7、10', 'Bachelor of Business and Commerce', 54240, 60, '高考数学 60%，或高二数学及格',
+        '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '50%'],
+      ['数字商务学士', 3, '2、7', 'Bachelor of Digital Business', 54240, 65, '高考数学 60%',
+        '70%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '7', '/'],
+      ['精算分析学士', 3, '2、7', 'Bachelor in Actuarial Analytics', 57600, 70, '高考数学 60%',
+        '72.5%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '/'],
+      ['商务学士与计算机科学学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Computer Science', 57600, 70, '高考数学 60%',
+        '70%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '60%'],
+      ['商务学士与数字媒体与传播学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Digital Media and Communication', 54240, 60, '高考数学 60%，或高二数学及格',
+        '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '55%']
+    ] as Row[]).map(row)
   },
   {
-    name: '计算机科学学士',
-    short: '计算机',
-    code: 'C2001',
-    url: 'https://www.monash.edu.my/study/undergraduate/information-technology/bachelor-computer-science/entry-score',
-    years: 3,
-    intakes: '2、7、10',
-    gaokao: 70,
-    gaokaoSubjects: '数学 60%',
-    scores: { aLevel: '9', ib: '28', ap: '7', sat: '1190', act: '24', mufy: '70%', cimp: '81.60%' }
+    school: '信息技术学院',
+    courses: ([
+      ['计算机科学学士（含 3 个方向）', 3, '2、7、10', 'Bachelor of Computer Science', 57600, 70, '高考数学 60%',
+        '70%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '60%']
+    ] as Row[]).map(row)
   },
   {
-    name: '工程学士（荣誉）',
-    short: '工程',
-    code: 'E3001',
-    url: 'https://www.monash.edu.my/study/undergraduate/engineering/bachelor-of-engineering-honours-in-mechanical-engineering/entry-score',
-    years: 4,
-    intakes: '2、7、10',
-    gaokao: 75,
-    gaokaoSubjects: '数学 60%，物理或化学 60%',
-    scores: { aLevel: '10', ib: '30', ap: '7', sat: '1240', act: '26', mufy: '76.25%', cimp: '84.80%' }
+    school: '工程学院',
+    courses: ([
+      engineering('土木工程学士（荣誉）', 'Bachelor of Civil Engineering (Honours)'),
+      engineering('生物医学工程学士（荣誉）', 'Bachelor of Biomedical Engineering (Honours)', '2'),
+      engineering('化学工程学士（荣誉）', 'Bachelor of Chemical Engineering (Honours)'),
+      engineering('材料工程学士（荣誉）', 'Bachelor of Materials Engineering (Honours)'),
+      engineering('电气与计算机工程学士（荣誉）', 'Bachelor of Electrical and Computer Systems Engineering (Honours)'),
+      engineering('机械工程学士（荣誉）', 'Bachelor of Mechanical Engineering (Honours)'),
+      engineering('机器人与机电工程学士（荣誉）', 'Bachelor of Robotics and Mechatronics Engineering (Honours)'),
+      engineering('软件工程学士（荣誉）', 'Bachelor of Software Engineering (Honours)')
+    ]).map(row)
+  },
+  {
+    school: '医学和健康科学学院',
+    courses: ([
+      ['心理学学士', 3, '2、7、10', 'Bachelor of Psychology', 53280, 65, '高考数学 60%，高二物理、化学或生物及格',
+        '67.50%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '7', '/'],
+      ['医学学士和医学博士', 5, '2、7', 'Bachelor of Medical Science and Doctor of Medicine', 148320, null, '/',
+        '91.00%', '85.00%', '14', '95', '36', '1360', '30', '9', '23', '9', '/'],
+      ['人类营养学士', 3, '2、7', 'Bachelor of Human Nutrition', 63360, 65, '高考数学 60%，高二物理、化学或生物及格',
+        '67.50%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '/', '/']
+    ] as Row[]).map(row)
+  },
+  {
+    school: '药剂学院',
+    courses: ([
+      ['药学学士（荣誉）', 4, '2', 'Bachelor of Pharmacy (Honours)', 74400, 70, '高考数学 60% 或高考化学 60%',
+        '75%', '87.90%', '12', '90', '33', '1290', '27', '8', '21', '8.5', '/'],
+      ['制药科学学士', 3, '2', 'Bachelor of Pharmaceutical Science', 63360, 65, '高考数学 60% 或高考化学 60%',
+        '72.50%', '83.20%', '9.5', '82.5', '29', '1220', '25', '7', '18', '7.75', '/']
+    ] as Row[]).map(row)
+  },
+  {
+    school: '科学学院',
+    courses: ([
+      ['理学学士', 3, '2、7、10', 'Bachelor of Science', 63360, 65, '高考数学、物理、化学或生物 60%',
+        '72.50%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '55%'],
+      ['应用数据科学学士', 3, '2、7、10', 'Bachelor of Applied Data Science', 63360, 65, '高考数学 60%',
+        '72.50%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '60%'],
+      ['食品科学与技术学士', 3, '2、7、10', 'Bachelor of Food Science and Technology', 63360, 65, '高考数学、生物或化学 60%',
+        '63.75%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '7', '50%'],
+      ['医学生物科学学士', 3, '2、7、10', 'Bachelor of Medical Bioscience', 64800, 65, '高考数学、生物或化学 60%',
+        '67.50%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '7', '50%']
+    ] as Row[]).map(row)
+  },
+  {
+    school: '高等教育文凭（国际大一）',
+    courses: ([
+      ['文学、商学、理学、信息技术', 1, '2、7、10', '', '49,440 / 55,680', 60, '',
+        '60%', '72%', '6', '65', '24', '1090', '21', '6', '12', '6', '/']
+    ] as Row[]).map(row)
   }
 ]
 
@@ -183,22 +252,22 @@ export const EXCHANGE = {
   programs: [
     {
       name: 'Semester Exchange Program',
-      text: '到 Monash 的海外合作大学交换一到两个学期，所修学分计入 Monash 学位。',
+      text: '到 Monash 的海外合作大学交换一到两个学期，所修学分计入 Monash 学位',
       url: 'https://www.monash.edu/study-abroad/overseas/monash-partner-programs/exchange'
     },
     {
       name: 'Semester in Australia',
-      text: '到澳大利亚的校区读一个学期。学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次。',
+      text: '到澳大利亚的校区读一个学期，学籍仍在马来西亚校区，学费按马来西亚校区标准以马币缴纳，每人限一次',
       url: 'https://www.monash.edu.my/study-abroad/outbound/Semester-in-Australia'
     },
     {
       name: 'Global Summer Program / Global Winter Program',
-      text: '寒暑假期间到合作大学上 2 到 4 周的短期课程，可以计入学分。冬季项目在 6 至 7 月，夏季项目在 11 月至次年 2 月。',
+      text: '寒暑假期间到合作大学上 2 到 4 周的短期课程，可以计入学分，冬季项目在 6 至 7 月，夏季项目在 11 月至次年 2 月',
       url: 'https://www.monash.edu.my/study-abroad/outbound/short-term-programs'
     },
     {
       name: 'Prato 中心（意大利）',
-      text: 'Monash 在意大利 Prato 设有自己的教学中心。2026 年 6 至 7 月，马来西亚校区的学生在这里参加了为期三周的短期课程。',
+      text: 'Monash 在意大利 Prato 设有自己的教学中心，2026 年 6 至 7 月，马来西亚校区的学生在这里参加了为期三周的短期课程',
       url: 'https://www.monash.edu.my/pages/latest/articles/2026/monash-malaysia-students-expand-global-perspectives-through-mgci-in-italy'
     }
   ]

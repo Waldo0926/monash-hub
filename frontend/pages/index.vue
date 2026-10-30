@@ -131,7 +131,7 @@ const COPY = {
   },
   zh: {
     hero: '查课程、查政策、排选课',
-    description: 'Monash 的课程、学位、官方指南和选课工具，数据来自 Handbook 和 Monash 官网。',
+    description: 'Monash 的课程、学位、官方指南和选课工具，数据来自 Handbook 和 Monash 官网',
     placeholder: 'FIT2004、特殊考虑、census date…',
     popular: '试试搜',
     unitsTitle: '各学院的课程',

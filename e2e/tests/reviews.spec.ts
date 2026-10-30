@@ -14,7 +14,7 @@ test('a guest rates a unit, others see it as someone else\'s, and the author can
   await reviews.getByLabel('你的评价（选填）').fill('Weekly exercises help a lot.')
   await reviews.getByRole('button', { name: '发布评分' }).click()
 
-  await expect(reviews.getByRole('status')).toHaveText('谢谢，评分已保存。')
+  await expect(reviews.getByRole('status')).toHaveText('谢谢，评分已保存')
   await expect(reviews.locator('.score')).toContainText('4.0')
   await expect(reviews.locator('.score')).toContainText('1 人评分')
   // The header chip above the Handbook sections picks the new average up too.
@@ -38,6 +38,6 @@ test('a guest rates a unit, others see it as someone else\'s, and the author can
 
   page.once('dialog', (dialog) => dialog.accept())
   await reviews.getByRole('button', { name: '删除' }).click()
-  await expect(reviews.getByRole('status')).toHaveText('你的评分已删除。')
+  await expect(reviews.getByRole('status')).toHaveText('你的评分已删除')
   await expect(reviews).toContainText('FIT2102 还没有人评分')
 })
