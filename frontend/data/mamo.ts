@@ -36,8 +36,8 @@ export const MAMO_ACCOUNT = {
   /** The account's own description, as written on its profile page. */
   about:
     '由马莫（Monash University Malaysia）在读学生运营，专注分享新生申请、学分减免、' +
-    '选课学习、校园生活、国际交换及校园资讯等。内容结合个人真实经历与官方政策整理，' +
-    '希望帮你少走弯路、更快适应马莫生活。欢迎关注、交流与咨询～'
+    '选课学习、校园生活、国际交换及校园资讯等，内容结合个人真实经历与官方政策整理，' +
+    '希望帮你少走弯路、更快适应马莫生活，欢迎关注、交流与咨询～'
 }
 
 /** Newest first, the way the account itself lists them. */

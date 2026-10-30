@@ -39,6 +39,10 @@ All notable changes to Monash Hub are documented here.
   the table go to `/courses` and `/fees`.
 - `/courses` shows the link to `/fees` as a card with a short description
   instead of a small text link.
+- Chinese copy no longer ends with 。: 307 interface strings and the whole
+  parents page. Long paragraphs on `/parents` are split into short ones and
+  the notes under the entry and fee tables are short lists. A test fails if a
+  Chinese message ends with 。 again.
 - Two official seeds added: `monash-rankings` (the page the rankings come
   from) and `malaysia-diploma-higher-education-studies`.
 
