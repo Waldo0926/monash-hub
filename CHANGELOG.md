@@ -4,6 +4,22 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (every degree in the parents entry table, no trailing 。)
+
+- The entry table on `/parents` now lists every undergraduate degree at the
+  Malaysia campus, grouped by school, with 高考 (and single-subject rules),
+  MUFY, CIMP/OSSD, A-Level, ATAR, IB, SAT, ACT, AP, DSE, UNSW Foundation
+  Studies and Monash College Diploma Part 2, plus the diploma route. It
+  scrolls both ways with the degree name and header fixed. Fees are the 2027
+  international rate read from the same table as `/fees`, and links under
+  the table go to `/courses` and `/fees`.
+- `/courses` shows the link to `/fees` as a card with a short description
+  instead of a small text link.
+- Chinese copy no longer ends with 。: 307 interface strings and the whole
+  parents page. Long paragraphs on `/parents` are split into short ones and
+  the notes under the entry and fee tables are short lists. A test fails if a
+  Chinese message ends with 。 again.
+
 ### Changed (more official content on the parents page)
 
 - New sections on `/parents`: 学校概况 (founded 1998, about 13,800
@@ -30,19 +46,6 @@ All notable changes to Monash Hub are documented here.
 - Transfer to Australia: at least one year in Malaysia first, fees then paid
   in Australian dollars at the Australian rate, and a table comparing
   exchange with transfer.
-- The entry table on `/parents` now lists every undergraduate degree at the
-  Malaysia campus, grouped by school, with 高考 (and single-subject rules),
-  MUFY, CIMP/OSSD, A-Level, ATAR, IB, SAT, ACT, AP, DSE, UNSW Foundation
-  Studies and Monash College Diploma Part 2, plus the diploma route. It
-  scrolls both ways with the degree name and header fixed. Fees are the 2027
-  international rate read from the same table as `/fees`, and links under
-  the table go to `/courses` and `/fees`.
-- `/courses` shows the link to `/fees` as a card with a short description
-  instead of a small text link.
-- Chinese copy no longer ends with 。: 307 interface strings and the whole
-  parents page. Long paragraphs on `/parents` are split into short ones and
-  the notes under the entry and fee tables are short lists. A test fails if a
-  Chinese message ends with 。 again.
 - Two official seeds added: `monash-rankings` (the page the rankings come
   from) and `malaysia-diploma-higher-education-studies`.
 
