@@ -30,6 +30,15 @@ All notable changes to Monash Hub are documented here.
 - Transfer to Australia: at least one year in Malaysia first, fees then paid
   in Australian dollars at the Australian rate, and a table comparing
   exchange with transfer.
+- The entry table on `/parents` now lists every undergraduate degree at the
+  Malaysia campus, grouped by school, with 高考 (and single-subject rules),
+  MUFY, CIMP/OSSD, A-Level, ATAR, IB, SAT, ACT, AP, DSE, UNSW Foundation
+  Studies and Monash College Diploma Part 2, plus the diploma route. It
+  scrolls both ways with the degree name and header fixed. Fees are the 2027
+  international rate read from the same table as `/fees`, and links under
+  the table go to `/courses` and `/fees`.
+- `/courses` shows the link to `/fees` as a card with a short description
+  instead of a small text link.
 - Two official seeds added: `monash-rankings` (the page the rankings come
   from) and `malaysia-diploma-higher-education-studies`.
 

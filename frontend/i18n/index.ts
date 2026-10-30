@@ -294,6 +294,7 @@ const en: Messages = {
   'courses.title': 'Degrees',
   'courses.lede':
     'See how a degree is structured: each requirement group, its credit points, and which units your campus does not teach.',
+  'courses.feesHint': 'Yearly tuition for every Malaysia campus degree, for local and international students',
   'courses.search': 'Search',
   'courses.searchPlaceholder': 'Course code or name, e.g. C2001 or Computer Science',
   'courses.count': 'Degrees: {n}',
@@ -1452,6 +1453,7 @@ const zh: Messages = {
   'plan.period.October intake teaching period, Malaysia campus': '10 月入学期',
   'courses.title': '专业与学位',
   'courses.lede': '查看每个专业（学位课程）的结构：每组要求占多少学分，以及哪些课你的校区不开。',
+  'courses.feesHint': '马来西亚校区全部专业每年的学费，本地生和国际生分开列出',
   'courses.search': '搜索',
   'courses.searchPlaceholder': '学位代码或名称，例如 C2001 或 Computer Science',
   'courses.count': '学位 {n} 个',
@@ -2580,6 +2582,7 @@ const ja: Messages = {
   'courses.title': '学位',
   'courses.lede':
     '学位の構成を確認できます。各要件グループの単位数と、所属キャンパスで開講されない科目がわかります。',
+  'courses.feesHint': 'マレーシア校の全学位の年間学費（国内生・留学生別）',
   'courses.search': '検索',
   'courses.searchPlaceholder': 'コースコードまたは名称（例：C2001）',
   'courses.count': '{n} 件の学位',
@@ -3706,6 +3709,7 @@ const ko: Messages = {
   'courses.title': '학위',
   'courses.lede':
     '학위 구성을 볼 수 있습니다. 요건 그룹별 학점과 소속 캠퍼스에서 열리지 않는 과목을 확인하세요.',
+  'courses.feesHint': '말레이시아 캠퍼스 전체 학위의 연간 학비 (내국인·유학생별)',
   'courses.search': '검색',
   'courses.searchPlaceholder': '학위 코드 또는 이름 (예: C2001)',
   'courses.count': '학위 {n}개',
