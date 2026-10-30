@@ -599,7 +599,9 @@ useHead({
 </template>
 
 <style scoped>
-.page { max-width: 760px; margin: 0 auto; padding: var(--s6) var(--s4) var(--s8); }
+/* As wide as the entry table needs, so the table and the text around it
+   share one edge instead of the table jutting out of a narrow column. */
+.page { max-width: 1240px; margin: 0 auto; padding: var(--s6) var(--s5) var(--s8); }
 .intro h1 { margin: 0 0 var(--s4); font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.3rem); line-height: 1.25; }
 .lead { margin: 0 0 var(--s5); color: var(--muted); font-size: 1rem; line-height: 1.8; }
 .toc { display: flex; flex-wrap: wrap; gap: var(--s2); }
@@ -619,16 +621,12 @@ useHead({
 .block h2 + h3 { margin-top: 0; }
 .block p { margin: 0 0 var(--s3); line-height: 1.85; }
 
-.ranks { margin: 0 0 var(--s3); padding: 0; list-style: none; }
-.ranks li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--s4);
-  padding: var(--s3) 0;
-  border-bottom: 1px solid var(--border);
-}
-.ranks b { color: var(--brand-700); font-size: 1.05rem; white-space: nowrap; }
+/* Lists that were full-width rows in the narrow column are cards on the
+   wide page, so a label and its figure never sit a screen apart. */
+.ranks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
+.ranks li { display: grid; gap: 4px; align-content: start; padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
+.rank-name { color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+.ranks b { color: var(--brand-700); font-size: 1.2rem; white-space: nowrap; }
 
 .table { width: 100%; margin: 0 0 var(--s3); border-collapse: collapse; font-size: 0.95rem; }
 .table th, .table td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--border); text-align: left; vertical-align: baseline; }
@@ -636,19 +634,11 @@ useHead({
 .table .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .years { display: block; color: var(--muted-2); font-size: 0.8rem; }
 
-.living { margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.living { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); column-gap: var(--s6); margin: 0 0 var(--s3); padding: 0; list-style: none; }
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-/* The text column stays 760px for reading, but the table breaks out of it to
-   use the empty sides of a wide screen, up to 1240px with 24px left free on
-   each side (enough to clear a classic scrollbar), and never narrower than
-   the column. */
-.entry-frame {
-  --frame-w: max(100%, min(1240px, 100vw - 48px));
-  width: var(--frame-w);
-  margin: var(--s4) 0 var(--s4) calc(50% - var(--frame-w) / 2);
-}
+.entry-frame { margin: var(--s4) 0; }
 .entry-jump { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--s3); }
 .entry-jump-label { margin-right: 4px; color: var(--text); font-size: 0.875rem; font-weight: 500; }
 .entry-jump button {
@@ -749,8 +739,8 @@ useHead({
 .entry-links a { color: var(--brand); font-weight: 500; }
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
-.programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
-.programs li { padding: var(--s3) 0; border-bottom: 1px solid var(--border); }
+.programs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
+.programs li { padding: var(--s4); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .programs h3, .programs h4 { margin: 0 0 var(--s1); font-size: 1rem; }
 .programs p { margin: 0 0 var(--s1); }
 .reading { margin-top: var(--s4); padding: var(--s4); border-radius: 10px; background: var(--surface-2); }
@@ -771,7 +761,7 @@ useHead({
 .compare th[scope='row'] { color: var(--muted); font-weight: 400; white-space: nowrap; }
 .compare td { line-height: 1.6; }
 
-.more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
+.more { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
 .more a {
   display: grid;
   gap: 4px;
@@ -808,8 +798,8 @@ useHead({
   .entry tbody th.sticky { min-width: 9em; max-width: 10em; }
 }
 @media (max-width: 520px) {
-  .page { padding-top: var(--s4); }
-  .ranks li { flex-direction: column; gap: 2px; }
+  .page { padding: var(--s4) var(--s4) var(--s8); }
+  .ranks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .table { font-size: 0.875rem; }
   .more { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
