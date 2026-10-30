@@ -4,6 +4,35 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (more official content on the parents page)
+
+- New sections on `/parents`: 学校概况 (founded 1998, about 13,800
+  students from 91 countries, 140 partner universities, the SETARA
+  Competitive rating), 奖学金 (High Achiever Award, Female in Engineering,
+  Pharmacy Excellence, and what keeps a scholarship), 校园与生活 (facilities,
+  Sunway-managed housing, the health centre, counselling, insurance, the
+  security hotline) and 家长须知 (under Malaysia's PDPA the university tells
+  parents nothing without the student's written authorisation).
+- Rankings updated to THE 2027 (61st) and ARWU 2026 (76th), with two more
+  world top 30 subjects taught in Malaysia. The page says these rank the
+  whole university.
+- The degree section now follows the welcome page and the FAQ on
+  top-university-in-malaysia: one testamur for every campus, reading
+  "Monash University", quality assured by TEQSA and recognised by MQA. The
+  line saying a degree can be certified by 留服 had no source on the cited
+  page and now points to 中国留学服务中心 for its rules instead.
+- Fixed: MUFY is taught by Sunway College (Kuala Lumpur and Johor Bahru) and
+  partner centres including Chengdu, not on the Malaysia campus. The
+  Diploma of Higher Education Studies is added as the second route for a
+  short 高考 score.
+- Tuition shows the 6% service tax charged to international students since
+  1 July 2025, and the yuan figure includes it.
+- Transfer to Australia: at least one year in Malaysia first, fees then paid
+  in Australian dollars at the Australian rate, and a table comparing
+  exchange with transfer.
+- Two official seeds added: `monash-rankings` (the page the rankings come
+  from) and `malaysia-diploma-higher-education-studies`.
+
 ### Added (the Ask panel asks the 马莫百科 bot too)
 
 - The 提问 panel sends each question to the 马莫百科 WeChat bot as well as to

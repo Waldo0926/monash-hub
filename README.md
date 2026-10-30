@@ -124,7 +124,7 @@ A plan is stored only in your own browser and is never saved to an account. Each
 
 ### A page for parents
 
-`/parents` is written in Chinese for parents looking at the Malaysia campus: rankings, the degree certificate, entry scores by 高考, A-Level, IB, AP, SAT, ACT, MUFY and CIMP, the foundation route, transferring to an Australian campus, exchange, tuition with a yuan estimate, the visa fee and living costs. Each official fact links the English page it came from and says when it was checked.
+`/parents` is written in Chinese for parents looking at the Malaysia campus: the campus in numbers and its SETARA rating, rankings, the degree certificate, entry scores by 高考, A-Level, IB, AP, SAT, ACT, MUFY and CIMP, the MUFY and diploma routes, scholarships, transferring to an Australian campus, exchange, tuition with the 6% service tax and a yuan estimate, the visa fee, living costs, campus life and what the university can tell parents. Each official fact links the English page it came from and says when it was checked.
 
 ### Ask a question
 
