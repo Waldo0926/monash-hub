@@ -86,6 +86,20 @@ SEEDS: tuple[Seed, ...] = (
     Seed("malaysia-reputation", "https://www.monash.edu.my/about/top-university-in-malaysia",
          "Rankings, reputation and recognition (Monash Malaysia)", "malaysia",
          ("malaysia", "ranking", "recognition", "排名", "认证"), applies_to="malaysia"),
+    # The rankings /parents quotes. Monash ranks as one university, so the
+    # page applies to every campus. Added 2026-10-30.
+    Seed("monash-rankings", "https://www.monash.edu/about/our-rankings",
+         "Our world university rankings (Monash University)", "malaysia",
+         ("ranking", "qs", "times higher education", "arwu", "subject ranking",
+          "排名", "世界排名", "学科排名"),
+         tier="stable", applies_to="all"),
+    # The other way in when a gaokao score is short of a degree's entry
+    # score: a year of first-year units, then year two. Added 2026-10-30.
+    Seed("malaysia-diploma-higher-education-studies",
+         "https://www.monash.edu.my/study/diploma-and-pathway/diploma-higher-education-studies",
+         "Diploma of Higher Education Studies (Monash Malaysia)", "enrolment",
+         ("malaysia", "diploma", "pathway", "gaokao", "文凭", "预科", "高考", "升读"),
+         applies_to="malaysia"),
     Seed("malaysia-entry-requirements", "https://www.monash.edu.my/study/entry-requirements",
          "Entry requirements (Monash Malaysia)", "enrolment",
          ("malaysia", "entry requirements", "admission", "入学要求", "申请"),

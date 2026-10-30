@@ -9,8 +9,9 @@
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
-  DEGREE_SOURCE, ENGLISH_SOURCE, ENTRY_COURSES, ENTRY_ROWS, ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MYR_TO_CNY,
-  RANKINGS, RANKINGS_SOURCE, SCORE_METHOD_URL, SUBJECT_RANKING, TRANSFER, VISA
+  ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COURSES, ENTRY_ROWS,
+  ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
+  SCHOLARSHIP, SCORE_METHOD_URL, SETARA_SOURCE, SST, SUBJECT_RANKINGS, TRANSFER, VISA
 } from '~/data/parents'
 import type { FeeRow } from '~/utils/tuition'
 
@@ -40,6 +41,8 @@ const cny = (n: number) => `约 ${(n * MYR_TO_CNY / 10000).toFixed(1)} 万元`
 const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 10)} 元`
 
 const score = (percent: number) => Math.round((750 * percent) / 100)
+const withTax = (n: number) => n * (1 + SST.rate)
+const taxPercent = Math.round(SST.rate * 100)
 
 // The account's own posts on exchange, as further reading under the official programmes.
 const exchangePosts = MAMO_POSTS.filter(p => p.topic === 'exchange' && p.url)
@@ -64,7 +67,7 @@ async function copyId() {
 }
 
 const title = 'Monash 马来西亚校区：给家长的介绍'
-const description = '莫纳什大学马来西亚校区的世界排名、学位证书、高考和国际课程录取要求、转澳大利亚校区、海外交换和每年费用，内容来自学校官网。'
+const description = '莫纳什大学马来西亚校区的学校概况、世界排名、学位证书、高考和国际课程录取要求、奖学金、转澳大利亚校区、海外交换、每年费用和校园生活，内容来自学校官网。'
 useSeoMeta({
   title,
   description,
@@ -92,16 +95,37 @@ useHead({
         莫纳什大学（Monash University）是澳大利亚八校联盟成员，总部在墨尔本。马来西亚校区位于吉隆坡附近的双威城。以下内容整理自学校官网，每一项下面附有英文原文链接。
       </p>
       <nav class="toc" aria-label="本页目录">
+        <a href="#about">学校概况</a>
         <a href="#rankings">学校排名</a>
         <a href="#degree">毕业证书</a>
         <a href="#entry">录取要求</a>
+        <a href="#scholarship">奖学金</a>
         <a href="#transfer">转澳大利亚校区</a>
         <a href="#exchange">海外交换</a>
         <a href="#cost">费用</a>
-        <a href="#more">更多</a>
+        <a href="#campus">校园生活</a>
+        <a href="#parents-note">家长须知</a>
         <a href="#contact">咨询</a>
       </nav>
     </header>
+
+    <section id="about" class="block">
+      <h2>学校概况</h2>
+      <p>
+        马来西亚校区建于 1998 年，是马来西亚第一个外国大学校区，也是莫纳什大学第三大的校区。莫纳什大学在澳大利亚有四个校区，另外在马来西亚、印度尼西亚、中国和印度设有校区，在意大利 Prato 设有教学中心。
+      </p>
+      <ul class="facts">
+        <li v-for="f in ABOUT.facts" :key="f.label"><span>{{ f.label }}</span><b>{{ f.value }}</b></li>
+      </ul>
+      <p>
+        马来西亚校区有自行审核课程的资格。在马来西亚高等教育部的 SETARA 大学评级中，学校获评 Competitive（Berdaya Saing），是这项评级的最高一级。
+      </p>
+      <p class="src">
+        <a :href="ABOUT.url" target="_blank" rel="noopener external">查看英文原文（校区介绍）</a>
+        <a :href="SETARA_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（SETARA 评级）</a>
+        <span>核对于 {{ ABOUT.checked }}</span>
+      </p>
+    </section>
 
     <section id="rankings" class="block">
       <h2>学校排名</h2>
@@ -110,11 +134,16 @@ useHead({
           <span class="rank-name">{{ r.name }} {{ r.year }}</span>
           <b>{{ r.place }}</b>
         </li>
-        <li>
-          <span class="rank-name">{{ SUBJECT_RANKING.name }} {{ SUBJECT_RANKING.year }}</span>
-          <b>{{ SUBJECT_RANKING.place }}</b>
+      </ul>
+      <h3>学科排名</h3>
+      <p>下面是排进世界前 30、马来西亚校区也开设的学科：</p>
+      <ul class="ranks">
+        <li v-for="r in SUBJECT_RANKINGS" :key="r.name">
+          <span class="rank-name">{{ r.name }} {{ r.year }}</span>
+          <b>{{ r.place }}</b>
         </li>
       </ul>
+      <p class="note">排名是莫纳什大学整体的排名，各校区共用。</p>
       <p class="src">
         <a :href="RANKINGS_SOURCE.url" target="_blank" rel="noopener external">查看英文原文</a>
         <span>核对于 {{ RANKINGS_SOURCE.checked }}</span>
@@ -124,10 +153,17 @@ useHead({
     <section id="degree" class="block">
       <h2>毕业证书</h2>
       <p>
-        在马来西亚校区完成学业，获得的毕业证书和学位证书由莫纳什大学颁发，与澳大利亚本部毕业生相同。回国后可以在教育部留学服务中心办理国（境）外学历学位认证。
+        不论在哪个校区完成学业，毕业证书都由莫纳什大学颁发，与澳大利亚校区的毕业生相同。所有校区执行同一套教学质量标准，由学校的学术委员会统一监督。证书上写的是 Monash University，不写 Monash University Malaysia。
+      </p>
+      <p>
+        学位由澳大利亚高等教育质量与标准署（TEQSA）做质量保证，同时获得马来西亚学术资格鉴定机构（MQA）认可。
+      </p>
+      <p>
+        回国后办理国（境）外学历学位认证，所需材料和流程以<a :href="CSCSE_URL" target="_blank" rel="noopener external">中国留学服务中心</a>官网为准。
       </p>
       <p class="src">
-        <a :href="DEGREE_SOURCE.url" target="_blank" rel="noopener external">查看英文原文</a>
+        <a :href="DEGREE_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（校区介绍）</a>
+        <a :href="DEGREE_FAQ_URL" target="_blank" rel="noopener external">查看英文原文（常见问题）</a>
         <span>核对于 {{ DEGREE_SOURCE.checked }}</span>
       </p>
     </section>
@@ -183,10 +219,6 @@ useHead({
       <p class="note">
         高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比。工程学士下设土木、化学、材料、电气与计算机、机械、机器人与机电、软件等方向，录取要求相同；生物医学工程只在 2 月入学。A-Level、AP、IB 的计分方法见官网计分说明。每年的要求可能调整，最新要求可以直接咨询。
       </p>
-      <h3>先读预科再升本科</h3>
-      <p>
-        没有参加高考，或成绩未达到直接入读要求的学生，可以先在马来西亚校区读一年 Monash 大学预科（MUFY），按预科成绩升读本科。也有学生在其他院校读加拿大国际大学预科（CIMP），取得安大略省高中文凭（OSSD）后申请。两种预科各专业要求的成绩见上表。
-      </p>
       <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文。</p>
       <p class="src">
         <a :href="ENTRY_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（本科学术要求）</a>
@@ -194,16 +226,81 @@ useHead({
         <a :href="ENGLISH_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（英语要求）</a>
         <span>核对于 {{ ENTRY_SOURCE.checked }}</span>
       </p>
+
+      <h3>没有高考成绩或分数不够时</h3>
+      <ul class="programs">
+        <li>
+          <h4>Monash 大学预科（MUFY）</h4>
+          <p>
+            由学校选定的院校开设，马来西亚境内在双威学院（Sunway College）吉隆坡和新山两个校区，中国境内在成都也有开设点。课程相当于澳大利亚 12 年级，一般分两个学期，9 到 11 个月读完，按预科成绩升读本科，各专业要求的预科成绩见上表。
+          </p>
+          <a :href="MUFY.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
+        </li>
+        <li>
+          <h4>高等教育文凭（Diploma of Higher Education Studies）</h4>
+          <p>
+            在马来西亚校区读一年，修读本科一年级的课程，成绩达到要求后进入对应本科专业的二年级。可选的方向在文科与社会科学、商科、信息技术和理科四个学院，工程不在其中。高考要求为总分的 {{ DIPLOMA.gaokao }}%，{{ DIPLOMA.fees.year }} 年国际学生学费每年 {{ rm(DIPLOMA.fees.nonScience) }}，理科方向 {{ rm(DIPLOMA.fees.science) }}。
+          </p>
+          <a :href="DIPLOMA.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
+        </li>
+      </ul>
+      <p>也有学生在其他院校读加拿大国际大学预科（CIMP），取得安大略省高中文凭（OSSD）后申请，各专业要求的成绩同样见上表。</p>
+      <p class="src"><span>核对于 {{ MUFY.checked }}</span></p>
+    </section>
+
+    <section id="scholarship" class="block">
+      <h2>奖学金</h2>
+      <p>
+        国际新生可以申请的本科奖学金主要有下面几项。前两项不用单独申请，学校审核入学申请时会一起评估，符合条件的会在录取通知书里一并告知。
+      </p>
+      <ul class="programs">
+        <li>
+          <h3>Monash High Achiever Award</h3>
+          <p>面向高中成绩优秀的新生，每年减免学费 RM10,000，分两个学期各减 RM5,000。医学和药学专业不适用。</p>
+        </li>
+        <li>
+          <h3>Female in Engineering Scholarship</h3>
+          <p>面向读工程学士的女生，第一年减免学费 RM6,000。每个入学批次名额有限，2 月和 7 月各 7 名，10 月 6 名。</p>
+        </li>
+        <li>
+          <h3>Monash Pharmacy Excellence Scholarship</h3>
+          <p>面向药学学士（荣誉）新生，四年学费减免 50% 或 25%。这一项要另外申请，每年 1 月 31 日截止。</p>
+        </li>
+      </ul>
+      <p>
+        入学后成绩优秀的学生，还可以获得在读生版的 Monash High Achiever Award，条件是连续读满两个学期、平均分 80 分以上，并且排在所在学院的前 1%，每学期由学校自动提名。
+      </p>
+      <p>
+        拿到奖学金后，要保持录取通知书里写明的成绩要求，每学期修满 24 学分，按正常年限毕业，期间不能再领取其他资助，才能继续享受减免。奖学金减免的部分照样按全额学费计算 {{ taxPercent }}% 服务税，详见下方费用部分。
+      </p>
+      <p class="src">
+        <a :href="SCHOLARSHIP.url" target="_blank" rel="noopener external">查看英文原文</a>
+        <span>核对于 {{ SCHOLARSHIP.checked }}</span>
+      </p>
     </section>
 
     <section id="transfer" class="block">
       <h2>转到澳大利亚校区</h2>
       <p>
-        在读本科生在完成学业前，可以申请转到澳大利亚的校区，继续读同类学位。各学院对已修学分和平均成绩有各自的要求，由澳大利亚校区的学院审批。毕业证书同样由莫纳什大学颁发。
+        在读本科生在马来西亚校区读满至少一年后，可以申请转到澳大利亚的校区，继续读同类学位。各学院对已修学分和平均成绩有各自的要求，由澳大利亚校区的学院审批。毕业证书同样由莫纳什大学颁发。
       </p>
+      <p>
+        转过去以后就成为澳大利亚校区的学生，学费和其他费用改按澳大利亚校区转入当年的标准，用澳元缴纳。先去交换再申请转校区的，也从转入那年开始按澳大利亚的标准交费。
+      </p>
+      <table class="table compare">
+        <thead>
+          <tr><th scope="col"><span class="visually-hidden">对比项</span></th><th scope="col">去澳大利亚交换</th><th scope="col">转到澳大利亚校区</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">学籍</th><td>仍是马来西亚校区学生</td><td>转为澳大利亚校区学生</td></tr>
+          <tr><th scope="row">学费</th><td>按马币缴纳</td><td>按澳元缴纳</td></tr>
+          <tr><th scope="row">毕业</th><td>一般回马来西亚校区读完最后一个学期</td><td>在澳大利亚读完</td></tr>
+        </tbody>
+      </table>
       <p class="src">
         <a :href="TRANSFER.url" target="_blank" rel="noopener external">查看英文原文（Internal Course Transfer）</a>
         <a :href="TRANSFER.rulesUrl" target="_blank" rel="noopener external">查看英文原文（转校区条件）</a>
+        <a :href="PARENTS_INFO.url" target="_blank" rel="noopener external">查看英文原文（家长常见问题）</a>
         <span>核对于 {{ TRANSFER.checked }}</span>
       </p>
     </section>
@@ -234,20 +331,25 @@ useHead({
       <h3>学费</h3>
       <table v-if="feeRows.length" class="table">
         <thead>
-          <tr><th>专业</th><th>每年学费</th><th>折合人民币</th></tr>
+          <tr><th>专业</th><th>每年学费</th><th>加 {{ taxPercent }}% 服务税</th><th>折合人民币</th></tr>
         </thead>
         <tbody>
           <tr v-for="f in feeRows" :key="f.label">
             <td>{{ f.label }}<span v-if="f.years" class="years">{{ f.years }} 年制</span></td>
             <td class="num">{{ rm(f.amount) }}</td>
-            <td class="num">{{ cny(f.amount) }}</td>
+            <td class="num">{{ rm(withTax(f.amount)) }}</td>
+            <td class="num">{{ cny(withTax(f.amount)) }}</td>
           </tr>
         </tbody>
       </table>
       <p v-else class="note">学费数据暂时无法读取，请查看各专业学费页。</p>
       <p class="note">
-        以上为{{ fees?.year ? ` ${fees.year} 年` : '' }}国际学生学费。目前以 1 马币兑 {{ MYR_TO_CNY }} 人民币汇率换算，具体以当天汇率为准。
+        以上为{{ fees?.year ? ` ${fees.year} 年` : '' }}国际学生学费。2025 年 7 月 1 日起，马来西亚政府对国际学生的学费、报名费、注册费等教育相关费用征收 {{ taxPercent }}% 服务税，由学校代收，学生签证和保险不收。人民币按加税后的金额、以 1 马币兑 {{ MYR_TO_CNY }} 人民币换算，具体以当天汇率为准。
         <NuxtLink to="/fees">全部专业的学费</NuxtLink>
+      </p>
+      <p class="src">
+        <a :href="SST.url" target="_blank" rel="noopener external">查看英文原文（服务税）</a>
+        <span>核对于 {{ SST.checked }}</span>
       </p>
 
       <h3>学生签证</h3>
@@ -273,7 +375,44 @@ useHead({
 
     <section id="campus" class="block">
       <h2>校园与生活</h2>
-      <p class="placeholder">校园照片正在整理，稍后补充。</p>
+      <p>
+        校园里有餐厅和食堂、健身房和室外游泳池，学生社团经常办市集、比赛、文化节和音乐节。学校所在的双威城有商场和休闲场所，走路就能到。
+      </p>
+      <h3>住宿</h3>
+      <p>
+        学校附近有多处走路可到的学生公寓，其中由双威集团管理的有 {{ CAMPUS.residences.join('、') }}，可以选单人间或合住，在双威的住宿管理处（Sunway House）申请。学校官网说明，列出的住宿仅供参考，学校不对房源作担保。房租等生活费见上方费用部分。
+      </p>
+      <h3>健康与保险</h3>
+      <p>
+        校内健康中心有注册护士，周一至周五 8:30 到 17:30 开放，可以处理小病小伤，也能做急救。学校还有专业的心理咨询师，咨询服务免费并且保密。
+      </p>
+      <p>
+        所有学生都在学校统一投保的团体意外险范围内，持学生签证的国际学生另有学校指定的医疗保险。
+      </p>
+      <h3>校园安全</h3>
+      <p>学校有自己的保安团队，紧急求助电话 <span class="mono">{{ CAMPUS.securityHotline }}</span>。</p>
+      <p class="src">
+        <a :href="CAMPUS.welcomeUrl" target="_blank" rel="noopener external">查看英文原文（校园）</a>
+        <a :href="CAMPUS.housingUrl" target="_blank" rel="noopener external">查看英文原文（住宿）</a>
+        <a :href="CAMPUS.healthUrl" target="_blank" rel="noopener external">查看英文原文（健康中心）</a>
+        <a :href="CAMPUS.insuranceUrl" target="_blank" rel="noopener external">查看英文原文（保险）</a>
+        <a :href="CAMPUS.securityUrl" target="_blank" rel="noopener external">查看英文原文（校园安全）</a>
+        <span>核对于 {{ CAMPUS.checked }}</span>
+      </p>
+    </section>
+
+    <section id="parents-note" class="block">
+      <h2>家长须知</h2>
+      <p>
+        根据马来西亚《2010 年个人资料保护法》，未经学生本人同意，学校不能向任何第三方透露学生的信息，家长也包括在内。
+      </p>
+      <p>
+        家长如果想直接向学校了解孩子的学业进度，需要孩子提交一份个人信息披露授权（Authorisation to Release Personal Information）。授权范围限于学业进度、代领成绩单和学校信件，以及学费明细。这些信息也可以直接问孩子。遇到紧急情况，学校会联系学生登记的紧急联系人。
+      </p>
+      <p class="src">
+        <a :href="PARENTS_INFO.url" target="_blank" rel="noopener external">查看英文原文</a>
+        <span>核对于 {{ PARENTS_INFO.checked }}</span>
+      </p>
     </section>
 
     <section id="more" class="block">
@@ -368,7 +507,7 @@ useHead({
 
 .programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
 .programs li { padding: var(--s3) 0; border-bottom: 1px solid var(--border); }
-.programs h3 { margin: 0 0 var(--s1); font-size: 1rem; }
+.programs h3, .programs h4 { margin: 0 0 var(--s1); font-size: 1rem; }
 .programs p { margin: 0 0 var(--s1); }
 .reading { margin-top: var(--s4); padding: var(--s4); border-radius: 10px; background: var(--surface-2); }
 .reading-title { margin: 0 0 var(--s2) !important; font-weight: 500; }
@@ -379,7 +518,12 @@ useHead({
 .note { color: var(--muted); font-size: 0.875rem; }
 .src { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); color: var(--muted-2); font-size: 0.8rem; }
 .src a { color: var(--brand); }
-.placeholder { padding: var(--s6) var(--s4); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); text-align: center; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
+.facts li { display: grid; gap: 2px; padding: var(--s3); border-radius: 10px; background: var(--surface-2); }
+.facts span { color: var(--muted); font-size: 0.8rem; }
+.facts b { color: var(--brand-700); font-size: 1.05rem; }
+.compare th[scope='row'] { color: var(--muted); font-weight: 400; white-space: nowrap; }
+.compare td { line-height: 1.6; }
 
 .more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
 .more a {
@@ -427,6 +571,7 @@ useHead({
   .ranks li { flex-direction: column; gap: 2px; }
   .table { font-size: 0.875rem; }
   .more { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wechat img { width: 112px; height: 112px; }
 }
 </style>

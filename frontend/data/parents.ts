@@ -2,34 +2,61 @@
  * Facts on the /parents page, each with the official page it was read from and
  * the day it was checked.
  *
- * Typed in by hand for now. The pages are already official seeds
- * (malaysia-reputation, malaysia-academic-entry, malaysia-english-entry,
- * malaysia-student-pass in crawler/official/seeds.py), so these can be read
- * from the harvested pages later instead.
+ * Typed in by hand for now. Every page here is an official seed (in
+ * crawler/official/seeds.py or seeds_coverage.py), so these can be read from
+ * the harvested pages later instead. Collapsed FAQ answers were opened and read
+ * in a browser on 2026-10-30.
  */
 export interface ParentSource {
   url: string
   checked: string
 }
 
+/** About the Malaysia campus, from the campus welcome page. */
+export const ABOUT = {
+  url: 'https://www.monash.edu.my/about/welcome',
+  checked: '2026-10-30',
+  facts: [
+    { label: '建校', value: '1998 年' },
+    { label: '在校学生', value: '约 13,800 人' },
+    { label: '学生来自', value: '91 个国家和地区' },
+    { label: '海外合作大学', value: '140 所' }
+  ]
+}
+
+export const SETARA_SOURCE: ParentSource = {
+  url: 'https://www.monash.edu.my/about/top-university-in-malaysia',
+  checked: '2026-10-30'
+}
+
 export const RANKINGS_SOURCE: ParentSource = {
   url: 'https://www.monash.edu/about/our-rankings',
-  checked: '2026-10-28'
+  checked: '2026-10-30'
 }
 
 export const RANKINGS = [
   { name: 'QS 世界大学排名', year: '2027', place: '第 31 位' },
   { name: 'U.S. News 全球最佳大学排名', year: '2026-2027', place: '第 38 位' },
-  { name: '泰晤士高等教育世界大学排名（THE）', year: '2026', place: '并列第 58 位' },
-  { name: '软科世界大学学术排名（ARWU）', year: '2025', place: '第 76 位' }
+  { name: '泰晤士高等教育世界大学排名（THE）', year: '2027', place: '第 61 位' },
+  { name: '软科世界大学学术排名（ARWU）', year: '2026', place: '第 76 位' }
 ]
 
-export const SUBJECT_RANKING = { name: 'QS 世界大学学科排名 药学与药理学', year: '2026', place: '世界第 2 位' }
+/** World top 30 subjects that the Malaysia campus also teaches. */
+export const SUBJECT_RANKINGS = [
+  { name: 'QS 学科排名 药学与药理学', year: '2026', place: '世界第 2 位' },
+  { name: '软科学科排名 工商管理', year: '2026', place: '世界第 11 位' },
+  { name: '软科学科排名 管理学', year: '2026', place: '世界第 15 位' }
+]
 
 export const DEGREE_SOURCE: ParentSource = {
-  url: 'https://www.monash.edu.my/about/top-university-in-malaysia',
-  checked: '2026-10-28'
+  url: 'https://www.monash.edu.my/about/welcome',
+  checked: '2026-10-30'
 }
+
+/** The FAQ under "Is a Monash Malaysia degree the same as an Australian Monash degree?" */
+export const DEGREE_FAQ_URL = 'https://www.monash.edu.my/about/top-university-in-malaysia'
+
+export const CSCSE_URL = 'https://www.cscse.edu.cn'
 
 export const ENTRY_SOURCE: ParentSource = {
   url: 'https://www.monash.edu.my/study/entry-requirements/academic/undergraduate',
@@ -121,10 +148,34 @@ export const ENTRY_COURSES: EntryCourse[] = [
   }
 ]
 
+export const MUFY = {
+  url: 'https://www.monash.edu.my/study/diploma-and-pathway/mufy',
+  checked: '2026-10-30'
+}
+
+export const DIPLOMA = {
+  url: 'https://www.monash.edu.my/study/diploma-and-pathway/diploma-higher-education-studies',
+  checked: '2026-10-30',
+  gaokao: 60,
+  fees: { year: 2027, nonScience: 49440, science: 55680 }
+}
+
+export const SCHOLARSHIP = {
+  url: 'https://www.monash.edu.my/student-services/financial-assistance/undergraduate-scholarships-and-bursaries/merit-scholarships',
+  checked: '2026-10-30'
+}
+
 export const TRANSFER = {
   url: 'https://www.monash.edu.my/study/apply/internal-course-transfer',
   rulesUrl: 'https://www.monash.edu/admissions/study-options/internal-transfer',
-  checked: '2026-10-29'
+  reasonsUrl: 'https://www.monash.edu.my/about/top-university-in-malaysia/10-reasons-to-choose-monash-university-malaysia',
+  checked: '2026-10-30'
+}
+
+/** The campus's own page for parents: privacy, transfer fees, support. */
+export const PARENTS_INFO = {
+  url: 'https://www.monash.edu.my/student-services/new-to-monash/information-for-parents',
+  checked: '2026-10-30'
 }
 
 export const EXCHANGE = {
@@ -156,6 +207,13 @@ export const EXCHANGE = {
 /** 目前以 1 马币兑 1.65 人民币换算，具体以当天汇率为准。 */
 export const MYR_TO_CNY = 1.65
 
+/** Malaysian service tax on tuition for international students since 1 July 2025. */
+export const SST = {
+  rate: 0.06,
+  url: 'https://www.monash.edu.my/finance/sst-info',
+  checked: '2026-10-30'
+}
+
 export const VISA = {
   amount: 2515,
   months: 12,
@@ -185,3 +243,14 @@ export const FEE_EXAMPLES = [
   { label: '计算机科学学士', match: 'Bachelor of Computer Science' },
   { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' }
 ]
+
+export const CAMPUS = {
+  welcomeUrl: 'https://www.monash.edu.my/about/welcome',
+  housingUrl: 'https://www.monash.edu.my/student-life/accommodation',
+  healthUrl: 'https://www.monash.edu.my/student-services/support-services/health-and-wellness-services',
+  insuranceUrl: 'https://www.monash.edu.my/student-services/support-services/insurance',
+  securityUrl: 'https://www.monash.edu.my/security/about-us',
+  checked: '2026-10-30',
+  residences: ['Waterfront Residence', 'Sun-U Residence', 'Sun-U Apartment'],
+  securityHotline: '+603 5514 6333'
+}
