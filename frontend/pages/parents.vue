@@ -10,7 +10,7 @@
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
   ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COLUMNS, ENTRY_SCHOOLS,
-  ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
+  ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, FEE_LABELS, FEE_SCHOOLS, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
   SCHOLARSHIP, SCORE_METHOD_URL, SETARA_SOURCE, SST, SUBJECT_RANKINGS, TRANSFER, VISA
 } from '~/data/parents'
 import type { FeeRow } from '~/utils/tuition'
@@ -18,25 +18,54 @@ import type { FeeRow } from '~/utils/tuition'
 const config = useRuntimeConfig()
 const site = config.public.siteUrl.replace(/\/$/, '')
 
-type Table = { year: number | null; sections: { source: string; schools: { rows: FeeRow[] }[] }[] }
+type Table = { year: number | null; sections: { source: string; schools: { school: string; rows: FeeRow[] }[] }[] }
 const { data: fees } = await useApiFetch<Table>('/v1/fees')
 
 const norm = (s: string) => s.trim().toLowerCase()
-const ugRows = computed(() => (fees.value?.sections ?? [])
+const ugSchools = computed(() => (fees.value?.sections ?? [])
   .filter(s => s.source === 'malaysia-ugfees')
-  .flatMap(s => s.schools.flatMap(g => g.rows)))
+  .flatMap(s => s.schools))
+const ugRows = computed(() => ugSchools.value.flatMap(g => g.rows))
 const findFeeRow = (match: string) => match
   ? ugRows.value.find(r => norm(r.title) === norm(match) || r.covers.some(c => norm(c) === norm(match)))
   : undefined
-const feeRows = computed(() => {
-  return FEE_EXAMPLES.flatMap(({ label, match }) => {
-    const row = findFeeRow(match)
-    const amount = row?.international[0]?.value
-    if (!row || amount == null) return []
-    const years = Number(row.duration)
-    return [{ label, amount, years: Number.isFinite(years) && years > 0 ? years : null }]
-  })
-})
+
+// One line of the fee table. `years` is how many yearly fees a whole degree
+// takes; a fee charged once for the whole course ("20 weeks") has none and
+// is its own total.
+type FeeLine = { label: string; amount: number; years: number | null; length: string | null; once: boolean }
+const feeLines = (row: FeeRow, label?: string): FeeLine[] => {
+  const once = row.basis === 'full_course'
+  const years = once ? null : parseInt(row.duration ?? '', 10)
+  const name = label ?? row.title_zh ?? row.title
+  const length = once && row.duration ? row.duration.replace(/(\d+)\s*weeks?/i, '$1 周') : null
+  const priced = row.international.filter(a => a.value != null)
+  return priced.map(a => ({
+    label: priced.length > 1 && a.label ? `${name}（${FEE_LABELS[a.label] ?? a.label}）` : name,
+    amount: a.value as number,
+    years: years && years > 0 ? years : null,
+    length,
+    once
+  }))
+}
+const feeRows = computed(() => FEE_EXAMPLES.flatMap(({ label, match }) => {
+  const row = findFeeRow(match)
+  return row ? feeLines(row, label).slice(0, 1) : []
+}))
+// Every undergraduate fee on /fees, grouped by school, for parents who want
+// more than the four common degrees.
+const feeGroups = computed(() => ugSchools.value
+  .map(g => ({ school: FEE_SCHOOLS[g.school] ?? g.school, lines: g.rows.flatMap(r => feeLines(r)) }))
+  .filter(g => g.lines.length))
+const feeCount = computed(() => feeGroups.value.reduce((n, g) => n + g.lines.length, 0))
+const feeOpen = ref(false)
+// Folding the long list back up leaves the reader below it, so bring the
+// table back into view.
+const toggleFees = () => {
+  feeOpen.value = !feeOpen.value
+  if (!feeOpen.value) document.getElementById('cost')?.scrollIntoView()
+}
+const feeTotal = (f: FeeLine) => f.once ? withTax(f.amount) : f.years ? withTax(f.amount) * f.years : null
 
 const group = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 const rm = (n: number) => `RM${group(n)}`
@@ -46,19 +75,51 @@ const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 1
 const score = (percent: number) => Math.round((750 * percent) / 100)
 const feeYear = computed(() => fees.value?.year ?? 2027)
 
-// The swipe hint shows only when the table is wider than its box, on a
-// phone or a narrow desktop window alike.
+// The table scrolls both ways inside its own box. Parents did not see that
+// there was more to the right (A-Level, IB and the rest) or further down, so
+// each edge with more behind it gets a fade and a button, and the hint above
+// names only the directions that actually scroll.
 const entryWrap = ref<HTMLElement | null>(null)
+const entryMore = reactive({ right: false, down: false })
 const entryWide = ref(false)
+const entryTall = ref(false)
 let entryObserver: ResizeObserver | null = null
-const checkEntryWidth = () => {
+const checkEntryScroll = () => {
   const el = entryWrap.value
-  entryWide.value = !!el && el.scrollWidth > el.clientWidth + 1
+  if (!el) return
+  entryWide.value = el.scrollWidth > el.clientWidth + 1
+  entryTall.value = el.scrollHeight > el.clientHeight + 1
+  entryMore.right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+  entryMore.down = el.scrollTop + el.clientHeight < el.scrollHeight - 1
 }
+const entryHint = computed(() => {
+  if (entryWide.value && entryTall.value) return '表格可以上下、左右滑动：往右看 A-Level、IB 等其他学历的要求，往下看更多专业'
+  if (entryWide.value) return '表格可以左右滑动：往右看 A-Level、IB 等其他学历的要求'
+  if (entryTall.value) return '表格可以上下滑动，往下看更多专业'
+  return ''
+})
+const scrollEntry = (dx: number, dy: number) => {
+  const el = entryWrap.value
+  el?.scrollBy({ left: dx * el.clientWidth * 0.7, top: dy * el.clientHeight * 0.7, behavior: 'smooth' })
+}
+
+// Jump straight to the column for the child's qualification, scrolled to
+// sit just right of the frozen course names.
+const activeCol = ref('gaokao')
+const jumpToCol = (key: string) => {
+  const el = entryWrap.value
+  const th = el?.querySelector<HTMLElement>(`thead th[data-col="${key}"]`)
+  const frozen = el?.querySelector<HTMLElement>('thead th.sticky')
+  if (!el || !th || !frozen) return
+  activeCol.value = key
+  const offset = th.getBoundingClientRect().left - el.getBoundingClientRect().left
+  el.scrollTo({ left: el.scrollLeft + offset - frozen.offsetWidth, behavior: 'smooth' })
+}
+
 onMounted(() => {
-  checkEntryWidth()
+  checkEntryScroll()
   if (entryWrap.value && 'ResizeObserver' in window) {
-    entryObserver = new ResizeObserver(checkEntryWidth)
+    entryObserver = new ResizeObserver(checkEntryScroll)
     entryObserver.observe(entryWrap.value)
   }
 })
@@ -79,7 +140,7 @@ const exchangePosts = MAMO_POSTS.filter(p => p.topic === 'exchange' && p.url)
 
 const MORE = [
   { to: '/courses', title: '专业与学位', text: '每个专业的课程结构、必修课和专业方向' },
-  { to: '/fees', title: '马莫学费', text: '马来西亚校区全部专业的每年学费' },
+  { to: '/units', title: '课程', text: '每门课的内容、开课学期和考核方式，可以按课程代码或关键词搜索' },
   { to: '/guides', title: '官方指南', text: '学校官网上选课、考试、签证等规定的中文整理' },
   { to: '/mamo', title: '马莫百科', text: '在读学生写的入境报到、签证续签、海外交换等文章' }
 ]
@@ -220,42 +281,86 @@ useHead({
       <p>
         下表列出马来西亚校区全部本科专业，可以先对照孩子的成绩，看看能选哪些专业
       </p>
-      <p v-if="entryWide" class="swipe-hint">表格较宽，可以左右滑动查看各专业的录取成绩要求</p>
-      <div ref="entryWrap" class="entry-wrap" role="region" aria-label="各专业录取要求" tabindex="0">
-        <table class="entry">
-          <thead>
-            <tr>
-              <th scope="col" class="sticky">专业</th>
-              <th scope="col">年限</th>
-              <th scope="col">开课月份</th>
-              <th scope="col">年学费<span class="sub">{{ feeYear }} 年，马币</span></th>
-              <th scope="col" class="gaokao">高考<span class="sub">括号内为单科要求</span></th>
-              <th v-for="col in ENTRY_COLUMNS" :key="col.key" scope="col">
-                {{ col.label }}<span v-if="col.sub" class="sub">{{ col.sub }}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody v-for="g in ENTRY_SCHOOLS" :key="g.school">
-            <tr class="school">
-              <th scope="rowgroup" class="sticky">{{ g.school }}</th>
-              <td :colspan="4 + ENTRY_COLUMNS.length" />
-            </tr>
-            <tr v-for="c in g.courses" :key="c.name">
-              <th scope="row" class="sticky">{{ c.name }}</th>
-              <td>{{ c.years }} 年</td>
-              <td>{{ c.intakes }}</td>
-              <td class="num">{{ courseFee(c.match, c.fee) }}</td>
-              <td class="gaokao">
-                <template v-if="c.gaokao != null">
-                  <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
-                  <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
-                </template>
-                <template v-else>/</template>
-              </td>
-              <td v-for="col in ENTRY_COLUMNS" :key="col.key">{{ c.scores[col.key] }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="entry-frame">
+        <div class="entry-jump">
+          <span class="entry-jump-label">按孩子的学历查看</span>
+          <button
+            v-for="col in [{ key: 'gaokao', label: '高考' }, ...ENTRY_COLUMNS]"
+            :key="col.key"
+            type="button"
+            :class="{ on: activeCol === col.key }"
+            @click="jumpToCol(col.key)"
+          >
+            {{ col.label }}
+          </button>
+        </div>
+        <p v-if="entryHint" class="swipe-hint">{{ entryHint }}</p>
+        <div class="entry-box">
+          <div
+            ref="entryWrap"
+            class="entry-wrap"
+            role="region"
+            aria-label="各专业录取要求"
+            tabindex="0"
+            @scroll.passive="checkEntryScroll"
+          >
+            <table class="entry">
+              <thead>
+                <tr>
+                  <th scope="col" class="sticky">专业</th>
+                  <th scope="col">年限</th>
+                  <th scope="col">开课月份</th>
+                  <th scope="col">年学费<span class="sub">{{ feeYear }} 年，马币</span></th>
+                  <th scope="col" class="gaokao" data-col="gaokao" :class="{ on: activeCol === 'gaokao' }">
+                    高考<span class="sub">括号内为单科要求</span>
+                  </th>
+                  <th v-for="col in ENTRY_COLUMNS" :key="col.key" scope="col" :data-col="col.key" :class="{ on: activeCol === col.key }">
+                    {{ col.label }}<span v-if="col.sub" class="sub">{{ col.sub }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody v-for="g in ENTRY_SCHOOLS" :key="g.school">
+                <tr class="school">
+                  <th scope="rowgroup" class="sticky">{{ g.school }}</th>
+                  <td :colspan="4 + ENTRY_COLUMNS.length" />
+                </tr>
+                <tr v-for="c in g.courses" :key="c.name">
+                  <th scope="row" class="sticky">{{ c.name }}</th>
+                  <td>{{ c.years }} 年</td>
+                  <td>{{ c.intakes }}</td>
+                  <td class="num">{{ courseFee(c.match, c.fee) }}</td>
+                  <td class="gaokao">
+                    <template v-if="c.gaokao != null">
+                      <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
+                      <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
+                    </template>
+                    <template v-else>/</template>
+                  </td>
+                  <td v-for="col in ENTRY_COLUMNS" :key="col.key">{{ c.scores[col.key] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="edge edge-right" :class="{ show: entryMore.right }" aria-hidden="true" />
+          <span class="edge edge-bottom" :class="{ show: entryMore.down }" aria-hidden="true" />
+          <button
+            v-show="entryMore.right"
+            type="button"
+            class="nudge nudge-right"
+            aria-label="向右滑动表格，查看其他学历的要求"
+            @click="scrollEntry(1, 0)"
+          >
+            →
+          </button>
+          <button
+            v-show="entryMore.down"
+            type="button"
+            class="nudge-down"
+            @click="scrollEntry(0, 1)"
+          >
+            往下还有更多专业 ↓
+          </button>
+        </div>
       </div>
       <ul class="note-list">
         <li>高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比</li>
@@ -265,7 +370,7 @@ useHead({
       </ul>
       <p class="entry-links">
         <NuxtLink to="/courses">看各专业的课程介绍 →</NuxtLink>
-        <NuxtLink to="/fees">看全部专业学费 →</NuxtLink>
+        <a href="#cost">看各专业学费和人民币折算 ↓</a>
       </p>
       <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文</p>
       <p class="src">
@@ -377,7 +482,7 @@ useHead({
       </ul>
       <p class="src"><span>核对于 {{ EXCHANGE.checked }}</span></p>
       <div v-if="exchangePosts.length" class="reading">
-        <p class="reading-title">马莫百科写过的交换经历和申请指南：</p>
+        <p class="reading-title">微信公众号「马莫百科」写过的交换经历和申请指南：</p>
         <ul>
           <li v-for="p in exchangePosts" :key="p.url">
             <a :href="p.url" target="_blank" rel="noopener external">{{ p.title }}</a>
@@ -389,25 +494,50 @@ useHead({
     <section id="cost" class="block">
       <h2>费用</h2>
       <h3>学费</h3>
-      <table v-if="feeRows.length" class="table">
+      <table v-if="feeRows.length" class="table fee-table">
         <thead>
-          <tr><th>专业</th><th>每年学费</th><th>加 {{ taxPercent }}% 服务税</th><th>折合人民币</th></tr>
+          <tr>
+            <th>专业</th>
+            <th>每年学费</th>
+            <th class="wide-only">加 {{ taxPercent }}% 服务税</th>
+            <th class="wide-only">每年折合人民币</th>
+            <th>读完全程折合人民币</th>
+          </tr>
         </thead>
-        <tbody>
+        <tbody v-if="!feeOpen">
           <tr v-for="f in feeRows" :key="f.label">
             <td>{{ f.label }}<span v-if="f.years" class="years">{{ f.years }} 年制</span></td>
             <td class="num">{{ rm(f.amount) }}</td>
-            <td class="num">{{ rm(withTax(f.amount)) }}</td>
-            <td class="num">{{ cny(withTax(f.amount)) }}</td>
+            <td class="num wide-only">{{ rm(withTax(f.amount)) }}</td>
+            <td class="num wide-only">{{ cny(withTax(f.amount)) }}</td>
+            <td class="num total">{{ feeTotal(f) ? cny(feeTotal(f)!) : '/' }}</td>
           </tr>
         </tbody>
+        <template v-else>
+          <tbody v-for="g in feeGroups" :key="g.school">
+            <tr class="fee-school"><th colspan="5" scope="rowgroup">{{ g.school }}</th></tr>
+            <tr v-for="f in g.lines" :key="f.label + f.amount">
+              <td>
+                {{ f.label }}
+                <span v-if="f.once" class="years">{{ f.length ? `${f.length}，` : '' }}全程一次性收费</span>
+                <span v-else-if="f.years" class="years">{{ f.years }} 年制</span>
+              </td>
+              <td class="num">{{ rm(f.amount) }}<span v-if="f.once" class="years">全程</span></td>
+              <td class="num wide-only">{{ rm(withTax(f.amount)) }}</td>
+              <td class="num wide-only">{{ f.once ? '/' : cny(withTax(f.amount)) }}</td>
+              <td class="num total">{{ feeTotal(f) ? cny(feeTotal(f)!) : '/' }}</td>
+            </tr>
+          </tbody>
+        </template>
       </table>
       <p v-else class="note">学费数据暂时无法读取，请查看各专业学费页</p>
+      <button v-if="feeGroups.length" type="button" class="fee-toggle" :aria-expanded="feeOpen" @click="toggleFees">
+        {{ feeOpen ? '收起，只看常见专业 ↑' : `展开全部 ${feeCount} 个专业和课程的学费 ↓` }}
+      </button>
       <ul class="note-list">
         <li>以上为{{ fees?.year ? ` ${fees.year} 年` : '' }}国际学生学费</li>
         <li>2025 年 7 月 1 日起，马来西亚政府对国际学生的学费、报名费、注册费等教育相关费用征收 {{ taxPercent }}% 服务税，由学校代收，学生签证和保险不收</li>
         <li>人民币按加税后的金额、以 1 马币兑 {{ MYR_TO_CNY }} 人民币换算，具体以当天汇率为准</li>
-        <li><NuxtLink to="/fees">看全部专业的学费 →</NuxtLink></li>
       </ul>
       <p class="src">
         <a :href="SST.url" target="_blank" rel="noopener external">查看英文原文（服务税）</a>
@@ -523,7 +653,9 @@ useHead({
 </template>
 
 <style scoped>
-.page { max-width: 760px; margin: 0 auto; padding: var(--s6) var(--s4) var(--s8); }
+/* As wide as the entry table needs, so the table and the text around it
+   share one edge instead of the table jutting out of a narrow column. */
+.page { max-width: 1240px; margin: 0 auto; padding: var(--s6) var(--s5) var(--s8); }
 .intro h1 { margin: 0 0 var(--s4); font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.3rem); line-height: 1.25; }
 .lead { margin: 0 0 var(--s5); color: var(--muted); font-size: 1rem; line-height: 1.8; }
 .toc { display: flex; flex-wrap: wrap; gap: var(--s2); }
@@ -543,38 +675,116 @@ useHead({
 .block h2 + h3 { margin-top: 0; }
 .block p { margin: 0 0 var(--s3); line-height: 1.85; }
 
-.ranks { margin: 0 0 var(--s3); padding: 0; list-style: none; }
-.ranks li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--s4);
-  padding: var(--s3) 0;
-  border-bottom: 1px solid var(--border);
-}
-.ranks b { color: var(--brand-700); font-size: 1.05rem; white-space: nowrap; }
+/* Lists that were full-width rows in the narrow column are cards on the
+   wide page, so a label and its figure never sit a screen apart. */
+.ranks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
+.ranks li { display: grid; gap: 4px; align-content: start; padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
+.rank-name { color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+.ranks b { color: var(--brand-700); font-size: 1.2rem; white-space: nowrap; }
 
 .table { width: 100%; margin: 0 0 var(--s3); border-collapse: collapse; font-size: 0.95rem; }
 .table th, .table td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--border); text-align: left; vertical-align: baseline; }
 .table th { color: var(--muted); font-size: 0.82rem; font-weight: 500; }
 .table .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .years { display: block; color: var(--muted-2); font-size: 0.8rem; }
+.fee-table .total { color: var(--brand-700); font-weight: 600; }
+.fee-table tr.fee-school th { padding-top: var(--s4); color: var(--brand); font-size: 0.9rem; font-weight: 600; }
+.fee-toggle {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--s4);
+  padding: 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.fee-toggle:hover { border-color: var(--brand); }
 
-.living { margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.living { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); column-gap: var(--s6); margin: 0 0 var(--s3); padding: 0; list-style: none; }
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.swipe-hint { margin: 0 0 var(--s2) !important; color: var(--muted); font-size: 0.85rem; }
-.swipe-hint::before { content: '↔ '; color: var(--brand); }
+.entry-frame { margin: var(--s4) 0; }
+.entry-jump { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--s3); }
+.entry-jump-label { margin-right: 4px; color: var(--text); font-size: 0.875rem; font-weight: 500; }
+.entry-jump button {
+  padding: 3px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.entry-jump button:hover { border-color: var(--brand); color: var(--brand); }
+.entry-jump button.on { border-color: var(--brand); background: var(--brand); color: #fff; }
+.swipe-hint {
+  margin: 0 0 var(--s2) !important;
+  padding: 8px 12px;
+  border-left: 3px solid var(--brand);
+  border-radius: 6px;
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6 !important;
+}
+.entry-box { position: relative; }
 .entry-wrap {
   max-height: 72vh;
-  margin: var(--s3) 0 var(--s4);
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
   -webkit-overflow-scrolling: touch;
 }
+/* Fades over the edges that have more behind them, inside the border. */
+.edge { position: absolute; z-index: 4; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.edge.show { opacity: 1; }
+.edge-right { top: 1px; right: 1px; bottom: 1px; width: 56px; border-radius: 0 10px 10px 0; background: linear-gradient(to right, rgb(255 255 255 / 0), rgb(255 255 255 / 0.95)); }
+.edge-bottom { right: 1px; bottom: 1px; left: 1px; height: 56px; border-radius: 0 0 10px 10px; background: linear-gradient(to bottom, rgb(255 255 255 / 0), rgb(255 255 255 / 0.95)); }
+.nudge {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.nudge-right { right: 8px; animation: nudge 1.6s ease-in-out 3; }
+.nudge-down {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  z-index: 5;
+  padding: 5px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+@keyframes nudge { 50% { transform: translate(5px, -50%); } }
+@media (prefers-reduced-motion: reduce) { .nudge-right { animation: none; } }
 .entry-wrap:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .entry { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .entry th, .entry td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; vertical-align: top; }
@@ -594,14 +804,18 @@ useHead({
 .entry .sub { display: block; color: var(--muted-2); font-size: 0.72rem; font-weight: 400; }
 .entry .gaokao { min-width: 14em; white-space: normal; line-height: 1.5; text-align: left; }
 .entry .num { text-align: right; }
+.entry thead th.on { background: var(--blue-50); color: var(--brand-700); box-shadow: inset 0 -2px 0 var(--brand); }
 .entry tr.school th, .entry tr.school td { padding-top: 12px; background: var(--surface); color: var(--brand); font-weight: 600; }
 .entry-links { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
 .entry-links a { color: var(--brand); font-weight: 500; }
 .src-link { color: var(--brand); font-size: 0.8rem; }
 
-.programs { margin: 0 0 var(--s3); padding: 0; list-style: none; }
-.programs li { padding: var(--s3) 0; border-bottom: 1px solid var(--border); }
-.programs h3, .programs h4 { margin: 0 0 var(--s1); font-size: 1rem; }
+.programs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--s3); margin: 0 0 var(--s4); padding: 0; list-style: none; }
+/* Four cards go two by two rather than three and a lone one. */
+.programs:has(> li:nth-child(4):last-child) { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
+.programs li { display: flex; flex-direction: column; padding: var(--s4) var(--s5); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.programs h3, .programs h4 { margin: 0 0 var(--s2); font-size: 1rem; line-height: 1.5; }
+.programs .src-link { margin-top: auto; padding-top: var(--s2); }
 .programs p { margin: 0 0 var(--s1); }
 .reading { margin-top: var(--s4); padding: var(--s4); border-radius: 10px; background: var(--surface-2); }
 .reading-title { margin: 0 0 var(--s2) !important; font-weight: 500; }
@@ -621,7 +835,7 @@ useHead({
 .compare th[scope='row'] { color: var(--muted); font-weight: 400; white-space: nowrap; }
 .compare td { line-height: 1.6; }
 
-.more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
+.more { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); margin: 0; padding: 0; list-style: none; }
 .more a {
   display: grid;
   gap: 4px;
@@ -658,9 +872,11 @@ useHead({
   .entry tbody th.sticky { min-width: 9em; max-width: 10em; }
 }
 @media (max-width: 520px) {
-  .page { padding-top: var(--s4); }
-  .ranks li { flex-direction: column; gap: 2px; }
+  .page { padding: var(--s4) var(--s4) var(--s8); }
+  .ranks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .table { font-size: 0.875rem; }
+  .fee-table .wide-only { display: none; }
+  .fee-table td:first-child { min-width: 8em; }
   .more { grid-template-columns: 1fr; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wechat img { width: 112px; height: 112px; }

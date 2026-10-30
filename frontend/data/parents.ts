@@ -313,6 +313,24 @@ export const FEE_EXAMPLES = [
   { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' }
 ]
 
+/** School names for the full fee list, worded as in the entry table. */
+export const FEE_SCHOOLS: Record<string, string> = {
+  arts: '艺术与社会科学学院',
+  business: '商学院',
+  engineering: '工程学院',
+  it: '信息技术学院',
+  medicine: '医学和健康科学学院',
+  pharmacy: '药剂学院',
+  science: '科学学院',
+  other: '文凭和英语课程'
+}
+
+/** The labels /ugfees puts on a row with more than one amount. */
+export const FEE_LABELS: Record<string, string> = {
+  'non-science stream': '非理科方向',
+  'science stream': '理科方向'
+}
+
 export const CAMPUS = {
   welcomeUrl: 'https://www.monash.edu.my/about/welcome',
   housingUrl: 'https://www.monash.edu.my/student-life/accommodation',
