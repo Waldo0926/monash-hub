@@ -45,6 +45,24 @@ const cnyPlain = (n: number) => `约 ${group(Math.round(n * MYR_TO_CNY / 10) * 1
 
 const score = (percent: number) => Math.round((750 * percent) / 100)
 const feeYear = computed(() => fees.value?.year ?? 2027)
+
+// The swipe hint shows only when the table is wider than its box, on a
+// phone or a narrow desktop window alike.
+const entryWrap = ref<HTMLElement | null>(null)
+const entryWide = ref(false)
+let entryObserver: ResizeObserver | null = null
+const checkEntryWidth = () => {
+  const el = entryWrap.value
+  entryWide.value = !!el && el.scrollWidth > el.clientWidth + 1
+}
+onMounted(() => {
+  checkEntryWidth()
+  if (entryWrap.value && 'ResizeObserver' in window) {
+    entryObserver = new ResizeObserver(checkEntryWidth)
+    entryObserver.observe(entryWrap.value)
+  }
+})
+onBeforeUnmount(() => entryObserver?.disconnect())
 // The live /fees table first, so the page moves with it; the typed 2027
 // figure only when the API cannot be read.
 const courseFee = (match: string, fallback: number | string) => {
@@ -184,8 +202,8 @@ useHead({
       <p>
         学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP、香港 DSE 和美国高中等，每个专业有各自的分数线和单科要求。下表列出马来西亚校区全部本科专业，可以先对照孩子的成绩，看看能选哪些专业。
       </p>
-      <p class="swipe-hint">表格较宽，可以左右、上下滑动查看。</p>
-      <div class="entry-wrap" role="region" aria-label="各专业录取要求" tabindex="0">
+      <p v-if="entryWide" class="swipe-hint">表格较宽，可以左右滑动查看各专业的录取成绩要求。</p>
+      <div ref="entryWrap" class="entry-wrap" role="region" aria-label="各专业录取要求" tabindex="0">
         <table class="entry">
           <thead>
             <tr>
@@ -499,7 +517,8 @@ useHead({
 .living li { display: flex; justify-content: space-between; gap: var(--s4); padding: 8px 0; border-bottom: 1px solid var(--border); }
 .living b { font-weight: 500; white-space: nowrap; }
 
-.swipe-hint { display: none; color: var(--muted-2); font-size: 0.8rem; }
+.swipe-hint { margin: 0 0 var(--s2) !important; color: var(--muted); font-size: 0.85rem; }
+.swipe-hint::before { content: '↔ '; color: var(--brand); }
 .entry-wrap {
   max-height: 72vh;
   margin: var(--s3) 0 var(--s4);
@@ -586,7 +605,6 @@ useHead({
 .agent { padding: var(--s3) var(--s4); border-radius: 10px; background: var(--surface-2); }
 
 @media (max-width: 520px) {
-  .swipe-hint { display: block; }
   .entry { font-size: 0.8rem; }
   .entry tbody th.sticky { min-width: 9em; max-width: 10em; }
 }
