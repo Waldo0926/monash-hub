@@ -38,7 +38,7 @@ const feeLines = (row: FeeRow, label?: string): FeeLine[] => {
   const once = row.basis === 'full_course'
   const years = once ? null : parseInt(row.duration ?? '', 10)
   const name = label ?? row.title_zh ?? row.title
-  const length = once && row.duration ? row.duration.replace(/(\d+)\s*weeks?/i, '$1 周') : null
+  const length = once && row.duration ? row.duration.replace(/(\d+)\s*weeks?/i, '$1周') : null
   const priced = row.international.filter(a => a.value != null)
   return priced.map(a => ({
     label: priced.length > 1 && a.label ? `${name}（${FEE_LABELS[a.label] ?? a.label}）` : name,
@@ -93,8 +93,8 @@ const checkEntryScroll = () => {
   entryMore.down = el.scrollTop + el.clientHeight < el.scrollHeight - 1
 }
 const entryHint = computed(() => {
-  if (entryWide.value && entryTall.value) return '表格可以上下、左右滑动：往右看 A-Level、IB 等其他学历的要求，往下看更多专业'
-  if (entryWide.value) return '表格可以左右滑动：往右看 A-Level、IB 等其他学历的要求'
+  if (entryWide.value && entryTall.value) return '表格可以上下、左右滑动：往右看A-Level、IB等其他学历的要求，往下看更多专业'
+  if (entryWide.value) return '表格可以左右滑动：往右看A-Level、IB等其他学历的要求'
   if (entryTall.value) return '表格可以上下滑动，往下看更多专业'
   return ''
 })
@@ -156,7 +156,7 @@ async function copyId() {
   }
 }
 
-const title = 'Monash 马来西亚校区：给家长的介绍'
+const title = 'Monash马来西亚校区：给家长的介绍'
 const description = '莫纳什大学马来西亚校区的学校概况、世界排名、学位证书、高考和国际课程录取要求、奖学金、转澳大利亚校区、海外交换、每年费用和校园生活，内容来自学校官网'
 useSeoMeta({
   title,
@@ -205,10 +205,10 @@ useHead({
     <section id="about" class="block">
       <h2>学校概况</h2>
       <p>
-        马来西亚校区建于 1998 年，是马来西亚第一个外国大学校区，也是莫纳什大学第三大的校区
+        马来西亚校区建于1998年，是马来西亚第一个外国大学校区，也是莫纳什大学第三大的校区
       </p>
       <p>
-        莫纳什大学在澳大利亚有四个校区，另外在马来西亚、印度尼西亚、中国和印度设有校区，在意大利 Prato 设有教学中心
+        莫纳什大学在澳大利亚有四个校区，另外在马来西亚、印度尼西亚、中国和印度设有校区，在意大利Prato设有教学中心
       </p>
       <ul class="facts">
         <li v-for="f in ABOUT.facts" :key="f.label"><span>{{ f.label }}</span><b>{{ f.value }}</b></li>
@@ -217,11 +217,11 @@ useHead({
         马来西亚校区有自行审核课程的资格
       </p>
       <p>
-        在马来西亚高等教育部的 SETARA 大学评级中，学校获评 Competitive（Berdaya Saing），是这项评级的最高一级
+        在马来西亚高等教育部的SETARA大学评级中，学校获评Competitive（Berdaya Saing），是这项评级的最高一级
       </p>
       <p class="src">
         <a :href="ABOUT.url" target="_blank" rel="noopener external">查看英文原文（校区介绍）</a>
-        <a :href="SETARA_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（SETARA 评级）</a>
+        <a :href="SETARA_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（SETARA评级）</a>
         <span>核对于 {{ ABOUT.checked }}</span>
       </p>
     </section>
@@ -235,7 +235,7 @@ useHead({
         </li>
       </ul>
       <h3>学科排名</h3>
-      <p>下面是排进世界前 30、马来西亚校区也开设的学科：</p>
+      <p>下面是排进世界前30、马来西亚校区也开设的学科：</p>
       <ul class="ranks">
         <li v-for="r in SUBJECT_RANKINGS" :key="r.name">
           <span class="rank-name">{{ r.name }} {{ r.year }}</span>
@@ -258,7 +258,7 @@ useHead({
         所有校区执行同一套教学质量标准，由学校的学术委员会统一监督
       </p>
       <p>
-        证书上写的是 Monash University，不写 Monash University Malaysia
+        证书上写的是Monash University，不写Monash University Malaysia
       </p>
       <p>
         学位由澳大利亚高等教育质量与标准署（TEQSA）做质量保证，同时获得马来西亚学术资格鉴定机构（MQA）认可
@@ -276,7 +276,7 @@ useHead({
     <section id="entry" class="block">
       <h2>录取要求</h2>
       <p>
-        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP、香港 DSE 和美国高中等，每个专业有各自的分数线和单科要求
+        学校接受多种高中学历直接申请本科，包括中国高考、A-Level、IB、AP、香港DSE和美国高中等，每个专业有各自的分数线和单科要求
       </p>
       <p>
         下表列出马来西亚校区全部本科专业，可以先对照孩子的成绩，看看能选哪些专业
@@ -332,7 +332,7 @@ useHead({
                   <td class="gaokao">
                     <template v-if="c.gaokao != null">
                       <b>{{ c.gaokao }}%</b><span v-if="c.gaokaoSubjects">（{{ c.gaokaoSubjects }}）</span>
-                      <span class="sub">750 分制约 {{ score(c.gaokao) }} 分</span>
+                      <span class="sub">750分制约 {{ score(c.gaokao) }} 分</span>
                     </template>
                     <template v-else>/</template>
                   </td>
@@ -363,8 +363,8 @@ useHead({
         </div>
       </div>
       <ul class="note-list">
-        <li>高考按总分的百分比计算，上海（满分 660 分）、海南（满分 900 分）等省份按本省满分乘以同样的百分比</li>
-        <li>学费是国际学生每年的学费，另加 6% 服务税</li>
+        <li>高考按总分的百分比计算，上海（满分660分）、海南（满分900分）等省份按本省满分乘以同样的百分比</li>
+        <li>学费是国际学生每年的学费，另加6% 服务税</li>
         <li>表中是斜杠的项目可以直接咨询</li>
         <li>每年的要求可能调整，以学校最新公布为准</li>
       </ul>
@@ -383,12 +383,12 @@ useHead({
       <h3>没有高考成绩或分数不够时</h3>
       <ul class="programs">
         <li>
-          <h4>Monash 大学预科（MUFY）</h4>
+          <h4>Monash大学预科（MUFY）</h4>
           <p>
             由学校选定的院校开设，马来西亚境内在双威学院（Sunway College）吉隆坡和新山两个校区，中国境内在成都也有开设点
           </p>
           <p>
-            课程相当于澳大利亚 12 年级，一般分两个学期，9 到 11 个月读完，按预科成绩升读本科，各专业要求的预科成绩见上表
+            课程相当于澳大利亚12年级，一般分两个学期，9到11个月读完，按预科成绩升读本科，各专业要求的预科成绩见上表
           </p>
           <a :href="MUFY.url" class="src-link" target="_blank" rel="noopener external">查看英文原文</a>
         </li>
@@ -415,22 +415,22 @@ useHead({
       <ul class="programs">
         <li>
           <h3>Monash High Achiever Award</h3>
-          <p>面向高中成绩优秀的新生，每年减免学费 RM10,000，分两个学期各减 RM5,000，医学和药学专业不适用</p>
+          <p>面向高中成绩优秀的新生，每年减免学费RM10,000，分两个学期各减RM5,000，医学和药学专业不适用</p>
         </li>
         <li>
           <h3>Female in Engineering Scholarship</h3>
-          <p>面向读工程学士的女生，第一年减免学费 RM6,000，每个入学批次名额有限，2 月和 7 月各 7 名，10 月 6 名</p>
+          <p>面向读工程学士的女生，第一年减免学费RM6,000，每个入学批次名额有限，2月和7月各7名，10月6名</p>
         </li>
         <li>
           <h3>Monash Pharmacy Excellence Scholarship</h3>
-          <p>面向药学学士（荣誉）新生，四年学费减免 50% 或 25%，这一项要另外申请，每年 1 月 31 日截止</p>
+          <p>面向药学学士（荣誉）新生，四年学费减免50% 或25%，这一项要另外申请，每年1月31日截止</p>
         </li>
       </ul>
       <p>
-        入学后成绩优秀的学生，还可以获得在读生版的 Monash High Achiever Award，条件是连续读满两个学期、平均分 80 分以上，并且排在所在学院的前 1%，每学期由学校自动提名
+        入学后成绩优秀的学生，还可以获得在读生版的Monash High Achiever Award，条件是连续读满两个学期、平均分80分以上，并且排在所在学院的前1%，每学期由学校自动提名
       </p>
       <p>
-        拿到奖学金后，要保持录取通知书里写明的成绩要求，每学期修满 24 学分，按正常年限毕业，期间不能再领取其他资助，才能继续享受减免
+        拿到奖学金后，要保持录取通知书里写明的成绩要求，每学期修满24学分，按正常年限毕业，期间不能再领取其他资助，才能继续享受减免
       </p>
       <p>
         奖学金减免的部分照样按全额学费计算 {{ taxPercent }}% 服务税，详见下方费用部分
@@ -536,8 +536,8 @@ useHead({
       </button>
       <ul class="note-list">
         <li>以上为{{ fees?.year ? ` ${fees.year} 年` : '' }}国际学生学费</li>
-        <li>2025 年 7 月 1 日起，马来西亚政府对国际学生的学费、报名费、注册费等教育相关费用征收 {{ taxPercent }}% 服务税，由学校代收，学生签证和保险不收</li>
-        <li>人民币按加税后的金额、以 1 马币兑 {{ MYR_TO_CNY }} 人民币换算，具体以当天汇率为准</li>
+        <li>2025年7月1日起，马来西亚政府对国际学生的学费、报名费、注册费等教育相关费用征收 {{ taxPercent }}% 服务税，由学校代收，学生签证和保险不收</li>
+        <li>人民币按加税后的金额、以1马币兑 {{ MYR_TO_CNY }} 人民币换算，具体以当天汇率为准</li>
       </ul>
       <p class="src">
         <a :href="SST.url" target="_blank" rel="noopener external">查看英文原文（服务税）</a>
@@ -579,7 +579,7 @@ useHead({
       </p>
       <h3>健康与保险</h3>
       <p>
-        校内健康中心有注册护士，周一至周五 8:30 到 17:30 开放，可以处理小病小伤，也能做急救
+        校内健康中心有注册护士，周一至周五8:30到17:30开放，可以处理小病小伤，也能做急救
       </p>
       <p>
         学校还有专业的心理咨询师，咨询服务免费并且保密
@@ -602,7 +602,7 @@ useHead({
     <section id="parents-note" class="block">
       <h2>家长须知</h2>
       <p>
-        根据马来西亚《2010 年个人资料保护法》，未经学生本人同意，学校不能向任何第三方透露学生的信息，家长也包括在内
+        根据马来西亚《2010年个人资料保护法》，未经学生本人同意，学校不能向任何第三方透露学生的信息，家长也包括在内
       </p>
       <p>
         家长如果想直接向学校了解孩子的学业进度，需要孩子提交一份个人信息披露授权（Authorisation to Release Personal Information），授权范围限于学业进度、代领成绩单和学校信件，以及学费明细
