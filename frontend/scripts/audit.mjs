@@ -13,11 +13,7 @@ const allowlist = {
   // braces, reached only through nitropack's globby while the server bundle
   // is built. It never runs in the web container: .output/server/node_modules
   // holds neither braces nor micromatch. No fixed release as of 2026-10-19.
-  'GHSA-vfj7-8cjw-p6xm': 'build-time glob, not in the production bundle',
-  // node-forge, used by listhen to make a self-signed certificate for the dev
-  // server. Production is nginx with its own certificate, and the module is
-  // not in .output. No fixed release as of 2026-10-19.
-  'GHSA-86w9-cpqp-85rv': 'dev-server certificate helper, not in the production bundle'
+  'GHSA-vfj7-8cjw-p6xm': 'build-time glob, not in the production bundle'
 }
 
 let report
