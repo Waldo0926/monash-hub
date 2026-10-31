@@ -4,6 +4,20 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (sign in with Google)
+
+- Signing in with Google. An account is matched by email address, so a Google
+  sign-in with an address that already has a password account signs into that
+  same account rather than making a second one. Only addresses Google reports as
+  verified are accepted, because matching by email is what the flow rests on.
+  The button appears only where the server has credentials configured, so a
+  deployment without them looks like a deployment without the feature.
+- A Google sign-in completes only in the browser that started it: the start
+  sets a short-lived cookie whose value is also inside the signed state, so a
+  callback link from somebody else's sign-in cannot sign a reader into the
+  sender's account. Signing in with Google returns to the same page a password
+  sign-in would.
+
 ### Changed (every degree in the parents entry table, no trailing 。)
 
 - The entry table on `/parents` now lists every undergraduate degree at the

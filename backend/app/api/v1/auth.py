@@ -19,16 +19,19 @@ from __future__ import annotations
 import logging
 import random
 import re
+import secrets
 import unicodedata
+import urllib.parse
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import current_user
-from app.core import avatars, throttle, verification
+from app.core import avatars, google_oauth, throttle, verification
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.email import EmailDeliveryError
@@ -311,3 +314,178 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 @router.get("/me")
 def me(user: User = Depends(current_user)) -> dict:
     return _me(user)
+
+
+# --- signing in with Google ------------------------------------------------
+#
+# The browser leaves for Google and comes back to /callback, which means the
+# session token cannot be returned as JSON the way /signin does. It is handed
+# over in the URL *fragment* instead: a fragment is never sent to a server, so
+# it stays out of our access logs, out of nginx's, and out of any proxy in
+# between. The page that receives it strips it from the address bar immediately.
+
+
+def _unique_nickname(db: Session, preferred: str) -> str:
+    """A nickname derived from the Google profile that nobody else holds.
+
+    Falls back to a generated one rather than failing the sign-in: somebody
+    whose Google name happens to collide, or is punctuation, should still get an
+    account and can rename themselves on their profile afterwards.
+    """
+    # Nicknames deliberately allow no spaces - the rule exists so one cannot be
+    # dressed up to look like another - and a Google profile name is almost
+    # always two words. Cleaning it beats discarding it: "Waldo Wen" becomes
+    # "WaldoWen", which is still recognisably the person, where a fallback to
+    # "student" throws their name away over a space.
+    base = re.sub(r"\s+", "", (preferred or "").strip())
+    base = "".join(ch for ch in base if NICKNAME_ALLOWED.match(ch))[:NICKNAME_MAX]
+    if _nickname_problem(base) is not None:
+        base = "student"
+    # Every taken nickname that could clash, in one query, rather than a query
+    # per numbered candidate. A suffixed candidate may cut the end off the base,
+    # so the prefix is shortened to what the longest candidate keeps.
+    stem = base[: NICKNAME_MAX - 3].lower()
+    pattern = stem.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+    taken = set(
+        db.scalars(
+            select(func.lower(User.nickname)).where(
+                func.lower(User.nickname).like(pattern, escape="\\")
+            )
+        )
+    )
+    candidate = base
+    for suffix in range(1, 200):
+        if candidate.lower() not in taken and _nickname_problem(candidate) is None:
+            return candidate
+        candidate = f"{base[:NICKNAME_MAX - len(str(suffix))]}{suffix}"
+    return f"student{secrets.token_hex(4)}"
+
+
+def _google_cookie_path() -> str:
+    return f"{get_settings().api_prefix}/auth/google"
+
+
+@router.get("/google")
+def google_available() -> dict:
+    """Whether to offer the button at all. Issues nothing, so the sign-in page
+    can ask on every load without minting a state nobody will use."""
+    return {"enabled": google_oauth.is_configured()}
+
+
+@router.get("/google/start")
+def google_start(next: str = "/") -> RedirectResponse:
+    """Send the browser to Google, remembering in a cookie that it was this
+    browser that asked.
+
+    A redirect rather than a JSON answer, so the cookie is set by a top-level
+    navigation to this site and comes back on Google's redirect to the callback
+    however the frontend and API are hosted.
+    """
+    settings = get_settings()
+    if not google_oauth.is_configured():
+        return RedirectResponse(
+            f"{settings.site_url.rstrip('/')}/login?google=unavailable", status_code=303
+        )
+    # Only a path on this site, never an absolute URL somebody supplied - that
+    # is the difference between a redirect and an open redirect.
+    safe_next = next if next.startswith("/") and not next.startswith("//") else "/"
+    nonce = google_oauth.new_nonce()
+    response = RedirectResponse(
+        google_oauth.authorize_url(google_oauth.issue_state(nonce, safe_next)),
+        status_code=303,
+    )
+    response.set_cookie(
+        google_oauth.NONCE_COOKIE,
+        nonce,
+        max_age=google_oauth.STATE_TTL_SECONDS,
+        path=_google_cookie_path(),
+        secure=settings.site_url.startswith("https://"),
+        httponly=True,
+        # Lax, not Strict: the callback is a cross-site redirect from Google,
+        # and Strict would leave the cookie behind on exactly that request.
+        samesite="lax",
+    )
+    return response
+
+
+@router.get("/google/callback")
+def google_callback(
+    request: Request,
+    state: str = "",
+    code: str = "",
+    error: str = "",
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    """Where Google sends the browser back.
+
+    Every failure lands the person on the sign-in page with a reason rather
+    than on a JSON error, because this is a page they arrived at by clicking a
+    button, not an API call they made.
+    """
+    settings = get_settings()
+    site = settings.site_url.rstrip("/")
+
+    def done(url: str) -> RedirectResponse:
+        response = RedirectResponse(url, status_code=303)
+        # One sign-in per nonce, whichever way it ends.
+        response.delete_cookie(google_oauth.NONCE_COOKIE, path=_google_cookie_path())
+        return response
+
+    def failed(reason: str) -> RedirectResponse:
+        return done(f"{site}/login?google={reason}")
+
+    if error or not code:
+        # The commonest one by far is the person pressing cancel.
+        return failed("cancelled")
+    if not google_oauth.is_configured():
+        return failed("unavailable")
+
+    try:
+        # The state is checked before the code is spent, so a forged or
+        # replayed callback never costs a request to Google.
+        next_path = google_oauth.read_state(
+            state, request.cookies.get(google_oauth.NONCE_COOKIE, "")
+        )
+        identity = google_oauth.exchange(code)
+    except google_oauth.GoogleAuthError as exc:
+        log.warning("google sign-in failed: %s", exc)
+        return failed("failed")
+
+    if not identity.email_verified:
+        # Accounts are matched by address, so an unverified one would be a way
+        # into somebody else's account.
+        return failed("unverified")
+
+    user = db.scalar(select(User).where(User.email == identity.email))
+    if user is None:
+        user = User(
+            email=identity.email,
+            nickname=_unique_nickname(db, identity.name or identity.email.split("@")[0]),
+            # Signed in by Google, so there is no password to check. An unusable
+            # hash rather than an empty one: /signin compares against this, and
+            # it must never match anything a person could type.
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+        db.add(user)
+        try:
+            db.flush()
+        except IntegrityError:
+            # Two first sign-ins at once - a double click, two tabs - and the
+            # other one created the account a moment ago. Use theirs.
+            db.rollback()
+            user = db.scalar(select(User).where(User.email == identity.email))
+            if user is None:
+                return failed("failed")
+    if not user.is_active:
+        return failed("suspended")
+
+    user.last_login_at = func.now()
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token(str(user.id), user.token_version)
+    # The fragment, not the query string. See the note above.
+    return done(
+        f"{site}/auth/google#token={token}&next={urllib.parse.quote(next_path, safe='/')}"
+    )
