@@ -494,6 +494,9 @@ const en: Messages = {
   'footer.monashMalaysia': 'Monash Malaysia students',
   'footer.monashStudents': 'Monash current students',
   'footer.about': 'Student-run · not affiliated with Monash',
+  'footer.privacy': 'Privacy',
+  'privacy.title': 'Privacy policy',
+  'privacy.updated': 'Last updated {date}',
   'footer.conceptBy': 'Concept by',
   'footer.copyright': '© 2026 Waldo. All rights reserved.',
 
@@ -1664,6 +1667,9 @@ const zh: Messages = {
   'footer.monashMalaysia': 'Monash 马来西亚校区学生网站',
   'footer.monashStudents': 'Monash 在读学生页',
   'footer.about': '学生自建 · 非 Monash 官方',
+  'footer.privacy': '隐私政策',
+  'privacy.title': '隐私政策',
+  'privacy.updated': '最近更新：{date}',
   'footer.conceptBy': '创意：',
   'footer.copyright': '© 2026 Waldo。保留所有权利',
 
@@ -2806,6 +2812,9 @@ const ja: Messages = {
   'footer.monashMalaysia': 'Monash マレーシア校 学生サイト',
   'footer.monashStudents': 'Monash 在学生ページ',
   'footer.about': '独立した学生プラットフォーム',
+  'footer.privacy': 'プライバシー',
+  'privacy.title': 'プライバシーポリシー',
+  'privacy.updated': '最終更新：{date}',
   'footer.conceptBy': '企画：',
   'footer.copyright': '© 2026 Waldo. 無断転載を禁じます。',
 
@@ -3946,6 +3955,9 @@ const ko: Messages = {
   'footer.monashMalaysia': 'Monash 말레이시아 학생 사이트',
   'footer.monashStudents': 'Monash 재학생 페이지',
   'footer.about': '독립 학생 플랫폼',
+  'footer.privacy': '개인정보',
+  'privacy.title': '개인정보 처리방침',
+  'privacy.updated': '최종 업데이트: {date}',
   'footer.conceptBy': '기획:',
   'footer.copyright': '© 2026 Waldo. 모든 권리 보유.',
 
