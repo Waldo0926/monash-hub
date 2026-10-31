@@ -43,6 +43,9 @@ const featuresHeading = computed(() => {
               {{ $t('footer.builtMaintainedBy') }}
               <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a>
             </span>
+            <span class="tiny muted block credit">
+              <NuxtLink to="/privacy">{{ $t('footer.privacy') }}</NuxtLink>
+            </span>
           </span>
         </p>
         <p v-if="showDisclaimer" class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
