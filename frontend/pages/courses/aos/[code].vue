@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * One major, minor or specialisation.
  *
@@ -13,19 +14,29 @@ const { $t } = useNuxtApp()
 
 const code = computed(() => String(route.params.code).toUpperCase())
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
+const { year, withYear, setYear } = useHandbookYear()
 
 const { data: aos, error } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses/aos/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`,
-  { watch: [campus] }
+  () => withYear(`/v1/courses/aos/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`),
+  { watch: [campus, year] }
 )
+useErrorStatus(error)
 
 watch(campus, () => {
-  router.replace({ query: campus.value ? { campus: campus.value } : {} })
+  // Kept apart from the year: changing campus must not drop `?year=`.
+  const query = { ...route.query }
+  if (campus.value) query.campus = campus.value
+  else delete query.campus
+  router.replace({ query })
 })
 
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+/** The newest year that lists it is the default, so choosing it clears `?year=`. */
+function pickYear(y: number) {
+  setYear(y === aos.value?.available_years?.[0] ? null : y)
+}
+
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
 
 const elsewhereTotal = computed(() =>
   Object.values(aos.value?.units || {}).filter(
@@ -40,6 +51,8 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
   <div class="page">
     <ErrorState v-if="error" :error="error" />
     <template v-else-if="aos">
+      <YearNotice v-if="aos.not_in_year" :code="aos.aos_code" :year="aos.academic_year" :missing="aos.not_in_year" />
+      <IntakeYearNotice :year="aos.academic_year" :closed="Object.values(aos.units || {}).some((u: any) => !u.in_year)" />
       <header class="head">
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ aos.title }}</h1>
@@ -54,11 +67,16 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
         <label class="campus">
           <span>{{ $t('courses.viewAs') }}</span>
           <select v-model="campus" class="input">
-            <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-            <option value="Clayton">Clayton</option>
+            <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
         </label>
+        <YearPicker
+          v-if="(aos.available_years || []).length > 1"
+          :model-value="aos.academic_year"
+          :years="aos.available_years"
+          @update:model-value="pickYear"
+        />
         <p v-if="campus && elsewhereTotal" class="warn">
           {{ $t('courses.notHere', { n: elsewhereTotal, campus: campusLabel }) }}
         </p>
@@ -75,6 +93,7 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
           :units="aos.units"
           :campus="campus"
           :depth="0"
+          :year="aos.academic_year"
         />
       </section>
 

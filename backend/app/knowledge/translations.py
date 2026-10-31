@@ -10,12 +10,22 @@ gets English, and that is the intended outcome rather than a degraded one.
 """
 from __future__ import annotations
 
+import re
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.models.translation import GLOBAL, HUMAN, MACHINE, PUBLISHED, ContentTranslation
+from app.knowledge.glossary import facts_kept, whole_value
+from app.models.translation import (
+    CURATED,
+    GLOBAL,
+    HUMAN,
+    MACHINE,
+    PUBLISHED,
+    ContentTranslation,
+)
 
 # The string set applied to every Handbook unit, for the boilerplate the
 # Handbook repeats verbatim across thousands of them.
@@ -26,8 +36,8 @@ class Translation:
     """Everything stored for one target in one language, ready to apply."""
 
     __slots__ = (
-        "fields", "human_strings", "locale", "machine", "reviewed",
-        "source_hash", "stale", "strings",
+        "fields", "human_fields", "human_strings", "locale", "machine", "reviewed",
+        "source_hash", "stale", "strings", "updated",
     )
 
     def __init__(self, locale: str) -> None:
@@ -38,6 +48,12 @@ class Translation:
         # of a whole field would otherwise hide a hand-written paragraph
         # inside it - see ``field``.
         self.human_strings: set[str] = set()
+        # Whole fields a person wrote. A guide's title is one: 退出所修课程
+        # for "Discontinue your course". The same English sentence also sits in
+        # the body's string map, translated there as 退课 - "drop a unit",
+        # which is a different and much smaller thing - and the paragraph rule
+        # below let that win over the title somebody had written on purpose.
+        self.human_fields: set[str] = set()
         self.source_hash: str | None = None
         # True when the source has changed since the translation was written.
         self.stale = False
@@ -45,6 +61,10 @@ class Translation:
         # machine body with a few paragraphs corrected by hand.
         self.machine = False
         self.reviewed = False
+        # When this target's own rows last changed. The page's English can stay
+        # the same for weeks while its translation grows, and anything that
+        # keeps a copy of the page (the WeChat bot's index) has to know.
+        self.updated: datetime | None = None
 
     def __bool__(self) -> bool:
         return bool(self.fields or self.strings)
@@ -60,6 +80,8 @@ class Translation:
         """
         if source is None:
             return None
+        if name in self.human_fields:
+            return self.fields[name]
 
         paragraphs = source.split("\n\n")
         # A hand-written paragraph beats a machine translation of the whole
@@ -82,6 +104,25 @@ class Translation:
             return None
         return self.strings.get(source.strip()) or source
 
+    def value(self, source: str | None) -> str | None:
+        """A Handbook field drawn from a closed list: a campus, a faculty, a level.
+
+        The glossary's agreed wording wins over a machine row. The stored row
+        was written once and is primed back into every later pass, so a name
+        added to the glossary afterwards would otherwise never reach a unit that
+        was already translated. Only a person's (or curated) wording beats it.
+
+        Not for page text: "Malaysia" in a fee table is the country, and
+        "Credit" in a sentence is not the grade. Those go through ``string``.
+        """
+        if source is None:
+            return None
+        key = source.strip()
+        if key in self.human_strings:
+            return self.strings[key]
+        agreed = whole_value(key, self.locale) if self.locale else None
+        return agreed or self.strings.get(key) or source
+
     def meta(self) -> dict[str, Any] | None:
         """What the UI needs to label this as a translation rather than a source."""
         if not self:
@@ -92,6 +133,7 @@ class Translation:
             "unofficial": True,
             "machine": self.machine,
             "reviewed": self.reviewed,
+            "updated": self.updated.isoformat() if self.updated else None,
         }
 
 
@@ -163,10 +205,9 @@ def load_many(
     # sentence somebody checked must not be replaced by one nobody did, whether
     # it was written for this page or for the thousand pages that share it.
     def order(row: ContentTranslation) -> tuple[int, int]:
-        return (
-            0 if row.provenance == MACHINE else 1,
-            0 if row.target_type == GLOBAL else 1,
-        )
+        # Machine, then curated wording, then a person's - each beats the last.
+        rank = {MACHINE: 0, CURATED: 1, HUMAN: 2}.get(row.provenance, 0)
+        return (rank, 0 if row.target_type == GLOBAL else 1)
 
     shared = [r for r in rows if r.target_type == GLOBAL]
 
@@ -177,6 +218,10 @@ def load_many(
                 _apply(translation, row)
                 continue
             _apply(translation, row)
+            if row.updated_at and (
+                translation.updated is None or row.updated_at > translation.updated
+            ):
+                translation.updated = row.updated_at
             translation.source_hash = translation.source_hash or row.source_hash
             current = (source_hashes or {}).get(key)
             # Only a whole-field translation can go quietly out of date: it
@@ -197,17 +242,58 @@ def load_many(
     return result
 
 
+# The translator's own prompt scaffolding. A stored "translation" that still
+# carries it ("GLOSSARY:\n\nTEXT:\nNext") is the model echoing its instructions,
+# so the reader gets the English instead.
+_SCAFFOLD = re.compile(r"(?:^|\n)\s*(?:GLOSSARY|TEXT):")
+
+
+def _is_scaffold(source: str, translated: str) -> bool:
+    return bool(_SCAFFOLD.search(translated)) and not _SCAFFOLD.search(source)
+
+
+# Requirement group headings were first written "B 部分。核心课程", and the
+# crawler stored that wording in every course's own translation rows. The
+# separator is now a colon, so a stored heading is read with the new one
+# instead of waiting for every course to be translated again.
+_PART_HEAD = re.compile(r"^((?:[A-Z]|第 \d+) 部分)。(?=\S)")
+_PART_SECOND = re.compile(r"(与 [A-Z] 部分)。(?=\S)")
+
+
+def _part_colon(translated: str) -> str:
+    if not _PART_HEAD.match(translated):
+        return translated
+    return _PART_SECOND.sub(r"\1：", _PART_HEAD.sub(r"\1：", translated))
+
+
 def _apply(translation: Translation, row: ContentTranslation) -> None:
-    if row.provenance == MACHINE:
+    # Curated wording is not a checked translation, so it does not set
+    # ``reviewed``; to the reader it is still machine work with better words.
+    if row.provenance in (MACHINE, CURATED):
         translation.machine = True
     elif row.provenance == HUMAN:
         translation.reviewed = True
     if row.text is not None:
         translation.fields[row.field] = row.text
+        if row.provenance == HUMAN:
+            translation.human_fields.add(row.field)
+        else:
+            # A machine row never carries a person's precedence.
+            translation.human_fields.discard(row.field)
     for source, translated in ((row.data or {}).get("strings") or {}).items():
         if isinstance(source, str) and isinstance(translated, str):
-            translation.strings[source.strip()] = translated
-            if row.provenance == HUMAN:
+            if _is_scaffold(source, translated):
+                continue
+            # A machine string with the money in another currency (每页 1.10 澳元
+            # for RM1.10 per page), a broken link, a changed year or the model's
+            # apology is read as the English until it is translated again. A
+            # person's wording is theirs to get right.
+            if row.provenance == MACHINE and not facts_kept(source, translated):
+                continue
+            translation.strings[source.strip()] = _part_colon(translated)
+            # "Wins over a machine rendering of the whole field it sits in" is
+            # what this set means, and curated wording earns that too.
+            if row.provenance in (HUMAN, CURATED):
                 translation.human_strings.add(source.strip())
 
 
@@ -243,8 +329,17 @@ def translate_blocks(blocks: list[dict[str, Any]], tr: Translation) -> list[dict
                 "columns": [tr.string(c) or c for c in block.get("columns") or []],
                 "rows": [[tr.string(c) or c for c in row] for row in block.get("rows") or []],
                 **(
+                    {"links": [_translate_spans(link, tr) for link in block["links"]]}
+                    if block.get("links") else {}
+                ),
+                **(
                     {"foot": [[tr.string(c) or c for c in row] for row in block["foot"]]}
                     if block.get("foot")
+                    else {}
+                ),
+                **(
+                    {"head": [[tr.string(c) or c for c in row] for row in block["head"]]}
+                    if block.get("head")
                     else {}
                 ),
             })
@@ -264,6 +359,36 @@ WHOLE_RUN = 0.9
 
 # Punctuation an anchor may end in and the sentence around it may not.
 _EDGE = " :：.。,，;；、-–—"
+
+# Anchors that say nothing about where they go. Monash pages hang most of their
+# PDF guides on "click here", and that phrase is never sent for translation on
+# its own, so _relinked had nothing to look for and dropped the link. The whole
+# printing page lost all ten of its guides that way in Chinese. These are the
+# ways each language writes the same words, longest first so "请点击此处" is not
+# split at "此处".
+_GENERIC_ANCHORS = {
+    "click here": {
+        "zh": ("点击此处", "点击这里", "单击此处", "此处", "这里"),
+        "ja": ("ここをクリック", "こちらをクリック", "こちら", "ここ"),
+        "ko": ("여기를 클릭", "여기를 누르", "여기"),
+    },
+    "here": {
+        "zh": ("此处", "这里"),
+        "ja": ("こちら", "ここ"),
+        "ko": ("여기",),
+    },
+    "read more": {
+        "zh": ("阅读更多", "了解更多", "更多信息"),
+        "ja": ("続きを読む", "詳細はこちら", "詳しくは"),
+        "ko": ("자세히 보기", "더 읽기", "자세히"),
+    },
+}
+
+
+def _generic_needles(anchor: str, locale: str) -> tuple[str, ...]:
+    """The local wording of a "click here" style anchor, or nothing."""
+    key = anchor.strip().rstrip(_EDGE).lower()
+    return _GENERIC_ANCHORS.get(key, {}).get(locale, ())
 
 
 def _translate_spans(spans: list[dict[str, Any]], tr: Translation) -> list[dict[str, Any]]:
@@ -299,6 +424,9 @@ def _relinked(
     got a paragraph that was blue from end to end and opened their mail client
     wherever they clicked in it.
 
+    A bare "click here" has no translation of its own, so its usual wording in
+    the target language is tried last.
+
     A link whose anchor cannot be found is dropped rather than guessed at. The
     sentence still reads; a link on the wrong words does not.
     """
@@ -309,7 +437,8 @@ def _relinked(
         anchor = span.get("text", "").strip()
         if not url or not anchor:
             continue
-        for candidate in (tr.strings.get(anchor), anchor):
+        candidates = (tr.strings.get(anchor), anchor, *_generic_needles(anchor, tr.locale))
+        for candidate in candidates:
             needle = (candidate or "").strip()
             if needle and needle not in rest:
                 # The anchor often ends in punctuation the translation writes

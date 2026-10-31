@@ -9,6 +9,8 @@ from __future__ import annotations
 import pytest
 from app.handbook.parser import (
     ParseError,
+    _band,
+    _unit_codes,
     compute_content_hash,
     derive_has_exam,
     html_to_text,
@@ -76,11 +78,59 @@ def test_requisites_keep_their_connector_and_members(handbook_html):
     assert "FIT1008" in {item["item_code"] for item in prereq[0]["items"]}
 
 
-def test_prohibitions_are_a_separate_group(handbook_html):
+def test_requisite_types_are_canonicalised(handbook_html):
     unit = _parse(handbook_html, "BFF2140")
     kinds = {g["requisite_type"] for g in unit["requisite_groups"]}
-    assert "prohibitions" in kinds
-    assert "prerequisite" in kinds
+    assert kinds == {"prerequisite", "prohibition"}
+
+
+def test_text_only_enrolment_rule_keeps_every_unit_reference(handbook_html):
+    """MTH2051-style Rules prose must not produce an empty dependency graph.
+
+    Some Handbook pages publish the prerequisite as prose under Rules while
+    only the prohibition is present in the structured requisite feed. We keep
+    the exact prose and make its unit references traversable, but mark the
+    connector TEXT rather than inventing AND/OR semantics.
+    """
+    unit = _parse(handbook_html, "MTH2051")
+    prereq = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prerequisite"]
+    assert len(prereq) == 1
+    assert prereq[0]["connector"] == "TEXT"
+    assert "Alternatively" in prereq[0]["description"]
+    assert {item["item_code"] for item in prereq[0]["items"]} == {
+        "MTH2010", "MTH2015", "MTH2019", "ENG2005", "MAT1830",
+        "MTH2021", "MTH2025", "MTH2040", "MAT1841", "SCI1022",
+        "FIT1045", "FIT1053", "ENG1060", "ETC2440",
+    }
+
+    prohibition = [
+        g for g in unit["requisite_groups"] if g["requisite_type"] == "prohibition"
+    ]
+    assert len(prohibition) == 1, "the prose fallback must not duplicate structured types"
+    assert {item["item_code"] for item in prohibition[0]["items"]} == {"MTH3051"}
+
+
+def test_enrolment_rule_metadata_does_not_leak_into_rule_text(handbook_html):
+    """FIT1055 publishes its rule under enrolment_rules, wrapped in metadata.
+
+    Each entry there nests the actual prose under ``description`` alongside
+    ``academic_item`` (which restates the *current* unit's own code and an
+    internal ``cl_id``), a ``type`` label/value pair, and another ``cl_id``.
+    A blind flatten of that dict turned "code", "info", "Enrolment Rule" and
+    both hex ids into rule text, and reintroduced FIT1055 as a reference
+    inside its own prohibitions - so the plan checker flagged FIT1055 as
+    conflicting with itself.
+    """
+    unit = _parse(handbook_html, "FIT1055")
+    prohibition = [g for g in unit["requisite_groups"] if g["requisite_type"] == "prohibition"]
+    assert len(prohibition) == 1
+    codes = {item["item_code"] for item in prohibition[0]["items"]}
+    assert codes == {"FIT1049", "FIT2003"}
+    assert "FIT1055" not in codes
+
+    for group in unit["requisite_groups"]:
+        assert "cl_id" not in (group.get("description") or "")
+        assert "Enrolment Rule" not in (group.get("description") or "")
 
 
 def test_two_and_ed_choices_stay_two_choices(handbook_html):
@@ -151,3 +201,56 @@ def test_html_to_text_flattens_lists_and_entities():
     assert "First line" in text
     assert "• one" in text and "• two" in text
     assert "<" not in text
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Prerequisite: FIT1045 or FIT1053", ["FIT1045", "FIT1053"]),
+        ("先修FIT1045和FIT1053", ["FIT1045", "FIT1053"]),
+        ("CHI1010汉字入门", ["CHI1010"]),
+        ("FIT1045A or 12FIT1045", []),
+        ("ABC12345678", []),
+    ],
+)
+def test_unit_codes_ignore_cjk_neighbours(text, expected):
+    assert _unit_codes(text) == expected
+
+
+# --- reading list, fee band, study abroad ------------------------------------------
+
+def test_reading_list_keeps_its_links_and_order(handbook_html):
+    unit = _parse(handbook_html, "FIT2102")
+    groups = unit["learning_resources"]
+    # Ordered by the Handbook's own order, and a group with nothing in it is dropped.
+    assert [g["type"] for g in groups] == ["Required resources", "Recommended resources"]
+    required, recommended = groups
+    # A link inside the Handbook is not an address a student can open from here.
+    assert required["items"] == ["Lecture notes on FIT1008 topics"]
+    assert recommended["items"] == [
+        "Synthetic field guide: https://example.org/guide",
+        "The synthetic tutorial https://example.org/tutorial",
+        "Additional language support:",
+    ]
+
+
+def test_fee_band_and_study_abroad(handbook_html):
+    unit = _parse(handbook_html, "FIT2102")
+    assert unit["sca_band"] == "2"
+    assert unit["study_abroad"] is True
+
+
+@pytest.mark.parametrize(
+    "node", [{"label": "SCA Band 2"}, {"label": "Band 2"}, {"value": "2"}, 2]
+)
+def test_fee_band_is_stored_without_the_words(node):
+    # The live Handbook labels it "SCA Band 2"; the page adds its own "Band".
+    assert _band(node) == "2"
+
+
+def test_a_unit_that_says_nothing_stays_unknown(handbook_html):
+    unit = _parse(handbook_html, "FIT1008")
+    assert unit["learning_resources"] == []
+    assert unit["sca_band"] is None
+    # Not stated is not "no".
+    assert unit["study_abroad"] is None

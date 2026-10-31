@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from crawler.official.seeds_coverage import COVERAGE
+
 
 @dataclass(frozen=True, slots=True)
 class Seed:
@@ -28,6 +30,12 @@ class Seed:
     #: default is the site the URL is on, and all but a handful of these are on
     #: monash.edu. Only a page that says so itself is marked ``all``.
     applies_to: str = "australia"
+    #: For a page Monash shows only after sign-in: what it covers, in our words.
+    #: Such a page is never fetched. It is listed with this description and its
+    #: link, so a student can find it, and its text stays where Monash put it.
+    sign_in: str | None = None
+    #: Picked by hand, as opposed to a row of seeds_coverage.py.
+    curated: bool = True
 
 
 CATEGORIES = {
@@ -36,11 +44,86 @@ CATEGORIES = {
     "academic-rules": "Academic rules & policy",
     "international": "International students",
     "fees-dates": "Fees & key dates",
+    "graduation": "Graduation",
+    "support": "Student support & services",
     "exchange": "Exchange & study abroad",
     "malaysia": "Malaysia campus",
 }
 
 SEEDS: tuple[Seed, ...] = (
+    # Reviewed 2026-10-25 against the public Policy Bank and Malaysia site.
+    # Policy documents remain links; only the HTML directories are indexed.
+    # "all" describes the directory's audience, not every document's scope.
+    Seed("policy-bank-education",
+         "https://www.monash.edu/policy-bank/policies-and-procedures/academic/education",
+         "Education policies and procedures (Policy Bank)", "academic-rules",
+         ("policy", "procedure", "assessment", "credit", "enrolment", "政策", "规定"),
+         tier="dynamic", applies_to="all"),
+    Seed("policy-bank-research",
+         "https://www.monash.edu/policy-bank/policies-and-procedures/academic/research",
+         "Research policies and procedures (Policy Bank)", "academic-rules",
+         ("policy", "research", "ethics", "intellectual property", "研究", "知识产权"),
+         tier="stable", applies_to="all"),
+    Seed("policy-bank-graduate-research",
+         "https://www.monash.edu/policy-bank/policies-and-procedures/academic/graduate-education",
+         "Graduate research policies and procedures (Policy Bank)", "academic-rules",
+         ("policy", "graduate research", "phd", "研究生", "博士"),
+         tier="stable", applies_to="all"),
+    Seed("policy-bank-governance",
+         "https://www.monash.edu/policy-bank/policies-and-procedures/management/governance",
+         "Governance policies and procedures (Policy Bank)", "academic-rules",
+         ("policy", "governance", "ombudsman", "conduct", "政策", "行为守则"),
+         tier="stable", applies_to="all"),
+    Seed("policy-bank-information-technology",
+         "https://www.monash.edu/policy-bank/policies-and-procedures/management/its",
+         "IT, artificial intelligence and privacy policies (Policy Bank)", "academic-rules",
+         ("policy", "artificial intelligence", "privacy", "acceptable use", "人工智能", "隐私"),
+         tier="stable", applies_to="all"),
+    Seed("malaysia-welcome", "https://www.monash.edu.my/about/welcome",
+         "About Monash University Malaysia", "malaysia",
+         ("malaysia", "about", "governance", "马来西亚", "学校介绍"),
+         applies_to="malaysia"),
+    Seed("malaysia-reputation", "https://www.monash.edu.my/about/top-university-in-malaysia",
+         "Rankings, reputation and recognition (Monash Malaysia)", "malaysia",
+         ("malaysia", "ranking", "recognition", "排名", "认证"), applies_to="malaysia"),
+    # The rankings /parents quotes. Monash ranks as one university, so the
+    # page applies to every campus. Added 2026-10-30.
+    Seed("monash-rankings", "https://www.monash.edu/about/our-rankings",
+         "Our world university rankings (Monash University)", "malaysia",
+         ("ranking", "qs", "times higher education", "arwu", "subject ranking",
+          "排名", "世界排名", "学科排名"),
+         tier="stable", applies_to="all"),
+    # The other way in when a gaokao score is short of a degree's entry
+    # score: a year of first-year units, then year two. Added 2026-10-30.
+    Seed("malaysia-diploma-higher-education-studies",
+         "https://www.monash.edu.my/study/diploma-and-pathway/diploma-higher-education-studies",
+         "Diploma of Higher Education Studies (Monash Malaysia)", "enrolment",
+         ("malaysia", "diploma", "pathway", "gaokao", "文凭", "预科", "高考", "升读"),
+         applies_to="malaysia"),
+    Seed("malaysia-entry-requirements", "https://www.monash.edu.my/study/entry-requirements",
+         "Entry requirements (Monash Malaysia)", "enrolment",
+         ("malaysia", "entry requirements", "admission", "入学要求", "申请"),
+         applies_to="malaysia"),
+    Seed("malaysia-academic-entry", "https://www.monash.edu.my/study/entry-requirements/academic",
+         "Academic entry requirements (Monash Malaysia)", "enrolment",
+         ("malaysia", "academic entry", "qualifications", "学术要求", "学历"),
+         applies_to="malaysia"),
+    Seed("malaysia-english-entry", "https://www.monash.edu.my/study/entry-requirements/english",
+         "English language entry requirements (Monash Malaysia)", "enrolment",
+         ("malaysia", "english", "ielts", "toefl", "英语要求", "雅思", "托福"),
+         applies_to="malaysia"),
+    Seed("malaysia-age-entry", "https://www.monash.edu.my/study/entry-requirements/age",
+         "Age requirements (Monash Malaysia)", "enrolment",
+         ("malaysia", "age requirements", "under 18", "年龄要求", "未成年"),
+         applies_to="malaysia"),
+    Seed("malaysia-undergraduate-overview", "https://www.monash.edu.my/study/undergraduate",
+         "Undergraduate courses and study options (Monash Malaysia)", "enrolment",
+         ("malaysia", "undergraduate", "courses", "本科", "专业介绍"), applies_to="malaysia"),
+    Seed("malaysia-postgraduate-overview",
+         "https://www.monash.edu.my/study/postgraduate-and-research",
+         "Postgraduate and research study options (Monash Malaysia)", "enrolment",
+         ("malaysia", "postgraduate", "research", "masters", "phd", "研究生", "硕士", "博士"),
+         applies_to="malaysia"),
     # --- Enrolment / course planning -------------------------------------
     Seed("enrolments", "https://www.monash.edu/students/admin/enrolments",
          "Enrolments", "enrolment", ("enrolment", "wes", "选课"),
@@ -70,9 +153,25 @@ SEEDS: tuple[Seed, ...] = (
     Seed("course-advice", "https://www.monash.edu/students/study-success/course-advice",
          "Course advice", "enrolment", ("course advice", "planning", "课程规划"),
          applies_to="all"),
-    Seed("credit-and-enrolment",
-         "https://www.monash.edu/students/study-success/course-advice/enrolment-and-credit",
-         "Enrolment and credit", "enrolment", ("credit", "exemption", "学分减免"),
+    # "Enrolment and credit" was here. Monash turned it into an interactive
+    # "choose a topic" picker whose answers are loaded by script, so it has no
+    # text to extract and has failed every crawl since 30 Aug 2026. The static
+    # pages below cover what it used to: credit, study load and failed units.
+    Seed("apply-for-credit", "https://www.monash.edu/admissions/credit",
+         "Apply for credit", "enrolment",
+         ("credit", "credit transfer", "exemption", "advanced standing", "学分减免", "学分转换"),
+         applies_to="all"),
+    Seed("study-load", "https://www.monash.edu/students/admin/enrolments/study-load",
+         "Study load (overload and underload)", "enrolment",
+         ("study load", "full-time", "part-time", "overload", "underload", "全日制", "学习负荷"),
+         applies_to="all"),
+    Seed("failed-units",
+         "https://www.monash.edu/students/admin/enrolments/change/failed-withheld-invalid-units",
+         "Failed, withheld and invalid units", "enrolment",
+         ("fail", "failed", "withheld", "挂科", "不及格"),
+         applies_to="all"),
+    Seed("double-degrees", "https://www.monash.edu/students/admin/enrolments/double-degrees",
+         "Double degrees", "enrolment", ("double degree", "双学位"),
          applies_to="all"),
     Seed("study-at-another-institution",
          "https://www.monash.edu/students/admin/enrolments/change/complementary-study",
@@ -120,6 +219,158 @@ SEEDS: tuple[Seed, ...] = (
     Seed("allocate-timetable", "https://www.monash.edu/students/admin/timetables/allocate",
          "Your timetable - Allocate+", "assessment", ("timetable", "allocate", "课表"),
          applies_to="all"),
+    Seed("assessments-and-results", "https://www.monash.edu/students/admin/assessments",
+         "Assessments and results", "assessment", ("assessment", "results", "考核", "成绩"),
+         applies_to="all"),
+    Seed("assessment-policies", "https://www.monash.edu/students/admin/assessments/about/procedures",
+         "Assessment policy and processes", "assessment",
+         ("policy", "procedure", "assessment regime", "grading schema", "考核政策"),
+         tier="stable", applies_to="all"),
+    # Hurdles decide whether a unit is passed at all, whatever the other marks
+    # add up to, and Monash is changing them: threshold hurdles are being
+    # removed from every unit by the end of 2026. The procedure itself is a PDF,
+    # which this project does not ingest (AGENTS.md), so the page indexed is
+    # Monash's own HTML guidance on applying it. It is written for teaching
+    # staff, and it is the one public page that states the NH 45 rule and the
+    # additional-assessment rule in full.
+    Seed("hurdles", "https://www.monash.edu/learning-teaching/teachhq/Assessment"
+         "/designing-assessment-regimes/how-to/use-hurdles-in-assessment",
+         "Hurdles in assessment (competency and threshold hurdles)", "assessment",
+         ("hurdle", "hurdles", "hurdle requirement", "competency hurdle", "threshold hurdle",
+          "nh", "hurdle fail", "及格门槛", "门槛"),
+         tier="stable", applies_to="all"),
+    Seed("supplementary-assessment",
+         "https://www.monash.edu/students/admin/assessments/supplementary",
+         "Supplementary assessments", "assessment",
+         ("supplementary", "supp", "ns", "补考"),
+         applies_to="all"),
+    Seed("results-release", "https://www.monash.edu/students/admin/assessments/results/dates",
+         "Your results - when and how", "assessment",
+         ("results", "release", "成绩发布", "出分"),
+         applies_to="all"),
+    Seed("assessment-feedback",
+         "https://www.monash.edu/students/admin/assessments/results/feedback",
+         "Feedback on your assessments", "assessment", ("feedback", "反馈"),
+         applies_to="all"),
+    Seed("eexam-rules", "https://www.monash.edu/students/admin/assessments/exams/rules",
+         "eExam rules", "assessment",
+         ("exam rules", "eexam", "cheating", "考试规则", "作弊"),
+         tier="stable", applies_to="all"),
+    Seed("how-eexams-work", "https://www.monash.edu/students/admin/assessments/exams/about",
+         "How eExams work", "assessment", ("eexam", "exam", "电子考试"),
+         applies_to="all"),
+    Seed("on-campus-eexams", "https://www.monash.edu/students/admin/assessments/exams/on-campus",
+         "On-campus eExams (Australia)", "assessment",
+         ("eexam", "exam", "on campus", "考试", "线下考试")),
+    Seed("exam-special-arrangements",
+         "https://www.monash.edu/students/admin/assessments/exams/special-arrangements",
+         "Special arrangements for exams", "assessment",
+         ("special arrangements", "exam clash", "time zone", "考试冲突", "时差"),
+         applies_to="all"),
+
+    # --- Behind Monash sign-in ---------------------------------------------
+    #
+    # Both redirect to Monash's Okta login; they are listed, not copied.
+    Seed("arts-course-transfer", "https://www.monash.edu/arts/current-students/course-transfer",
+         "Course transfer - Faculty of Arts", "enrolment",
+         ("course transfer", "transfer", "arts", "转专业", "转课程"),
+         tier="stable",
+         sign_in="The Faculty of Arts' guidance for current students who want to transfer "
+                 "into or out of an Arts course. Monash shows it only after you sign in with "
+                 "your Monash account. The University-wide rules - who can apply, how many "
+                 "preferences, and when - are on the public Course or campus transfer page."),
+    Seed("malaysia-apply-to-graduate",
+         "https://www.monash.edu.my/student-services/student-admin/graduations/apply-to-graduate",
+         "Apply to graduate (Monash Malaysia)", "graduation",
+         ("malaysia", "apply to graduate", "graduation", "申请毕业", "毕业", "马来西亚"),
+         tier="stable", applies_to="malaysia",
+         sign_in="Monash Malaysia's step-by-step page on applying to graduate. Monash shows "
+                 "it only after you sign in with your Monash account. Most of the same "
+                 "questions - when to apply, ceremonies, graduating in absentia - are "
+                 "answered on the public FAQs for graduations (Monash Malaysia)."),
+    # Monash Malaysia's fee calculator is an app behind sign-in; its page on
+    # monash.edu.my only forwards to it. Checked by a signed-in student on
+    # 2026-10-25.
+    Seed("malaysia-fees-fees-calculator",
+         "https://fin-feescalc.monash.edu.my/Views/Student/CalculateFee.aspx",
+         "Fee calculator (Monash Malaysia)", "fees-dates",
+         ("malaysia", "fees", "fee calculator", "calculate fees", "学费", "学费计算",
+          "算学费", "马来西亚"),
+         tier="stable", applies_to="malaysia",
+         sign_in="Monash Malaysia's fee calculator. Enter your student ID, citizenship, "
+                 "intake, school, course and the number of credit points you are enrolled "
+                 "in, and it calculates your fees for the semester. It opens after you sign "
+                 "in with your Monash account."),
+
+    # --- Course maps ------------------------------------------------------
+    #
+    # Each faculty publishes, per commencement year, the order to take a
+    # degree's units in. They are PDFs, so what is indexed is the faculty's page
+    # listing them, never the files: the page names every degree and links the
+    # official map. Next year's maps appear months before next year's Handbook
+    # (see crawler/handbook/next_year.py), so these are how a student finds them.
+    Seed("it-course-maps", "https://www.monash.edu/it/current-students/courses/maps",
+         "Course maps - Information Technology", "enrolment",
+         ("course map", "course maps", "course progression", "information technology",
+          "computer science", "课程地图", "修读顺序")),
+    # The faculty's own table of closing, renamed and changed units and the
+    # approved replacement for each (backend/app/knowledge/teach_out.py reads it).
+    # Marked for the site it is on, not "all": Monash Malaysia keeps its own list
+    # (below), so this one is shown to readers at the Australian campuses.
+    # Dynamic tier because it is updated as teach-out plans are confirmed
+    # ("To be confirmed" rows become units).
+    Seed("it-undergraduate-re-enrolment",
+         "https://www.monash.edu/it/current-students/courses/re-enrolment/undergraduate",
+         "Re-enrolment and unit changes - Information Technology (undergraduate)",
+         "enrolment",
+         ("re-enrolment", "teach out", "teach-out", "replacement units", "unit changes",
+          "2027 course version", "information technology", "computer science",
+          "停开", "替代课程", "课程变更"),
+         tier="dynamic"),
+    # The same table for Monash Malaysia, kept by the School of IT there. The
+    # rows differ from the Australian page (other degrees, other final
+    # offerings), so a reader in Malaysia is shown this one instead.
+    Seed("it-undergraduate-re-enrolment-malaysia",
+         "https://www.monash.edu.my/it/current-students/Course-Offered/undergraduates"
+         "/re-enrollment",
+         "Undergraduate IT unit and course changes (Monash Malaysia)",
+         "enrolment",
+         ("re-enrolment", "teach out", "teach-out", "replacement units", "unit changes",
+          "information technology", "computer science", "malaysia",
+          "停开", "替代课程", "课程变更", "马来西亚"),
+         tier="dynamic", applies_to="malaysia"),
+    Seed("engineering-course-maps",
+         "https://www.monash.edu/engineering/current-students/enrolment-and-re-enrolment"
+         "/course-information/course-maps",
+         "Course maps - Engineering", "enrolment",
+         ("course map", "course maps", "course progression", "engineering",
+          "课程地图", "修读顺序"),
+         applies_to="all"),
+    Seed("business-course-maps",
+         "https://www.monash.edu/business/current-students/course-advice-and-planning"
+         "/helpful-links/course-maps",
+         "Course maps - Business and Economics", "enrolment",
+         ("course map", "course maps", "course progression", "commerce", "business",
+          "课程地图", "修读顺序"),
+         applies_to="all"),
+    Seed("arts-course-maps",
+         "https://www.monash.edu/arts/current-students/course-and-unit-information/course-maps",
+         "Course maps - Arts", "enrolment",
+         ("course map", "course maps", "course progression", "arts", "课程地图", "修读顺序"),
+         applies_to="all"),
+    Seed("education-course-maps", "https://www.monash.edu/education/students/courses/maps",
+         "Course maps - Education", "enrolment",
+         ("course map", "course maps", "course progression", "education", "课程地图", "修读顺序")),
+    Seed("mada-course-maps",
+         "https://www.monash.edu/mada/current-students/planning-your-course/course-maps",
+         "Course maps - Art, Design and Architecture", "enrolment",
+         ("course map", "course maps", "course progression", "design", "architecture",
+          "课程地图", "修读顺序")),
+    Seed("law-course-maps",
+         "https://www.monash.edu/law/current-students/resources/course-unit-information"
+         "/course-information",
+         "Course maps - Law", "enrolment",
+         ("course map", "course maps", "course progression", "law", "课程地图", "修读顺序")),
 
     # --- Academic rules ---------------------------------------------------
     Seed("academic-progress", "https://www.monash.edu/students/study-success/academic-progress",
@@ -141,6 +392,49 @@ SEEDS: tuple[Seed, ...] = (
     Seed("student-conduct", "https://www.monash.edu/students/admin/policies/student-conduct",
          "Student Code of Conduct", "academic-rules", ("conduct", "behaviour"), tier="stable",
          applies_to="all"),
+    Seed("unsatisfactory-progress",
+         "https://www.monash.edu/students/unsatisfactory-progress/replying-notice-referral-hearing",
+         "Receiving an email about unsatisfactory progress", "academic-rules",
+         ("unsatisfactory progress", "risk level", "academic progress", "学业预警",
+          "学业进度"),
+         applies_to="all"),
+    Seed("apc-hearing", "https://www.monash.edu/students/study-success/academic-progress/hearings",
+         "Attending an Academic Progress Committee (APC) hearing", "academic-rules",
+         ("apc", "hearing", "academic progress", "听证"),
+         applies_to="all"),
+    Seed("apc-decisions",
+         "https://www.monash.edu/students/study-success/academic-progress/hearings/decisions",
+         "Academic progress hearing decisions", "academic-rules",
+         ("apc", "exclusion", "enrolment conditions", "退学", "附条件注册"),
+         applies_to="all"),
+    Seed("exclusion-appeal",
+         "https://www.monash.edu/students/study-success/academic-progress/hearings"
+         "/appeals-and-reviews/appeals",
+         "Appealing a decision to exclude", "academic-rules",
+         ("exclusion", "appeal", "eap", "退学申诉", "申诉"),
+         applies_to="all"),
+    Seed("academic-misconduct", "https://www.monash.edu/students/support/misconduct/academic",
+         "Reported for academic misconduct", "academic-rules",
+         ("academic misconduct", "cheating", "plagiarism", "学术不端", "作弊"),
+         applies_to="all"),
+    Seed("academic-misconduct-penalties",
+         "https://www.monash.edu/students/support/misconduct/academic/panel-hearing/outcome",
+         "Academic misconduct hearing outcomes and penalties", "academic-rules",
+         ("academic misconduct", "penalty", "处罚", "学术不端"),
+         applies_to="all"),
+    Seed("academic-misconduct-appeal",
+         "https://www.monash.edu/students/support/misconduct/academic/appeal",
+         "Appealing an academic misconduct decision", "academic-rules",
+         ("academic misconduct", "appeal", "申诉"),
+         applies_to="all"),
+    Seed("student-complaints", "https://www.monash.edu/students/support/complaints/how-to",
+         "How to submit and resolve a complaint", "academic-rules",
+         ("complaint", "grievance", "review", "ombudsman", "投诉", "申诉"),
+         applies_to="all"),
+    Seed("handbook-glossary", "https://www.monash.edu/students/handbooks/help/handbook-glossary",
+         "Handbook glossary", "academic-rules",
+         ("glossary", "handbook", "术语"),
+         tier="stable", applies_to="all"),
 
     # --- International students -------------------------------------------
     Seed("international-students", "https://www.monash.edu/students/support/international",
@@ -171,12 +465,23 @@ SEEDS: tuple[Seed, ...] = (
          applies_to="all"),
     Seed("fees", "https://www.monash.edu/students/admin/fees",
          "Fees", "fees-dates", ("fees", "tuition", "学费"),
-         applies_to="all"),
+         # Australian fees and dates; Monash Malaysia publishes its own.
+         applies_to="australia"),
     Seed("fee-payment-dates", "https://www.monash.edu/students/admin/fees/payment/dates",
          "Fee payment dates", "fees-dates", ("fees", "payment", "缴费"), tier="dynamic",
-         applies_to="all"),
+         applies_to="australia"),
     Seed("graduations", "https://www.monash.edu/students/admin/graduations",
          "Graduations", "fees-dates", ("graduation", "毕业"),
+         applies_to="all"),
+    Seed("graduation-eligibility",
+         "https://www.monash.edu/students/admin/graduations/before/eligibility",
+         "Eligibility to graduate", "fees-dates",
+         ("graduation", "eligibility", "encumbrance", "毕业条件", "毕业"),
+         applies_to="all"),
+    Seed("course-completion",
+         "https://www.monash.edu/students/admin/graduations/eligibility/course-completion",
+         "Course completion", "fees-dates",
+         ("course completion", "graduation", "完成学业", "毕业"),
          applies_to="all"),
     Seed("academic-transcripts",
          "https://www.monash.edu/students/support/connect/official-documents/academic-transcripts",
@@ -185,8 +490,11 @@ SEEDS: tuple[Seed, ...] = (
          applies_to="all"),
 
     # --- Exchange ----------------------------------------------------------
-    Seed("study-abroad", "https://www.monash.edu/study-abroad",
-         "Study abroad and exchange", "exchange", ("exchange", "abroad", "交换")),
+    # Was https://www.monash.edu/study-abroad, which became a 330-character
+    # landing page. The exchange programme itself is described here.
+    Seed("semester-exchange", "https://www.monash.edu/study-abroad/outbound/exchange",
+         "Semester exchange", "exchange",
+         ("exchange", "study abroad", "abroad", "semester exchange", "交换", "海外交换")),
 
     # --- Malaysia campus ----------------------------------------------------
     # --- Monash Malaysia ---------------------------------------------------
@@ -201,8 +509,8 @@ SEEDS: tuple[Seed, ...] = (
          ("malaysia", "student services", "马来西亚"), applies_to="malaysia"),
     Seed("malaysia-student-pass",
          "https://www.monash.edu.my/student-services/international-students/student-pass",
-         "Student pass (Monash Malaysia)", "malaysia",
-         ("malaysia", "student pass", "emgs", "签证", "学生准证"),
+         "Student Pass (Monash Malaysia)", "malaysia",
+         ("malaysia", "student pass", "emgs", "签证", "学生签证", "学生准证"),
          applies_to="malaysia"),
     Seed("malaysia-insurance",
          "https://www.monash.edu.my/student-services/support-services/insurance",
@@ -212,16 +520,39 @@ SEEDS: tuple[Seed, ...] = (
          "https://www.monash.edu.my/student-services/student-admin",
          "Student administration (Monash Malaysia)", "malaysia",
          ("malaysia", "enrolment", "选课注册"), applies_to="malaysia"),
-    Seed("malaysia-special-consideration",
-         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
-         "/assessments-and-results/special-consideration2",
-         "Special consideration (Monash Malaysia)", "malaysia",
-         ("malaysia", "special consideration", "特殊考虑"), applies_to="malaysia"),
-    Seed("malaysia-exam-rules",
-         "https://www.monash.edu.my/student-services/student-admin/examinations-results"
-         "/exam-rules",
-         "Exam rules (Monash Malaysia)", "malaysia",
-         ("malaysia", "exam", "考试规则"), applies_to="malaysia"),
+    Seed("malaysia-science-course-maps",
+         "https://www.monash.edu.my/science/current/undergraduate/course-and-unit-information"
+         "/course-maps",
+         "Course structure and course maps (Monash Malaysia Science)", "malaysia",
+         ("malaysia", "course map", "course maps", "science", "课程地图", "修读顺序"),
+         applies_to="malaysia"),
+    Seed("malaysia-business-course-maps",
+         "https://www.monash.edu.my/business/current/course-map-tool",
+         "Course map tool (Monash Malaysia Business)", "malaysia",
+         ("malaysia", "course map", "course maps", "business", "commerce", "课程地图", "修读顺序"),
+         applies_to="malaysia"),
+    # The MPU units a Malaysia campus student has to pass to graduate - a
+    # Ministry of Higher Education rule, so no Australian page covers it.
+    # Students call them 通识课, MPU or General Studies; the list changes with
+    # the intake, so the page is read whole rather than copied into a FAQ.
+    Seed("malaysia-general-studies",
+         "https://www.monash.edu.my/study/undergraduate/general-studies",
+         "General Studies (MPU units, Monash Malaysia)", "malaysia",
+         ("malaysia", "general studies", "general study", "mpu", "mpu units",
+          "graduation requirement", "通识课", "通识", "马来西亚必修课", "毕业要求"),
+         applies_to="malaysia"),
+    Seed("malaysia-maps-and-transport",
+         "https://www.monash.edu.my/about/maps-and-transport",
+         "Maps and transport (Monash Malaysia)", "malaysia",
+         ("malaysia", "transport", "campus map", "shuttle bus", "brt", "lrt", "ktm",
+          "parking", "grab", "airport", "交通", "校车", "公交", "地图", "停车", "机场"),
+         applies_to="malaysia"),
+)
+
+# The long tail: every other content page on the student sites, Malaysia first.
+SEEDS = SEEDS + tuple(
+    Seed(slug, url, title, category, tags, tier=tier, applies_to=applies_to, curated=False)
+    for slug, url, title, category, tags, tier, applies_to in COVERAGE
 )
 
 SEEDS_BY_SLUG = {seed.slug: seed for seed in SEEDS}

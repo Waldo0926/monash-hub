@@ -41,7 +41,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from crawler.handbook.discover import discover_aos_codes, discover_course_codes
 from crawler.handbook.fetch import HandbookFetcher
-from crawler.sync.pipeline import crawl_job, record
+from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates, withdrawal_cap
+from crawler.sync.pipeline import MAX_FAILED_IN_A_ROW, crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
 log = logging.getLogger("crawler.courses")
@@ -92,22 +93,46 @@ def _already_fresh(kind: str, codes: list[str], year: int, hours: float) -> set[
         )
 
 
-def crawl(kind: str, codes: list[str], year: int, *, min_interval: float) -> dict[str, int]:
+def crawl(kind: str, codes: list[str], year: int, *, min_interval: float,
+          max_withdrawals: int | None = None) -> dict[str, int]:
     spec = KINDS[kind]
     throttle = Throttle(RateLimit(min_interval=min_interval))
-    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0}
+    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0, "withdrawn": 0}
+    cap = withdrawal_cap(len(codes)) if max_withdrawals is None else max_withdrawals
     started_at = time.monotonic()
 
     with (
         SessionLocal() as db,
         HandbookFetcher(throttle) as fetcher,
-        crawl_job(db, f"handbook_{kind}", targets=len(codes), transport="httpx") as job,
+        crawl_job(db, f"handbook_{kind}", targets=len(codes), transport="httpx",
+                  stop_after_failures=MAX_FAILED_IN_A_ROW) as job,
     ):
         for index, code in enumerate(codes, start=1):
             url = spec["url"](code, year)
             started = time.monotonic()
             result = fetcher.fetch(url)
             elapsed = int((time.monotonic() - started) * 1000)
+
+            if not result.ok and result.status == 404 and summary["withdrawn"] >= cap:
+                # Too many 404s for one run to be Monash retiring degrees - see
+                # withdrawn.py. Keep the row active and say so.
+                summary["failed"] += 1
+                record(db, job, target_type=spec["target_type"], target_key=code, url=url,
+                       outcome="failed", http_status=404, transport=result.transport,
+                       duration_ms=elapsed,
+                       message=f"404 not acted on: {cap} withdrawals already this run")
+                log.error("%s: 404, kept active (withdrawal cap of %d reached)", code, cap)
+                continue
+
+            if not result.ok and result.status == 404:
+                # The Handbook says it is gone - see withdrawn.py.
+                if mark_withdrawn(db, spec["model"], spec["code_column"], code, year):
+                    log.warning("%s: no longer in the %s Handbook, marked inactive", code, year)
+                summary["withdrawn"] += 1
+                record(db, job, target_type=spec["target_type"], target_key=code, url=url,
+                       outcome="withdrawn", http_status=404, transport=result.transport,
+                       duration_ms=elapsed, message="not in the Handbook")
+                continue
 
             if not result.ok:
                 summary["failed"] += 1
@@ -187,6 +212,12 @@ def main() -> None:
         default=3.0,
         help="minimum seconds between requests (floor: 1.0)",
     )
+    parser.add_argument(
+        "--max-withdrawals",
+        type=int,
+        default=None,
+        help="404s each kind may mark inactive (default: 25, or 2%% of the pages if more)",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -204,7 +235,13 @@ def main() -> None:
     else:
         throttle = Throttle(RateLimit(min_interval=interval))
         for kind in ("course", "aos"):
-            plan.append((kind, KINDS[kind]["discover"](year, throttle)))
+            codes = KINDS[kind]["discover"](year, throttle)
+            with SessionLocal() as db:
+                missing = recheck_candidates(
+                    db, KINDS[kind]["model"], KINDS[kind]["code_column"], year, codes)
+            if missing:
+                log.info("rechecking %d active %s the index no longer lists", len(missing), kind)
+            plan.append((kind, codes + missing))
 
     totals: dict[str, dict[str, int]] = {}
     for kind, codes in plan:
@@ -218,7 +255,8 @@ def main() -> None:
             log.info("nothing to crawl for %s", kind)
             continue
         log.info("crawling %d %s for %s", len(codes), kind, year)
-        totals[kind] = crawl(kind, codes, year, min_interval=interval)
+        totals[kind] = crawl(kind, codes, year, min_interval=interval,
+                             max_withdrawals=args.max_withdrawals)
 
     for kind, summary in totals.items():
         log.info("%s: %s", kind, summary)

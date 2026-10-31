@@ -4,11 +4,14 @@ The authorization code flow, server side. Three things in it are worth reading
 rather than skimming, because each one is a place this kind of code is usually
 got wrong.
 
-**The state parameter is signed, not stored.** It carries an expiry and an HMAC
-over the app's secret key, so a callback arriving with a state we did not issue
-is rejected without needing a session table or a Redis. The signature is what
-stops somebody handing a victim a crafted callback URL and having their browser
-complete a sign-in the victim never started.
+**The state parameter is signed, not stored, and bound to one browser.** It
+carries an expiry, a nonce and an HMAC over the app's secret key, so a callback
+arriving with a state we did not issue is rejected without needing a session
+table or a Redis. The signature alone is not enough: anybody can start a sign-in
+of their own, stop at the callback, and hand that URL - with its perfectly
+valid state - to somebody else, whose browser then signs into the sender's
+account. So the nonce is also set as a cookie by the browser that started, and
+the callback only completes in a browser that sends the same one back.
 
 **The ID token is decoded without verifying its signature, and that is
 deliberate.** Normally that would be indefensible. It is safe here for one
@@ -47,6 +50,9 @@ SCOPES = "openid email profile"
 # Long enough to sign in, short enough that a leaked callback URL is stale by
 # the time anyone finds it.
 STATE_TTL_SECONDS = 10 * 60
+# Holds the nonce from the state, so the callback can tell the browser that
+# started a sign-in from one that was merely handed the callback URL.
+NONCE_COOKIE = "mh_google_nonce"
 
 USER_AGENT = "MonashHub/0.1 (+https://monashhub.secureview.tech)"
 
@@ -93,24 +99,29 @@ def _unb64(value: str) -> bytes:
     return base64.urlsafe_b64decode(value + padding)
 
 
-def issue_state(next_path: str = "/") -> str:
+def new_nonce() -> str:
+    return secrets.token_urlsafe(16)
+
+
+def issue_state(nonce: str, next_path: str = "/") -> str:
     """A signed, expiring token proving this callback answers our own request.
 
+    ``nonce`` is the value the starting browser holds in its cookie.
     ``next_path`` rides along so the user lands back where they started. It is
     checked by the caller before use - a path from a query string is somebody
     else's input, and an open redirect is exactly what it would buy them.
     """
     payload = json.dumps(
-        {"n": secrets.token_urlsafe(12), "exp": int(time.time()) + STATE_TTL_SECONDS,
-         "next": next_path},
+        {"n": nonce, "exp": int(time.time()) + STATE_TTL_SECONDS, "next": next_path},
         separators=(",", ":"),
     ).encode("utf-8")
     signature = hmac.new(get_settings().secret_key.encode("utf-8"), payload, sha256).digest()
     return f"{_b64(payload)}.{_b64(signature)}"
 
 
-def read_state(state: str) -> str:
-    """Return the ``next`` path, or raise if the state is not one we issued."""
+def read_state(state: str, nonce: str) -> str:
+    """Return the ``next`` path, or raise if the state is not one we issued to
+    the browser holding ``nonce``."""
     try:
         encoded, signature = state.split(".", 1)
         payload = _unb64(encoded)
@@ -127,6 +138,8 @@ def read_state(state: str) -> str:
 
     if int(data.get("exp", 0)) < time.time():
         raise GoogleAuthError("state has expired")
+    if not nonce or not hmac.compare_digest(str(data.get("n", "")), nonce):
+        raise GoogleAuthError("state was issued to a different browser")
     return str(data.get("next") or "/")
 
 

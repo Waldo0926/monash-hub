@@ -34,7 +34,7 @@ belongs to one person.**
 | Handbook units | Central PostgreSQL | Crawl once, serve everyone |
 | Official Monash pages | Central PostgreSQL | Same |
 | Community posts and answers | Central PostgreSQL | Worthless unless shared and searchable |
-| Personal Moodle session, grades, deadlines | Not stored — client side, later | No public value, real risk, and no reason to hold it |
+| Personal Moodle session, grades, deadlines | Not stored. Client side, later | No public value, real risk, and no reason to hold it |
 | Lecture slides, recordings, PDFs | Never | We index; we are not a file mirror |
 
 ## The sync pipeline
@@ -79,7 +79,7 @@ list is exactly how a student's opinion ends up looking like a Handbook fact.
 `POST /api/v1/ask` runs four deterministic stages:
 
 1. Extract unit codes with a regex (`FIT2102`, `fit 2102`, `FIT-2102`).
-2. Classify intent against a bilingual keyword dictionary — longest match wins,
+2. Classify intent against a bilingual keyword dictionary. Longest match wins,
    with word boundaries for Latin keywords so `sc` does not fire inside
    `science`.
 3. If there is a unit and a Handbook-backed intent, render the stored fields
@@ -90,9 +90,39 @@ Subjective questions ("FIT2102 难不难") are detected and answered with the
 published workload plus community threads. The system never produces a
 difficulty score, because there is no honest way to compute one.
 
+### The Ask button
+
+Every page except `/search` has an Ask button in the corner
+(`frontend/components/SiteAssistant.vue`). It opens a chat panel that sends
+each question to the same `/v1/ask` endpoint, with the unit code when it is
+asked on a unit page and the Handbook year when the page has `?year=`. This
+API calls no model and needs no model key.
+
+The panel adds two things the router does not know about, both plain word
+matching in `frontend/utils/assistant.ts`: the site's own tools a question
+names (WAM calculator, course map, unit tree and so on) and 马莫百科 posts that
+share at least two pairs of Chinese characters with it.
+
+At the same time the panel sends the question to `POST /v1/assistant/bot`,
+which passes it on to the 马莫百科 WeChat bot (`backend/app/core/wxbot.py`).
+The bot is a separate service. It answers from what its owner has taught it,
+the 马莫百科 posts and sentences quoted from official pages, none of which this
+API holds. Its reply shows under 来自马莫百科, and a reply that only repeats
+Monash Hub is left out. The bot is optional: with `WXBOT_URL` or
+`WXBOT_WEB_SECRET` unset, or the bot down or slow, the panel shows the
+router's answer alone. Questions to the bot are limited to 60 an hour per
+network.
+
+When nothing matches anywhere, the panel shows the 马莫百科 QR code so the
+reader can send the question to the account and get a reply later, with
+links to the community and MoVA (Monash Connect Malaysia) under it.
+The chat is kept in `sessionStorage`, so it survives a page change and is
+gone with the tab.
+Requests go through the same nginx limit as the rest of `/api/`.
+
 ## Trust boundaries in the UI
 
-Three badges, three colours, three labels — and the label is always present, so
+Three badges, three colours, three labels, and the label is always present, so
 the distinction survives for colour-blind readers and in plain text:
 
 | Badge | Means |
@@ -106,7 +136,7 @@ region. It will never affect the ranking of an academic or policy answer.
 
 ## Accounts
 
-Nickname, email, password. No real name, no student ID — the roadmap is explicit
+Nickname, email, password. No real name, no student ID. The roadmap is explicit
 that registration friction is what leaves a forum empty, and a student forum
 does not need to know who anyone is.
 
@@ -125,7 +155,7 @@ Two things the endpoints deliberately do not reveal:
   the same 401 with the same message.
 
 Sessions are JWTs carrying the account's `token_version`. A password reset bumps
-that column, which invalidates every token already issued — sign-out-everywhere
+that column, which invalidates every token already issued, so sign-out-everywhere
 without a session table to delete from.
 
 ## Notifications
@@ -160,7 +190,7 @@ those are someone's own words.
 The engine is Argos Translate (OPUS-MT through CTranslate2) running on the same
 box: no key, no per-call cost, no rate limit, which is what makes five thousand
 units possible at all. On its own it is wrong exactly where this product cannot
-afford it — measured on the real pages it renders *census date* as 人口普查日期,
+afford it. Measured on the real pages, it renders *census date* as 人口普查日期,
 *unit* as 单位, *Exercise* as 锻炼 (physical exercise) and *Programming
 paradigms* as 方案拟订模式. So every string goes through:
 
@@ -169,7 +199,7 @@ paradigms* as 方案拟订模式. So every string goes through:
 `app/knowledge/glossary.py` holds 210 terms and 113 closed-list values (every
 campus, teaching period, assessment type, level). A field value drawn from a
 closed list never reaches the model at all. A term inside a sentence is swapped
-for a letter placeholder — digits get rewritten by the model, letters survive —
+for a letter placeholder (digits get rewritten by the model, letters survive)
 and restored afterwards.
 
 Human and machine rows sit side by side in `content_translations` with a
@@ -180,8 +210,8 @@ notice on the page says which the reader is looking at.
 ## Does it hold up as it fills?
 
 Measured on a generated forum of 2,000 accounts, 20,000 posts, 60,000 answers
-and 40,000 notifications — considerably more than a first year is likely to
-bring — on one PostgreSQL container:
+and 40,000 notifications, considerably more than a first year is likely to
+bring, on one PostgreSQL container:
 
 | Query | p50 | p95 |
 | --- | --- | --- |
@@ -198,7 +228,7 @@ The whole database was 59 MB. Nothing here is close to needing a cache.
 
 Three things make that true, and they are the ones to protect:
 
-- **Composite indexes matching the orderings the feed actually offers** —
+- **Composite indexes matching the orderings the feed actually offers**:
   `(is_hidden, is_pinned, updated_at)`, and the same with `category` and
   `unit_code` in front. Without them every community page load is a sequential
   scan plus a sort.
@@ -214,3 +244,6 @@ Three things make that true, and they are the ones to protect:
 Two people are building this. A modular monolith with clear package boundaries
 (`handbook`, `knowledge`, `search`, `community`) can be split later if there is
 ever a reason. Splitting first would buy deployment complexity and nothing else.
+
+The reasons behind this and the other decisions that would be expensive to
+reverse are written down in [docs/adr](adr/README.md).

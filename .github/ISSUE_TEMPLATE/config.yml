@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem / 安全问题
+    url: https://github.com/Waldo0926/monash-hub/blob/main/SECURITY.md
+    about: Please do not open a public issue for a vulnerability. SECURITY.md says where to send it. / 安全漏洞请不要公开提 issue，按 SECURITY.md 私下报告。
+  - name: Ask a question on the site / 在站内提问
+    url: https://monashhub.secureview.tech/community
+    about: Questions about Monash itself belong in the community, not in the issue tracker. / 关于 Monash 本身的问题请去社区问。

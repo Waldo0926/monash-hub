@@ -8,10 +8,10 @@ const { $t } = useNuxtApp()
 
 const message = computed(() => {
   const status = props.error?.statusCode || props.error?.status
-  if (status === 404) return props.error?.data?.detail || $t('state.notFound')
-  if (!status) return $t('state.offline')
-  if (status >= 500) return $t('state.serverError')
-  return props.error?.data?.detail || $t('state.generic')
+  // The API's 404 sentences are English ("FIT9999 is not in the 2026 Handbook
+  // index yet"); the reader's language wins over the extra detail.
+  if (status === 404) return $t('state.notFound')
+  return apiErrorMessage(props.error, $t, 'state.generic')
 })
 </script>
 

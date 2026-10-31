@@ -18,13 +18,20 @@ import json
 import re
 from html import unescape
 from typing import Any
+from urllib.parse import unquote, urlsplit
 
-NEXT_DATA_RE = re.compile(
-    r'<script id="__NEXT_DATA__" type="application/json">(?P<json>.*?)</script>',
-    re.DOTALL,
-)
+from bs4 import BeautifulSoup
+
 TAG_RE = re.compile(r"<[^>]+>")
 WS_RE = re.compile(r"[ \t\r\f\v ]+")
+# Not ``\b``: it treats CJK characters as word characters, and language-unit
+# prose can put "汉字" or "日本語" right against a code. ASCII neighbours still
+# block a match exactly as ``\b`` did.
+UNIT_CODE_RE = re.compile(r"(?<![A-Z0-9])[A-Z]{2,5}[0-9]{4}(?![A-Z0-9])")
+RULE_LABEL_RE = re.compile(
+    r"\b(?P<label>(?:ADDITIONAL\s+)?PREREQUISITES?|COREQUISITES?|PROHIBITIONS?)\s*:",
+    re.IGNORECASE,
+)
 
 # Assessment types and names that mean "there is a final exam". Kept explicit
 # rather than a fuzzy match so a new Handbook label fails visibly instead of
@@ -38,13 +45,34 @@ class ParseError(ValueError):
 
 
 def extract_next_data(html: str) -> dict[str, Any]:
-    match = NEXT_DATA_RE.search(html)
-    if not match:
+    # Attribute order, whitespace and a CSP nonce are presentation details.
+    script = BeautifulSoup(html, "lxml").find("script", id="__NEXT_DATA__")
+    if script is None:
         raise ParseError("no __NEXT_DATA__ payload in page")
     try:
-        return json.loads(match.group("json"))
+        data = json.loads(script.string or script.get_text())
     except json.JSONDecodeError as exc:  # pragma: no cover - malformed upstream
         raise ParseError(f"__NEXT_DATA__ is not valid JSON: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ParseError("__NEXT_DATA__ is not an object")
+    node = data
+    for key in ("props", "pageProps", "pageContent"):
+        node = node.get(key, {})
+        if not isinstance(node, dict):
+            raise ParseError(f"__NEXT_DATA__.{key} is not an object")
+    return data
+
+
+def validate_identity(source_url: str, kind: str, code: str, year: int) -> None:
+    """A fallback/redirect to another year or item must never overwrite this one."""
+    parts = unquote(urlsplit(source_url).path).strip("/").split("/")
+    if len(parts) != 3 or not parts[0].isdigit():
+        raise ParseError(f"not a Handbook item URL: {source_url}")
+    asked_year, asked_kind, asked_code = parts
+    # Some courses publish two codes on one page (M6011 M6019).
+    asked_code = asked_code.split()[0].upper()
+    if asked_kind != kind or int(asked_year) != year or asked_code != code.upper():
+        raise ParseError(f"payload identity {year}/{kind}/{code} does not match {source_url}")
 
 
 def html_to_text(value: str | None) -> str | None:
@@ -161,6 +189,52 @@ def derive_has_exam(assessments: list[dict[str, Any]], summary: str | None) -> b
 MAX_REQUISITE_DEPTH = 6
 
 
+def _canonical_requisite_type(value: str | None) -> str:
+    """Collapse Handbook label variants to the three types the app understands.
+
+    The upstream feed has emitted singular, plural, and "additional
+    prerequisite" labels over time. Keeping those variants in the database made
+    the tree fragile: its SQL matched ``prerequisite`` exactly while unit pages
+    could still render ``prerequisites`` just fine.
+    """
+    value = re.sub(r"\s+", " ", (value or "").strip().lower())
+    if "corequisite" in value:
+        return "corequisite"
+    if "prerequisite" in value:
+        return "prerequisite"
+    if "prohibition" in value:
+        return "prohibition"
+    return value or "unknown"
+
+
+def _unit_codes(text: str | None) -> list[str]:
+    """Unit-shaped references in source order, without guessing rule logic."""
+    if not text:
+        return []
+    return list(dict.fromkeys(UNIT_CODE_RE.findall(text.upper())))
+
+
+def _reference_items(text: str | None) -> list[dict[str, Any]]:
+    """Turn prose references into linkable items while preserving uncertainty.
+
+    These items only appear when the Handbook did not publish a structured
+    requisite container. Their group connector is ``TEXT``: it deliberately
+    does *not* claim that the references are ANDs or ORs. The source prose is
+    kept as the group description and remains the authority.
+    """
+    return [
+        {
+            "item_code": code,
+            "item_name": None,
+            "item_type": "Unit",
+            "item_url": None,
+            "credit_points": None,
+            "order_index": index,
+        }
+        for index, code in enumerate(_unit_codes(text))
+    ]
+
+
 def _walk_requisite_containers(containers: list[dict] | None, depth: int = 0) -> list[dict]:
     """One requisite container and everything under it, as a tree.
 
@@ -214,16 +288,160 @@ def _parse_requisites(raw: list[dict] | None) -> list[dict[str, Any]]:
     for block in raw or []:
         if str(block.get("active", "true")).lower() == "false":
             continue
-        req_type = _plain(block.get("requisite_type"), "value", "label") or "unknown"
+        req_type = _canonical_requisite_type(
+            _plain(block.get("requisite_type"), "value", "label")
+        )
         found = _walk_requisite_containers(block.get("container"))
         description = html_to_text(block.get("description"))
         if not found and description:
-            found = [{"connector": None, "title": None, "description": description,
-                      "order_index": 0, "items": [], "groups": []}]
+            items = _reference_items(description)
+            found = [
+                {
+                    "connector": "TEXT" if items else None,
+                    "title": None,
+                    "description": description,
+                    "order_index": 0,
+                    "items": items,
+                    "groups": [],
+                }
+            ]
 
-        _stamp(found, req_type.lower(), description)
+        _stamp(found, req_type, description)
         groups += found
     return groups
+
+
+def _group_has_references(group: dict[str, Any]) -> bool:
+    return bool(group.get("items")) or any(
+        _group_has_references(child) for child in group.get("groups") or []
+    )
+
+
+def _drop_self_reference(groups: list[dict[str, Any]], unit_code: str) -> list[dict[str, Any]]:
+    """Strip a unit's own code from its own requisite/prohibition groups.
+
+    A unit can never be its own prerequisite or prohibition. Malformed source
+    data has produced exactly that (FIT1055 listing FIT1055 as a prohibition),
+    so this is a last-resort guard on top of the parsers that should already
+    exclude it - correct in whatever quirky JSON shape the Handbook publishes
+    next.
+    """
+    for group in groups:
+        group["items"] = [
+            item for item in group.get("items") or []
+            if (item.get("item_code") or "").upper() != unit_code
+        ]
+        _drop_self_reference(group.get("groups") or [], unit_code)
+    return groups
+
+
+def _flatten_rule_field(node: Any) -> str:
+    """Flatten one rule-like JSON field down to its rule prose.
+
+    A rule entry's actual text lives under ``description``; the Handbook ships
+    that alongside sibling metadata - ``academic_item`` (which carries the
+    *current* unit's own code and an internal ``cl_id``), ``type``, and more
+    ``cl_id`` fields - on the same dict. Blindly joining every value in the
+    tree, as this used to, leaks that metadata into the rule text: literal
+    strings like "code" or "info", raw CMS ids, and worst of all the unit's
+    own code re-appearing as if it were a referenced unit, which turned
+    FIT1055's prohibitions into a prohibition against itself. Only
+    ``description`` (and, one level up, ``rules`` lists of these entries) is
+    prose; everything else here is CMS bookkeeping and is dropped.
+    """
+    if isinstance(node, str):
+        return html_to_text(node) or ""
+    if isinstance(node, dict):
+        if "description" in node:
+            return _flatten_rule_field(node["description"])
+        if "rules" in node:
+            return _flatten_rule_field(node["rules"])
+        return ""
+    if isinstance(node, list):
+        parts = [_flatten_rule_field(value) for value in node]
+    else:
+        return ""
+    return "\n".join(part for part in parts if part)
+
+
+def _rule_text_candidates(content: dict[str, Any]) -> list[str]:
+    """Find enrolment-rule prose without depending on one CMS field name.
+
+    Monash publishes some units' prerequisite logic only inside the Rules /
+    Enrolment Rule prose, while other units get a structured ``requisites``
+    tree. The exact CMS key has changed, so rule-like top-level fields are read
+    by meaning rather than by one brittle spelling. Plain top-level strings are
+    also checked, but only strings carrying an explicit labelled rule qualify.
+    """
+    candidates: list[str] = []
+    for key, value in content.items():
+        if key == "requisites":
+            continue
+        lowered = key.lower()
+        text = ""
+        if isinstance(value, str):
+            text = html_to_text(value) or ""
+        elif any(token in lowered for token in ("rule", "requisit", "enrol")):
+            text = _flatten_rule_field(value)
+        if text and RULE_LABEL_RE.search(text) and text not in candidates:
+            candidates.append(text)
+    return candidates
+
+
+def _parse_rule_text_requisites(
+    content: dict[str, Any], existing: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Recover unit references from labelled prose when structured data is absent.
+
+    This is intentionally a reference extractor, not an English-language logic
+    parser. A rule such as MTH2051's combines several "one unit from" clauses,
+    a course-enrolment exception, and an alternative unit. Guessing that into a
+    boolean expression would make the planner authoritative when the source did
+    not give us a machine-readable expression. ``TEXT`` groups therefore power
+    links and the dependency graph, while the exact prose remains visible and
+    strict plan validation ignores that group.
+    """
+    covered = {
+        group.get("requisite_type")
+        for group in existing
+        if _group_has_references(group)
+    }
+    buckets: dict[str, dict[str, list[str]]] = {}
+
+    for text in _rule_text_candidates(content):
+        markers = list(RULE_LABEL_RE.finditer(text))
+        for index, marker in enumerate(markers):
+            req_type = _canonical_requisite_type(marker.group("label"))
+            if req_type in covered:
+                continue
+            end = markers[index + 1].start() if index + 1 < len(markers) else len(text)
+            section = text[marker.start():end].strip()
+            codes = _unit_codes(section)
+            if not codes:
+                continue
+            bucket = buckets.setdefault(req_type, {"descriptions": [], "codes": []})
+            if section not in bucket["descriptions"]:
+                bucket["descriptions"].append(section)
+            for code in codes:
+                if code not in bucket["codes"]:
+                    bucket["codes"].append(code)
+
+    out: list[dict[str, Any]] = []
+    for order, (req_type, bucket) in enumerate(buckets.items(), start=len(existing)):
+        description = "\n\n".join(bucket["descriptions"])
+        items = _reference_items(" ".join(bucket["codes"]))
+        group = {
+            "requisite_type": req_type,
+            "connector": "TEXT",
+            "title": None,
+            "description": description,
+            "raw_text": description,
+            "order_index": order,
+            "items": items,
+            "groups": [],
+        }
+        out.append(group)
+    return out
 
 
 def _parse_learning_outcomes(raw: list[dict] | None) -> list[dict[str, Any]]:
@@ -257,6 +475,68 @@ def _parse_activities(raw: list[dict] | None) -> list[dict[str, Any]]:
     return activities
 
 
+_LINK_RE = re.compile(r"<a\b[^>]*?href\s*=\s*[\"']([^\"']+)[\"'][^>]*>(.*?)</a>", re.I | re.S)
+
+
+def _keep_links(value: str | None) -> str | None:
+    """``html_to_text``, except a link keeps its address.
+
+    A reading list is mostly links. Dropping the tags the usual way would
+    leave "The Python Tutorial" with nowhere to go, so an http(s) link is
+    written out after its label unless the label already is the address.
+    """
+    if not value:
+        return None
+
+    def spell(match: re.Match) -> str:
+        url = unescape(match.group(1)).strip()
+        label = unescape(TAG_RE.sub("", match.group(2))).strip()
+        if not url.lower().startswith(("http://", "https://")):
+            return label
+        if not label or label == url or url in label:
+            return url
+        return f"{label} {url}"
+
+    return html_to_text(_LINK_RE.sub(spell, value))
+
+
+def _parse_learning_resources(raw: list[dict] | None) -> list[dict[str, Any]]:
+    """``learning_resources_grouped``: required and recommended reading, in order."""
+    groups = []
+    for group in sorted(raw or [], key=lambda g: _as_int(g.get("order")) or 0):
+        items = [
+            text
+            for resource in group.get("resources") or []
+            if (text := _keep_links(resource.get("description")))
+        ]
+        if items:
+            groups.append({
+                "type": _plain(group.get("type"), "label", "value") or "Resources",
+                "items": items,
+            })
+    return groups
+
+
+def _yes_no(node: Any) -> bool | None:
+    """A Handbook yes/no field. Anything else stays unknown rather than becoming "no"."""
+    value = (_plain(node, "value", "label") or "").lower()
+    if value in ("yes", "true"):
+        return True
+    if value in ("no", "false"):
+        return False
+    return None
+
+
+def _band(node: Any) -> str | None:
+    """The SCA band as published, "SCA Band 2", "Band 2" or a bare 2, without the words."""
+    if isinstance(node, int):
+        return str(node)
+    value = _plain(node, "label", "value")
+    if not value:
+        return None
+    return re.sub(r"(?i)^(?:sca\s+)?band\s*", "", value).strip() or None
+
+
 def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
     """Parse one Handbook unit page into a normalised record."""
     data = extract_next_data(html)
@@ -270,9 +550,13 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
     academic_year = _as_int(content.get("implementation_year"))
     if academic_year is None:
         raise ParseError(f"no implementation_year for {unit_code}")
+    validate_identity(source_url, "units", unit_code, academic_year)
 
     assessments = _parse_assessments(content.get("assessments"))
     assessment_summary = html_to_text(content.get("handbook_assessment_summary"))
+    requisite_groups = _parse_requisites(content.get("requisites"))
+    requisite_groups += _parse_rule_text_requisites(content, requisite_groups)
+    requisite_groups = _drop_self_reference(requisite_groups, unit_code)
 
     record: dict[str, Any] = {
         "unit_code": unit_code,
@@ -310,9 +594,14 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
         "handbook_version": content.get("version_name") or None,
         "offerings": _parse_offerings(content.get("unit_offering")),
         "assessments": assessments,
-        "requisite_groups": _parse_requisites(content.get("requisites")),
+        "requisite_groups": requisite_groups,
         "learning_outcomes": _parse_learning_outcomes(content.get("unit_learning_outcomes")),
         "activities": _parse_activities(content.get("learning_activities_grouped")),
+        "learning_resources": _parse_learning_resources(content.get("learning_resources_grouped")),
+        # The student contribution band sets what a Commonwealth supported
+        # student pays for the unit. It is published as "Band 2" or just "2".
+        "sca_band": _band(content.get("highest_sca_band")),
+        "study_abroad": _yes_no(content.get("study_abroad_unit")),
     }
     record["has_exam"] = derive_has_exam(assessments, assessment_summary)
     record["content_hash"] = compute_content_hash(record)

@@ -7,12 +7,20 @@
 #   deployment/crawl.sh handbook --all --min-interval 1.5   # every 2026 unit
 #   deployment/crawl.sh official            # only seed pages that are due
 #   deployment/crawl.sh official --all      # every seed page, ignoring intervals
+#   deployment/crawl.sh official-harvest /opt/monash-hub/harvest/my.jsonl.gz
+#                                           # store pages read on another machine
+#                                           # (crawler.official.harvest)
+#   deployment/crawl.sh official-due www.monash.edu.my
+#                                           # slugs a harvest should read
+#   deployment/crawl.sh gaps                # linked official pages not indexed
+#                                           # (reads the database only)
 #   deployment/crawl.sh seed                # curated FAQ rows
 #   deployment/crawl.sh reindex-zh          # make the stored Chinese searchable
 #   deployment/crawl.sh reindex-zh --stats  # coverage only, writes nothing
 #
-# Crawls are one-shot containers, not services. Nothing here runs on a timer
-# yet: the first production crawls are meant to be watched.
+# Crawls are one-shot containers, not services. The routine refreshes run on
+# systemd timers through deployment/scheduled-refresh.sh; this is for doing one
+# by hand.
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
@@ -35,6 +43,23 @@ case "$target" in
   official)
     "${COMPOSE[@]}" run --rm crawler python -m crawler.official.run "$@"
     ;;
+  official-harvest)
+    # monash.edu.my refuses this server's address; its pages are read on a
+    # member's computer and copied here. The file's folder is mounted read-only.
+    file="${1:?usage: $0 official-harvest /path/to/file.jsonl.gz}"; shift
+    dir="$(cd "$(dirname "$file")" && pwd)"
+    "${COMPOSE[@]}" run --rm -v "$dir:/harvest:ro" crawler \
+      python -m crawler.official.run --harvest "/harvest/$(basename "$file")" "$@"
+    ;;
+  official-due)
+    # Read-only: the due pages on one host, comma separated, for a harvest on
+    # another machine (deployment/harvest-relay.sh asks for this over ssh).
+    "${COMPOSE[@]}" run --rm -T crawler python -m crawler.official.due "$@"
+    ;;
+  gaps)
+    # Read-only: official pages the stored pages link to that no seed covers.
+    "${COMPOSE[@]}" run --rm crawler python -m crawler.official.gaps "$@"
+    ;;
   seed)
     "${COMPOSE[@]}" run --rm crawler python -m app.knowledge.seed
     ;;
@@ -45,7 +70,7 @@ case "$target" in
     "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh "$@"
     ;;
   *)
-    echo "usage: $0 {handbook|official|seed|reindex-zh} [args]" >&2
+    echo "usage: $0 {handbook|official|official-harvest|gaps|seed|reindex-zh} [args]" >&2
     exit 2
     ;;
 esac

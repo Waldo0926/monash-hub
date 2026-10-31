@@ -64,6 +64,13 @@ class Unit(Base):
     workload_requirements: Mapped[str | None] = mapped_column(Text)
     assessment_summary: Mapped[str | None] = mapped_column(Text)
     assessment_static_text: Mapped[str | None] = mapped_column(Text)
+    # [{"type": "Recommended resources", "items": ["The Python Tutorial https://..."]}]
+    learning_resources: Mapped[list | None] = mapped_column(JSONB)
+    # Student contribution band, "1" to "4". Nullable: most postgraduate units
+    # and every unit before the band was published have none.
+    sca_band: Mapped[str | None] = mapped_column(String(16))
+    # None when the Handbook does not say, which is not the same as "no".
+    study_abroad: Mapped[bool | None] = mapped_column(Boolean)
 
     # Derived flags the Unit Search filters use. ``has_exam`` stays nullable on
     # purpose: "the Handbook does not list one" is not the same claim as "there
@@ -93,9 +100,12 @@ class Unit(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(unit_code, '') || ' ' || "
-            "coalesce(title, '') || ' ' || coalesce(overview, '') || ' ' || "
-            "coalesce(areas_of_study, ''))",
+            # Code and title A, areas of study B, overview D: "algorithms"
+            # should put units called that above units whose prose uses it.
+            "setweight(to_tsvector('english', coalesce(unit_code, '') || ' ' || "
+            "coalesce(title, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(areas_of_study, '')), 'B') || "
+            "setweight(to_tsvector('english', coalesce(overview, '')), 'D')",
             persisted=True,
         ),
     )

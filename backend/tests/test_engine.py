@@ -428,3 +428,114 @@ def test_the_model_does_not_get_to_sign_its_work(signed, expected):
 def test_a_sentence_that_is_really_about_a_language_keeps_its_brackets():
     engine = translator(lambda text: "本Zqa以英文授课（英语）")
     assert engine.text("This unit is taught in English") == "本课程以英文授课（英语）"
+
+
+@pytest.mark.parametrize(
+    ("result", "source", "invented"),
+    [
+        # M6024, live: the model gave up on an all-caps heading and produced
+        # 兹卡 - its transliteration of the Zqa mask token - plus two words that
+        # are not words.
+        ("专业方向 AVALALLILL（兹卡 AVALLLLL）", "SPECIALISATIONS AVAILABLE", True),
+        ("什么是兹卡?", "What is Zqa?", True),
+        ("公共卫生硕士", "Master of Public Health", False),
+        # A source that genuinely repeats a letter must survive.
+        ("AAAA 测试", "AAAA test", False),
+        ("布鲁塞尔", "Brussels", False),
+    ],
+)
+def test_invented_output_is_recognised(result, source, invented):
+    from crawler.translate.engine import _invented
+
+    assert _invented(result, source) is invented
+
+
+def test_a_degree_is_named_the_way_chinese_names_one():
+    """"Master of Arts" is 文学硕士, not 艺术大师 - a grand master of art.
+
+    The award goes last in Chinese, and a translator that cannot reorder
+    produced 大师 on 61 of the 503 degrees while getting the other 131 right.
+    They are pinned whole because the reordering *is* the translation.
+    """
+    from app.knowledge.glossary import MASKS, protect
+
+    for english, expected in (
+        ("Master of Arts", "文学硕士"),
+        ("Master of Philosophy", "哲学硕士"),
+        ("Master of Public Health", "公共卫生硕士"),
+        ("Master of Fine Art", "美术硕士"),
+    ):
+        _, replacements = protect(english, "zh", MASKS[0])
+        assert replacements == [expected], (english, replacements)
+
+
+def test_a_cell_with_no_words_never_reaches_the_engine():
+    """A table of code ranges ("E116 - E140") made a chat model explain each
+    one, and enough failed strings in a row ended the pass."""
+    engine = translator(lambda _text: pytest.fail("sent to the engine"))
+    for cell in ("E116 - E140", "TP1/TP2", "S1-01"):
+        assert engine.text(cell) is None
+
+
+def test_korean_keeps_the_spaces_between_words():
+    """The space-joining rule was meant for Chinese and Japanese. Run over
+    Korean it wrote 졸업신청을해야하나요?"""
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("졸업 신청을 해야 하나요?", "ko") == "졸업 신청을 해야 하나요?"
+    assert _tidy("수강 철회 마감일(census date)은 마지막 날입니다.", "ko") == (
+        "수강 철회 마감일(census date)은 마지막 날입니다."
+    )
+    # Chinese and Japanese still lose the space a restored term leaves behind.
+    assert _tidy("会计 基础", "zh") == "会计基础"
+    assert _tidy("履修取消 期限", "ja") == "履修取消期限"
+
+
+def test_month_and_year_are_written_year_first():
+    from crawler.translate.engine import _tidy
+
+    assert _tidy("12月2026年から自動的に授与されます。", "ja") == "2026年12月から自動的に授与されます。"
+    assert _tidy("从12月2026年起", "zh") == "从2026年12月起"
+    assert _tidy("12월 2026년부터", "ko") == "2026년 12월부터"
+    assert _tidy("2026年12月1日", "ja") == "2026年12月1日"
+
+
+def test_a_term_is_not_followed_by_the_models_own_word_for_it():
+    """"the Malaysia campus" came back as マレーシアキャンパスキャンパス."""
+    # "Malaysia campus" is one term now; the model still adds its own キャンパス.
+    engine = translator(lambda text: text.replace("Students at the Zqa", "Zqaキャンパスの学生"))
+    engine.locale = "ja"
+    assert engine.text("Students at the Malaysia campus") == "マレーシアキャンパスの学生"
+
+
+def test_a_verb_term_is_a_noun_the_model_can_conjugate():
+    """With 履修取消する in the glossary the model added its own する."""
+    engine = translator(lambda text: "Zqbを Zqaすることができます。")
+    engine.locale = "ja"
+    assert engine.text("You can withdraw from a unit.") == "科目を履修取消することができます。"
+
+
+def test_japanese_with_chinese_in_it_keeps_the_english():
+    engine = translator(lambda text: "缺席した場合はどうなりますか？")
+    engine.locale = "ja"
+    assert engine.text("What happens if I am absent?") is None
+
+
+def test_a_korean_term_gets_the_particle_its_last_syllable_needs():
+    """The model picks the particle for its own word, and the glossary puts a
+    different one back: 과목를, 요건는."""
+    from crawler.translate.engine import _particles
+
+    terms = ["필수 통과 요건", "과목", "점수", "추가 평가(additional assessment)", "WES"]
+    assert _particles(
+        "필수 통과 요건는 과목를 듣고 점수이 높으면 추가 평가(additional assessment)을 받습니다.",
+        terms,
+    ) == "필수 통과 요건은 과목을 듣고 점수가 높으면 추가 평가(additional assessment)를 받습니다."
+    # A particle that is already right, a copula and a Latin term are left alone.
+    assert _particles("과목이다. 과목은 WES가 아니라 WES이", terms) == "과목이다. 과목은 WES가 아니라 WES이"
+
+
+def test_korean_particles_are_fixed_after_a_term_is_restored():
+    engine = translator(lambda text: "Zqb를 Zqa할 수 있습니다.")
+    engine.locale = "ko"
+    assert engine.text("You can withdraw from a unit.") == "과목을 철회할 수 있습니다."

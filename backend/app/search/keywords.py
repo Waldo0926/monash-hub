@@ -9,27 +9,44 @@ from __future__ import annotations
 
 import re
 
-UNIT_CODE_RE = re.compile(r"\b([A-Z]{3,4})\s?-?\s?(\d{4})\b", re.IGNORECASE)
+from app.search.normalise import fold
+
+# Bounded by "not a Latin letter or digit" rather than \b. Python's \b treats
+# CJK as word characters, so "FIT2102有考试吗" - typed without a space, the way
+# Chinese is written - had no boundary after the code and found no unit at all.
+# Explicit ASCII ranges instead of \d and IGNORECASE keep full-width digits and
+# Unicode case-fold look-alikes out of the code we hand to the database.
+UNIT_CODE_RE = re.compile(
+    r"(?<![A-Za-z0-9])([A-Za-z]{3,4})\s?-?\s?([0-9]{4})(?![A-Za-z0-9])"
+)
 
 INTENT_KEYWORDS: dict[str, tuple[str, ...]] = {
     "assessment": (
         "exam", "examination", "final", "assessment", "assessments", "hurdle", "weight",
         "考试", "期末", "考核", "作业", "占比", "评估", "有没有考试", "考不考",
+        # Japanese and Korean: the interface speaks both, and its own suggestion
+        # chips ask in them - a chip the router cannot read answers nothing.
+        "試験", "期末試験", "評価", "課題", "配点",
+        "시험", "기말", "기말시험", "평가", "과제", "배점",
     ),
     "requisite": (
         "prerequisite", "prerequisites", "requisite", "pre-req", "prereq", "corequisite",
         "prohibition", "前置", "先修", "前提课", "先决条件", "读之前",
+        "履修条件", "前提科目", "先修科目", "선수과목", "선수 과목", "선수", "이수 조건",
     ),
     "offering": (
         "offering", "offered", "semester", "s1", "s2", "teaching period", "campus",
         "malaysia", "clayton", "caulfield", "开课", "校区", "学期", "马来西亚", "开吗",
+        "開講", "キャンパス", "マレーシア", "개설", "캠퍼스", "학기", "말레이시아",
     ),
     "workload": (
         "workload", "contact hour", "contact hours", "hours", "lecture", "tutorial", "lab",
         "applied session", "workshop", "课时", "工作量", "几个小时", "学时",
+        "授業時間", "学習時間", "学習量", "講義", "수업 시간", "학습량", "강의", "워크로드",
     ),
     "outcomes": (
         "learning outcome", "outcomes", "ulo", "学习成果", "学完能",
+        "学習成果", "학습 성과", "학습성과",
     ),
     "official": (
         "special consideration", "sc", "deferred", "wam", "gpa", "visa", "student visa",
@@ -46,13 +63,16 @@ INTENT_KEYWORDS: dict[str, tuple[str, ...]] = {
 SUBJECTIVE_KEYWORDS: tuple[str, ...] = (
     "hard", "easy", "difficult", "worth it", "recommend", "good", "boring",
     "难不难", "难吗", "简单吗", "容易", "值得", "推荐", "怎么样", "体验",
+    "難しい", "簡単", "おすすめ", "どう", "어렵", "어려운", "쉬운", "추천", "어때",
 )
 
 
 def extract_unit_codes(query: str) -> list[str]:
     """Pull unit codes out of free text. ``fit 2102`` and ``FIT-2102`` both count."""
     seen: list[str] = []
-    for prefix, digits in UNIT_CODE_RE.findall(query or ""):
+    # Folded first, so the ＦＩＴ２１０２ a full-width input method types is the
+    # ASCII code the pattern accepts.
+    for prefix, digits in UNIT_CODE_RE.findall(fold(query)):
         code = f"{prefix.upper()}{digits}"
         if code not in seen:
             seen.append(code)
@@ -66,7 +86,7 @@ def classify_intent(query: str) -> tuple[str | None, list[str]]:
     "contact hours" beats "hours". A tie between intents is broken by the order
     of ``INTENT_KEYWORDS``, which puts the Handbook-backed intents first.
     """
-    text = (query or "").lower()
+    text = fold(query).lower()
     best: tuple[str, int] | None = None
     matched: list[str] = []
     for intent, keywords in INTENT_KEYWORDS.items():
@@ -83,7 +103,7 @@ def classify_intent(query: str) -> tuple[str | None, list[str]]:
 
 
 def is_subjective(query: str) -> bool:
-    text = (query or "").lower()
+    text = fold(query).lower()
     return any(_contains(text, kw) for kw in SUBJECTIVE_KEYWORDS)
 
 
@@ -95,4 +115,4 @@ def _contains(text: str, keyword: str) -> bool:
     """
     if keyword.isascii():
         return re.search(rf"(?<![a-z0-9]){re.escape(keyword)}(?![a-z0-9])", text) is not None
-    return keyword in text
+    return fold(keyword) in text

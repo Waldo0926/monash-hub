@@ -1,0 +1,62 @@
+name: Crawler image
+
+# The crawler image is only ever built on the VPS at deploy time, so a broken
+# Dockerfile, a dependency with no wheel for this Python, or a browser that no
+# longer matches the playwright pin would first show up in production. This
+# builds it the same way, minus the translation models (a hundred megabytes
+# each), and launches the browser once.
+on:
+  pull_request:
+    paths:
+      - crawler/**
+      - backend/requirements.txt
+      - .github/workflows/crawler-image.yml
+  push:
+    branches: [main]
+    paths:
+      - crawler/**
+      - backend/requirements.txt
+      - .github/workflows/crawler-image.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crawler-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the crawler image and launch its browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the image
+        run: >-
+          docker build -f crawler/Dockerfile
+          --build-arg TRANSLATION_LOCALES=
+          -t monash-hub-crawler:ci .
+
+      - name: Launch the browser the image ships
+        run: |
+          docker run --rm monash-hub-crawler:ci python - <<'PY'
+          from playwright.sync_api import sync_playwright
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              page.set_content("<title>ok</title>")
+              assert page.title() == "ok"
+              print("chromium", browser.version)
+              browser.close()
+          PY
+
+      - name: Import the translation stack
+        # argostranslate pulls in compiled packages (ctranslate2, sentencepiece,
+        # torch); this fails fast if one of them has no wheel for the image's
+        # Python.
+        run: >-
+          docker run --rm monash-hub-crawler:ci
+          python -c "import argostranslate.translate, ctranslate2, sentencepiece; print('ok')"

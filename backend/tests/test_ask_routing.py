@@ -1,0 +1,455 @@
+"""The question router against the real seed data, in both languages.
+
+Every official page the crawler indexes and every curated FAQ is loaded here
+exactly as a deploy loads them, then asked the questions that went wrong on the
+live site. The page bodies are not loaded - they are Monash's text, not ours -
+so what these tests pin down is routing on titles, tags and the curated FAQ,
+which is where every one of those wrong answers came from.
+"""
+from __future__ import annotations
+
+from datetime import UTC, datetime
+
+import pytest
+from app.handbook.parser import parse_unit_page, unit_url
+from app.handbook.repository import upsert_unit
+from app.knowledge.faq_seed import FAQ_SEEDS
+from app.knowledge.repository import get_or_create_source, upsert_seed_page
+from app.knowledge.translations_seed import TRANSLATION_SEEDS
+from app.models.community import CommunityPost
+from app.models.curriculum import Course
+from app.models.knowledge import FaqEntry
+from app.models.translation import HUMAN, PUBLISHED, ContentTranslation
+from app.models.user import User
+
+from crawler.official.seeds import SEEDS, SEEDS_BY_SLUG
+
+
+@pytest.fixture
+def seeded(db, handbook_html):
+    source = get_or_create_source(db, "monash", "Monash University", "https://www.monash.edu")
+    pages = {}
+    for seed in SEEDS:
+        page = upsert_seed_page(
+            db, source=source, slug=seed.slug, url=seed.url, title=seed.title,
+            category=seed.category, tags=list(seed.tags), refresh_tier=seed.tier,
+            applies_to=seed.applies_to, curated=seed.curated,
+        )
+        page.status = "ok"
+        page.content_hash = f"hash-{seed.slug}"
+        page.last_checked = datetime.now(UTC)
+        pages[seed.slug] = page
+    for item in FAQ_SEEDS:
+        page = pages.get(item.page_slug)
+        db.add(FaqEntry(
+            slug=item.slug, question=item.question, answer=item.answer,
+            category=item.category, tags=list(item.tags), keywords=list(item.keywords),
+            priority=item.priority, official_page_id=page.id if page else None,
+            official_url=page.canonical_url if page else None,
+        ))
+    for item in TRANSLATION_SEEDS:
+        if item.target_type not in ("faq_entry", "official_page") \
+                or item.field not in ("question", "answer", "title"):
+            continue
+        db.add(ContentTranslation(
+            locale=item.locale, target_type=item.target_type, target_key=item.target_key,
+            field=item.field, text=item.text,
+            data={"strings": item.strings} if item.strings else None,
+            status=PUBLISHED, provenance=HUMAN, translator=item.translator,
+        ))
+    upsert_unit(db, parse_unit_page(handbook_html("FIT2102"), unit_url("FIT2102", 2026)))
+    db.commit()
+    return db
+
+
+def ask(client, query: str, locale: str = "en") -> dict:
+    response = client.post(f"/api/v1/ask?locale={locale}", json={"query": query})
+    assert response.status_code == 200
+    return response.json()
+
+
+def page_slugs(body: dict) -> list[str]:
+    return [item["slug"] for block in body["blocks"] if block["type"] == "page_list"
+            for item in block["items"]]
+
+
+# --- the reported bug and its family -----------------------------------------
+
+@pytest.mark.parametrize("locale", ["en", "zh"])
+@pytest.mark.parametrize("query", ["学生签证续签", "student visa renewal", "签证延期", "怎么续签"])
+def test_renewing_a_visa_is_answered_with_visa_pages(client, seeded, query, locale):
+    body = ask(client, query, locale)
+    assert body["answer_type"] == "official_search"
+    slugs = page_slugs(body)
+    # Either campus's document: Malaysia's Student Pass is 学生签证 too, and with
+    # no campus in the question both are fair answers. The Australian renewal
+    # page (visa-extend) is as much on point as the visa overview.
+    visa_pages = {"student-visa", "visa-extend", "malaysia-student-pass"}
+    assert visa_pages & set(slugs[:4])
+    assert "add-or-withdraw-units" not in slugs
+    assert "special-consideration" not in slugs
+
+
+@pytest.mark.parametrize(
+    "query,slug",
+    [
+        ("学术诚信", "academic-integrity"),
+        ("抄袭", "academic-integrity"),
+        ("plagiarism", "academic-integrity"),
+        # The notice a student gets before an exclusion hearing - more specific
+        # than the academic progress overview it used to land on.
+        ("被劝退", "unsatisfactory-progress"),
+        ("医保", "oshc"),
+        ("学费", "fees"),
+        ("转专业", "study-options-internal-transfer"),
+        ("学分转换", "apply-for-credit"),
+        ("挂科", "failed-units"),
+        ("全日制", "study-load"),
+    ],
+)
+def test_a_topic_reaches_its_official_page_in_either_language(client, seeded, query, slug):
+    """Near the top, not necessarily first: with several hundred pages indexed
+    a Malaysia faculty FAQ on the same topic can rightly rank beside it."""
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert slug in page_slugs(body)[:3]
+
+
+@pytest.mark.parametrize(
+    "query,slug",
+    [
+        ("成绩单", "how-to-get-a-transcript"),
+        ("休学", "apply-for-intermission"),
+        ("延期考试", "defer-a-final-assessment"),
+        ("怎么申请 SC", "how-to-apply-special-consideration"),
+        ("how do I withdraw from a unit", "how-to-withdraw-from-a-unit"),
+        ("还需要申请毕业吗", "automatic-conferral"),
+        ("apply to graduate", "automatic-conferral"),
+    ],
+)
+def test_a_covered_question_gets_its_curated_answer(client, seeded, query, slug):
+    body = ask(client, query)
+    assert body["answer_type"] == "official_faq"
+    assert body["faq_slug"] == slug
+
+
+@pytest.mark.parametrize("query", ["健身房", "gym membership", "篮球场", "滑板车"])
+def test_no_curated_or_official_answer_is_invented(client, seeded, query):
+    """Nothing indexed is about these. The card says so rather than listing
+    pages that happen to use the word.
+
+    "accounting" used to be the example. With Monash Malaysia's IT account
+    pages indexed it no longer can be: Postgres' English stemmer files
+    *accounting* and *account* under one word, so to search they are the same
+    query."""
+    body = ask(client, query)
+    assert body["answer_type"] == "community_fallback"
+
+
+# --- language ------------------------------------------------------------------
+
+def test_the_faq_answer_is_in_the_readers_language(client, seeded):
+    body = ask(client, "我想退课", "zh")
+    assert body["answer_type"] == "official_faq"
+    assert body["title"] == "怎么退选一门课？"
+    assert "WES" in body["blocks"][0]["text"] and "退选" in body["blocks"][0]["text"]
+    assert body["translation"]["unofficial"] is True
+    assert body["caveat_key"] == "answer.caveat.official"
+
+    english = ask(client, "我想退课", "en")
+    assert english["title"] == "How do I withdraw from a unit?"
+    assert english["translation"] is None
+
+
+def test_related_questions_are_offered_in_the_readers_language(client, seeded):
+    body = ask(client, "退课会影响签证吗", "zh")
+    assert body["answer_type"] != "official_faq"
+    assert "怎么退选一门课？" in body["suggestions"]
+
+
+def test_every_sentence_of_ours_carries_a_translation_key(client, seeded):
+    for query in ("FIT2102 exam", "FIT2102 prerequisites", "FIT2102 malaysia",
+                  "FIT2102 workload", "FIT2102 learning outcomes", "FIT2102 难不难"):
+        body = ask(client, query, "zh")
+        assert body["title_key"].startswith("answer."), query
+        for block in body["blocks"]:
+            if block["type"] == "verdict":
+                assert block["key"].startswith("answer."), (query, block)
+            if block["type"] == "table":
+                assert len(block["column_keys"]) == len(block["columns"])
+
+
+@pytest.mark.parametrize("locale", ["en", "zh", "ja", "ko"])
+def test_unit_suggestions_follow_the_language_and_still_route(client, seeded, locale):
+    body = ask(client, "FIT2102", locale)
+    for suggestion in body["suggestions"]:
+        follow = ask(client, suggestion, locale)
+        assert follow["answer_type"].startswith("handbook_"), suggestion
+        assert follow["answer_type"] != "handbook_overview", suggestion
+
+
+@pytest.mark.parametrize(
+    "question,answer_type",
+    [
+        # The unit page's own chips, in every interface language.
+        ("FIT2102 に期末試験はありますか？", "handbook_assessment"),
+        ("FIT2102 の履修条件は何ですか？", "handbook_requisite"),
+        ("FIT2102 はマレーシアで開講されますか？", "handbook_offering"),
+        ("FIT2102에 기말시험이 있나요?", "handbook_assessment"),
+        ("FIT2102의 선수과목은 무엇인가요?", "handbook_requisite"),
+        ("FIT2102는 말레이시아에서 개설되나요?", "handbook_offering"),
+    ],
+)
+def test_japanese_and_korean_questions_route(client, seeded, question, answer_type):
+    assert ask(client, question)["answer_type"] == answer_type
+
+
+# --- unit codes ------------------------------------------------------------------
+
+def test_a_unit_named_in_a_policy_question_does_not_hide_the_policy(client, seeded):
+    body = ask(client, "FIT2102 怎么退课", "zh")
+    assert body["answer_type"] == "official_faq"
+    assert body["faq_slug"] == "how-to-withdraw-from-a-unit"
+    assert {"type": "link", "to": "/units/FIT2102", "label": "FIT2102"} in body["blocks"]
+
+
+def test_an_faq_answer_names_its_official_page(client, seeded):
+    body = ask(client, "怎么退课", "zh")
+    assert body["answer_type"] == "official_faq"
+    seed = next(f for f in FAQ_SEEDS if f.slug == body["faq_slug"])
+    assert body["page_slug"] == seed.page_slug
+    assert client.get(f"/api/v1/guides/{body['page_slug']}").status_code == 200
+
+
+def test_an_answer_for_both_campuses_cites_both(client, seeded):
+    body = ask(client, "休学会影响学生签证吗", "zh")
+    assert body["faq_slug"] == "apply-for-intermission"
+    text = body["blocks"][0]["text"]
+    assert "澳大利亚" in text and "马来西亚" in text and "eVAL" in text
+    # Not one campus's chip on an answer for both.
+    assert body["applies_to"] is None
+    urls = [source["url"] for source in body["sources"]]
+    assert urls[0].startswith("https://www.monash.edu/")
+    assert any(url.startswith("https://www.monash.edu.my/") for url in urls[1:])
+
+
+def test_a_one_campus_answer_keeps_its_campus(client, seeded):
+    body = ask(client, "怎么申请特殊考虑", "zh")
+    assert body["applies_to"] == SEEDS_BY_SLUG[body["page_slug"]].applies_to
+    assert len(body["sources"]) == 1
+
+
+def test_a_code_that_does_not_exist_says_so(client, seeded):
+    body = ask(client, "FIT9999 有考试吗")
+    assert body["answer_type"] == "unit_not_found"
+    assert body["title_params"]["code"] == "FIT9999"
+
+
+def test_a_year_is_not_a_unit_code(client, seeded):
+    assert ask(client, "year 2026 fees")["answer_type"] != "unit_not_found"
+
+
+def test_the_handbook_year_is_the_units_year(client, seeded):
+    body = ask(client, "does FIT2102 have an exam")
+    assert body["blocks"][0]["params"]["year"] == 2026
+    assert "2026 Handbook" in body["blocks"][0]["text"]
+
+
+# --- asked from a unit page ----------------------------------------------------
+
+def ask_on_page(client, query: str, code: str | None, locale: str = "en") -> dict:
+    response = client.post(f"/api/v1/ask?locale={locale}",
+                           json={"query": query, "unit_code": code})
+    assert response.status_code == 200
+    return response.json()
+
+
+@pytest.mark.parametrize(("query", "locale"), [
+    ("How good is this unit?", "en"),
+    ("is it hard", "en"),
+    ("这门课难不难", "zh"),
+])
+def test_an_opinion_asked_on_the_unit_page_is_about_that_unit(client, seeded, query, locale):
+    # The reported bug: no code in the question, so it never reached the
+    # subjective answer even though the reader was on the FIT2102 page.
+    body = ask_on_page(client, query, "FIT2102", locale)
+    assert body["answer_type"] == "subjective"
+    assert body["unit_code"] == "FIT2102"
+
+
+def test_a_handbook_question_without_a_code_uses_the_page(client, seeded):
+    body = ask_on_page(client, "Is there a final exam?", "FIT2102")
+    assert body["answer_type"] == "handbook_assessment"
+    assert body["unit_code"] == "FIT2102"
+
+
+def test_the_same_question_off_the_page_names_no_unit(client, seeded):
+    body = ask(client, "How good is this unit?")
+    assert body["answer_type"] != "subjective"
+    assert body["unit_code"] is None
+
+
+def test_a_code_in_the_question_beats_the_page(client, seeded):
+    body = ask_on_page(client, "does FIT2102 have an exam", "FIT1045")
+    assert body["unit_code"] == "FIT2102"
+    assert body["answer_type"] == "handbook_assessment"
+
+
+def test_a_policy_question_on_the_page_still_gets_the_policy(client, seeded):
+    body = ask_on_page(client, "怎么退课", "FIT2102", "zh")
+    assert body["answer_type"] == "official_faq"
+    assert body["faq_slug"] == "how-to-withdraw-from-a-unit"
+
+
+def test_an_unmatched_question_on_the_page_is_not_a_link_back_to_it(client, seeded):
+    body = ask_on_page(client, "student visa renewal", "FIT2102")
+    assert body["answer_type"] != "handbook_overview"
+
+
+@pytest.mark.parametrize("code", ["", "not a code", "FIT2102 FIT1045", "drop table x"])
+def test_a_page_code_that_is_not_one_unit_is_ignored(client, seeded, code):
+    body = ask_on_page(client, "How good is this unit?", code)
+    assert body["unit_code"] is None
+
+
+# --- search beyond the answer card ---------------------------------------------
+
+def test_a_chinese_degree_search_finds_the_english_title(client, seeded):
+    seeded.add(Course(course_code="B2001", academic_year=2026, title="Bachelor of Commerce",
+                      is_active=True, campuses=["Clayton"],
+                      source_url="https://handbook.monash.edu/2026/courses/B2001",
+                      content_hash="b"))
+    seeded.add(Course(course_code="C2001", academic_year=2026,
+                      title="Bachelor of Computer Science", is_active=True, campuses=["Clayton"],
+                      source_url="https://handbook.monash.edu/2026/courses/C2001",
+                      content_hash="c"))
+    seeded.commit()
+    body = client.get("/api/v1/search", params={"q": "商科学士"}).json()
+    degrees = next(g for g in body["groups"] if g["kind"] == "degrees")
+    assert [c["course_code"] for c in degrees["results"]] == ["B2001"]
+
+
+def test_community_search_crosses_languages(client, seeded):
+    user = User(email="a@example.com", nickname="a", password_hash="x")
+    seeded.add(user)
+    seeded.flush()
+    seeded.add(CommunityPost(author_id=user.id, title="退课之后学费还要交吗",
+                             body="过了截止日期再退课会怎样", category="enrolment"))
+    seeded.add(CommunityPost(author_id=user.id, title="How do I withdraw?",
+                             body="Asking for a friend", category="enrolment"))
+    seeded.commit()
+
+    def titles(q):
+        body = client.get("/api/v1/search", params={"q": q}).json()
+        return {p["title"] for p in next(g for g in body["groups"]
+                                         if g["kind"] == "community")["results"]}
+
+    assert titles("withdraw") == {"退课之后学费还要交吗", "How do I withdraw?"}
+    assert titles("退课") == {"退课之后学费还要交吗", "How do I withdraw?"}
+    assert "退课之后学费还要交吗" in titles("退课截止日期")
+
+
+def test_like_wildcards_in_a_query_are_literal(client, seeded):
+    body = client.get("/api/v1/units", params={"q": "%"}).json()
+    assert body["total"] == 0
+    body = client.get("/api/v1/units", params={"q": "_IT2102"}).json()
+    assert body["total"] == 0
+
+
+def test_the_faq_group_lists_only_triggered_entries(client, seeded):
+    body = client.get("/api/v1/search", params={"q": "学生签证续签"}).json()
+    faq = next(g for g in body["groups"] if g["kind"] == "faq")
+    assert "how-to-withdraw-from-a-unit" not in [f["slug"] for f in faq["results"]]
+
+
+def test_the_guides_group_lists_pages_about_the_query(client, seeded):
+    body = client.get("/api/v1/search", params={"q": "学术诚信"}).json()
+    guides = next(g for g in body["groups"] if g["kind"] == "official")
+    assert guides["results"][0]["slug"] == "academic-integrity"
+
+
+@pytest.mark.parametrize(
+    "query,part", [("scholarship", "scholarship"), ("奖学金", "scholarship"),
+                   ("图书馆", "library"), ("library", "library")],
+)
+def test_newly_indexed_topics_are_findable(client, seeded, query, part):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert any(part in slug for slug in page_slugs(body))
+
+
+@pytest.mark.parametrize(
+    "query,slug",
+    [
+        # A campus named in the question narrows it to that campus.
+        ("马莫怎么交学费", "malaysia-application-form-fee-payment-methods"),
+        ("how do I pay fees at Monash Malaysia", "malaysia-application-form-fee-payment-methods"),
+        # Some things only one campus has: a student pass is Malaysia's.
+        ("学生准证续签", "malaysia-student-pass"),
+        ("马莫学生签证续签", "malaysia-student-pass"),
+        ("student pass", "malaysia-student-pass"),
+        ("Student Pass", "malaysia-student-pass"),
+        # Both campuses named: they come out of the query and narrow nothing.
+        ("转校区 马来西亚 澳洲", "study-options-internal-transfer"),
+    ],
+)
+def test_a_campus_in_the_question_finds_that_campuss_page(client, seeded, query, slug):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert slug in page_slugs(body)[:3]
+
+
+@pytest.mark.parametrize(
+    "query", ["转专业", "转专业是符合转的要求就可以还是择优录取啊", "ICP"])
+def test_a_malaysia_reader_gets_malaysias_course_transfer_page(client, seeded, query):
+    """The Malaysia group chat bot passes campus=malaysia. Before it could, 转专业
+    from a Malaysia student was answered with the Australian admissions page."""
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"}, json={"query": query, "campus": "malaysia"},
+    ).json()
+    assert body["answer_type"] == "official_search"
+    slugs = page_slugs(body)
+    assert "malaysia-apply-internal-course-transfer" in slugs[:2]
+    assert "study-options-internal-transfer" not in slugs[:2]
+
+
+def test_a_malaysia_reader_never_gets_australia_only_pages(client, seeded):
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"}, json={"query": "转校区", "campus": "malaysia"},
+    ).json()
+    slugs = page_slugs(body)
+    assert slugs
+    assert all(SEEDS_BY_SLUG[slug].applies_to in ("malaysia", "all") for slug in slugs)
+
+
+def test_a_campus_in_the_question_beats_the_one_passed(client, seeded):
+    body = client.post(
+        "/api/v1/ask", params={"locale": "zh"},
+        json={"query": "马莫转专业", "campus": "australia"},
+    ).json()
+    assert page_slugs(body)[0] == "malaysia-apply-internal-course-transfer"
+
+
+def test_a_page_titled_with_the_whole_query_comes_first(client, seeded):
+    body = ask(client, "student pass", "en")
+    assert page_slugs(body)[0] == "malaysia-student-pass"
+
+
+def test_a_chinese_query_puts_the_page_with_it_in_its_chinese_title_first(client, seeded):
+    """学生签证（Student Pass） before "Peer Assisted Study Session (PASS)", which
+    the English expansion of 学生签证 to "student pass" also reaches."""
+    slugs = page_slugs(ask(client, "马莫学生签证", "zh"))
+    assert slugs[0] == "malaysia-student-pass"
+
+
+def test_a_campus_named_never_brings_the_other_campuss_pages(client, seeded):
+    body = client.get("/api/v1/guides", params={"q": "马莫 缴费"}).json()
+    assert body["results"]
+    assert {g["applies_to"] for g in body["results"]} <= {"malaysia", "all"}
+
+
+@pytest.mark.parametrize("query", ["课程地图", "course map", "IT 2027 课程地图", "修读顺序"])
+def test_course_maps_are_findable(client, seeded, query):
+    body = ask(client, query, "zh")
+    assert body["answer_type"] == "official_search"
+    assert any(slug.endswith("course-maps") for slug in page_slugs(body))

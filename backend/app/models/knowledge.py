@@ -7,6 +7,7 @@ the product's whole trust story is that a reader can tell them apart.
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Computed,
     DateTime,
     ForeignKey,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
@@ -91,6 +93,15 @@ class OfficialPage(Base):
     #   ``malaysia``  - from monash.edu.my
     #   ``all``       - the page itself says it covers every campus
     applies_to: Mapped[str] = mapped_column(String(16), default="australia", index=True)
+    #: Monash shows this page only after sign-in. It is listed - title, a
+    #: description written here, the link - and its text is never fetched or
+    #: copied: what Monash keeps behind its login is not ours to republish.
+    requires_sign_in: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    #: Picked by hand for the seed list, rather than found by the sitemap
+    #: coverage. Among pages that match a question equally, these come first:
+    #: with three thousand pages listed, 全日制 found a science honours FAQ
+    #: ("Can I study honours part-time?") before the study load page.
+    curated: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     # ``dynamic`` pages (dates, deadlines) are re-checked far more often than
     # ``stable`` policy text; see crawler/sync/refresh.py.
@@ -115,9 +126,13 @@ class OfficialPage(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(title, '') || ' ' || "
-            "coalesce(summary, '') || ' ' || coalesce(category, '') || ' ' || "
-            "coalesce(clean_text, ''))",
+            # Weighted, so a page *about* a word outranks one that mentions it:
+            # title A, summary B, category C, body D. See HEADLINE_WEIGHTS in
+            # app/search/service.py for the query that relies on this.
+            "setweight(to_tsvector('english', coalesce(title, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(summary, '')), 'B') || "
+            "setweight(to_tsvector('english', coalesce(category, '')), 'C') || "
+            "setweight(to_tsvector('english', coalesce(clean_text, '')), 'D')",
             persisted=True,
         ),
     )
@@ -174,7 +189,8 @@ class FaqEntry(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(question, '') || ' ' || coalesce(answer, ''))",
+            "setweight(to_tsvector('english', coalesce(question, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(answer, '')), 'D')",
             persisted=True,
         ),
     )

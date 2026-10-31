@@ -49,7 +49,7 @@ async function submit() {
     })
     navigateTo(`/community/post/${post.id}`)
   } catch (e: any) {
-    submitError.value = e?.data?.detail || 'Could not post that. Check the title and body length.'
+    submitError.value = apiErrorMessage(e, $t)
   } finally {
     submitting.value = false
   }

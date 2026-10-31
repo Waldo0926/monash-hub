@@ -13,8 +13,15 @@
  * a tab has to be able to tell this apart from an official Monash page, and the
  * footer disclaimer cannot do that job on its own.
  *
- * `tone` picks how it sits on its background: `onDark` for the header, `onLight`
- * anywhere the page is white.
+ * `tone` picks how it sits on its background:
+ *
+ * - `onDark` on a brand-blue surface, where the tile is a lift of white and
+ *   the blue underneath it is the surface's own. (The header used to be one;
+ *   it is white now and uses `onLight`.)
+ * - `onLight` anywhere the page is light, the header and footer included.
+ *
+ * There was an `onDeep` for the deep-navy footer. The footer is light now, so
+ * it went with it.
  */
 withDefaults(
   defineProps<{

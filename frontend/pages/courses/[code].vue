@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * One degree, as the requirement outline the Handbook actually publishes.
  *
@@ -19,19 +20,42 @@ const { $t } = useNuxtApp()
 
 const code = computed(() => String(route.params.code).toUpperCase())
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
+const { year, withYear, setYear } = useHandbookYear()
 
 const { data: course, error } = await useLocalisedApiFetch<any>(
-  () => `/v1/courses/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`,
-  { watch: [campus] }
+  () => withYear(`/v1/courses/${code.value}${campus.value ? `?campus=${campus.value}` : ''}`),
+  { watch: [campus, year] }
 )
+useErrorStatus(error)
 
 watch(campus, () => {
-  router.replace({ query: campus.value ? { campus: campus.value } : {} })
+  // Kept apart from the year: changing campus must not drop `?year=`.
+  const query = { ...route.query }
+  if (campus.value) query.campus = campus.value
+  else delete query.campus
+  router.replace({ query })
 })
 
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+/** The newest year that lists it is the default, so choosing it clears `?year=`. */
+function pickYear(y: number) {
+  setYear(y === course.value?.available_years?.[0] ? null : y)
+}
+
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
+
+// "Plan this degree": open the course map with this degree picked. A plan
+// that is empty, or already for this degree, is reused. One that has units in
+// it for a different degree is left as it is and a new plan is started, so
+// looking at another degree never rewires the plan a student already made.
+const { plan, create } = usePlan()
+function planThis() {
+  const busy = plan.value.entries.length && plan.value.courseCode && plan.value.courseCode !== code.value
+  if (busy) create(code.value)
+  plan.value.courseCode = code.value
+  if (campus.value) plan.value.campus = campus.value
+  navigateTo('/plan')
+}
 
 const elsewhereTotal = computed(() => {
   const facts = course.value?.units || {}
@@ -47,12 +71,23 @@ function isOpen(id: number, depth: number) {
 }
 
 useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : code.value }))
+useSeoMeta({
+  description: () =>
+    course.value
+      ? `${code.value} ${course.value.title}: structure, requirements and the units in it, from the ${course.value.academic_year} Monash Handbook.`
+      : undefined
+})
 </script>
 
 <template>
   <div class="page">
     <ErrorState v-if="error" :error="error" />
     <template v-else-if="course">
+      <YearNotice v-if="course.not_in_year" :code="course.course_code" :year="course.academic_year" :missing="course.not_in_year" />
+      <IntakeYearNotice :year="course.academic_year" :closed="Object.values(course.units || {}).some((u: any) => !u.in_year)" />
+      <p v-if="course.is_active === false" class="withdrawn small" role="status">
+        {{ $t('handbook.withdrawn', { code: course.course_code, year: course.academic_year }) }}
+      </p>
       <header class="head">
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ course.title }}</h1>
@@ -67,21 +102,31 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
           <div v-if="course.faculty"><dt>{{ $t('courses.faculty') }}</dt><dd>{{ course.faculty }}</dd></div>
           <div v-if="course.campuses?.length"><dt>{{ $t('tree.campus') }}</dt><dd>{{ course.campuses.join(' · ') }}</dd></div>
         </dl>
+        <button class="btn plan-this" type="button" @click="planThis">{{ $t('courses.planThis') }}</button>
       </header>
 
       <div class="bar">
         <label class="campus">
           <span>{{ $t('courses.viewAs') }}</span>
           <select v-model="campus" class="input">
-            <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-            <option value="Clayton">Clayton</option>
+            <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
         </label>
+        <YearPicker
+          v-if="(course.available_years || []).length > 1"
+          :model-value="course.academic_year"
+          :years="course.available_years"
+          @update:model-value="pickYear"
+        />
         <p v-if="campus && elsewhereTotal" class="warn">
           {{ $t('courses.notHere', { n: elsewhereTotal, campus: campusLabel }) }}
         </p>
       </div>
+
+      <!-- The fees are Malaysia campus fees, so the card goes away when the page
+           is read as another campus. -->
+      <TuitionCard v-if="course.tuition && (!campus || campus === 'Malaysia')" :fee="course.tuition" />
 
       <p v-if="course.overview" class="overview">{{ course.overview }}</p>
 
@@ -94,6 +139,7 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
           :units="course.units"
           :campus="campus"
           :depth="0"
+          :year="course.academic_year"
           :open="isOpen(node.id, 0)"
           @toggle="toggle"
         />
@@ -103,7 +149,7 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
         <h2>{{ $t('courses.areasOfStudy') }}</h2>
         <ul>
           <li v-for="a in course.areas_of_study" :key="a.code">
-            <NuxtLink :to="`/courses/aos/${a.code}`">
+            <NuxtLink :to="withYear(`/courses/aos/${a.code}`)">
               <span class="code">{{ a.code }}</span>
               <span>{{ a.title }}</span>
               <span class="muted">{{ a.aos_type }}<template v-if="a.credit_points"> · {{ a.credit_points }} cp</template></span>
@@ -118,9 +164,14 @@ useHead(() => ({ title: course.value ? `${code.value} ${course.value.title}` : c
 </template>
 
 <style scoped>
+.withdrawn {
+  margin: 0 0 var(--s3); padding: var(--s3) var(--s4); border-radius: var(--radius-sm);
+  background: var(--warning-bg); color: var(--warning);
+}
 .page { max-width: 900px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .crumb { margin: 0 0 var(--s2); font-size: 0.85rem; }
 .head h1 { margin: 0 0 var(--s2); }
+.plan-this { margin: var(--s4) 0 var(--s3); }
 .sub { display: flex; gap: var(--s3); align-items: baseline; margin: 0 0 var(--s4); color: var(--muted); }
 .code { font: 600 0.9rem var(--font-mono); color: var(--navy); }
 

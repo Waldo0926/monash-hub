@@ -98,9 +98,9 @@ def _page(db, slug="intermission", title="Intermission (study leave)"):
     return page
 
 
-def _translate(db, target_type, key, strings):
+def _translate(db, target_type, key, strings, *, field="body"):
     db.add(ContentTranslation(
-        locale="zh", target_type=target_type, target_key=key, field="body",
+        locale="zh", target_type=target_type, target_key=key, field=field,
         status=PUBLISHED, data={"strings": strings},
     ))
     db.commit()
@@ -178,6 +178,39 @@ def test_a_chinese_query_finds_a_unit_by_its_translation(db):
     assert found[0].unit_code == "FIT1008"
 
 
+def test_a_translated_unit_title_is_searchable_before_reindex(db):
+    """A newly deployed title correction must not wait for a manual index job."""
+    _unit(db, code="FIT2004", title="Algorithms and data structures")
+    _translate(
+        db,
+        UNIT,
+        "FIT2004",
+        {"Algorithms and data structures": "算法和数据结构"},
+        field="content",
+    )
+
+    found, total = service.search_units(db, "算法和数据结构", year=2026)
+    assert total == 1
+    assert found[0].unit_code == "FIT2004"
+
+
+def test_an_exact_chinese_unit_title_outranks_prose_that_mentions_it(db):
+    _unit(db, code="FIT2004", title="Algorithms and data structures")
+    noisy = _unit(db, code="FIT9998", title="Unrelated translated unit")
+    noisy.search_zh = "这段课程说明提到了算法和数据结构，但这不是课程名称"
+    _translate(
+        db,
+        UNIT,
+        "FIT2004",
+        {"Algorithms and data structures": "算法和数据结构"},
+        field="content",
+    )
+    db.commit()
+
+    found, _total = service.search_units(db, "算法和数据结构", year=2026)
+    assert found[0].unit_code == "FIT2004"
+
+
 def test_a_chinese_query_finds_a_page_through_the_glossary_alone(db):
     """No translation stored at all - the expansion does the work.
 
@@ -202,6 +235,25 @@ def test_a_chinese_query_finds_a_page_by_its_translated_body(db):
     found, total = service.search_official(db, "退款")
     assert total == 1
     assert found[0].slug == "fees"
+
+
+def test_a_translated_guide_title_is_searchable_before_reindex(db):
+    page = _page(db, slug="special-consideration", title="Special consideration")
+    db.add(
+        ContentTranslation(
+            locale="zh",
+            target_type=OFFICIAL_PAGE,
+            target_key=page.slug,
+            field="title",
+            text="特殊考虑",
+            status=PUBLISHED,
+        )
+    )
+    db.commit()
+
+    found, total = service.search_official(db, "特殊考虑")
+    assert total == 1
+    assert found[0].slug == "special-consideration"
 
 
 def test_an_untranslated_unit_is_not_found_by_chinese_prose(db):
@@ -235,3 +287,39 @@ def test_a_chinese_query_does_not_break_the_empty_case(db):
     _unit(db)
     found, total = service.search_units(db, "", year=2026)
     assert total == 1 and len(found) == 1
+
+
+def _about(db, slug, title, *, summary=None, tags=()):
+    source = db.query(OfficialSource).filter_by(key="monash-students").one_or_none()
+    if source is None:
+        source = OfficialSource(key="monash-students", name="Monash", base_url="https://x.invalid")
+        db.add(source)
+        db.flush()
+    page = OfficialPage(
+        source_id=source.id, slug=slug, canonical_url=f"https://x.invalid/{slug}", title=title,
+        summary=summary, category="enrolment", status="ok", tags=list(tags),
+    )
+    db.add(page)
+    db.commit()
+    return page
+
+
+def test_a_curated_tag_outranks_a_page_that_only_mentions_the_words(db):
+    """转专业 led with a pharmacy page whose summary happened to say "change course"; the page
+    someone tagged 转专业 is the answer."""
+    _about(db, "pharmacy", "Change course advice - Pharmacy current students",
+           summary="Change course, change course and change enrolment information.")
+    _about(db, "ict", "Internal course transfer", tags=["转专业", "course transfer"])
+
+    found, _ = service.search_official(db, "转专业", strong_only=True)
+    assert [p.slug for p in found][:2] == ["ict", "pharmacy"]
+
+
+def test_a_page_titled_with_a_past_year_goes_after_current_ones(db):
+    """考试时间表 led with "Principal dates (2022)"."""
+    _about(db, "dates-2022", "Exam timetable and exam dates (2022)",
+           summary="Exam timetable, exam dates and final assessment dates for 2022.")
+    _about(db, "final-dates", "Final assessment dates", summary="When final assessments are held.")
+
+    found, _ = service.search_official(db, "考试时间表", strong_only=True)
+    assert [p.slug for p in found] == ["final-dates", "dates-2022"]

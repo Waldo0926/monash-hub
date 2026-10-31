@@ -1,11 +1,14 @@
 """The degree endpoints.
 
-Built on the real C2001 and DATASCI11 fixtures, plus a handful of units, so the
-assertions are about the shape a reader meets rather than about invented data.
+These tests use compact synthetic fixtures that preserve the upstream Handbook
+shapes the API must handle: nested requirement groups, specialisations, campus
+offerings, missing units and free-elective parts. They deliberately avoid
+storing complete copies of third-party Handbook pages.
 """
 from __future__ import annotations
 
 import pytest
+from app.api.v1.courses import _is_free_elective
 from app.handbook.course_parser import (
     aos_url,
     course_url,
@@ -39,7 +42,7 @@ def degrees(db, handbook_html):
     upsert_area_of_study(
         db, parse_aos_page(handbook_html("aos-DATASCI11"), aos_url("DATASCI11", 2026))
     )
-    # Two of Part A's units, one taught here and one not.
+    # Two units referenced by the synthetic Part A fixture, one taught here and one not.
     _unit(db, "FIT1045", "Introduction to programming", ("Malaysia", "Clayton"))
     _unit(db, "FIT1047", "Introduction to computer systems", ("Clayton",))
     db.commit()
@@ -53,6 +56,7 @@ def test_the_picker_lists_a_degree_with_what_you_choose_it_by(client, degrees):
     assert row["course_code"] == "C2001"
     assert row["credit_points"] == 144
     assert row["duration_years"] == 3
+    assert row["course_type_raw"] == "UG specialist"
     assert set(row["campuses"]) == {"Clayton", "Malaysia"}
 
 
@@ -97,10 +101,22 @@ def test_a_unit_the_campus_does_not_teach_is_marked_in_the_degree(client, degree
     assert body["units"]["FIT1047"]["offered_at_campus"] is False
 
 
-def test_a_unit_missing_from_the_year_is_reported_not_omitted(client, degrees):
-    """Part A names seven units and only two are loaded here.
+def test_a_malaysia_degree_carries_the_fee_from_the_indexed_page(client, degrees):
+    from tests.test_tuition import _store
 
-    The rest have to come back as "not in this year" rather than absent, or the
+    assert client.get("/api/v1/courses/C2001").json()["tuition"] is None
+    _store(degrees)
+    fee = client.get("/api/v1/courses/C2001").json()["tuition"]
+    assert fee["year"] == 2027
+    row = fee["rows"][0]
+    assert (row["domestic"][0]["value"], row["international"][0]["value"]) == (48480, 57600)
+    assert row["basis"] == "per_year"
+
+
+def test_a_unit_missing_from_the_year_is_reported_not_omitted(client, degrees):
+    """The synthetic Part A names units that are not loaded into this test database.
+
+    They must come back as "not in this year" rather than disappearing, or the
     page renders a requirement with holes in it and no explanation.
     """
     body = client.get("/api/v1/courses/C2001").json()
@@ -130,11 +146,6 @@ def test_the_filters_come_from_the_data(client, degrees):
 
 
 # --- a part that asks for a specialisation --------------------------------
-#
-# "Part C. Specialist studies" reported 0/36 for a student who had planned the
-# whole specialisation. The part does not list units at all - it lists the four
-# specialisations on offer - and a plan holds unit codes, so nothing downstream
-# could ever match FIT2102 against ALGSFTWR01.
 
 def test_a_specialisation_carries_the_units_inside_it(client, degrees):
     body = client.get("/api/v1/courses/C2001").json()
@@ -147,8 +158,7 @@ def test_a_specialisation_carries_the_units_inside_it(client, degrees):
 
 
 def test_part_c_names_specialisations_not_units(client, degrees):
-    """The shape that caused the bug, pinned so a refactor cannot quietly undo
-    the fix by changing what Part C contains."""
+    """A specialisation requirement must remain a specialisation, not a unit list."""
     body = client.get("/api/v1/courses/C2001").json()
     part_c = next(c for c in body["containers"] if "Specialist" in (c["title"] or ""))
     kinds = {item["type"] for item in part_c["items"]}
@@ -157,9 +167,115 @@ def test_part_c_names_specialisations_not_units(client, degrees):
 
 
 def test_the_facts_map_covers_the_specialisation_units(client, degrees):
-    """A planned unit with no entry here contributes zero credit points, which
-    is the same wrong answer by a different route."""
+    """A planned unit with no facts entry would incorrectly contribute zero credit."""
     body = client.get("/api/v1/courses/C2001").json()
     by_code = {a["code"]: a for a in body["areas_of_study"]}
     for code in by_code["DATASCI11"]["unit_codes"]:
         assert code in body["units"], code
+
+
+# --- free elective parts --------------------------------------------------
+@pytest.mark.parametrize(
+    ("title", "description", "expected"),
+    [
+        ("Part E. Free elective studies", "48 credit points of free electives", True),
+        ("Part D. Free electives", "", True),
+        ("Part D. Elective studies", "select any units from across the University", True),
+        ("Part B. Specified elective studies", "from the following elective units", False),
+        ("Discipline elective studies", "the units listed below", False),
+        ("Part A. Foundation studies", "units from across the University", False),
+        ("Rules", "you may take units from across the University", False),
+        ("Course requirements", "across the University", False),
+        (None, "across the University", False),
+    ],
+)
+def test_a_part_that_counts_anything_is_told_apart_from_one_that_lists(
+    title, description, expected
+):
+    assert _is_free_elective(title, description) is expected
+
+
+def test_the_flag_reaches_the_planner(client, degrees):
+    """The API must carry the free-elective flag into the planner payload."""
+    body = client.get("/api/v1/courses/C2001").json()
+    assert all("free_elective" in part for part in body["containers"])
+    part_e = next(c for c in body["containers"] if "Free elective" in (c["title"] or ""))
+    assert part_e["free_elective"] is True
+    part_a = next(c for c in body["containers"] if "Foundation" in (c["title"] or ""))
+    assert part_a["free_elective"] is False
+
+
+def test_a_unit_missing_from_the_year_keeps_its_name_from_another_year(client, degrees):
+    """The degree still lists FIT1049; only the 2025 Handbook has it, with a title.
+
+    It stays "not in this year", but the line is no longer the bare English the
+    degree page printed - that is what left ~139 lines of a degree untranslated
+    after the Handbook moved on.
+    """
+    unit = Unit(
+        unit_code="FIT1049", academic_year=2025, title="Introduction to IT", credit_points=6,
+        source_url="https://handbook.monash.edu/2025/units/FIT1049", content_hash="h-1049",
+    )
+    degrees.add(unit)
+    degrees.commit()
+    fact = client.get("/api/v1/courses/C2001").json()["units"]["FIT1049"]
+    assert fact["in_year"] is False
+    assert fact["title"] == "Introduction to IT"
+    # The page offers to open it in the years that do have it.
+    assert fact["years"] == [2025]
+
+
+def test_a_specialisation_line_uses_the_title_its_own_page_has_in_chinese(client, degrees):
+    """Part C names DATASCI11 by the English the structure printed; the area of
+    study's page has a reviewed Chinese title, and the line must show it."""
+    from app.models.translation import AREA_OF_STUDY, HUMAN, ContentTranslation
+
+    degrees.add(ContentTranslation(
+        locale="zh", target_type=AREA_OF_STUDY, target_key="DATASCI11", field="title",
+        text="数据科学", provenance=HUMAN,
+    ))
+    degrees.commit()
+    zh = client.get("/api/v1/courses/C2001", params={"locale": "zh"}).json()
+    part_c = next(c for c in zh["containers"] if "Specialist" in (c["title"] or "")
+                  or "专" in (c["title"] or ""))
+    named = {i["code"]: i["name"] for i in part_c["items"]}
+    assert named["DATASCI11"] == "数据科学"
+    en = client.get("/api/v1/courses/C2001").json()
+    part_c_en = next(c for c in en["containers"] if "Specialist" in (c["title"] or ""))
+    assert {i["code"]: i["name"] for i in part_c_en["items"]}["DATASCI11"] != "数据科学"
+
+
+def test_a_unit_page_names_the_areas_of_study_that_list_it(client, degrees):
+    _unit(degrees, "FIT2101", "Synthetic core unit", ("Malaysia",))
+    _unit(degrees, "FIT3101", "Synthetic elective", ("Malaysia",))
+    degrees.commit()
+
+    core = client.get("/api/v1/units/FIT2101").json()["areas"]
+    assert [a["aos_code"] for a in core] == ["DATASCI11"]
+    assert core[0]["parts"] == ["Core units"]
+
+    elective = client.get("/api/v1/units/FIT3101").json()["areas"]
+    assert elective[0]["parts"] == ["Level 3 elective units"]
+
+
+def test_a_unit_no_area_lists_has_none(client, degrees):
+    assert client.get("/api/v1/units/FIT1047").json()["areas"] == []
+
+
+def test_a_unit_page_names_the_part_in_the_areas_own_wording(client, degrees):
+    """"Level 3 elective units" sat in English under every major on a Chinese
+    unit page, while the major's own page showed the Chinese."""
+    from app.models.translation import AREA_OF_STUDY, MACHINE, PUBLISHED, ContentTranslation
+
+    _unit(degrees, "FIT3101", "Synthetic elective", ("Malaysia",))
+    degrees.add(ContentTranslation(
+        locale="zh", target_type=AREA_OF_STUDY, target_key="DATASCI11", field="content",
+        data={"strings": {"Level 3 elective units": "三年级选修课"}},
+        status=PUBLISHED, provenance=MACHINE,
+    ))
+    degrees.commit()
+
+    zh = client.get("/api/v1/units/FIT3101", params={"locale": "zh"}).json()["areas"]
+    assert zh[0]["parts"] == ["三年级选修课"]
+    en = client.get("/api/v1/units/FIT3101").json()["areas"]
+    assert en[0]["parts"] == ["Level 3 elective units"]

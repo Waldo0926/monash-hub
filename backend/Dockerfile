@@ -1,6 +1,6 @@
 # API image. Also used by the crawler service, which runs the same code with a
 # different command - see crawler/Dockerfile for the browser-enabled variant.
-FROM python:3.12-slim AS base
+FROM python:3.14-slim AS base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -19,6 +19,11 @@ COPY crawler /srv/crawler
 ENV PYTHONPATH=/srv/backend:/srv
 
 WORKDIR /srv/backend
+
+# The commit being built, so /api/health can report it. Compose passes it from
+# APP_COMMIT in the environment; deploy.sh sets that to the SHA it checked out.
+ARG APP_COMMIT=""
+ENV APP_COMMIT=$APP_COMMIT
 
 # Runs unprivileged. Nothing here needs to write to the image.
 RUN useradd --system --create-home --uid 10001 monashhub && chown -R monashhub /srv

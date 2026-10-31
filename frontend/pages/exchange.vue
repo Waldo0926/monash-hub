@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { $t } = useNuxtApp()
-const { data } = await useLocalisedApiFetch<any>('/v1/exchange')
+const { data } = await useApiFetch<{ topics: { key: string }[] }>('/v1/exchange')
 
 useSeoMeta({
   title: () => $t('exchange.metaTitle'),
@@ -13,10 +13,9 @@ useSeoMeta({
   <div class="container narrow">
     <h1>{{ $t('exchange.title') }}</h1>
     <div class="card section">
-      <p>{{ data?.summary }}</p>
-      <p class="tiny muted">{{ $t('exchange.planned', { stage: data?.stage || '' }) }}</p>
+      <p>{{ $t('exchange.summary') }}</p>
       <ul>
-        <li v-for="topic in data?.topics || []" :key="topic.key">{{ topic.label }}</li>
+        <li v-for="topic in data?.topics || []" :key="topic.key">{{ $t(`exchange.topic.${topic.key}`) }}</li>
       </ul>
       <p class="small">
         {{ $t('exchange.note') }}

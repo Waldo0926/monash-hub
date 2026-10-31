@@ -9,8 +9,11 @@ from __future__ import annotations
 import pytest
 from app.knowledge.glossary import (
     ENUMS,
+    GENERAL,
     KEEP_IN_ENGLISH,
     LOCALES,
+    STRUCTURE,
+    STRUCTURE_TERMS,
     TERMS,
     has_verbatim,
     is_only_placeholders,
@@ -185,6 +188,11 @@ def test_prose_still_needs_the_model():
         ("Level 2", "第 2 级"),
         ("First semester", "第一学期"),
         ("Quiz / Test", "小测 / 测验"),
+        ("Masters by research", "研究型硕士学位"),
+        ("PG Masters", "授课型硕士学位"),
+        ("PG Grad Cert / Grad Dip", "研究生证书／研究生文凭"),
+        ("UG diploma", "本科文凭"),
+        ("Doctorate by research", "研究型博士学位"),
     ],
 )
 def test_closed_list_values_are_exact(value, expected):
@@ -198,6 +206,31 @@ def test_an_unknown_value_has_no_agreed_wording():
 def test_institution_names_are_left_in_english():
     # A student looking for the building needs the name on the building.
     assert whole_value("Bendigo", "zh") == "Bendigo"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("Level 7 - Bachelor Degree / Level 7 - Bachelor Degree", "第 7 级 · 学士学位"),
+        (
+            "Level 8 - Bachelor Honours Degree / Level 7 - Bachelor Degree",
+            "第 8 级 · 荣誉学士学位 / 第 7 级 · 学士学位",
+        ),
+        # Whole values that happen to contain the separator are still whole values.
+        ("Quiz / Test", "小测 / 测验"),
+        ("PG Grad Cert / Grad Dip", "研究生证书／研究生文凭"),
+        # Half known is not known.
+        ("Level 7 - Bachelor Degree / Level 11 - Something new", None),
+    ],
+)
+def test_a_double_degree_level_is_translated_half_by_half(value, expected):
+    assert whole_value(value, "zh") == expected
+
+
+def test_term_and_semester_are_different_words_in_korean():
+    # Both used to be N학기, so Term 1 and First semester read the same.
+    assert whole_value("Term 1", "ko") != whole_value("First semester", "ko")
+    assert whole_value("Teaching period 1", "ko") != whole_value("First semester", "ko")
 
 
 def test_a_lost_placeholder_is_detectable():
@@ -307,11 +340,14 @@ def test_the_frontend_dictionary_agrees_with_the_glossary():
         Path(__file__).resolve().parents[2] / "frontend" / "i18n" / "handbook-terms.ts"
     ).read_text(encoding="utf-8")
 
-    disagree = {
-        key: (written, ENUMS[key]["zh"])
-        for key, written in re.findall(r"\n\s*'([^']+)':\s*'([^']*)'", source)
-        if key in ENUMS and ENUMS[key].get("zh") and ENUMS[key]["zh"] != written
-    }
+    disagree = {}
+    blocks = re.findall(r"const (zh|ja|ko)\w*: Dictionary = \{(.*?)\n\}", source, re.S)
+    assert {locale for locale, _ in blocks} == {"zh", "ja", "ko"}
+    for locale, body in blocks:
+        for key, written in re.findall(r"\n\s*'([^']+)':\s*'([^']*)'", body):
+            agreed = ENUMS.get(key, {}).get(locale)
+            if agreed and agreed != written:
+                disagree[(locale, key)] = (written, agreed)
     assert disagree == {}
 
 
@@ -358,3 +394,68 @@ def test_the_plural_rules_do_not_invent_matches():
     ):
         masked, _ = protect(phrase, "zh", MASKS[0])
         assert forbidden in masked, (phrase, masked)
+
+
+# --- terms whose sense depends on the kind of page ---------------------------
+#
+# "major" is an academic major in the prose describing a degree and the ordinary
+# adjective nearly everywhere else. Measured over the live corpus: every one of
+# the ~400 uses in course and container descriptions is the noun, and in unit
+# overviews it is "major research", "major themes", "major issues". Pinning it
+# outright breaks the second set; leaving it breaks the first, which is how
+# "complete a major or minor" reached the site as 少校或未成年人 - an army rank
+# and a child.
+
+
+def test_a_major_is_an_academic_major_in_a_degrees_structure():
+    _, agreed = protect("You must complete the Accounting major", "zh", scope=STRUCTURE)
+    assert "主修专业" in agreed
+
+
+def test_a_major_is_left_to_the_model_in_a_units_overview():
+    """The adjective. 主修专业 here would say a unit covers a degree major."""
+    _, agreed = protect("This unit examines the major themes", "zh")
+    assert "主修专业" not in agreed
+
+
+def test_the_scope_a_caller_does_not_ask_for_is_the_general_one():
+    assert protect("the Accounting major", "zh") == protect(
+        "the Accounting major", "zh", scope=GENERAL
+    )
+
+
+def test_an_unknown_scope_falls_back_rather_than_raising():
+    """A typo in a caller must not take the whole crawl down with a KeyError."""
+    assert protect("the major", "zh", scope="nonsense") == protect("the major", "zh")
+
+
+@pytest.mark.parametrize("scope", [GENERAL, STRUCTURE])
+def test_a_major_or_minor_is_pinned_on_every_kind_of_page(scope):
+    """The phrase is unambiguous wherever it appears, so it does not wait for
+    the structure scope. This is the sentence that was reported."""
+    source = (
+        "You must complete 48 credit points of free electives from across the "
+        "university, provided you satisfy the unit rules, including choosing to "
+        "complete a major or minor from other courses."
+    )
+    _, agreed = protect(source, "zh", scope=scope)
+    assert "主修或辅修专业" in agreed
+
+
+def test_the_phrase_wins_over_the_bare_words():
+    """Longest-first matching, or the structure scope would mask "major" and
+    "minor" separately and lose the "or" between them."""
+    _, agreed = protect("a major or minor", "zh", scope=STRUCTURE)
+    assert agreed == ["主修或辅修专业"]
+
+
+def test_a_partner_degree_is_the_other_half_of_a_double_degree():
+    """Not a spouse. It read 伴侣学位 on every double degree page."""
+    _, agreed = protect("units required for the partner degree", "zh")
+    assert "另一个学位" in agreed
+
+
+@pytest.mark.parametrize("locale", ["zh", "ja", "ko"])
+def test_every_scoped_term_is_translated_into_every_locale(locale):
+    for term, renderings in STRUCTURE_TERMS.items():
+        assert renderings.get(locale), f"{term} has no {locale}"

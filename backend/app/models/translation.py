@@ -67,7 +67,13 @@ PUBLISHED = "published"
 # over from the machine without anybody deleting anything.
 HUMAN = "human"
 MACHINE = "machine"
-PROVENANCES = (HUMAN, MACHINE)
+# Wording somebody wrote down and checked against the English - but not a person
+# who reads Chinese. It is what the labels and stock sentences of a degree page
+# are made of (see app/knowledge/structure_zh.py): it beats the machine, a human
+# row beats it, and the page does not call it "checked" because nobody who
+# reads the language has checked it.
+CURATED = "curated"
+PROVENANCES = (HUMAN, CURATED, MACHINE)
 
 
 class ContentTranslation(Base):

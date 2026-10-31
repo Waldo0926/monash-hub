@@ -101,3 +101,25 @@ class Notification(Base):
 
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuthThrottle(Base):
+    """One event that counts against a rate limit: a failed sign-in, a code request.
+
+    Keyed by what is being protected - an email address, or the client address
+    it came from - and counted over a sliding window. The same table answers for
+    an address that has an account and one that does not, which is the point:
+    a lockout that only ever happened to real accounts would tell a stranger
+    which addresses are registered.
+    """
+
+    __tablename__ = "auth_throttle"
+    __table_args__ = (
+        Index("ix_auth_throttle_lookup", "kind", "key", "created_at"),
+        Index("ix_auth_throttle_created_at", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    key: Mapped[str] = mapped_column(String(320))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

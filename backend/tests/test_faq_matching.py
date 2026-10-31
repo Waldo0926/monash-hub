@@ -1,0 +1,284 @@
+"""Which curated FAQ answers a question - and when none does.
+
+Every case in the "wrong answer" list below was a real answer on the live site:
+the question on the left was answered with the FAQ on the right. They are pure
+tests against the real FAQ seed, so a keyword added later that brings any of
+them back fails here before it reaches a student.
+"""
+from __future__ import annotations
+
+import re
+
+import pytest
+from app.knowledge.faq_seed import FAQ_SEEDS
+from app.knowledge.translations_seed import FAQ_ZH
+from app.search.faq_match import FaqCandidate, match, normalise, stem
+
+from crawler.official.seeds import SEEDS_BY_SLUG
+
+CANDIDATES = [
+    FaqCandidate(
+        slug=seed.slug,
+        question=seed.question,
+        keywords=seed.keywords,
+        tags=seed.tags,
+        priority=seed.priority,
+        translated_questions=(FAQ_ZH[seed.slug][0],) if seed.slug in FAQ_ZH else (),
+    )
+    for seed in FAQ_SEEDS
+]
+
+
+def answer(query: str, **kwargs) -> str | None:
+    found = match(query, CANDIDATES, **kwargs)
+    return found[0].candidate.slug if found and found[0].confident else None
+
+
+# --- answers that were wrong on the live site -------------------------------
+
+@pytest.mark.parametrize(
+    "query,wrong",
+    [
+        ("学生签证续签", "how-to-withdraw-from-a-unit"),
+        ("student visa renewal", "student-visa-work-hours"),
+        ("visa extension", "how-to-apply-special-consideration"),
+        ("签证延期", "how-to-apply-special-consideration"),
+        ("scholarship", "what-is-gpa"),
+        ("学术诚信", "when-do-results-come-out"),
+        ("fail a unit", "how-to-withdraw-from-a-unit"),
+        ("change course", "what-is-coe"),
+        ("enrol in units", "how-to-withdraw-from-a-unit"),
+        ("学分转换", "what-is-wam"),
+        ("马来西亚校区", "student-visa-work-hours"),
+        # 证明 is a word in the SC entry, 在读 is in no entry at all.
+        ("在读证明", "what-documents-for-sc"),
+        # A lost testamur is a documents question, not a conferral one.
+        ("毕业证丢了怎么补办", "automatic-conferral"),
+        # 变化 is a word of the hurdle-changes entry, not a trigger.
+        ("选课有什么变化", "hurdle-changes"),
+    ],
+)
+def test_a_shared_word_is_not_an_answer(query, wrong):
+    assert answer(query) != wrong
+    # None of these has a curated answer at all; they belong to the official
+    # page search, not to whichever FAQ shares a word with them.
+    assert answer(query) is None
+
+
+@pytest.mark.parametrize(
+    "query,right",
+    [
+        ("成绩单", "how-to-get-a-transcript"),        # was: results come out
+        ("休学", "apply-for-intermission"),            # was: CoE
+        ("延期考试", "defer-a-final-assessment"),      # was: special consideration
+    ],
+)
+def test_the_more_specific_entry_wins(query, right):
+    assert answer(query) == right
+
+
+# --- answers that must keep working -----------------------------------------
+
+@pytest.mark.parametrize(
+    "query,slug",
+    [
+        ("怎么申请特殊考虑", "how-to-apply-special-consideration"),
+        ("怎么申请 SC", "how-to-apply-special-consideration"),
+        ("how do I apply for special consideration", "how-to-apply-special-consideration"),
+        ("申请延期", "how-to-apply-special-consideration"),
+        ("sc 需要什么材料", "what-documents-for-sc"),
+        ("what documents do I need for special consideration", "what-documents-for-sc"),
+        ("WAM怎么算", "what-is-wam"),
+        ("how is wam calculated", "what-is-wam"),
+        ("GPA怎么算", "what-is-gpa"),
+        ("what is census date", "census-date-meaning"),
+        ("退课截止日期", "census-date-meaning"),
+        ("我想退课", "how-to-withdraw-from-a-unit"),
+        ("how to drop a unit", "how-to-withdraw-from-a-unit"),
+        ("how do I withdraw from a unit", "how-to-withdraw-from-a-unit"),
+        ("how many hours can i work on a student visa", "student-visa-work-hours"),
+        ("can I work part-time on my visa", "student-visa-work-hours"),
+        ("留学生可以打工吗", "student-visa-work-hours"),
+        ("CoE是什么", "what-is-coe"),
+        ("can i take a semester off", "apply-for-intermission"),
+        ("可以休学一个学期吗", "apply-for-intermission"),
+        ("成绩什么时候出", "when-do-results-come-out"),
+        ("怎么开成绩单", "how-to-get-a-transcript"),
+        ("how do i go on exchange", "exchange-eligibility"),
+        ("can i defer my exam", "defer-a-final-assessment"),
+        ("I am sick and missed my exam", "defer-a-final-assessment"),
+        ("生病了没去考试", "defer-a-final-assessment"),
+        # Traditional characters and a full-width IME.
+        ("怎麼申請特殊考慮", "how-to-apply-special-consideration"),
+        ("ＷＡＭ怎么算", "what-is-wam"),
+        ("hurdle没过怎么办", "what-is-a-hurdle"),
+        # Asked about one campus; the answers cover both.
+        ("休学会影响学生签证吗", "apply-for-intermission"),
+        ("马莫可以休学吗", "apply-for-intermission"),
+        ("马来西亚留学生可以打工吗", "student-visa-work-hours"),
+        ("student pass work hours", "student-visa-work-hours"),
+        ("国际学生要买医疗保险吗", "international-student-health-insurance"),
+        ("马莫的医疗保险", "international-student-health-insurance"),
+        ("留学生要买医保吗", "international-student-health-insurance"),
+        ("OSHC是什么", "international-student-health-insurance"),
+        ("do I need health insurance", "international-student-health-insurance"),
+        ("马莫 CGPA", "what-is-gpa"),
+        ("学位授予可以推迟吗", "automatic-conferral"),
+        ("马莫可以减课吗", "international-student-underload"),
+        ("can I underload on a student visa", "international-student-underload"),
+        ("怎么申请underload", "international-student-underload"),
+        ("overload 条件", "overload"),
+        ("一学期可以修5门课吗", "overload"),
+        ("how do I apply to overload", "overload"),
+        ("can I delay conferral", "automatic-conferral"),
+        ("failed a hurdle what happens", "what-is-a-hurdle"),
+        ("我能补考吗", "supplementary-assessment"),
+        ("supp exam", "supplementary-assessment"),
+        ("收到学业预警邮件", "unsatisfactory-progress"),
+        ("还需要申请毕业吗", "automatic-conferral"),
+        ("毕业要不要申请", "automatic-conferral"),
+        ("怎么申请毕业", "automatic-conferral"),
+        ("自动授予学位", "automatic-conferral"),
+        ("自动毕业是什么", "automatic-conferral"),
+        ("马来西亚校区还要申请毕业吗", "automatic-conferral"),
+        ("do I still need to apply to graduate", "automatic-conferral"),
+        ("how do I apply for graduation", "automatic-conferral"),
+        ("what is automatic conferral", "automatic-conferral"),
+        ("when will I get my testamur", "automatic-conferral"),
+        ("can I graduate in absentia", "automatic-conferral"),
+        # Malaysia campus: every name students use for the MPU units.
+        ("通识课", "malaysia-general-studies"),
+        ("MPU要修哪些", "malaysia-general-studies"),
+        ("马莫毕业要修什么通识课", "malaysia-general-studies"),
+        ("General Study", "malaysia-general-studies"),
+        ("26S2入学的国际生要修哪些MPU", "malaysia-general-studies"),
+        ("本地学生通识课要修几门", "malaysia-general-studies"),
+        ("25S1入学MPU有哪些", "malaysia-general-studies"),
+        ("MPU课程每年都不一样吗", "malaysia-general-studies"),
+        ("which general studies units do I need", "malaysia-general-studies"),
+        ("马莫交通", "malaysia-getting-around"),
+        ("马莫校车几点", "malaysia-getting-around"),
+        ("怎么去学校", "malaysia-getting-around"),
+        ("how do I get to campus", "malaysia-getting-around"),
+        ("怎么去机场", "malaysia-getting-around"),
+        ("马莫去机场怎么走", "malaysia-getting-around"),
+        ("从学校到KLIA怎么去", "malaysia-getting-around"),
+        ("请问孩子到了机场怎么去学校", "malaysia-getting-around"),
+        ("教室在哪", "malaysia-campus-map"),
+        ("学校地图", "malaysia-campus-map"),
+        ("where is my classroom", "malaysia-campus-map"),
+        # Hurdles: what one is, and what changed, asked the short way.
+        ("hurdle是啥", "what-is-a-hurdle"),
+        ("NH 45是什么意思", "what-is-a-hurdle"),
+        ("hurdle没过还能补考吗", "what-is-a-hurdle"),
+        ("hurdle改了什么", "hurdle-changes"),
+        ("hurdle有啥变化", "hurdle-changes"),
+        ("threshold hurdle还有吗", "hurdle-changes"),
+        ("what changed about hurdles", "hurdle-changes"),
+        # Parents: greetings and 孩子 are not the subject of the question.
+        ("您好，请问孩子毕业要修哪些通识课", "malaysia-general-studies"),
+        ("请问我孩子hurdle没过怎么办", "what-is-a-hurdle"),
+        ("家长想问学校校车", "malaysia-getting-around"),
+    ],
+)
+def test_a_question_the_faq_covers_gets_it(query, slug):
+    assert answer(query) == slug
+
+
+@pytest.mark.parametrize("seed", FAQ_SEEDS, ids=lambda s: s.slug)
+def test_every_faq_answers_its_own_question(seed):
+    """A suggestion chip is the FAQ's question; clicking it must open that FAQ."""
+    assert answer(seed.question) == seed.slug
+    if seed.slug in FAQ_ZH:
+        assert answer(FAQ_ZH[seed.slug][0]) == seed.slug
+
+
+# --- the negative space ------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "query",
+    ["签证", "visa", "医保", "保险", "考试", "exam", "工作量是什么", "where can I park a scooter",
+     "is there a science building map", "group work", ""],
+)
+def test_a_topic_word_alone_answers_nothing(query):
+    """签证 is a topic, not a question. It belongs to the official page list."""
+    assert answer(query) is None
+
+
+def test_an_uncovered_question_still_offers_the_faq_as_related():
+    found = match("退课会影响签证吗", CANDIDATES)
+    assert found and not found[0].confident
+    assert found[0].candidate.slug == "how-to-withdraw-from-a-unit"
+
+
+def test_a_unit_code_the_router_handles_is_not_residue():
+    assert answer("FIT2004 怎么退课") is None
+    assert answer("FIT2004 怎么退课", ignore={"fit2004", "fit", "2004"}) \
+        == "how-to-withdraw-from-a-unit"
+
+
+def test_priority_only_breaks_ties():
+    """The entry with the higher hand-set priority used to win outright."""
+    low = FaqCandidate("specific", "How do I get a transcript?", ("成绩单",), priority=1)
+    high = FaqCandidate("general", "When do results come out?", ("成绩",), priority=100)
+    assert match("成绩单", [high, low])[0].candidate.slug == "specific"
+
+
+# --- plumbing ----------------------------------------------------------------
+
+def test_normalise_folds_full_width_and_case():
+    assert normalise("ＷＡＭ怎么算？") == "wam怎么算"
+
+
+@pytest.mark.parametrize(
+    "a,b", [("withdrawing", "withdraw"), ("dropped", "drop"), ("dropping", "drop"),
+            ("applies", "apply"), ("units", "unit")],
+)
+def test_stem_meets_the_base_form(a, b):
+    assert stem(a) == stem(b)
+
+
+def test_latin_keywords_need_whole_words():
+    assert answer("science") is None
+    assert answer("scooter") is None
+
+
+@pytest.mark.parametrize("seed", FAQ_SEEDS, ids=lambda s: s.slug)
+def test_every_faq_has_a_chinese_translation(seed):
+    """The answer card is drawn in the reader's language; a new FAQ without
+    Chinese would be the one English paragraph on a Chinese page."""
+    assert seed.slug in FAQ_ZH
+
+
+# --- answers for both campuses -------------------------------------------------
+
+# Words that belong to one country's rules.
+AUSTRALIA_ONLY = re.compile(
+    r"\b(?:CoE|OSHC|ESOS|Centrelink|HECS|HELP|Home Affairs|student visa)\b")
+MALAYSIA_ONLY = re.compile(r"\b(?:Student Pass|EMGS|eVAL|MOHE|WD-LATE|CGPA)\b")
+
+
+@pytest.mark.parametrize("seed", FAQ_SEEDS, ids=lambda s: s.slug)
+def test_a_rule_of_one_country_says_which_country(seed):
+    """CoE and OSHC are Australian, a Student Pass is Malaysian.
+
+    An answer that names one has to say which country it is about, in English
+    and in Chinese, so a Monash Malaysia student is never handed the Australian
+    rule as if it were theirs.
+    """
+    zh = "".join(FAQ_ZH.get(seed.slug, ()))
+    text = seed.question + " " + seed.answer
+    if AUSTRALIA_ONLY.search(seed.answer):
+        assert "Australia" in text, seed.slug
+        assert not zh or "澳大利亚" in zh, seed.slug
+    if MALAYSIA_ONLY.search(seed.answer):
+        assert "Malaysia" in text, seed.slug
+        assert not zh or "马来西亚" in zh, seed.slug
+
+
+@pytest.mark.parametrize("seed", [s for s in FAQ_SEEDS if s.malaysia_pages],
+                         ids=lambda s: s.slug)
+def test_an_answer_for_both_campuses_cites_real_malaysia_pages(seed):
+    for slug in seed.malaysia_pages:
+        assert slug in SEEDS_BY_SLUG, (seed.slug, slug)
+        assert SEEDS_BY_SLUG[slug].applies_to == "malaysia", (seed.slug, slug)

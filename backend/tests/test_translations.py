@@ -37,6 +37,63 @@ def test_an_untranslated_string_stays_in_english(db):
     assert tr.string("Withdrawn fail") == "Withdrawn fail"
 
 
+def test_a_closed_list_value_uses_the_glossary_over_a_machine_row():
+    """The machine row was written before the name was in the glossary.
+
+    Passes prime themselves from what is stored, so without this the agreed
+    name would never reach a unit that had already been translated once.
+    """
+    tr = translations.Translation("zh")
+    tr.strings = {"School of Mathematics": "数学系学校", "Faculty of Law": "法学院："}
+    assert tr.value("School of Mathematics") == "数学学院"
+    assert tr.value("Faculty of Law") == "法学院"
+    # Page text is not a closed list: "Malaysia" in a fee table is the country.
+    assert tr.string("School of Mathematics") == "数学系学校"
+    assert tr.value("Something only one unit says") == "Something only one unit says"
+
+
+def test_a_persons_wording_beats_the_glossary():
+    tr = translations.Translation("zh")
+    tr.strings = {"Psychology": "心理学（人工）"}
+    tr.human_strings = {"Psychology"}
+    assert tr.value("Psychology") == "心理学（人工）"
+
+
+def test_japanese_and_korean_get_closed_list_values_with_no_rows_at_all():
+    assert translations.Translation("ja").value("Department of Accounting") == "会計学科"
+    assert translations.Translation("ko").value("First semester") == "1학기"
+    assert translations.Translation("").value("First semester") == "First semester"
+
+
+def test_a_stored_part_heading_is_read_with_a_colon(db):
+    _store(
+        db, target_type=OFFICIAL_PAGE, target_key="c2001", field="body",
+        data={"strings": {
+            "Part B. Core studies": "B 部分。核心课程",
+            "Part 2. Discipline studies": "第 2 部分。学科课程",
+            "Results": "成绩公布。",
+        }},
+    )
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "c2001")
+    assert tr.string("Part B. Core studies") == "B 部分：核心课程"
+    assert tr.string("Part 2. Discipline studies") == "第 2 部分：学科课程"
+    assert tr.string("Results") == "成绩公布。"
+
+
+@pytest.mark.parametrize(
+    ("stored", "shown"),
+    [
+        ("B 部分。核心课程", "B 部分：核心课程"),
+        ("A 部分。核心课程与 B 部分。通识课程", "A 部分：核心课程与 B 部分：通识课程"),
+        ("C 部分：应用课程", "C 部分：应用课程"),
+        ("请完成第 2 部分。", "请完成第 2 部分。"),
+        ("这是学位的一部分。", "这是学位的一部分。"),
+    ],
+)
+def test_only_a_leading_part_heading_changes(stored, shown):
+    assert translations._part_colon(stored) == shown
+
+
 def test_a_page_overrides_the_shared_boilerplate(db):
     _store(
         db, target_type=GLOBAL, target_key="handbook", field="strings",
@@ -61,6 +118,27 @@ def test_prose_is_translated_paragraph_by_paragraph(db):
     assert tr.field("teaching_approach", source) == (
         "主动学习 —— 固定段落。\n\nSomething written for this unit."
     )
+
+
+def test_a_title_a_person_wrote_beats_the_same_sentence_in_the_body(db):
+    """The body's string map translated "Discontinue your course" as 退课 -
+    dropping a unit - and it won over the title written for the page."""
+    from app.models.translation import HUMAN, MACHINE
+
+    _store(db, target_type=OFFICIAL_PAGE, target_key="discontinue-course", field="title",
+           text="退出所修课程", provenance=HUMAN)
+    _store(db, target_type=OFFICIAL_PAGE, target_key="discontinue-course", field="body",
+           data={"strings": {"Discontinue your course": "退课"}}, provenance=HUMAN)
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "discontinue-course")
+    assert tr.field("title", "Discontinue your course") == "退出所修课程"
+
+    # A machine title still yields to a sentence somebody checked.
+    _store(db, target_type=OFFICIAL_PAGE, target_key="wam", field="title",
+           text="机器标题", provenance=MACHINE)
+    _store(db, target_type=OFFICIAL_PAGE, target_key="wam", field="body",
+           data={"strings": {"Weighted average mark": "加权平均分"}}, provenance=HUMAN)
+    tr = translations.load(db, "zh", OFFICIAL_PAGE, "wam")
+    assert tr.field("title", "Weighted average mark") == "加权平均分"
 
 
 def test_load_many_is_one_query_for_many_targets(db):
@@ -107,7 +185,10 @@ def test_a_translation_of_text_that_has_changed_is_flagged(db):
 
     current = translations.load(db, "zh", OFFICIAL_PAGE, "gpa", source_hash="hash-when-translated")
     assert current.stale is False
-    assert current.meta() == {
+    meta = current.meta()
+    # When the page's own translation last changed, for whoever keeps a copy.
+    assert meta.pop("updated")
+    assert meta == {
         "locale": "zh",
         "stale": False,
         "unofficial": True,
@@ -247,6 +328,70 @@ def test_a_link_whose_words_cannot_be_found_is_dropped_not_moved():
     assert item == [{"text": "你随时可以在选课系统里查看最新的 GPA。"}]
 
 
+PDF = "https://www.monash.edu.my/__data/assets/pdf_file/0010/2896039/First-Time-Login.pdf"
+
+
+def _translated_paragraph(spans, strings, locale="zh"):
+    tr = translations.Translation(locale)
+    tr.strings = strings
+    blocks = translations.translate_blocks([{"type": "paragraph", "spans": spans}], tr)
+    return blocks[0]["spans"]
+
+
+def test_click_here_at_the_end_keeps_its_link():
+    """The printing page: "click here" has no translation of its own."""
+    spans = _translated_paragraph(
+        [
+            {"text": "To read more about self register, "},
+            {"text": "click here", "url": PDF},
+            {"text": "."},
+        ],
+        {"To read more about self register, click here.": "要了解更多关于自我注册的信息，请点击此处。"},
+    )
+    assert spans == [
+        {"text": "要了解更多关于自我注册的信息，请"},
+        {"text": "点击此处", "url": PDF},
+        {"text": "。"},
+    ]
+
+
+def test_click_here_at_the_start_keeps_its_link():
+    english = "Click here for the complete guide on scanning to email."
+    spans = _translated_paragraph(
+        [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on scanning to email."}],
+        {english: "点击此处获取扫描至电子邮件的完整指南。"},
+    )
+    assert [s["text"] for s in spans if s.get("url")] == ["点击此处"]
+    assert "".join(s["text"] for s in spans) == "点击此处获取扫描至电子邮件的完整指南。"
+
+
+def test_click_here_with_its_full_stop_inside_the_link():
+    english = "To read more about how to login to the printer, click here."
+    spans = _translated_paragraph(
+        [{"text": "To read more about how to login to the printer, "}, {"text": "click here.", "url": PDF}],
+        {english: "要了解如何登录打印机，请点击这里。"},
+    )
+    assert [s["text"] for s in spans if s.get("url")] == ["点击这里"]
+
+
+def test_click_here_in_japanese_and_korean():
+    spans = [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on printing credit top-up"}]
+    english = "Click here for the complete guide on printing credit top-up"
+    ja = _translated_paragraph(spans, {english: "印刷クレジットのチャージ方法はこちらをクリックしてください"}, "ja")
+    ko = _translated_paragraph(spans, {english: "인쇄 크레딧 충전 가이드는 여기를 클릭하세요"}, "ko")
+    assert [s["text"] for s in ja if s.get("url")] == ["こちらをクリック"]
+    assert [s["text"] for s in ko if s.get("url")] == ["여기를 클릭"]
+
+
+def test_click_here_is_still_dropped_when_the_translation_never_says_it():
+    english = "Click here for the complete guide on scanning to email."
+    spans = _translated_paragraph(
+        [{"text": "Click here", "url": PDF}, {"text": " for the complete guide on scanning to email."}],
+        {english: "扫描至电子邮件的完整指南见附件。"},
+    )
+    assert spans == [{"text": "扫描至电子邮件的完整指南见附件。"}]
+
+
 def test_the_outline_and_the_headings_cannot_disagree(gpa_blocks):
     tr = translations.Translation("zh")
     tr.strings = {"Methodology": "计算方法"}
@@ -285,7 +430,9 @@ def test_a_checked_translation_wins_over_a_machine_one(db):
     tr = translations.load(db, "zh", OFFICIAL_PAGE, "census-dates")
     assert tr.string("census date") == "课程退选截止日"
     # And the page says both things happened to it.
-    assert tr.meta() == {
+    meta = tr.meta()
+    assert meta.pop("updated")
+    assert meta == {
         "locale": "zh",
         "stale": False,
         "unofficial": True,
@@ -367,6 +514,120 @@ def test_no_unit_title_seed_is_still_english():
         code for code, (english, chinese) in UNIT_TITLES.items() if english == chinese
     }
     assert unchanged == set()
+
+
+def test_exam_rules_table_uses_permission_language_and_correct_item_names():
+    """Short table cells need context; generic machine wording was misleading."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-exam-rules"]
+    assert strings["Yes"] == "允许"
+    assert strings["No"] == "不允许"
+    assert strings["Notes"] == "笔记"
+    assert strings["Pencil cases"] == "笔袋"
+    assert strings["Bag"] == "包袋"
+    assert strings["Face masks"] == "口罩"
+    assert strings["Headphones"] == "耳机或耳麦"
+
+
+def test_exam_rules_reviewed_sentences_retain_the_safety_qualifications():
+    """Do not shorten rules in ways that remove conditions or consequences."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-exam-rules"]
+    cancel = next(value for key, value in strings.items() if key.startswith(
+        "You can’t cancel or reschedule your eExam."
+    ))
+    supervision = next(value for key, value in strings.items() if key.startswith(
+        "If your eExam is supervised, you must stay in sight"
+    ))
+    identity = next(value for key, value in strings.items() if key.startswith(
+        "You must have your M-Pass"
+    ))
+    headphones = next(value for key, value in strings.items() if key.startswith(
+        "On-campus eExams"
+    ))
+    permitted = next(value for key, value in strings.items() if key.startswith(
+        "Your lecturer will tell you if there are any specifically permitted items"
+    ))
+
+    assert "不再符合延期考核的申请条件" in cancel
+    assert "仍会继续录制" in supervision
+    assert "你将无法参加" in identity
+    assert "不得听音乐或音频文件" in headphones
+    assert "一张预先写好笔记的 A4 纸" in permitted
+
+
+def test_all_guide_audit_overrides_reach_the_seeded_page_maps():
+    """The full-guide audit must affect the rows the seeder actually writes."""
+    from app.knowledge.translations_seed import GUIDE_AUDIT_OVERRIDES, GUIDE_BODIES
+
+    for slug, overrides in GUIDE_AUDIT_OVERRIDES.items():
+        for english, chinese in overrides.items():
+            assert GUIDE_BODIES[slug][english] == chinese
+
+
+def test_student_pass_table_uses_document_and_permission_language():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["malaysia-student-pass"]
+    assert strings["Documents"] == "文件"
+    assert strings["Yes"] == "允许"
+    assert strings["No"] == "不允许"
+
+
+def test_results_legend_uses_academic_not_literal_word_senses():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["results-legend"]
+    expected = {
+        "First Class Honours": "一等荣誉",
+        "Faculty Pass": "学院评定及格",
+        "Hurdle Fail": "未达到及格门槛",
+        "Non Assessed": "未评定",
+        "Not Examinable": "无需参加考试",
+        "Pass Division I": "一等及格",
+        "Withheld": "暂缓公布",
+        "Withdrawn Fail": "退课不及格",
+    }
+    assert {key: strings[key] for key in expected} == expected
+
+
+def test_principal_date_cells_keep_weekdays_and_months_intact():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    strings = GUIDE_BODIES["principal-dates"]
+    assert strings["Sat 01"] == "周六 01"
+    assert strings["Wed 28"] == "周三 28"
+    assert strings["February"] == "2 月"
+    assert strings["October"] == "10 月"
+
+
+def test_gpa_and_wam_status_codes_have_the_same_reviewed_meaning():
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    for slug in ("gpa", "wam"):
+        strings = GUIDE_BODIES[slug]
+        assert strings["NE (not examinable)"] == "NE（无需参加考试）"
+        assert strings["NAS (not assessed)"] == "NAS（未评定）"
+        assert strings["WN (withdrawn fail)"] == "WN（退课不及格）"
+
+
+def test_cleaned_accordion_headings_keep_reviewed_chinese_without_toggle_words():
+    """Extractor v6 removes View/Close; translations must use the new keys too."""
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    expected = {
+        ("defer-final-assessment", "Before you apply"): "申请之前",
+        ("course-advice", "Course planning tools"): "课程规划工具",
+        ("academic-transcripts", "Your privacy"): "你的隐私",
+        ("supporting-documents", "Medical condition"): "健康问题",
+        ("census-dates", "2026 Census dates for all teaching periods (sorted by census date)"):
+            "2026 年全部开课学期的 census dates（学籍统计日）（按学籍统计日排序）",
+    }
+    for (slug, english), chinese in expected.items():
+        assert GUIDE_BODIES[slug][english] == chinese
+        assert not chinese.endswith(("查看", "收起"))
 
 
 def test_human_boilerplate_outranks_a_machine_page_string(db):
@@ -491,3 +752,98 @@ def test_a_whole_field_machine_translation_still_wins_when_nobody_wrote_one(db):
     )
     db.commit()
     assert load(db, "zh", UNIT, "FIT1045").field("overview", whole) == "机器整段译文。"
+
+
+def test_a_narrower_pass_does_not_delete_what_a_wider_one_wrote(db):
+    """`--fields short` after `--fields all` blanked every overview.
+
+    The row was replaced rather than merged, so a pass that only covers titles
+    and enumerable values took the long prose with it, and thousands of unit
+    pages silently went back to English behind a banner promising Chinese.
+    """
+    from app.models.translation import MACHINE, UNIT, ContentTranslation
+
+    from crawler.translate.run import store
+
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"Overview text": "简介译文", "FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=all")
+    db.commit()
+
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=short")
+    db.commit()
+
+    row = db.query(ContentTranslation).filter_by(
+        target_type=UNIT, target_key="FIT1047", provenance=MACHINE
+    ).one()
+    assert row.data["strings"]["Overview text"] == "简介译文"
+    # and the row still knows it has been through the wider pass
+    assert row.note == "fields=all"
+
+    # A pass with the learning resources is wider still, and a later
+    # `short` keeps it.
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=all+resources")
+    store(db, locale="zh", target_type=UNIT, target_key="FIT1047",
+          strings={"FIT1047": "计算机系统导论"},
+          source_hash="hash-1", scope="fields=short")
+    db.commit()
+    db.refresh(row)
+    assert row.note == "fields=all+resources"
+
+
+def test_graduations_conferral_notice_is_translated_by_hand():
+    """Monash's 2026 conferral notice, in the shape the live page ships it.
+
+    The box uses curly apostrophes where the rest of the page does not, and a
+    key with a straight one would leave the notice to the machine.
+    """
+    from app.knowledge.translations_seed import GUIDE_BODIES
+
+    html = (
+        "<html><body><main><h1>Graduations</h1>"
+        '<div class="blue-box" role="alert"><h3><i class="fa fa-info-circle"></i> '
+        "Upcoming changes to the conferral process</h3>"
+        "<p>From December 2026, conferral of awards will be automatic and you won’t "
+        "need to apply to graduate. This means:</p><ul>"
+        "<li>once your faculty confirms you’ve completed your course, you’ll be "
+        "conferred in a monthly cycle</li>"
+        "<li>you’ll receive your testamur shortly after completing your studies</li>"
+        "<li>you’ll be conferred first, then invited to attend an upcoming ceremony "
+        "(graduating in absentia will no longer apply).</li></ul>"
+        "<p>This website reflects the current graduation process for students who have "
+        "already applied to graduate this year. Full details on the new process will be "
+        "published in December.</p></div></main></body></html>"
+    )
+    blocks = clean_page(html, url="https://www.monash.edu/students/admin/graduations")["blocks"]
+    tr = translations.Translation("zh")
+    tr.strings.update(GUIDE_BODIES["graduations"])
+    out = translations.translate_blocks(blocks, tr)
+
+    texts = []
+    for block in out:
+        if block["type"] == "heading":
+            texts.append(block["text"])
+        elif block["type"] == "paragraph":
+            texts.append("".join(s["text"] for s in block["spans"]))
+        elif block["type"] == "list":
+            texts += ["".join(s["text"] for s in item) for item in block["items"]]
+    notice = [t for t in texts if t != "Graduations"]
+    assert len(notice) == 6
+    assert all(any("一" <= ch <= "鿿" for ch in t) for t in notice)
+
+
+def test_a_reading_list_line_keeps_its_links_or_stays_english():
+    from app.api.serializers import _resource
+
+    source = "There are required texts (https://shop.example.com/books) for this unit."
+    tr = translations.Translation("zh")
+    tr.strings[source] = "本课程有指定教材（https://shop.example.com/books）。"
+    assert _resource(source, tr) == "本课程有指定教材（https://shop.example.com/books）。"
+
+    tr.strings[source] = "本课程有指定教材（书店）。"
+    assert _resource(source, tr) == source
+    assert _resource("Cormen (2009). Algorithms.", tr) == "Cormen (2009). Algorithms."

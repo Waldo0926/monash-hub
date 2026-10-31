@@ -17,19 +17,21 @@ Two rules run through every endpoint here:
 from __future__ import annotations
 
 import logging
+import random
 import re
 import secrets
 import unicodedata
 import urllib.parse
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import current_user
-from app.core import avatars, google_oauth, verification
+from app.core import avatars, google_oauth, throttle, verification
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.email import EmailDeliveryError
@@ -55,6 +57,30 @@ NICKNAME_MAX = 48
 # used to impersonate another nickname.
 NICKNAME_ALLOWED = re.compile(r"^[\w.\-]+$", re.UNICODE)
 
+# Checked against when there is no account, so that "no such email" costs the
+# same bcrypt round as "wrong password". Without it the answer came back in a
+# millisecond for an unknown address and in a quarter of a second for a real
+# one, and the difference was the whole secret the identical message kept.
+_NO_ACCOUNT_HASH = hash_password("no-account-placeholder-Aa1!")
+
+# One request in this many also clears out old rate-limit and code rows. There
+# is no scheduler in this app, and these tables only need to be roughly tidy.
+PRUNE_ONE_IN = 200
+
+
+def _too_many(exc: throttle.Throttled | verification.RateLimited, message: str) -> HTTPException:
+    return HTTPException(
+        status.HTTP_429_TOO_MANY_REQUESTS,
+        message,
+        headers={"Retry-After": str(exc.retry_after_seconds)},
+    )
+
+
+def _maybe_prune(db: Session) -> None:
+    if random.randrange(PRUNE_ONE_IN) == 0:
+        throttle.prune(db)
+        verification.prune(db)
+
 
 class SendCodeRequest(BaseModel):
     email: EmailStr
@@ -70,7 +96,7 @@ class SignUpRequest(BaseModel):
 
 class SignInRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=128)
 
 
 class ResetPasswordRequest(BaseModel):
@@ -99,6 +125,10 @@ def _nickname_problem(nickname: str) -> str | None:
         return f"Use at most {NICKNAME_MAX} characters."
     if not NICKNAME_ALLOWED.match(value):
         return "Use letters, numbers, underscore, dot or hyphen only."
+    # Reserved for closed accounts (see profile.delete_account); taking one
+    # would also block that account from ever being closed.
+    if value.lower().startswith("deleted-"):
+        return "That nickname is taken."
     return None
 
 
@@ -109,7 +139,9 @@ def _normalise_nickname(nickname: str) -> str:
 
 
 @router.post("/verification-code")
-def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_db)) -> dict:
+def send_verification_code(
+    payload: SendCodeRequest, request: Request, db: Session = Depends(get_db)
+) -> dict:
     """Send something to the address, whatever its state.
 
     The response is the same either way. A caller cannot learn from it whether
@@ -121,14 +153,15 @@ def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_d
     email = str(payload.email).strip().lower()
 
     exists = bool(db.scalar(select(func.count(User.id)).where(User.email == email)) or 0)
+    address = throttle.client_address(request)
+    _maybe_prune(db)
 
     try:
+        throttle.check(db, throttle.CODES_PER_ADDRESS, address)
         verification.issue(db, email, payload.purpose, account_exists=exists)
-    except verification.RateLimited as limited:
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS,
-            "Too many code requests. Wait a moment and try again.",
-            headers={"Retry-After": str(limited.retry_after_seconds)},
+    except (throttle.Throttled, verification.RateLimited) as limited:
+        raise _too_many(
+            limited, "Too many code requests. Wait a moment and try again."
         ) from limited
     except EmailDeliveryError as exc:
         # A provider outage is our problem, and saying so is not a leak -
@@ -138,11 +171,18 @@ def send_verification_code(payload: SendCodeRequest, db: Session = Depends(get_d
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "We could not send the email just now. Try again shortly.",
         ) from exc
+    # Counted after the send, so a request refused for the per-email limit
+    # does not also use up the address's allowance.
+    throttle.record(db, throttle.CODES_PER_ADDRESS, address)
+    db.commit()
 
     return {
         "expires_in_seconds": settings.verification_code_ttl_seconds,
         "resend_available_in_seconds": settings.verification_resend_interval_seconds,
         "delivery_configured": settings.email_is_deliverable,
+        # So the page can say which sender to look for in a spam folder: a new
+        # sending domain's first message to a Gmail inbox often lands there.
+        "sender": settings.email_from_address,
     }
 
 
@@ -177,18 +217,42 @@ def sign_up(payload: SignUpRequest, db: Session = Depends(get_db)) -> dict:
 
     user = User(email=email, nickname=nickname, password_hash=hash_password(payload.password))
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # Two sign-ups for the same nickname in the same instant: the check
+        # above passed for both, and the unique index caught the second.
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "That nickname is taken.") from exc
     db.refresh(user)
     return {"token": create_access_token(str(user.id), user.token_version), "user": _me(user)}
 
 
 @router.post("/signin")
-def sign_in(payload: SignInRequest, db: Session = Depends(get_db)) -> dict:
-    user = db.scalar(select(User).where(User.email == str(payload.email).strip().lower()))
-    if user is None or not verify_password(payload.password, user.password_hash):
+def sign_in(payload: SignInRequest, request: Request, db: Session = Depends(get_db)) -> dict:
+    email = str(payload.email).strip().lower()
+    address = throttle.client_address(request)
+    _maybe_prune(db)
+    try:
+        throttle.check(db, throttle.SIGNIN_PER_ACCOUNT, email)
+        throttle.check(db, throttle.SIGNIN_PER_ADDRESS, address)
+    except throttle.Throttled as limited:
+        raise _too_many(
+            limited,
+            "Too many sign-in attempts. Wait a few minutes, or reset your password.",
+        ) from limited
+
+    user = db.scalar(select(User).where(User.email == email))
+    # Always one bcrypt check, account or not - see _NO_ACCOUNT_HASH.
+    valid = verify_password(payload.password, user.password_hash if user else _NO_ACCOUNT_HASH)
+    if user is None or not valid:
+        throttle.record(db, throttle.SIGNIN_PER_ACCOUNT, email)
+        throttle.record(db, throttle.SIGNIN_PER_ADDRESS, address)
+        db.commit()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong email or password")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This account is suspended")
+    throttle.clear(db, throttle.SIGNIN_PER_ACCOUNT, email)
     user.last_login_at = func.now()
     db.commit()
     db.refresh(user)
@@ -206,12 +270,18 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     email = str(payload.email).strip().lower()
     user = db.scalar(select(User).where(User.email == email))
 
-    problem = password_problem(payload.password, [email, user.nickname if user else ""])
+    # Only the email may be checked before the code is. Checking the account's
+    # nickname here answered "do not build the password out of your nickname"
+    # to anybody who guessed it - which told them the address had an account,
+    # and what that account is called.
+    problem = password_problem(payload.password, [email])
     if problem:
         raise HTTPException(HTTP_422_UNPROCESSABLE, problem)
 
     try:
-        verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
+        verification.verify(
+            db, email, verification.PASSWORD_RESET, payload.verification_code, consume=False
+        )
     except verification.VerificationError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
@@ -219,6 +289,16 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     # so reaching here without a user means the account was deleted in between.
     if user is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "That code is not valid")
+
+    # The code is proven, so the nickname rule can be applied - and the code is
+    # left unused if it fails, so the person can pick another password with it.
+    problem = password_problem(payload.password, [email, user.nickname])
+    if problem:
+        raise HTTPException(HTTP_422_UNPROCESSABLE, problem)
+    try:
+        verification.verify(db, email, verification.PASSWORD_RESET, payload.verification_code)
+    except verification.VerificationError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
     user.password_hash = hash_password(payload.password)
     user.token_version += 1
@@ -261,32 +341,76 @@ def _unique_nickname(db: Session, preferred: str) -> str:
     base = "".join(ch for ch in base if NICKNAME_ALLOWED.match(ch))[:NICKNAME_MAX]
     if _nickname_problem(base) is not None:
         base = "student"
+    # Every taken nickname that could clash, in one query, rather than a query
+    # per numbered candidate. A suffixed candidate may cut the end off the base,
+    # so the prefix is shortened to what the longest candidate keeps.
+    stem = base[: NICKNAME_MAX - 3].lower()
+    pattern = stem.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+    taken = set(
+        db.scalars(
+            select(func.lower(User.nickname)).where(
+                func.lower(User.nickname).like(pattern, escape="\\")
+            )
+        )
+    )
     candidate = base
     for suffix in range(1, 200):
-        clash = db.scalar(
-            select(User).where(func.lower(User.nickname) == candidate.lower())
-        )
-        if clash is None and _nickname_problem(candidate) is None:
+        if candidate.lower() not in taken and _nickname_problem(candidate) is None:
             return candidate
         candidate = f"{base[:NICKNAME_MAX - len(str(suffix))]}{suffix}"
     return f"student{secrets.token_hex(4)}"
 
 
+def _google_cookie_path() -> str:
+    return f"{get_settings().api_prefix}/auth/google"
+
+
+@router.get("/google")
+def google_available() -> dict:
+    """Whether to offer the button at all. Issues nothing, so the sign-in page
+    can ask on every load without minting a state nobody will use."""
+    return {"enabled": google_oauth.is_configured()}
+
+
 @router.get("/google/start")
-def google_start(next: str = "/", db: Session = Depends(get_db)) -> dict:
-    """Where to send the browser to begin. The frontend follows this URL."""
+def google_start(next: str = "/") -> RedirectResponse:
+    """Send the browser to Google, remembering in a cookie that it was this
+    browser that asked.
+
+    A redirect rather than a JSON answer, so the cookie is set by a top-level
+    navigation to this site and comes back on Google's redirect to the callback
+    however the frontend and API are hosted.
+    """
+    settings = get_settings()
     if not google_oauth.is_configured():
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "Google sign-in is not configured"
+        return RedirectResponse(
+            f"{settings.site_url.rstrip('/')}/login?google=unavailable", status_code=303
         )
     # Only a path on this site, never an absolute URL somebody supplied - that
     # is the difference between a redirect and an open redirect.
     safe_next = next if next.startswith("/") and not next.startswith("//") else "/"
-    return {"url": google_oauth.authorize_url(google_oauth.issue_state(safe_next))}
+    nonce = google_oauth.new_nonce()
+    response = RedirectResponse(
+        google_oauth.authorize_url(google_oauth.issue_state(nonce, safe_next)),
+        status_code=303,
+    )
+    response.set_cookie(
+        google_oauth.NONCE_COOKIE,
+        nonce,
+        max_age=google_oauth.STATE_TTL_SECONDS,
+        path=_google_cookie_path(),
+        secure=settings.site_url.startswith("https://"),
+        httponly=True,
+        # Lax, not Strict: the callback is a cross-site redirect from Google,
+        # and Strict would leave the cookie behind on exactly that request.
+        samesite="lax",
+    )
+    return response
 
 
 @router.get("/google/callback")
 def google_callback(
+    request: Request,
     state: str = "",
     code: str = "",
     error: str = "",
@@ -301,8 +425,14 @@ def google_callback(
     settings = get_settings()
     site = settings.site_url.rstrip("/")
 
+    def done(url: str) -> RedirectResponse:
+        response = RedirectResponse(url, status_code=303)
+        # One sign-in per nonce, whichever way it ends.
+        response.delete_cookie(google_oauth.NONCE_COOKIE, path=_google_cookie_path())
+        return response
+
     def failed(reason: str) -> RedirectResponse:
-        return RedirectResponse(f"{site}/login?google={reason}", status_code=303)
+        return done(f"{site}/login?google={reason}")
 
     if error or not code:
         # The commonest one by far is the person pressing cancel.
@@ -311,7 +441,11 @@ def google_callback(
         return failed("unavailable")
 
     try:
-        next_path = google_oauth.read_state(state)
+        # The state is checked before the code is spent, so a forged or
+        # replayed callback never costs a request to Google.
+        next_path = google_oauth.read_state(
+            state, request.cookies.get(google_oauth.NONCE_COOKIE, "")
+        )
         identity = google_oauth.exchange(code)
     except google_oauth.GoogleAuthError as exc:
         log.warning("google sign-in failed: %s", exc)
@@ -334,7 +468,16 @@ def google_callback(
             is_active=True,
         )
         db.add(user)
-    elif not user.is_active:
+        try:
+            db.flush()
+        except IntegrityError:
+            # Two first sign-ins at once - a double click, two tabs - and the
+            # other one created the account a moment ago. Use theirs.
+            db.rollback()
+            user = db.scalar(select(User).where(User.email == identity.email))
+            if user is None:
+                return failed("failed")
+    if not user.is_active:
         return failed("suspended")
 
     user.last_login_at = func.now()
@@ -343,7 +486,6 @@ def google_callback(
 
     token = create_access_token(str(user.id), user.token_version)
     # The fragment, not the query string. See the note above.
-    return RedirectResponse(
-        f"{site}/auth/google#token={token}&next={urllib.parse.quote(next_path, safe='/')}",
-        status_code=303,
+    return done(
+        f"{site}/auth/google#token={token}&next={urllib.parse.quote(next_path, safe='/')}"
     )

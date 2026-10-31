@@ -3,6 +3,27 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
+const sectionLinks = useSectionNavigation()
+const { locale } = useLocale()
+const { $t } = useNuxtApp()
+const route = useRoute()
+// The parents page has its own contact section and does not carry the
+// student disclaimer.
+const showDisclaimer = computed(() => route.path !== '/parents')
+
+// The account name is a link to /mamo, so the sentence is split around it.
+// The name stays in Chinese in every language because that is what people
+// search for in WeChat.
+const wechatParts = computed(() => $t('footer.wechat').split('{name}'))
+
+const standalone = ref(true)
+onMounted(() => { standalone.value = isStandalone() })
+
+const featuresHeading = computed(() => {
+  if (locale.value === 'zh') return '功能导航'
+  if (locale.value === 'en') return 'Features'
+  return $t('footer.explore')
+})
 </script>
 
 <template>
@@ -10,21 +31,38 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
     <div class="container inner">
       <div class="about">
         <p class="brand">
-          <AppLogo :size="32" tone="onDark" :tile="false" />
+          <AppLogo :size="32" tone="onLight" />
           <span>
             <strong>Monash Hub</strong>
             <span class="tiny muted block">{{ $t('footer.about') }}</span>
+            <span class="tiny muted block credit">
+              {{ $t('footer.conceptBy') }}
+              <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a>
+            </span>
+            <span class="tiny muted block credit">
+              {{ $t('footer.builtMaintainedBy') }}
+              <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a>
+            </span>
           </span>
         </p>
-        <p class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
+        <p v-if="showDisclaimer" class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
+        <!-- Always here, for anyone who closed the hint at the top of the page.
+             Not shown inside the installed app, where it has nothing to do. -->
+        <ClientOnly>
+          <details v-if="!standalone" class="install">
+            <summary class="small">{{ $t('pwa.footerTitle') }}</summary>
+            <InstallSteps />
+          </details>
+        </ClientOnly>
       </div>
 
-      <nav class="col" :aria-label="$t('footer.explore')">
-        <h2 class="tiny muted heading">{{ $t('footer.explore') }}</h2>
-        <NuxtLink to="/units">{{ $t('nav.units') }}</NuxtLink>
-        <NuxtLink to="/guides">{{ $t('nav.guides') }}</NuxtLink>
-        <NuxtLink to="/community">{{ $t('nav.community') }}</NuxtLink>
-        <NuxtLink to="/mamo">{{ $t('nav.mamo') }}</NuxtLink>
+      <nav class="col explore-col" :aria-label="featuresHeading">
+        <h2 class="tiny muted heading">{{ featuresHeading }}</h2>
+        <div class="explore-links">
+          <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">
+            {{ link.label }}
+          </NuxtLink>
+        </div>
       </nav>
 
       <nav class="col" :aria-label="$t('footer.official')">
@@ -66,46 +104,121 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
           target="_blank"
         >{{ system.name }} ↗</a>
       </nav>
+
+      <div class="footer-bottom">
+        <!-- Points at the 马莫百科 page rather than only naming the account,
+             so someone can see what it posts and scan the QR codes there. -->
+        <div class="wechat">
+          <p class="small wechat-text">
+            {{ wechatParts[0] }}<NuxtLink to="/mamo" class="wechat-name">马莫百科</NuxtLink>{{ wechatParts[1] }}
+          </p>
+          <!-- A filled button rather than another text link: as plain bold text
+               at the end of the sentence nobody saw that it could be clicked. -->
+          <NuxtLink to="/mamo#follow" class="btn btn--small wechat-cta">
+            <svg class="qr-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>{{ $t('footer.wechatCta') }}</span>
+            <span aria-hidden="true">→</span>
+          </NuxtLink>
+        </div>
+        <p class="tiny copyright">{{ $t('footer.copyright') }}</p>
+      </div>
     </div>
   </footer>
 </template>
 
 <style scoped>
-/*
- * Four columns rather than one.
- *
- * The disclaimer is the longest single piece of text on the site and it sits at
- * the bottom of every page, so left on its own it either runs the full window
- * width - unreadable on a wide screen - or gets capped and leaves half the
- * footer visibly empty. Putting the navigation beside it means the measure stays
- * comfortable and the space is actually used.
- */
-/* Near-black, the way the official site closes a page. A dark band under a blue
-   header is what makes the whole thing read as blue and white rather than as a
-   blue strip on a grey page. */
 .footer {
   margin-top: var(--s8);
   padding: var(--s6) 0 var(--s7);
   background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
 }
 .inner {
   display: grid;
-  /* The four columns are not the same shape. "Browse" is four short words
-     and needs the least; the source and system columns carry long names and
-     a campus label, so they get the room the browse column gives up. */
+  width: 100%;
+  max-width: 1540px;
+  padding-inline: clamp(24px, 3vw, 56px);
+  /* The feature navigation gets enough room for two balanced columns while the
+     product description and external-resource groups keep comfortable widths. */
   grid-template-columns:
-    minmax(0, 1.9fr) minmax(80px, 0.6fr) minmax(150px, 1.1fr)
-    minmax(105px, 0.75fr) minmax(120px, 0.85fr);
-  gap: var(--s6);
+    minmax(280px, 1.45fr) minmax(320px, 1.35fr) minmax(190px, 1.05fr)
+    minmax(150px, 0.8fr) minmax(165px, 0.85fr);
+  column-gap: clamp(28px, 2.8vw, 52px);
+  row-gap: var(--s5);
   align-items: start;
 }
 
 .brand { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
 .block { display: block; }
+.credit { line-height: 1.45; }
+.credit :deep(a) { font-weight: 600; }
 .disclaimer { margin: 0; color: var(--muted); }
+.install { margin-top: var(--s4); color: var(--footer-heading); }
+.install summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.install :deep(.install-steps) { margin-top: var(--s2); }
+.footer-bottom {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--s3);
+}
+.wechat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3) var(--s4);
+  padding-left: var(--s3);
+  border-left: 2px solid var(--footer-accent);
+}
+.wechat-text {
+  margin: 0;
+  color: var(--footer-heading);
+}
+.footer .wechat-name {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer .wechat-cta {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+.footer .wechat-cta:hover {
+  background: var(--brand-700);
+  color: #fff;
+}
+.qr-icon { flex: none; }
+.copyright {
+  margin: 0;
+  color: var(--footer-text);
+}
 
 .col { display: grid; align-content: start; gap: var(--s2); }
+.explore-col { grid-template-rows: auto 1fr; }
+.explore-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--s5);
+  row-gap: var(--s2);
+  align-content: start;
+}
+.explore-links a { white-space: nowrap; }
 
 .heading {
   margin: 0 0 var(--s1);
@@ -115,24 +228,30 @@ const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 }
 .col a { font-size: 0.9rem; }
 
-@media (max-width: 900px) {
-  .inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
-  /* The disclaimer spans the row on a narrow screen; the three link
-     columns pair up under it rather than each taking a half-width
-     column of their own and leaving one stranded. */
-  .about { grid-column: 1 / -1; }
+@media (max-width: 1280px) {
+  .inner {
+    max-width: var(--container);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s5);
+  }
   .about { grid-column: 1 / -1; }
 }
-@media (max-width: 980px) {
+@media (max-width: 640px) {
+  .inner { grid-template-columns: 1fr; }
+  .about { grid-column: auto; }
+  .explore-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .explore-links a { white-space: normal; }
+}
+@media (max-width: 420px) {
+  .explore-links { grid-template-columns: 1fr; }
+}
+@media (max-width: 1180px) {
   .footer { padding-bottom: calc(var(--s7) + 56px); }
 }
-/* The footer is the one dark region on a light page, so every rule that names a
-   colour has to be restated here - inherited .muted and link colours are chosen
-   against white and disappear on near-black. */
 .footer :deep(h2),
 .footer :deep(.foot-heading) { color: var(--footer-heading); }
-.footer :deep(a) { color: #dbeafe; }
-.footer :deep(a:hover) { color: #fff; }
+.footer :deep(a) { color: var(--footer-link); }
+.footer :deep(a:hover) { color: var(--footer-link-hover); }
 .footer :deep(.muted),
 .disclaimer { color: var(--footer-text); }
 .footer :deep(.brand-name) { color: var(--footer-heading); }

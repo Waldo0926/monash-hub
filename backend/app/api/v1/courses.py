@@ -1,8 +1,10 @@
 """Handbook course and area-of-study endpoints."""
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import requested_locale
@@ -16,11 +18,13 @@ from app.api.serializers import (
 )
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.knowledge import translations
+from app.handbook.years import available_years, loaded_years, resolve_year
+from app.knowledge import teach_out, translations, tuition
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
 from app.models.translation import AREA_OF_STUDY, COURSE, UNIT
+from app.search import service
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -29,9 +33,38 @@ def _year(year: int | None) -> int:
     return year or get_settings().current_academic_year
 
 
+# A part of a degree that any unit can count towards, as opposed to one that
+# lists what counts. The planner has to tell them apart: a *specified* or
+# *discipline* elective part is satisfied only by the units it names, but a free
+# elective part is satisfied by whatever is left over, which is exactly what the
+# words "free elective" mean and why "Part E. Free elective studies" read 0/48
+# for a student who had planned twelve units it did not happen to list.
+#
+# Two signals, both taken from the English source so the answer does not depend
+# on which language the page is being read in:
+#
+#   * the title says "free elective" - 24 parts across the catalogue, and
+#   * the description says "across the University", which is the Handbook's own
+#     phrase for a part with no list - another 31, mostly titled plainly
+#     "Part D. Elective studies".
+#
+# The title must mention electives either way. Without that clause the
+# description test also matches "Rules", "Course requirements" and even "Part A.
+# Foundation studies", all of which mention the University in passing.
+_ELECTIVE = re.compile(r"\belectives?\b", re.IGNORECASE)
+_FREE_ELECTIVE = re.compile(r"\bfree\s+electives?\b", re.IGNORECASE)
+_NO_LIST = re.compile(r"across the University", re.IGNORECASE)
+
+
+def _is_free_elective(title: str | None, description: str | None) -> bool:
+    if not title or not _ELECTIVE.search(title):
+        return False
+    return bool(_FREE_ELECTIVE.search(title) or _NO_LIST.search(description or ""))
+
+
 @router.get("")
 def list_courses(
-    q: str | None = None,
+    q: str | None = Query(None, max_length=300),
     campus: str | None = None,
     course_type: str | None = None,
     faculty: str | None = None,
@@ -48,28 +81,16 @@ def list_courses(
     and there is no partial version of that to show them.
     """
     academic_year = _year(year)
-    stmt = select(Course).where(Course.academic_year == academic_year, Course.is_active)
-
-    if q:
-        term = q.strip()
-        stmt = stmt.where(
-            or_(
-                Course.course_code.ilike(f"{term}%"),
-                Course.title.ilike(f"%{term}%"),
-                Course.abbreviated_name.ilike(f"{term}%"),
-            )
-        )
-    if campus:
-        stmt = stmt.where(Course.campuses.any(campus))
-    if course_type:
-        stmt = stmt.where(Course.course_type == course_type)
-    if faculty:
-        stmt = stmt.where(Course.faculty == faculty)
-
-    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = db.scalars(
-        stmt.order_by(Course.title).limit(limit).offset(offset)
-    ).all()
+    rows, total = service.search_courses(
+        db,
+        q or "",
+        year=academic_year,
+        limit=limit,
+        offset=offset,
+        campus=campus,
+        course_type=course_type,
+        faculty=faculty,
+    )
     tr = translations.load_many(
         db, locale, COURSE, [c.course_code for c in rows],
         source_hashes={c.course_code: c.content_hash for c in rows},
@@ -93,6 +114,8 @@ def course_filters(year: int | None = None, db: Session = Depends(get_db)) -> di
     types = distinct(Course.course_type)
     faculties = distinct(Course.faculty)
     return {
+        "academic_year": academic_year,
+        "years": loaded_years(db, Course.academic_year),
         "campuses": sorted(c for c in campuses if c),
         "course_types": sorted(t for t in types if t),
         "faculties": sorted(f for f in faculties if f),
@@ -146,10 +169,14 @@ def _tree(
             "credit_points": row.credit_points,
             "credit_points_max": row.credit_points_max,
             "connector": row.connector,
+            # From the English, before translation: what a part *is* does not
+            # change with the reader's language.
+            "free_elective": _is_free_elective(row.title, row.description),
             "items": [
                 {
                     "code": item.item_code,
                     "name": tr.string(item.item_name),
+                    "name_translated": tr.string(item.item_name) != item.item_name,
                     "type": item.item_type,
                     "credit_points": item.credit_points,
                     "connector": item.connector,
@@ -166,6 +193,30 @@ def _tree(
         else:
             roots.append(nodes[row.id])
     return roots
+
+
+def _other_years(
+    db: Session, codes: list[str], year: int
+) -> tuple[dict[str, Unit], dict[str, list[int]]]:
+    """For codes the year lacks: the row from the nearest year that has each, and
+    every year that has it (newest first), so the page can offer to open it there."""
+    if not codes:
+        return {}, {}
+    rows = db.scalars(
+        select(Unit).where(Unit.unit_code.in_(codes), Unit.academic_year != year)
+    ).all()
+    years: dict[str, list[int]] = {}
+    for unit in rows:
+        years.setdefault(unit.unit_code, []).append(unit.academic_year)
+    for found in years.values():
+        found.sort(reverse=True)
+    best: dict[str, Unit] = {}
+    for unit in rows:
+        held = best.get(unit.unit_code)
+        key = (abs(unit.academic_year - year), -unit.academic_year)
+        if held is None or key < (abs(held.academic_year - year), -held.academic_year):
+            best[unit.unit_code] = unit
+    return best, years
 
 
 def _unit_facts(
@@ -190,11 +241,27 @@ def _unit_facts(
         source_hashes={c: u.content_hash for c, u in found.items()},
     )
 
+    # A degree still listing a unit the Handbook has since dropped (or not yet
+    # added) is told so - ``in_year`` is False and the page tags it - but it
+    # keeps its name. The structure row carries only the English the degree page
+    # printed; the same code in another year has the reviewed title. Take it from
+    # the nearest year, newer first on a tie, and use it for nothing else.
+    elsewhere, elsewhere_years = _other_years(db, [c for c in codes if c not in found], year)
+    elsewhere_tr = translations.load_many(
+        db, locale, UNIT, list(elsewhere),
+        source_hashes={c: u.content_hash for c, u in elsewhere.items()},
+    )
+
+    notices = teach_out.lookup(db, codes, campus)
+
     facts: dict[str, dict] = {}
     for code in codes:
         unit = found.get(code)
         if unit is None:
             facts[code] = {"in_year": False, "offered_at_campus": False, "periods": []}
+            if code in elsewhere:
+                facts[code]["title"] = elsewhere_tr[code].field("title", elsewhere[code].title)
+                facts[code]["years"] = elsewhere_years[code]
             continue
         offered = [o for o in unit.offerings if o.offered]
         here = [o for o in offered if not campus or o.campus == campus]
@@ -211,6 +278,9 @@ def _unit_facts(
             "offered_at_campus": bool(here) if campus else True,
             "periods": periods,
         }
+    for code, notice in notices.items():
+        if code in facts:
+            facts[code]["teach_out"] = notice["entries"]
     return facts
 
 
@@ -222,6 +292,82 @@ def _codes_in(containers: list[dict], kind: str) -> list[str]:
     return list(dict.fromkeys(found))
 
 
+def _name_units(containers: list[dict], units: dict[str, dict]) -> None:
+    """Show a unit item under its translated title when the item itself has none.
+
+    An item's name is a string of the degree's own translation, so a Handbook
+    year whose structure has not been through the translator yet lists every
+    unit in English beside a unit page that has a Chinese title. The unit's
+    title is the same words, so it is used when the item's own lookup missed.
+    When the reader is on English both are the source and nothing changes.
+    """
+    for node in containers:
+        for item in node["items"]:
+            if item["type"] != "unit" or item["name_translated"]:
+                continue
+            title = (units.get(item["code"]) or {}).get("title")
+            if title:
+                item["name"] = title
+        _name_units(node["containers"], units)
+
+
+def _items(containers: list[dict]):
+    for node in containers:
+        yield from node["items"]
+        yield from _items(node["containers"])
+
+
+def _nearest(rows, year: int, code_of, year_of) -> dict:
+    best: dict = {}
+    for row in rows:
+        held = best.get(code_of(row))
+        key = (abs(year_of(row) - year), -year_of(row))
+        if held is None or key < (abs(year_of(held) - year), -year_of(held)):
+            best[code_of(row)] = row
+    return best
+
+
+def _name_degrees_and_areas(
+    db: Session, containers: list[dict], year: int, locale: str | None
+) -> None:
+    """Show a degree, major, minor, specialisation or honours item under the title
+    its own page has in the reader's language.
+
+    A double degree lists "Bachelor of Business" and a degree lists its majors by
+    the English the structure printed. Each of those is a page with a reviewed
+    title of its own - the same one the picker and the page heading use - so the
+    line borrows it instead of keeping a second, untranslated copy. The item's own
+    translation, when it has one, is left alone; so is an item whose page is not
+    loaded or has no translation, which stays in English rather than being guessed.
+    """
+    todo = [i for i in _items(containers) if i["type"] != "unit" and not i["name_translated"]]
+    if not todo:
+        return
+    degree_codes = sorted({i["code"] for i in todo if i["type"] == "course"})
+    area_codes = sorted({i["code"] for i in todo if i["type"] != "course"})
+    found: dict[tuple[str, str], tuple[str, str | None]] = {}
+    for kind, model, column, codes, target in (
+        ("course", Course, Course.course_code, degree_codes, COURSE),
+        ("area", AreaOfStudy, AreaOfStudy.aos_code, area_codes, AREA_OF_STUDY),
+    ):
+        if not codes:
+            continue
+        rows = db.scalars(select(model).where(column.in_(codes))).all()
+        code_of = (lambda r: r.course_code) if kind == "course" else (lambda r: r.aos_code)
+        best = _nearest(rows, year, code_of, lambda r: r.academic_year)
+        tr = translations.load_many(
+            db, locale, target, list(best),
+            source_hashes={c: r.content_hash for c, r in best.items()},
+        )
+        for code, row in best.items():
+            found[(kind, code)] = (row.title, tr[code].field("title", row.title))
+    for item in todo:
+        source, title = found.get(("course" if item["type"] == "course" else "area", item["code"]),
+                                  (None, None))
+        if title and title != source:
+            item["name"] = title
+
+
 @router.get("/{code}")
 def get_course(
     code: str,
@@ -231,7 +377,9 @@ def get_course(
     db: Session = Depends(get_db),
 ) -> dict:
     """One degree and the whole structure under it."""
-    academic_year = _year(year)
+    academic_year, not_in_year = resolve_year(
+        db, Course.course_code, Course.academic_year, code, year
+    )
     course = _load_course(db, code, academic_year)
     tr = translations.load(db, locale, COURSE, course.course_code,
                            source_hash=course.content_hash)
@@ -239,9 +387,17 @@ def get_course(
     units = _unit_facts(db, _codes_in(containers, "unit"), academic_year, campus, locale)
 
     payload = course_detail(course, tr)
+    payload["not_in_year"] = not_in_year
+    payload["available_years"] = available_years(db, Course.course_code, Course.academic_year, code)
     payload["campus"] = campus
+    # Malaysia campus fees from the indexed fee pages, matched on the English
+    # title. None when Malaysia does not teach the degree or the pages do not
+    # price it.
+    payload["tuition"] = tuition.for_course(db, course.title, course.faculty, course.campuses)
     payload["containers"] = containers
     payload["units"] = units
+    _name_units(containers, units)
+    _name_degrees_and_areas(db, containers, academic_year, locale)
     # Each area of study carries its own translation row, so the list of
     # specialisations needs its own load - the course's translation says
     # nothing about what its majors are called.
@@ -280,7 +436,7 @@ def get_course(
         {
             "code": row.aos_code,
             "title": aos_tr[row.aos_code].field("title", row.title),
-            "aos_type": aos_tr[row.aos_code].string(row.aos_type),
+            "aos_type": aos_tr[row.aos_code].value(row.aos_type),
             "credit_points": row.credit_points,
             "unit_codes": aos_units.get(row.aos_code, []),
         }
@@ -298,7 +454,9 @@ def get_area_of_study(
     db: Session = Depends(get_db),
 ) -> dict:
     """One major, minor or specialisation and the units in it."""
-    academic_year = _year(year)
+    academic_year, not_in_year = resolve_year(
+        db, AreaOfStudy.aos_code, AreaOfStudy.academic_year, code, year
+    )
     aos = db.scalar(
         select(AreaOfStudy).where(
             AreaOfStudy.aos_code == code.upper(), AreaOfStudy.academic_year == academic_year
@@ -310,9 +468,15 @@ def get_area_of_study(
     tr = translations.load(db, locale, AREA_OF_STUDY, aos.aos_code, source_hash=aos.content_hash)
     containers = _tree(db, aos_id=aos.id, tr=tr)
     payload = area_of_study_detail(aos, tr)
+    payload["not_in_year"] = not_in_year
+    payload["available_years"] = available_years(
+        db, AreaOfStudy.aos_code, AreaOfStudy.academic_year, code
+    )
     payload["campus"] = campus
     payload["containers"] = containers
     payload["units"] = _unit_facts(
         db, _codes_in(containers, "unit"), academic_year, campus, locale
     )
+    _name_units(containers, payload["units"])
+    _name_degrees_and_areas(db, containers, academic_year, locale)
     return payload

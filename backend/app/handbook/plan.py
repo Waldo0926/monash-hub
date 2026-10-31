@@ -9,7 +9,7 @@ everything each one requires sits somewhere earlier.
 Four things are checked, and the second is the one no other Monash planner
 does:
 
-* the unit exists in this Handbook year;
+* the unit exists in the Handbook for the year it is placed in;
 * it is taught at this campus in that teaching period. A plan built from
   Clayton's offerings is a plan a Malaysia student cannot enrol in, and the
   failure is invisible until enrolment opens;
@@ -17,6 +17,14 @@ does:
   Handbook's own AND/OR grouping honoured - an OR group needs one of its
   members, an AND group needs all of them;
 * no two units in the plan prohibit each other.
+
+Each unit is read from the Handbook of the calendar year it sits in. A 2026
+semester is checked against the 2026 Handbook even after the site has moved to
+2027: FIT1058 was taught in 2026 and is not in 2027, and FIT1043 ran in second
+semester in 2026 but only in first in 2027 - reading the current Handbook for
+the whole plan reported both as wrong for a student who took them in 2026. A
+year with no Handbook loaded uses the latest loaded one before it (2028 reads
+2027), or the earliest one when the plan starts before anything loaded.
 
 Corequisites are checked as "at or before", because that is what a corequisite
 means, and getting that wrong in the strict direction would report an error on
@@ -33,7 +41,7 @@ from collections.abc import Iterable
 from contextlib import suppress
 from dataclasses import dataclass, field
 
-from sqlalchemy import select
+from sqlalchemy import distinct, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.handbook import Unit, UnitRequisiteGroup
@@ -129,12 +137,22 @@ def _entries(raw: Iterable[dict]) -> list[Entry]:
     return out
 
 
-def _load(db: Session, codes: list[str], academic_year: int) -> dict[str, Unit]:
-    if not codes:
+def handbook_year_for(year: int, loaded: list[int], fallback: int) -> int:
+    """The Handbook that describes a unit taken in calendar ``year``."""
+    if year in loaded:
+        return year
+    if not loaded:
+        return fallback
+    earlier = [y for y in loaded if y <= year]
+    return max(earlier) if earlier else min(loaded)
+
+
+def _load(db: Session, codes: list[str], years: set[int]) -> dict[tuple[str, int], Unit]:
+    if not codes or not years:
         return {}
     units = db.scalars(
         select(Unit)
-        .where(Unit.unit_code.in_(codes), Unit.academic_year == academic_year)
+        .where(Unit.unit_code.in_(codes), Unit.academic_year.in_(years))
         .options(
             selectinload(Unit.offerings),
             # Three levels is as deep as the Handbook goes; the loader is
@@ -149,7 +167,7 @@ def _load(db: Session, codes: list[str], academic_year: int) -> dict[str, Unit]:
             .selectinload(UnitRequisiteGroup.items),
         )
     )
-    return {unit.unit_code: unit for unit in units}
+    return {(unit.unit_code, unit.academic_year): unit for unit in units}
 
 
 @dataclass
@@ -178,9 +196,14 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unm
 
     A group's ``connector`` says how its contents combine, where the contents
     are its items and the groups inside it. AND needs all of them, OR needs one.
+    ``TEXT`` is different: the Handbook published prose but no machine-readable
+    boolean structure. The graph may show the unit references, but the planner
+    must not pretend it knows which combinations satisfy that prose.
     """
-    corequisite = (group.requisite_type or "").startswith("coreq")
+    corequisite = "corequisite" in (group.requisite_type or "").lower()
     connector = (group.connector or "AND").upper()
+    if connector == "TEXT":
+        return None
 
     met_codes: list[str] = []
     missing_codes: list[str] = []
@@ -228,7 +251,13 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
           campus: str | None) -> dict:
     """Every finding about one plan, plus what it adds up to."""
     entries = _entries(raw_entries)
-    units = _load(db, [e.unit_code for e in entries], academic_year)
+    loaded = sorted(db.scalars(select(distinct(Unit.academic_year))).all())
+    handbook = {e.slot.year: handbook_year_for(e.slot.year, loaded, academic_year) for e in entries}
+    found = _load(db, [e.unit_code for e in entries], set(handbook.values()))
+
+    def unit_for(entry: Entry) -> Unit | None:
+        return found.get((entry.unit_code, handbook[entry.slot.year]))
+
     issues: list[Issue] = []
 
     seen: dict[str, Slot] = {}
@@ -240,17 +269,31 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
             seen[entry.unit_code] = entry.slot
 
     credit_points = 0
+    # What each unit is worth on its own, not only the total. The planner needs
+    # it to score a free elective part, which is credited with whatever units
+    # the degree does not name - and a unit the degree does not name is a unit
+    # the course endpoint knows nothing about.
+    each: dict[str, int] = {}
+    # And its name, so a card on the map can say more than a code. The source
+    # title on purpose: a translated one would need its unofficial label next
+    # to it, and a card that small has no room for one.
+    titles: dict[str, str] = {}
     for entry in entries:
-        unit = units.get(entry.unit_code)
+        unit = unit_for(entry)
         if unit is None:
             issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
-                                "error", "not_in_year"))
+                                "error", "not_in_year",
+                                {"handbook_year": handbook[entry.slot.year]}))
             continue
+
+        titles[entry.unit_code] = unit.title
 
         # The Handbook publishes credit points as a string, and a handful of
         # units publish something that is not a number at all.
         with suppress(TypeError, ValueError):
-            credit_points += int(unit.credit_points or 0)
+            worth = int(unit.credit_points or 0)
+            credit_points += worth
+            each[entry.unit_code] = worth
 
         if entry.unit_code in duplicates and seen[entry.unit_code] != entry.slot:
             issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
@@ -272,7 +315,7 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
 
     # Requisites and prohibitions, once the whole plan is known.
     for entry in entries:
-        unit = units.get(entry.unit_code)
+        unit = unit_for(entry)
         if unit is None:
             continue
         for group in unit.requisite_groups:
@@ -287,13 +330,13 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
                     issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
                                         "error", "prohibited_with", {"units": sorted(clash)}))
                 continue
-            if not (kind.startswith("prereq") or kind.startswith("coreq")):
+            if not ("prerequisite" in kind or "corequisite" in kind):
                 continue
             unmet = _evaluate(group, seen, entry.slot)
             if unmet:
                 issues.append(Issue(
                     entry.unit_code, entry.slot.year, entry.slot.period, "error",
-                    "missing_corequisite" if kind.startswith("coreq") else "missing_prerequisite",
+                    "missing_corequisite" if "corequisite" in kind else "missing_prerequisite",
                     {
                         "any_of": unmet.flatten() if unmet.connector == "OR" else [],
                         "all_of": [] if unmet.connector == "OR" else unmet.codes,
@@ -305,8 +348,12 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
 
     return {
         "academic_year": academic_year,
+        # Which Handbook each calendar year in the plan was checked against.
+        "handbook_years": {str(year): used for year, used in sorted(handbook.items())},
         "campus": campus,
         "credit_points": credit_points,
+        "unit_credit_points": each,
+        "unit_titles": titles,
         "units": len(entries),
         "issues": [
             {

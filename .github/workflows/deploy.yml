@@ -1,0 +1,101 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      # The commit CI tested, not whatever main points at by the time the SSH
+      # session opens. A manual dispatch deploys the ref it was run from, and
+      # deploy.sh refuses anything that is not on origin/main.
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+    steps:
+      - name: Check out the commit being deployed
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Validate deployment secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf '::error::Missing required deployment secret(s): %s\n' "${missing[*]}"
+            exit 1
+          fi
+
+      - name: Prepare SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/monash-hub-deploy-key"
+          chmod 600 "$RUNNER_TEMP/monash-hub-deploy-key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy the tested commit on the VPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::No commit to deploy (DEPLOY_SHA='$DEPLOY_SHA')"
+            exit 1
+          fi
+          echo "Deploying $DEPLOY_SHA"
+          port="${DEPLOY_PORT:-22}"
+          # The script itself does the fetch and checkout, and re-executes the
+          # copy that came with the commit. Under the forced command in
+          # docs/AUTOMATED-DEPLOYMENT.md it reads the SHA from the command line
+          # it was given here.
+          ssh \
+            -i "$RUNNER_TEMP/monash-hub-deploy-key" \
+            -p "$port" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "/opt/monash-hub/repo/deployment/deploy.sh $DEPLOY_SHA"
+
+      - name: Verify the public site serves this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The VPS already ran the same script against the containers. This
+          # run goes through the public hostname and nginx, and checks that the
+          # commit the site reports is the one this workflow deployed.
+          deployment/smoke.sh --base https://monashhub.secureview.tech --commit "$DEPLOY_SHA"

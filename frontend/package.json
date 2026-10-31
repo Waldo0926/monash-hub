@@ -6,12 +6,19 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck",
+    "test": "vitest run",
+    "audit": "node scripts/audit.mjs"
   },
   "devDependencies": {
-    "nuxt": "^4.0.0",
-    "vue": "^3.5.0",
-    "vue-router": "^4.5.0"
+    "@types/node": "^26.6.5",
+    "nuxt": "^4.6.2",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0",
+    "vue-tsc": "^3.3.12"
   },
   "dependencies": {
     "tesseract.js": "^7.0.0"

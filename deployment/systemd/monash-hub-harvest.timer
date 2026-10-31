@@ -1,0 +1,11 @@
+[Unit]
+Description=Read the due Monash official pages for the server once a day
+
+[Timer]
+OnCalendar=*-*-* 01:17
+RandomizedDelaySec=20min
+Persistent=true
+Unit=monash-hub-harvest.service
+
+[Install]
+WantedBy=timers.target

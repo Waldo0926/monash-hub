@@ -13,7 +13,7 @@ export function useNotifications() {
   const timer = useState<number | null>('notifications-timer', () => null)
 
   async function refresh() {
-    if (!import.meta.client || !localStorage.getItem('mh_token')) {
+    if (!readToken()) {
       unread.value = 0
       return
     }

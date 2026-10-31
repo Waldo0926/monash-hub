@@ -1,0 +1,13 @@
+# Scheduled Monash Hub refresh; %i is "official" or "handbook".
+# Installed to /etc/systemd/system/ - see docs/DEPLOYMENT.md.
+[Unit]
+Description=Monash Hub scheduled %i refresh
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/monash-hub/repo/deployment/scheduled-refresh.sh %i
+# A full Handbook pass is several hours at the polite request rate.
+TimeoutStartSec=10h
+Nice=10

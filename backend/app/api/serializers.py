@@ -12,8 +12,10 @@ you are reading is the source, verbatim.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
+from app.knowledge.faq_seed import MALAYSIA_PAGES
 from app.knowledge.translations import Translation, translate_blocks, translated_headings
 from app.models.community import CommunityAnswer, CommunityPost
 from app.models.curriculum import AreaOfStudy, Course
@@ -72,15 +74,22 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         "title": tr.field("title", unit.title),
         "academic_year": unit.academic_year,
         "credit_points": unit.credit_points,
-        "level": tr.string(unit.level),
-        "faculty": tr.string(unit.faculty),
+        "level": tr.value(unit.level),
+        "faculty": tr.value(unit.faculty),
+        # Untranslated, for links that filter the unit list by faculty.
+        "faculty_raw": unit.faculty,
         "has_exam": unit.has_exam,
         "assessment_count": len(unit.assessments),
         "offerings": [
             {
-                "campus": tr.string(o.campus),
-                "teaching_period": tr.string(o.teaching_period),
-                "attendance_mode": tr.string(o.attendance_mode),
+                "campus": tr.value(o.campus),
+                "teaching_period": tr.value(o.teaching_period),
+                "attendance_mode": tr.value(o.attendance_mode),
+                # Untranslated, for the planner to match against the plan's
+                # own campus and period names, and the S1/S2 tag it shows.
+                "campus_raw": o.campus,
+                "teaching_period_raw": o.teaching_period,
+                "short": short_period(o.teaching_period),
             }
             for o in unit.offerings
             if o.offered
@@ -91,10 +100,40 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     }
 
 
+# "1 - Written": the Handbook's generated label. The page formats these itself
+# from the type column ("第 1 项 · 书面考核"), so they go out as written.
+_NUMBERED_NAME = re.compile(r"^\d+\s*[-–]\s*\S")
+
+
+def _assessment_name(name: str | None, tr: Translation) -> str | None:
+    if name is None or _NUMBERED_NAME.match(name.strip()):
+        return name
+    return tr.string(name)
+
+
+_URL = re.compile(r"https?://[^\s()（）<>\"'，。、；]+")
+
+
+def _links(text: str) -> set[str]:
+    return {url.rstrip(".,;:") for url in _URL.findall(text)}
+
+
+def _resource(item: str, tr: Translation) -> str:
+    """A reading-list line. Its links are what the page makes clickable, so a
+    translation that lost or changed one is not used."""
+    translated = tr.string(item)
+    if translated == item or _links(item) - _links(translated):
+        return item
+    return translated
+
+
 def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     return {
         **unit_brief(unit, tr),
-        "school": tr.string(unit.school),
+        # False when the Handbook now answers this code with a 404. The page
+        # still shows what it last said, under a notice saying so.
+        "is_active": unit.is_active,
+        "school": tr.value(unit.school),
         "overview": tr.field("overview", unit.overview),
         "areas_of_study": tr.field("areas_of_study", unit.areas_of_study),
         "teaching_approach": tr.field("teaching_approach", unit.teaching_approach),
@@ -103,16 +142,24 @@ def unit_detail(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         # One string, identical on thousands of units - it lives in the global
         # set rather than being stored 2,596 times.
         "assessment_static_text": tr.string(unit.assessment_static_text),
+        # Reading lists are titles and links, shown as published: translating
+        # a book title would only make it harder to find.
+        "learning_resources": [
+            {**group, "items": [_resource(item, tr) for item in group.get("items") or []]}
+            for group in unit.learning_resources or []
+        ],
+        "sca_band": unit.sca_band,
+        "study_abroad": unit.study_abroad,
         "translation": tr.meta(),
         "handbook_version": unit.handbook_version,
         "assessments": [
             {
                 "number": a.number,
-                "name": a.name,
+                "name": _assessment_name(a.name, tr),
                 "type": a.assessment_type,
                 "weight": a.weight,
                 "hurdle": a.hurdle,
-                "description": a.description,
+                "description": tr.field("assessment_description", a.description),
                 "learning_outcomes": a.learning_outcomes,
             }
             for a in unit.assessments
@@ -138,6 +185,8 @@ def official_brief(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dict
         # the card as well as on the page: a student pass in Malaysia is not the
         # Australian subclass 500 visa, and OSHC does not exist there.
         "applies_to": page.applies_to,
+        # Listed, not copied: the summary is ours and the page needs a Monash login.
+        "requires_sign_in": bool(page.requires_sign_in),
         "tags": list(page.tags or []),
         "summary": tr.field("summary", page.summary),
         "translation": tr.meta(),
@@ -160,7 +209,7 @@ def official_detail(page: OfficialPage, tr: Translation = NO_TRANSLATION) -> dic
         # fallback for a page crawled before the structured extractor existed.
         "blocks": blocks,
         "clean_text": page.clean_text,
-        "source_name": page.source.name if page.source else None,
+        "source_name": tr.value(page.source.name) if page.source else None,
         "refresh_tier": page.refresh_tier,
     }
 
@@ -170,6 +219,8 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
         "slug": entry.slug,
         "question": tr.field("question", entry.question),
         "answer": tr.field("answer", entry.answer),
+        # Labelled like every other translated source - see TranslationNotice.
+        "translation": tr.meta(),
         "category": entry.category,
         "tags": list(entry.tags or []),
         "official_url": entry.official_url
@@ -178,7 +229,9 @@ def faq_brief(entry: FaqEntry, tr: Translation = NO_TRANSLATION) -> dict[str, An
         # Taken from the page the answer is traceable to rather than stored
         # again here: an answer about the 48-hour work limit is Australian
         # because the page it cites is, and the two must never disagree.
-        "applies_to": entry.official_page.applies_to if entry.official_page else None,
+        # An answer written for both campuses names each one in its text.
+        "applies_to": None if entry.slug in MALAYSIA_PAGES
+        else (entry.official_page.applies_to if entry.official_page else None),
         "last_checked": _iso(entry.official_page.last_checked) if entry.official_page else None,
     }
 
@@ -235,9 +288,23 @@ def post_detail(
         "answers": [
             answer_brief(a, viewer_id, voted_answers)
             for a in post.answers
-            if not a.is_hidden
+            if _shown(a)
         ],
     }
+
+
+def _shown(answer: CommunityAnswer) -> bool:
+    """Whether a reply appears in its thread.
+
+    Hidden by a moderator: no. Deleted by its author: only as a placeholder,
+    and only while someone else's reply hangs off it - otherwise deleting your
+    own reply would silently take other people's with it.
+    """
+    if answer.is_hidden:
+        return False
+    if answer.deleted_at is not None:
+        return any(_shown(child) for child in answer.children)
+    return True
 
 
 def answer_brief(
@@ -249,11 +316,17 @@ def answer_brief(
     argue about the answer, and a flat list cannot say which remark is about
     which.
     """
+    deleted = answer.deleted_at is not None
     return {
         "id": answer.id,
         "parent_id": answer.parent_id,
-        "body": answer.body,
-        **_writer(answer, viewer_id),
+        # A deleted reply keeps its place and loses its words and its author.
+        "body": None if deleted else answer.body,
+        "deleted": deleted,
+        **(
+            {"author": None, "anonymous": True, "is_mine": False}
+            if deleted else _writer(answer, viewer_id)
+        ),
         "is_accepted": answer.is_accepted,
         "vote_count": answer.vote_count,
         "viewer_voted": answer.id in (voted or set()),
@@ -261,7 +334,7 @@ def answer_brief(
         "replies": [
             answer_brief(child, viewer_id, voted)
             for child in answer.children
-            if not child.is_hidden
+            if _shown(child)
         ],
     }
 
@@ -272,6 +345,9 @@ def answer_brief(
 _PERIOD_SHORT = (
     ("first semester", "S1"),
     ("second semester", "S2"),
+    # Older rows and some fixtures spell the two semesters this way round.
+    ("semester 1", "S1"),
+    ("semester 2", "S2"),
     ("summer semester a", "SA"),
     ("summer semester b", "SB"),
     ("winter semester", "W"),
@@ -347,7 +423,7 @@ def tree_node(
         "unit_code": unit.unit_code,
         "title": tr.field("title", unit.title),
         "credit_points": unit.credit_points,
-        "level": tr.string(unit.level),
+        "level": tr.value(unit.level),
         "prefix": unit.subject_prefix or unit.unit_code[:3],
         "depth": depth,
         "in_year": True,
@@ -355,9 +431,9 @@ def tree_node(
         "periods": periods,
         "offerings": [
             {
-                "campus": tr.string(o.campus),
+                "campus": tr.value(o.campus),
                 "campus_raw": o.campus,
-                "teaching_period": tr.string(o.teaching_period),
+                "teaching_period": tr.value(o.teaching_period),
                 "short": short_period(o.teaching_period),
             }
             for o in offerings
@@ -380,9 +456,14 @@ def course_brief(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str, 
         # An abbreviation is a mark, not a sentence: BCompSci stays BCompSci.
         "abbreviated_name": course.abbreviated_name,
         "credit_points": course.credit_points,
-        "course_type": tr.string(course.course_type),
-        "faculty": tr.string(course.faculty),
-        "campuses": [tr.string(c) for c in course.campuses or []],
+        "course_type": tr.value(course.course_type),
+        # A closed-list value used for grouping and filtering.  The translated
+        # display value is useful to API clients, but the UI also needs the
+        # source key so it can select a reviewed label rather than grouping on
+        # whatever an older machine-translation row happened to contain.
+        "course_type_raw": course.course_type,
+        "faculty": tr.value(course.faculty),
+        "campuses": [tr.value(c) for c in course.campuses or []],
         "campuses_raw": list(course.campuses or []),
         "duration_years": course.duration_years,
         "academic_year": course.academic_year,
@@ -393,9 +474,10 @@ def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str,
     """The header of a degree page. The structure is assembled by the router."""
     return {
         **course_brief(course, tr),
-        "aqf_level": tr.string(course.aqf_level),
+        "is_active": course.is_active,
+        "aqf_level": tr.value(course.aqf_level),
         "cricos_code": course.cricos_code,
-        "school": tr.string(course.school),
+        "school": tr.value(course.school),
         "overview": tr.field("overview", course.overview),
         # structure_text and requirements_text stay in the database and out of
         # this payload. They are five thousand characters that nothing renders,
@@ -411,10 +493,10 @@ def area_of_study_detail(aos: AreaOfStudy, tr: Translation = NO_TRANSLATION) -> 
     return {
         "aos_code": aos.aos_code,
         "title": tr.field("title", aos.title),
-        "aos_type": tr.string(aos.aos_type),
-        "study_level": tr.string(aos.study_level),
+        "aos_type": tr.value(aos.aos_type),
+        "study_level": tr.value(aos.study_level),
         "credit_points": aos.credit_points,
-        "faculty": tr.string(aos.faculty),
+        "faculty": tr.value(aos.faculty),
         "overview": tr.field("overview", aos.overview),
         "academic_year": aos.academic_year,
         "source_url": aos.source_url,

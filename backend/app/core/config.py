@@ -1,7 +1,8 @@
 """Runtime configuration.
 
-Everything that differs between a laptop and the VPS lives here and comes from
-the environment, so the repository never carries a credential or a host address.
+Environment-specific credentials and private infrastructure values come from the
+environment. Repository defaults are development-only placeholders or public
+application URLs; production secrets never belong in source control.
 """
 from functools import lru_cache
 
@@ -16,6 +17,11 @@ class Settings(BaseSettings):
 
     app_name: str = "Monash Hub API"
     environment: str = "development"
+    # The git commit this build came from, baked in by backend/Dockerfile at
+    # build time (deploy.sh passes the SHA it checked out). Reported by
+    # /api/health so a deploy can check that the commit it meant to ship is the
+    # one answering. Empty in development.
+    app_commit: str = ""
     api_prefix: str = "/api/v1"
 
     # The public origin the browser sees. Same-origin in production, so the list
@@ -25,13 +31,21 @@ class Settings(BaseSettings):
     # Handbook year the MVP treats as current.
     current_academic_year: int = 2026
 
-    secret_key: str = "dev-only-change-me"
+    # Development-only placeholder. Production requires SECRET_KEY from the
+    # environment; keep the local default long enough to avoid weak-key warnings
+    # while making it unmistakably unsuitable as a real secret.
+    secret_key: str = "dev-only-not-a-secret-change-in-production-0001"
     access_token_ttl_minutes: int = 60 * 24 * 14
 
     # The public origin, for links inside emails. The frontend has its own copy
     # of this; the API needs one because nothing in a transactional email can be
     # a relative URL.
     site_url: str = "https://monashhub.secureview.tech"
+
+    # Peers whose X-Real-IP header the rate limiter believes, as addresses or
+    # CIDR ranges separated by commas. Empty trusts every peer, for a port only
+    # nginx can reach. See core/throttle.py.
+    trusted_proxies: str = ""
 
     # --- Email verification -------------------------------------------------
     # Registration and password reset are both gated on a code sent to the
@@ -52,6 +66,10 @@ class Settings(BaseSettings):
     email_reply_to: str | None = None
     email_timeout_seconds: int = 10
 
+    # Where operational alerts go - "next year's Handbook is out". Optional;
+    # without it the alert is only logged. See app/core/notify.py.
+    alert_email: str | None = None
+
     resend_api_key: str = ""
     resend_api_url: str = "https://api.resend.com/emails"
 
@@ -61,6 +79,15 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
+
+    # --- 马莫百科 bot ---------------------------------------------------------
+    # The Ask panel also asks the WeChat bot (github.com/Waldo0926/wechat-bot,
+    # POST /web/ask), which has the owner's taught answers, the 马莫百科 posts
+    # and quoted answers from the official pages. Either empty turns it off and
+    # the panel answers from this API alone.
+    wxbot_url: str = ""
+    wxbot_web_secret: str = ""
+    wxbot_timeout_seconds: float = 15
 
     # --- Sign in with Google ------------------------------------------------
     # Both blank means the button is not offered and the endpoints answer 503,
@@ -88,6 +115,20 @@ class Settings(BaseSettings):
     db_max_overflow: int = 10
     db_pool_timeout: int = 30
     db_pool_recycle: int = 1800
+
+    def secret_key_problem(self) -> str | None:
+        """Why this secret must not sign production sessions, if it must not.
+
+        Every session token is signed with it. The development default is in
+        this public repository, so a production API running on it would accept
+        a token anybody can mint for any account - including a moderator's.
+        """
+        key = self.secret_key or ""
+        if key.startswith(("dev-only", "change-me")):
+            return "SECRET_KEY is the placeholder from the repository"
+        if len(key) < 32:
+            return "SECRET_KEY is shorter than 32 characters"
+        return None
 
     @property
     def cors_origin_list(self) -> list[str]:

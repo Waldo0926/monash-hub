@@ -4,6 +4,7 @@
     python -m crawler.official.run --all             # fetch every seed
     python -m crawler.official.run                   # fetch only pages that are due
     python -m crawler.official.run --slugs wam,gpa
+    python -m crawler.official.run --harvest my.jsonl.gz   # store pages read elsewhere
 
 Default behaviour is "only what is due": a page whose refresh interval has not
 elapsed is not requested at all, and a page whose content hash is unchanged is
@@ -20,12 +21,13 @@ from app.core.db import SessionLocal
 from app.knowledge.cleaner import clean_page
 from app.knowledge.repository import (
     get_or_create_source,
+    list_behind_sign_in,
     record_failure,
     record_fetch,
     upsert_seed_page,
 )
 
-from crawler.official.fetch import OfficialFetcher
+from crawler.official.fetch import OfficialFetcher, PageResult, _allowed_redirect
 from crawler.official.seeds import SEEDS, Seed
 from crawler.sync.pipeline import crawl_job, record
 from crawler.sync.refresh import is_due
@@ -37,6 +39,8 @@ SOURCES = {
     "www.monash.edu": ("monash-students", "Monash University", "https://www.monash.edu"),
     "www.monash.edu.my": ("monash-malaysia", "Monash University Malaysia",
                           "https://www.monash.edu.my"),
+    "fin-feescalc.monash.edu.my": ("monash-malaysia", "Monash University Malaysia",
+                                   "https://www.monash.edu.my"),
 }
 
 
@@ -45,13 +49,23 @@ def _source_key(url: str) -> tuple[str, str, str]:
     return SOURCES.get(host, ("monash-other", "Monash University", f"https://{host}"))
 
 
-def register(seeds: tuple[Seed, ...]) -> int:
-    """Write the curated list into ``official_pages`` without fetching anything."""
+def register(seeds: tuple[Seed, ...], *, retire_others: bool = False) -> int:
+    """Write the curated list into ``official_pages`` without fetching anything.
+
+    ``retire_others`` takes down every page no longer in the list. Dropping a
+    seed used to leave its row live forever: when Monash turned a page into
+    something that cannot be indexed and it was replaced here, the old copy kept
+    being served and searched. Only a run over the whole list may do this - a
+    ``--slugs`` run would otherwise retire everything it was not asked about.
+    """
+    from app.models.knowledge import OfficialPage
+    from sqlalchemy import update
+
     with SessionLocal() as db:
         for seed in seeds:
             key, name, base = _source_key(seed.url)
             source = get_or_create_source(db, key, name, base)
-            upsert_seed_page(
+            page = upsert_seed_page(
                 db,
                 source=source,
                 slug=seed.slug,
@@ -61,13 +75,43 @@ def register(seeds: tuple[Seed, ...]) -> int:
                 tags=list(seed.tags),
                 refresh_tier=seed.tier,
                 applies_to=seed.applies_to,
+                curated=seed.curated,
             )
+            if seed.sign_in:
+                list_behind_sign_in(db, page, title=seed.title, description=seed.sign_in)
+        if retire_others:
+            retired = db.execute(
+                update(OfficialPage)
+                .where(OfficialPage.slug.not_in([seed.slug for seed in seeds]),
+                       OfficialPage.status != "retired")
+                .values(status="retired")
+            ).rowcount
+            if retired:
+                log.info("retired %d pages no longer in the seed list", retired)
         db.commit()
     log.info("registered %d seed pages", len(seeds))
     return len(seeds)
 
 
-def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> dict[str, int]:
+def _short_on_monash(cleaned: dict, page) -> bool:
+    """A page that is short on monash.edu.my as well: a hub of links (the
+    Malaysia enrol and re-enrol page is six of them), a short answer (paying
+    fees by credit card). It is taken only when the copy it would replace is
+    no longer: a long page that suddenly reads short means the template
+    changed, and the last good copy stays."""
+    text = cleaned["clean_text"] or ""
+    title = cleaned.get("title") or ""
+    return len(text) >= 60 and len(text) - len(title) >= 40 and len(page.clean_text or "") < 200
+
+
+def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
+          fetcher=None, force: bool = False) -> dict[str, int]:
+    """Fetch, clean and store each seed that is due, or every seed with ``force``.
+
+    ``fetcher`` replaces the network: a ``HarvestedFetcher`` answers from pages
+    read on another machine (see ``crawler.official.harvest``), and everything
+    after the fetch is the same.
+    """
     from app.models.knowledge import OfficialPage
     from sqlalchemy import select
 
@@ -76,15 +120,18 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
 
     with (
         SessionLocal() as db,
-        OfficialFetcher(throttle, transport=transport) as fetcher,
+        fetcher or OfficialFetcher(throttle, transport=transport) as fetcher,
         crawl_job(db, "official", targets=len(seeds), transport=transport) as job,
     ):
         for seed in seeds:
+            if seed.sign_in:
+                # Listed at registration; there is nothing public to fetch.
+                continue
             page = db.scalar(select(OfficialPage).where(OfficialPage.canonical_url == seed.url))
             if page is None:
                 log.warning("%s is not registered - run --register first", seed.slug)
                 continue
-            if not is_due(page):
+            if not force and not is_due(page):
                 summary["not_due"] += 1
                 log.debug("%s: not due yet (tier=%s)", seed.slug, page.refresh_tier)
                 continue
@@ -93,9 +140,16 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
             result = fetcher.fetch(seed.url)
             elapsed = int((time.monotonic() - started) * 1000)
 
+            if result.ok and result.final_url and not _allowed_redirect(seed.url, result.final_url):
+                # The fetcher checks this too; a harvest read before it did
+                # holds cms-academic/checkmk as the Okta sign-in form.
+                result = PageResult(seed.url, result.status, None, result.transport,
+                                    "redirect outside approved pages",
+                                    final_url=result.final_url)
             if not result.ok:
                 summary["failed"] += 1
-                record_failure(db, page, result.error or "fetch failed")
+                record_failure(db, page, result.error or "fetch failed",
+                               gone=result.status in (404, 410))
                 db.commit()
                 record(db, job, target_type="official_page", target_key=seed.slug,
                        url=seed.url, outcome="failed", http_status=result.status,
@@ -103,8 +157,8 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
                 log.error("%s: %s", seed.slug, result.error)
                 continue
 
-            cleaned = clean_page(result.html, url=seed.url)
-            if len(cleaned["clean_text"] or "") < 200:
+            cleaned = clean_page(result.html, url=result.final_url or seed.url)
+            if len(cleaned["clean_text"] or "") < 200 and not _short_on_monash(cleaned, page):
                 # A page that suddenly extracts to almost nothing means the
                 # template changed, not that Monash deleted the content.
                 # Keep the last good version and shout about it.
@@ -118,7 +172,7 @@ def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str) -> di
                 log.error("%s: extraction too short, keeping last valid version", seed.slug)
                 continue
 
-            outcome = record_fetch(db, page, cleaned)
+            outcome = record_fetch(db, page, cleaned, title=seed.title)
             db.commit()
             summary[outcome] += 1
             record(db, job, target_type="official_page", target_key=seed.slug, url=seed.url,
@@ -134,6 +188,8 @@ def main() -> None:
     parser.add_argument("--register", action="store_true", help="register seeds, do not fetch")
     parser.add_argument("--all", action="store_true", help="ignore refresh intervals")
     parser.add_argument("--slugs", help="comma separated seed slugs")
+    parser.add_argument("--harvest", metavar="PATH",
+                        help="store the pages in this harvest file instead of fetching")
     parser.add_argument("--transport", default="auto", choices=["auto", "httpx", "playwright"])
     parser.add_argument("--min-interval", type=float, default=4.0)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -152,24 +208,25 @@ def main() -> None:
         if missing:
             parser.error(f"unknown slugs: {', '.join(sorted(missing))}")
 
-    register(seeds)
+    fetcher = None
+    if args.harvest:
+        from crawler.official.harvest import HarvestedFetcher
+
+        fetcher = HarvestedFetcher(args.harvest)
+        seeds = tuple(s for s in seeds if s.url in fetcher.urls)
+        log.info("%d seed pages in %s", len(seeds), args.harvest)
+
+    # Only a run over the whole list may retire what is not on it.
+    register(seeds, retire_others=not (args.slugs or args.harvest))
     if args.register:
         return
 
-    if args.all:
-        # Clear the "checked recently" gate for this run only.
-        from app.models.knowledge import OfficialPage
-        from sqlalchemy import update
-
-        with SessionLocal() as db:
-            db.execute(
-                update(OfficialPage)
-                .where(OfficialPage.canonical_url.in_([s.url for s in seeds]))
-                .values(last_checked=None)
-            )
-            db.commit()
-
-    summary = crawl(seeds, min_interval=max(args.min_interval, 2.0), transport=args.transport)
+    # --all skips the "checked recently" gate for this run only. It used to
+    # clear last_checked instead, so every page the run then failed to read
+    # lost the date of its last good read.
+    summary = crawl(seeds, min_interval=max(args.min_interval, 2.0),
+                    transport="relayed" if args.harvest else args.transport, fetcher=fetcher,
+                    force=bool(args.all or args.harvest))
     log.info("summary: %s", summary)
 
 

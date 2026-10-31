@@ -5,6 +5,9 @@
 #   deployment/translate.sh zh short     # titles and the enumerable values
 #   deployment/translate.sh zh all       # adds overviews, outcomes, workload
 #   deployment/translate.sh ja short
+#   deployment/translate.sh zh all --targets units --units FIT1008 FIT1055
+#                                         # only these units, e.g. after a
+#                                         # mid-year Handbook republish
 #
 # Everything it writes is marked as machine-written. A hand-written translation
 # for the same target always wins on read, so this can be re-run safely and
@@ -20,7 +23,18 @@
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/opt/monash-hub/repo}"
+STATE_DIR="${STATE_DIR:-/opt/monash-hub/state}"
 cd "$PROJECT_DIR"
+
+# One pass at a time, the scheduled ones included (see scheduled-refresh.sh).
+# Two passes over the same targets send the same sentences twice. This waits
+# rather than failing, so a by-hand run started during a refresh still runs.
+mkdir -p "$STATE_DIR"
+exec 8>"$STATE_DIR/translate.lock"
+if ! flock -n 8; then
+  echo "waiting for the translation pass that is already running"
+  flock 8
+fi
 COMPOSE=(docker compose -f docker-compose.yml -f deployment/translate-resources.yml -p monash-hub)
 
 locale="${1:-zh}"
@@ -29,3 +43,10 @@ shift 2 2>/dev/null || true
 
 "${COMPOSE[@]}" run --rm crawler \
   python -m crawler.translate.run --locale "$locale" --fields "$fields" "$@"
+
+if [[ "$locale" == "zh" ]]; then
+  # A translation is visible immediately on its page, but search reads the
+  # indexed copy on units and guides. Refresh it here so a successful Chinese
+  # translation pass can never leave search one version behind.
+  "${COMPOSE[@]}" run --rm crawler python -m app.search.reindex_zh
+fi

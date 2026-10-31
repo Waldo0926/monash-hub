@@ -1,0 +1,347 @@
+"""Key dates read from official date tables - app/knowledge/key_dates.py.
+
+Rows are synthetic but keep the shapes the cleaner stores for the census,
+final-assessment and principal-dates pages.
+"""
+from __future__ import annotations
+
+from datetime import UTC, date, datetime
+from types import SimpleNamespace
+
+import pytest
+from app.knowledge import key_dates as kd
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("31 Aug 2026", (date(2026, 8, 31), None)),
+        ("Sat 28 Nov 2026", (date(2026, 11, 28), None)),
+        ("2–18 Nov 2026", (date(2026, 11, 2), date(2026, 11, 18))),
+        ("30 Oct – 17 Nov 2028", (date(2028, 10, 30), date(2028, 11, 17))),
+        ("24–28 March 2025", (date(2025, 3, 24), date(2025, 3, 28))),
+        ("28 Dec – 8 Jan 2027", (date(2026, 12, 28), date(2027, 1, 8))),
+        ("2 Feb 2026 (if eExams are scheduled)", (date(2026, 2, 2), None)),
+        ("N/A", None),
+        ("TBA", None),
+        ("Varied", None),
+        ("31 Feb 2026", None),
+    ],
+)
+def test_parse_range(text, expected):
+    assert kd.parse_range(text) == expected
+
+
+CENSUS_ROWS = [
+    ["Financial penalties apply Academic penalties apply", "", "", "", "", ""],
+    ["Semester two (S2-01)", "27 Jul – 18 Nov 2026", "31 Aug 2026", "1 Sep 2026",
+     "6 Oct 2026", "23 Oct 2026"],
+    ["Research Q4 (RES-Q4)", "1 Oct – 31 Dec 2026", "31 Dec 2026", "N/A", "N/A", "31 Dec 2026"],
+]
+
+
+def test_census_takes_census_withdraw_and_teaching_end():
+    got = {(k.kind, k.period): k.start for k in kd.parse_census(CENSUS_ROWS)}
+    assert got[("census", "S2-01")] == date(2026, 8, 31)
+    assert got[("withdraw", "S2-01")] == date(2026, 10, 6)
+    assert got[("teaching_end", "S2-01")] == date(2026, 10, 23)
+    # N/A stays out rather than becoming a guess.
+    assert ("withdraw", "RES-Q4") not in got
+
+
+FINALS_ROWS = [
+    ["Semester two (S2-01)", "26–30 Oct 2026", "14 Sep 2026", "2–18 Nov 2026", "3 Dec 2026"],
+    ["October intake – Malaysia (OCT-MY-01)", "25 Jan – 29 Jan 2027", "4 Jan 2027",
+     "1–12 Feb 2027", "1 Mar 2027"],
+    # 2024 layout: the code has its own column. Past, and a different shape.
+    ["Semester two", "S2-01", "16 Sep 2024", "28 Oct – 15 Nov 2024", "2 Dec 2024"],
+]
+
+
+def test_finals_reads_swot_exams_results():
+    got = {(k.kind, k.period): (k.start, k.end) for k in kd.parse_finals(FINALS_ROWS)}
+    assert got[("swot_vac", "S2-01")] == (date(2026, 10, 26), date(2026, 10, 30))
+    assert got[("exams", "S2-01")] == (date(2026, 11, 2), date(2026, 11, 18))
+    assert got[("results", "S2-01")] == (date(2026, 12, 3), None)
+    assert got[("exams", "OCT-MY-01")] == (date(2027, 2, 1), date(2027, 2, 12))
+    assert all(start.year >= 2026 for start, _ in got.values())
+
+
+# monash.edu.my layout, months without a year: only the weekdays say 2026.
+MY_ROWS = [
+    ["Day", "Date", "Description"],
+    ["October", "", ""],
+    ["Sun", "25", "University closed: Sultan's Jubilee"],
+    ["Mon", "26", "University closed: Sultan's Jubilee (replacement holiday)"],
+    ["Mon", "26", "Teaching starts: October intake (OCT-MY-01)"],
+    ["November", "", ""],
+    ["Sun", "8", "University closed: Deepavali"],
+    ["Mon", "9", "University closed: Deepavali (replacement holiday)"],
+    ["December", "", ""],
+    ["Fri", "25", "University closed: Christmas Day"],
+    ["January 2027", "", ""],
+    ["Fri", "1", "University closed: New Year's Day"],
+]
+
+# monash.edu layout: weekday and day in one cell.
+AU_ROWS = [
+    ["December", ""],
+    ["Wed 23", "University closed: Reopens Monday 4 January 2027"],
+    ["Fri 25", "University closed: Christmas Day"],
+    ["Sat 26", "University closed: Boxing Day"],
+]
+
+
+def test_holiday_year_comes_from_the_weekdays():
+    got = kd.parse_holidays([MY_ROWS], "my", around=2026)
+    assert [(k.start, k.end, k.name) for k in got] == [
+        (date(2026, 10, 25), date(2026, 10, 26), "Sultan's Jubilee"),
+        (date(2026, 11, 8), date(2026, 11, 9), "Deepavali"),
+        (date(2026, 12, 25), None, "Christmas Day"),
+        (date(2027, 1, 1), None, "New Year's Day"),
+    ]
+
+
+def test_two_cell_layout_and_closedown_row():
+    got = kd.parse_holidays([AU_ROWS], "au", around=2026)
+    # "Reopens Monday..." is the closedown notice, not a named holiday.
+    assert [(k.start, k.name) for k in got] == [
+        (date(2026, 12, 25), "Christmas Day"),
+        (date(2026, 12, 26), "Boxing Day"),
+    ]
+
+
+def test_table_whose_weekdays_fit_no_year_is_dropped():
+    rows = [["October", "", ""], ["Mon", "1", "University closed: X"],
+            ["Mon", "2", "University closed: Y"], ["Mon", "3", "University closed: Z"]]
+    assert kd.parse_holidays([rows], "my", around=2026) == []
+
+
+def _h(text, level=3, tab=False):
+    block = {"type": "heading", "level": 2 if tab else level, "text": text, "id": text}
+    if tab:
+        block["variant"] = "tab"
+    return block
+
+
+def _line(label, value):
+    return {"type": "paragraph", "spans": [{"text": label, "bold": True}, {"text": f"\n{value}"}]}
+
+
+# The cleaner's shape for the Allocate+ dates page: a tab heading per campus, a
+# card title per teaching period, a bold label over a date.
+ALLOCATE_BLOCKS = [
+    _h("Australia", tab=True),
+    _h("Semester one 2027"),
+    _line("Preference entry opens", "Wednesday 6 January, 10am"),
+    _line("Preference entry closes", "Tuesday 19 January, 5pm"),
+    {"type": "paragraph", "spans": [{"text": "Allocate+ in read-only mode", "bold": True}]},
+    _h("Summer A 2026 and Summer B 2027"),
+    _line("Allocation adjustment closes", "As specified by your faculty"),
+    _h("Malaysia", tab=True),
+    _h("October teaching period (OCT-MY-01) 2026–2027"),
+    _line("Allocation adjustment open", "Monday 5 October 2026, 10am (MYT)"),
+    _line("Allocation adjustment closes", "Monday 9 November 2026, 5pm (MYT)"),
+    _h("Semester one 2027"),
+    _line("Preference entry closes", "Tuesday 19 January, 10am"),
+    # A weekday that is wrong for every candidate year is a typo, not a date.
+    _line("Allocation adjustment opens", "Monday 9 February, 10am"),
+]
+
+
+def test_allocate_dates_are_read_per_campus_tab():
+    got = {
+        campus: [(k.kind, k.period, k.start, k.time) for k in items]
+        for campus, items in kd.parse_allocate(ALLOCATE_BLOCKS).items()
+    }
+    assert got == {
+        "australia": [
+            ("allocate_pref_open", "S1-01", date(2027, 1, 6), "10:00"),
+            ("allocate_pref_close", "S1-01", date(2027, 1, 19), "17:00"),
+        ],
+        "malaysia": [
+            ("allocate_adjust_open", "OCT-MY-01", date(2026, 10, 5), "10:00"),
+            ("allocate_adjust_close", "OCT-MY-01", date(2026, 11, 9), "17:00"),
+            ("allocate_pref_close", "S1-01", date(2027, 1, 19), "10:00"),
+        ],
+    }
+
+
+@pytest.mark.parametrize(
+    "text,years,expected",
+    [
+        ("Tuesday 19 January, 5pm", [2027], (date(2027, 1, 19), "17:00")),
+        # A preference round for 2027 that opens in December 2026.
+        ("Tuesday 8 December, 10am", [2027], (date(2026, 12, 8), "10:00")),
+        ("Monday 9 November 2026, 5pm (MYT)", [2026, 2027], (date(2026, 11, 9), "17:00")),
+        ("Monday 9 February, 10am", [2027], None),
+        ("19 January, 5pm", [2027], None),
+        ("As specified by your faculty", [2027], None),
+    ],
+)
+def test_allocate_line_year_comes_from_the_weekday(text, years, expected):
+    assert kd.parse_allocate_line(text, years) == expected
+
+
+WES_BLOCKS = [
+    {"type": "heading", "level": 2, "text": "Enrolling for the first time", "id": "x"},
+    {"type": "list", "ordered": False, "items": [
+        [{"text": "semester one", "bold": True},
+         {"text": " (S1-01) 2027, you can enrol in units from "},
+         {"text": "12 October 2026", "bold": True}],
+        [{"text": "November", "bold": True},
+         {"text": " (NOV12) 2026–2027, you can enrol in units from "},
+         {"text": "1 August 2026", "bold": True}],
+        [{"text": "semester two", "bold": True},
+         {"text": " (S2-01) 2027, you can enrol in units from "},
+         {"text": "12 February 2027", "bold": True}, {"text": "."}],
+    ]},
+]
+
+
+def test_wes_opening_days_come_from_the_first_enrolment_list():
+    got = [(k.period, k.start) for k in kd.parse_wes(WES_BLOCKS)]
+    assert got == [("S1-01", date(2026, 10, 12)), ("NOV12", date(2026, 8, 1)),
+                   ("S2-01", date(2027, 2, 12))]
+
+
+def test_allocate_and_wes_join_the_campus_lists():
+    pages = {
+        kd.ALLOCATE: SimpleNamespace(status="ok", blocks=ALLOCATE_BLOCKS),
+        kd.WES: SimpleNamespace(status="ok", blocks=WES_BLOCKS),
+    }
+    my = [(k.kind, k.period) for k in kd.upcoming(pages, "malaysia", date(2026, 10, 26), 20)]
+    au = [(k.kind, k.period) for k in kd.upcoming(pages, "australia", date(2026, 10, 26), 20)]
+    assert my == [("allocate_adjust_close", "OCT-MY-01"), ("allocate_pref_close", "S1-01")]
+    # The WES page has no Malaysia tab, so it is only on the Australian list;
+    # NOV12 is not one of the periods shown.
+    assert au == [("allocate_pref_open", "S1-01"), ("allocate_pref_close", "S1-01"),
+                  ("wes_open", "S2-01")]
+
+
+def _page(rows_list, status="ok"):
+    return SimpleNamespace(status=status, blocks=[{"type": "table", "rows": r} for r in rows_list])
+
+
+def test_upcoming_filters_campus_periods_and_past_dates():
+    pages = {
+        kd.CENSUS: _page([CENSUS_ROWS]),
+        kd.FINALS: _page([FINALS_ROWS]),
+        kd.PRINCIPAL["malaysia"]: _page([MY_ROWS]),
+    }
+    got = kd.upcoming(pages, "malaysia", date(2026, 10, 4), limit=20)
+    kinds = [(k.kind, k.period or k.name) for k in got]
+    assert kinds[:4] == [
+        ("withdraw", "S2-01"),
+        ("teaching_end", "S2-01"),
+        ("holiday", "Sultan's Jubilee"),
+        ("swot_vac", "S2-01"),
+    ]
+    # Census on 31 Aug has passed; RES-Q4 is not a period students take.
+    assert ("census", "S2-01") not in kinds
+    assert all(k.period != "RES-Q4" for k in got)
+    # An exam period still running counts as upcoming.
+    during = kd.upcoming(pages, "malaysia", date(2026, 11, 10), limit=20)
+    assert ("exams", "S2-01") in [(k.kind, k.period) for k in during]
+
+
+def test_page_that_failed_to_fetch_contributes_nothing():
+    pages = {kd.CENSUS: _page([CENSUS_ROWS], status="error")}
+    assert kd.upcoming(pages, "australia", date(2026, 1, 1), limit=20) == []
+
+
+@pytest.fixture
+def on_4_october(monkeypatch):
+    """The endpoint only lists dates still to come, so it is asked on a fixed day.
+
+    The rows above are real 2026 dates. Without this, the endpoint tests broke
+    the day after S2 teaching ended (23 Oct 2026), when nothing was left.
+    """
+    real = kd.collect
+
+    def collect(db, campus, limit=6, now=None):
+        return real(db, campus, limit, now or datetime(2026, 10, 4, tzinfo=UTC))
+
+    monkeypatch.setattr(kd, "collect", collect)
+
+
+def test_key_dates_endpoint_names_its_sources(client, db, on_4_october):
+    from app.knowledge.repository import get_or_create_source, upsert_seed_page
+
+    source = get_or_create_source(db, "monash-students", "Monash University",
+                                  "https://www.monash.edu")
+    for slug, rows in ((kd.CENSUS, CENSUS_ROWS), (kd.FINALS, FINALS_ROWS),
+                       (kd.PRINCIPAL["malaysia"], MY_ROWS)):
+        page = upsert_seed_page(
+            db, source=source, slug=slug, url=f"https://www.monash.edu/{slug}",
+            title=slug, category="fees-dates", tags=[], refresh_tier="dynamic",
+        )
+        page.blocks = [{"type": "table", "rows": rows}]
+        page.status = "ok"
+    db.commit()
+
+    body = client.get("/api/v1/key-dates", params={"campus": "malaysia", "limit": 20}).json()
+    assert body["campus"] == "malaysia"
+    assert body["items"] == sorted(body["items"], key=lambda i: i["date"])
+    assert {i["source"] for i in body["items"]} <= set(body["sources"])
+    assert all(body["sources"][s]["url"].startswith("https://") for s in body["sources"])
+    assert client.get("/api/v1/key-dates", params={"campus": "mars"}).status_code == 422
+    # /dates asks for the whole list; the cap is still there.
+    assert client.get("/api/v1/key-dates", params={"limit": 60}).status_code == 200
+    assert client.get("/api/v1/key-dates", params={"limit": 61}).status_code == 422
+
+
+def test_key_dates_source_titles_follow_the_language(client, db, on_4_october):
+    """The card linked "Final assessment dates" in English on a Chinese page."""
+    from app.knowledge.repository import get_or_create_source, upsert_seed_page
+    from app.models.translation import MACHINE, OFFICIAL_PAGE, PUBLISHED, ContentTranslation
+
+    source = get_or_create_source(db, "monash-students", "Monash University",
+                                  "https://www.monash.edu")
+    page = upsert_seed_page(
+        db, source=source, slug=kd.CENSUS, url=f"https://www.monash.edu/{kd.CENSUS}",
+        title="Census dates", category="fees-dates", tags=[], refresh_tier="dynamic",
+    )
+    page.blocks = [{"type": "table", "rows": CENSUS_ROWS}]
+    page.status = "ok"
+    db.add(ContentTranslation(
+        locale="zh", target_type=OFFICIAL_PAGE, target_key=kd.CENSUS, field="title",
+        text="学籍统计日", status=PUBLISHED, provenance=MACHINE,
+    ))
+    db.commit()
+
+    def titles(**params):
+        body = client.get(
+            "/api/v1/key-dates", params={"campus": "australia", "limit": 20, **params}
+        ).json()
+        return {s["title"] for s in body["sources"].values()}
+
+    assert titles(locale="zh") == {"学籍统计日"}
+    assert titles() == {"Census dates"}
+    # No Japanese row yet: the English title, not an empty link.
+    assert titles(locale="ja") == {"Census dates"}
+
+
+REENROL_ROWS = [
+    ["On-time re-enrolment:\n12 October - 27 November 2026",
+     "Re-enrol for both semesters or apply for intermission"],
+    ["Late re-enrolment via WES:\n28 November - 11 December 2026",
+     "You can still re-enrol but a RM200 late fee will apply."],
+    # A deadline with a condition, not a window.
+    ["After late re-enrolment closes:\nFriday 11 December 2026 (subject to school's approval)",
+     "Contact your School to obtain special permission"],
+]
+
+
+def test_malaysia_re_enrolment_windows():
+    got = [(k.kind, k.start, k.end) for k in kd.parse_reenrol(REENROL_ROWS)]
+    assert got == [
+        ("reenrol", date(2026, 10, 12), date(2026, 11, 27)),
+        ("reenrol_late", date(2026, 11, 28), date(2026, 12, 11)),
+    ]
+    pages = {kd.REENROL_MY: _page([REENROL_ROWS])}
+    # A window that has started but not ended is still listed; Australia
+    # never gets the Malaysian page.
+    on_26_oct = kd.upcoming(pages, "malaysia", date(2026, 10, 26), 20)
+    assert [k.kind for k in on_26_oct] == ["reenrol", "reenrol_late"]
+    assert kd.upcoming(pages, "australia", date(2026, 10, 26), 20) == []

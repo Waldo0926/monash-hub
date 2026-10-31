@@ -1,18 +1,18 @@
-fastapi==0.141.1
-uvicorn[standard]==0.52.4
-sqlalchemy==2.0.52
-psycopg[binary]==3.3.4
-alembic==1.19.1
-pydantic==2.13.4
-pydantic-settings==2.15.0
+fastapi==0.143.2
+uvicorn[standard]==0.54.0
+sqlalchemy==2.1.4
+psycopg[binary]==3.3.6
+alembic==1.20.0
+pydantic==2.14.1
+pydantic-settings==2.16.0
 email-validator==2.3.0
 bcrypt==5.0.0
-pyjwt==2.13.0
+pyjwt==2.15.1
 beautifulsoup4==4.15.0
-lxml==6.1.2
+lxml==6.1.3
 httpx==0.28.1
 # Avatars are decoded and re-encoded server-side, so the bytes we store are
 # always bytes we produced - which is what makes an uploaded file safe to serve.
-pillow==12.1.0
+pillow==13.0.0
 # multipart/form-data, which is how the avatar upload arrives.
-python-multipart==0.0.20
+python-multipart==0.0.32

@@ -100,7 +100,7 @@ async function submit() {
     applySession(result.token, result.user)
     navigateTo('/community')
   } catch (caught: any) {
-    serverError.value = caught?.data?.detail || $t('state.generic')
+    serverError.value = apiErrorMessage(caught, $t)
   } finally {
     submitting.value = false
   }
@@ -123,7 +123,7 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
       <!-- Signing up with Google skips the code email entirely: Google has
            already verified the address, which is the only thing that email
            was proving. -->
-      <GoogleSignIn class="google-row" />
+      <GoogleSignIn class="google-row" next="/community" />
 
       <form class="form" novalidate @submit.prevent="submit">
         <div class="field-row">
@@ -210,6 +210,9 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
           </div>
           <p v-if="errorFor('code')" class="tiny bad-text" role="alert">{{ errorFor('code') }}</p>
           <p v-if="code.notice.value" class="tiny notice">{{ code.notice.value }}</p>
+          <p v-if="code.notice.value && code.deliveryConfigured.value" class="tiny muted spam-hint">
+            {{ code.sender.value ? $t('auth.checkSpam', { sender: code.sender.value }) : $t('auth.checkSpamNoSender') }}
+          </p>
           <p v-if="!code.deliveryConfigured.value" class="tiny bad-text">
             {{ $t('auth.deliveryNotConfigured') }}
           </p>
@@ -242,4 +245,5 @@ useSeoMeta({ title: () => $t('auth.metaSignUp'), robots: 'noindex' })
 .bad { border-color: var(--danger); }
 .bad-text { color: var(--danger); }
 .notice { color: var(--success); }
+.spam-hint { margin-top: calc(-1 * var(--s1)); }
 </style>

@@ -45,9 +45,7 @@ export function useApiFetch<T>(path: string | (() => string), options: Record<st
     // SSR is not possible; pretending otherwise is a hydration mismatch.
     headers: {
       ...(options.headers || {}),
-      ...(import.meta.client && localStorage.getItem('mh_token')
-        ? { Authorization: `Bearer ${localStorage.getItem('mh_token')}` }
-        : {})
+      ...(readToken() ? { Authorization: `Bearer ${readToken()}` } : {})
     }
   })
 }
@@ -86,12 +84,12 @@ export function useLocalisedApiFetch<T>(
 
 /** Imperative call, for form submissions and other browser-side actions. */
 export function apiFetch<T>(path: string, options: Record<string, any> = {}): Promise<T> {
-  const token = import.meta.client ? localStorage.getItem('mh_token') : null
-  return $fetch<T>(apiUrl(path), {
+  const token = readToken()
+  return $fetch(apiUrl(path), {
     ...options,
     headers: {
       ...(options.headers || {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
-  })
+  }) as Promise<T>
 }

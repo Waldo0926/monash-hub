@@ -25,11 +25,11 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.email import Emailer, Message
+from app.core.email import EmailDeliveryError, Emailer, Message
 from app.models.user import EmailVerificationCode
 
 REGISTRATION = "registration"
@@ -126,19 +126,18 @@ def issue(db: Session, email: str, purpose: str, *, account_exists: bool) -> tup
 
     usable = is_usable(purpose, account_exists)
     code = f"{secrets.randbelow(1_000_000):06d}"
-    db.add(
-        EmailVerificationCode(
-            email=email,
-            purpose=purpose,
-            code_digest=_digest(code, email),
-            max_attempts=settings.verification_max_attempts,
-            expires_at=now + timedelta(seconds=settings.verification_code_ttl_seconds),
-            # A row is written either way so the rate limiter behaves the same
-            # for every address, but a code nobody can redeem is retired on the
-            # spot rather than left sitting there redeemable.
-            consumed_at=None if usable else now,
-        )
+    row = EmailVerificationCode(
+        email=email,
+        purpose=purpose,
+        code_digest=_digest(code, email),
+        max_attempts=settings.verification_max_attempts,
+        expires_at=now + timedelta(seconds=settings.verification_code_ttl_seconds),
+        # A row is written either way so the rate limiter behaves the same
+        # for every address, but a code nobody can redeem is retired on the
+        # spot rather than left sitting there redeemable.
+        consumed_at=None if usable else now,
     )
+    db.add(row)
     db.commit()
 
     minutes = max(1, settings.verification_code_ttl_seconds // 60)
@@ -154,16 +153,32 @@ def issue(db: Session, email: str, purpose: str, *, account_exists: bool) -> tup
             subject=_dead_end_subject(purpose),
             text=_dead_end_body(purpose),
         )
-    Emailer(settings).send(message)
+    try:
+        Emailer(settings).send(message)
+    except EmailDeliveryError:
+        # The caller is told to try again shortly. A row that never reached an
+        # inbox must not count against the resend interval or the hourly cap,
+        # or "try again" is answered with 429.
+        db.delete(row)
+        db.commit()
+        raise
     return settings.verification_code_ttl_seconds, settings.verification_resend_interval_seconds
 
 
-def verify(db: Session, email: str, purpose: str, code: str) -> None:
+def verify(db: Session, email: str, purpose: str, code: str, *, consume: bool = True) -> None:
     """Consume a code, or raise :class:`VerificationError`.
 
     Every failure raises the same exception with the same message. Telling the
     caller apart "expired" from "wrong" from "no code was ever sent" would let
     someone map which addresses have pending signups.
+
+    ``consume=False`` checks the code without using it up, for a caller that
+    has more to validate before the code should be spent. A wrong guess counts
+    against the code either way; a right one only when it is consumed, so the
+    check and the later consume together cost one attempt, not two.
+
+    The attempt is taken with one UPDATE that also enforces the cap, so N
+    guesses arriving together get N attempts, not one shared one.
     """
     email = email.strip().lower()
     code = (code or "").strip()
@@ -179,28 +194,47 @@ def verify(db: Session, email: str, purpose: str, code: str) -> None:
         .order_by(EmailVerificationCode.id.desc())
         .limit(1)
     )
-    if row is None or row.expires_at <= now or row.attempt_count >= row.max_attempts:
+    if row is None or row.expires_at <= now:
         raise VerificationError("That code is not valid")
 
-    row.attempt_count += 1
+    taken = db.scalar(
+        update(EmailVerificationCode)
+        .where(
+            EmailVerificationCode.id == row.id,
+            EmailVerificationCode.consumed_at.is_(None),
+            EmailVerificationCode.attempt_count < EmailVerificationCode.max_attempts,
+        )
+        .values(attempt_count=EmailVerificationCode.attempt_count + 1)
+        .returning(EmailVerificationCode.attempt_count)
+    )
+    if taken is None:
+        db.commit()
+        raise VerificationError("That code is not valid")
+
     if not hmac.compare_digest(row.code_digest, _digest(code, email)):
         db.commit()
         raise VerificationError("That code is not valid")
 
-    row.consumed_at = now
+    if consume:
+        row.consumed_at = now
+    else:
+        db.execute(
+            update(EmailVerificationCode)
+            .where(EmailVerificationCode.id == row.id)
+            .values(attempt_count=EmailVerificationCode.attempt_count - 1)
+        )
     db.commit()
+    db.expire(row)
 
 
 def prune(db: Session, older_than_days: int = 30) -> int:
     """Drop codes old enough that no rate-limit window still counts them."""
     cutoff = _now() - timedelta(days=older_than_days)
-    rows = db.scalars(
-        select(EmailVerificationCode).where(EmailVerificationCode.created_at < cutoff)
-    ).all()
-    for row in rows:
-        db.delete(row)
+    result = db.execute(
+        delete(EmailVerificationCode).where(EmailVerificationCode.created_at < cutoff)
+    )
     db.commit()
-    return len(rows)
+    return result.rowcount or 0
 
 
 def _dead_end_subject(purpose: str) -> str:

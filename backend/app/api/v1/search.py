@@ -5,30 +5,44 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import requested_locale
-from app.api.serializers import faq_brief, official_brief, post_brief, unit_brief
+from app.api.serializers import course_brief, faq_brief, official_brief, post_brief, unit_brief
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.knowledge import translations
-from app.models.translation import FAQ_ENTRY, OFFICIAL_PAGE, UNIT
-from app.search import service
+from app.models.translation import COURSE, FAQ_ENTRY, OFFICIAL_PAGE, UNIT
+from app.search import popular, service
 
 router = APIRouter(tags=["search"])
 
 
 @router.get("/search")
 def unified_search(
-    q: str = Query("", description="Free text: unit code, policy keyword or question"),
+    q: str = Query(
+        "", max_length=300, description="Free text: unit code, policy keyword or question"
+    ),
     year: int | None = None,
-    limit: int = Query(8, le=50),
+    limit: int = Query(8, ge=1, le=50),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
     resolved_year = year or get_settings().current_academic_year
 
     units, unit_total = service.search_units(db, q, year=resolved_year, limit=limit)
-    pages, page_total = service.search_official(db, q, limit=limit)
+    courses, course_total = service.search_courses(db, q, year=resolved_year, limit=limit)
+    # Guides that are about the query first. Only when none are - and the
+    # query is more than one word, so a body match means something - do pages
+    # that merely mention it get listed: "accounting" otherwise listed five
+    # guides because each says "your Monash account".
+    pages, page_total = service.search_official(db, q, limit=limit, strong_only=True)
+    if not pages and len(q.split()) > 1:
+        pages, page_total = service.search_official(db, q, limit=limit)
     posts, post_total = service.search_community(db, q, limit=limit)
     faqs = service.search_faq(db, q, limit=3)
+
+    # A search that found something is counted, by term and day only; see
+    # app/search/popular.py for what is kept and what the home page shows.
+    if unit_total or course_total or page_total or faqs:
+        popular.record(db, q)
 
     # Three lookups for the whole page rather than one per result. Community
     # posts are what a student wrote, so they are never translated.
@@ -36,11 +50,15 @@ def unified_search(
         db, locale, UNIT, [u.unit_code for u in units],
         source_hashes={u.unit_code: u.content_hash for u in units},
     )
+    course_tr = translations.load_many(
+        db, locale, COURSE, [c.course_code for c in courses],
+        source_hashes={c.course_code: c.content_hash for c in courses},
+    )
     page_tr = translations.load_many(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],
         source_hashes={p.slug: p.content_hash for p in pages},
     )
-    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in faqs])
+    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in faqs], global_key=None)
 
     return {
         "query": q,
@@ -52,6 +70,13 @@ def unified_search(
                 "badge": "official-handbook",
                 "total": unit_total,
                 "results": [unit_brief(u, unit_tr[u.unit_code]) for u in units],
+            },
+            {
+                "kind": "degrees",
+                "label": "Handbook degrees",
+                "badge": "official-handbook",
+                "total": course_total,
+                "results": [course_brief(c, course_tr[c.course_code]) for c in courses],
             },
             {
                 "kind": "official",
@@ -78,12 +103,21 @@ def unified_search(
     }
 
 
+@router.get("/search/popular")
+def popular_searches(
+    limit: int = Query(6, ge=1, le=20),
+    db: Session = Depends(get_db),
+) -> dict:
+    """The terms searched most in the last two weeks, for the home page."""
+    return {"days": popular.DAYS, "terms": popular.popular(db, limit)}
+
+
 @router.get("/official/search")
 def official_search(
-    q: str = "",
+    q: str = Query("", max_length=300),
     category: str | None = None,
-    limit: int = Query(20, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:

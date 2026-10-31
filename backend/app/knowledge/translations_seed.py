@@ -32,7 +32,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.models.translation import FAQ_ENTRY, GLOBAL, OFFICIAL_PAGE, UNIT
+from app.knowledge.official_zh_gaps import OFFICIAL_ZH_GAPS
+from app.knowledge.structure_zh import STRUCTURE_ZH
+from app.models.translation import CURATED, FAQ_ENTRY, GLOBAL, HUMAN, OFFICIAL_PAGE, UNIT
 
 ZH = "zh"
 
@@ -47,6 +49,10 @@ class TranslationSeed:
     strings: dict[str, str] = field(default_factory=dict)
     translator: str = "monash-hub"
     note: str | None = None
+    # "human" means a person who reads the language wrote or checked it. Wording
+    # that has only been checked against the English is "curated" - it beats the
+    # machine and the page does not call it checked.
+    provenance: str = HUMAN
 
 
 # --- Handbook boilerplate -------------------------------------------------
@@ -247,16 +253,13 @@ HANDBOOK_BOILERPLATE: dict[str, str] = {
 
 # --- unit titles ------------------------------------------------------------
 #
-# The machine handles most of the 5227 titles, and the ones it does not it
-# fails at loudly, because a title is a noun phrase with no sentence around it
-# to reorder from. Masking makes that worse rather than better: "Fundamentals
-# of algorithms" reaches the model as two protected tokens joined by "of", and
-# 基础 of 算法 is what comes back.
+# The complete machine baseline lives in ``unit_titles_zh.json``. A title is a
+# noun phrase with little context, so exact human-reviewed strings here and in
+# ``titles.py`` correct the cases where a general translator chose the wrong
+# academic sense. Human rows load after machine rows and always win.
 #
 # These are the ones a reader meets first - the unit tree puts eleven titles on
-# one screen - so they are written out. Everything not listed here is still
-# machine-translated; this is a correction list, not a claim to have translated
-# the Handbook.
+# one screen - so they are written out.
 
 UNIT_TITLES: dict[str, tuple[str, str]] = {
     # code: (English source, Chinese)
@@ -289,6 +292,9 @@ UNIT_TITLES: dict[str, tuple[str, str]] = {
 # about to be replaced is work thrown away.
 
 GUIDE_TITLES: dict[str, str] = {
+    'academic-progress-glossary': '学业进度术语表',
+    'government-support-sa-help': 'SA-HELP 贷款',
+    'connect-m-pass': 'M-Pass（电子学生证）',
     "enrolments": "选课与注册",
     "changing-your-enrolment": "更改你的选课",
     "add-or-withdraw-units": "加选或退选课程",
@@ -298,6 +304,20 @@ GUIDE_TITLES: dict[str, str] = {
     "census-dates-explained": "什么是 census date（学籍统计日）",
     "course-advice": "课程规划咨询",
     "credit-and-enrolment": "学分减免与选课",
+    "apply-for-credit": "申请学分减免",
+    "semester-exchange": "学期交换",
+    "it-course-maps": "课程地图（course map）- 信息技术学院",
+    "engineering-course-maps": "课程地图（course map）- 工程学院",
+    "business-course-maps": "课程地图（course map）- 商学院",
+    "arts-course-maps": "课程地图（course map）- 文学院",
+    "education-course-maps": "课程地图（course map）- 教育学院",
+    "mada-course-maps": "课程地图（course map）- 艺术、设计与建筑学院",
+    "law-course-maps": "课程地图（course map）- 法学院",
+    "malaysia-science-course-maps": "课程结构与课程地图（马来西亚校区理学院）",
+    "malaysia-business-course-maps": "课程地图工具（马来西亚校区商学院）",
+    "study-load": "学习负荷（超修与减修）",
+    "failed-units": "不及格、成绩暂扣与无效的课程",
+    "double-degrees": "双学位",
     "study-at-another-institution": "在其他院校修读课程",
     "special-consideration": "延期与特殊考虑（Special Consideration）",
     "defer-final-assessment": "申请延期或改期参加期末考核",
@@ -332,11 +352,18 @@ GUIDE_TITLES: dict[str, str] = {
     # "Before You Arrive" for the student pass page - so the Chinese says
     # what the page is instead of translating what the banner says.
     "malaysia-student-services": "学生服务",
-    "malaysia-student-pass": "学生准证（Student Pass）",
+    "malaysia-student-pass": "学生签证（Student Pass）",
     "malaysia-insurance": "保险",
     "malaysia-student-admin": "学生事务",
     "malaysia-special-consideration": "延期与特殊考虑（special consideration）",
     "malaysia-exam-rules": "eExam（线上考试）规则",
+    "malaysia-general-studies": "通识课 MPU（马来西亚校区）",
+    "malaysia-fees-fees-calculator": "学费计算器（马来西亚校区）",
+    # Students say 转专业, and the machine title 转学位课程 never matched it.
+    "malaysia-apply-internal-course-transfer": "马来西亚校区转专业（Internal Course Transfer）",
+    "study-options-internal-transfer": "转专业或转校区（Course or campus transfer）",
+    "hurdles": "考核里的 hurdle（能力门槛和分数门槛）",
+    "malaysia-maps-and-transport": "地图与交通（马来西亚校区）",
 }
 
 
@@ -521,19 +548,72 @@ GPA_PAGE: dict[str, str] = {
 # faithful to but ours.
 
 FAQ_ZH: dict[str, tuple[str, str]] = {
+    "what-is-a-hurdle": (
+        "什么是 hurdle（及格门槛）？没过会怎样？",
+        "Hurdle（及格门槛）是你必须达到的考核要求，没达到的话，其他分数再高这门课也过不了。"
+        "如果你完成了某项能力门槛（competency hurdle）考核但没通过，主考老师（chief examiner）"
+        "必须至少再给你一次额外考核（additional assessment），考同样的学习目标。"
+        "这个不用自己申请，要在这个教学期结束前完成，不能申请特殊考虑（special consideration）；"
+        "如果这项 hurdle 有权重，额外考核这一项最多只能拿 50%。"
+        "最后还是没达到门槛的话，总分 45 分或以上记为 NH（Hurdle Fail）45 分，"
+        "45 分以下记为 N 和你的实际分数。没过 hurdle 不会给补考（supplementary assessment）。"
+        "每门课有哪些 hurdle、能考几次，写在这门课的 Handbook 页面和 Moodle 上。",
+    ),
+    "hurdle-changes": (
+        "Hurdle 改了什么？",
+        "Monash 正在取消分数门槛（threshold hurdle），也就是某项考核要拿到最低分（45%）才能过这门课的规定。"
+        "2025 年 3 月 1 日起新开的课不能再设；2026 年 1 月 1 日起，考核方式重新审核过的课要去掉；"
+        "到 2026 年 12 月 31 日，所有课都不再有分数门槛。"
+        "留下来的是能力门槛（competency hurdle）：证明你掌握了某项必须的技能的考核，"
+        "可以是通过/不通过，也可以有权重和分数。没过的话学校至少要再给你一次额外考核，"
+        "最终判不通过前还要两个人分别批改。没过 hurdle 而总分 45 分或以上，仍然记为 NH 45，"
+        "也不会给补考。现在的规定在 Assessment Regime Procedure 第 4 节，"
+        "适用于 2026 年 7 月 27 日及以后开始的教学期。",
+    ),
+    "supplementary-assessment": (
+        "我能补考（supplementary assessment）吗？",
+        "如果你某门课程单元的总分在 45 到 49 分之间、成绩为 N 或 NH，而且成绩里显示 NS，"
+        "说明你已经自动获得了补考——不需要申请。不是每门课程单元都提供补考，以该单元的 Handbook 页面为准。"
+        "补考可以选择不参加，它是你通过这门课的最后机会：通过的话成绩变为 50 分（P），这也是能拿到的最高分；"
+        "没通过或没参加，就保留原来的分数。补考在成绩公布后 90 天内的指定日期进行，"
+        "不能改期；special arrangements 只处理时区冲突。如果你更想要更高的分数来提高 WAM，"
+        "也可以选择重修这门课，但需要重新选课并缴费。",
+    ),
+    "unsatisfactory-progress": (
+        "收到了学业进度不达标（unsatisfactory academic progress）的邮件，是什么意思？",
+        "Monash 在每个审查期结束后检查学业进度，并给出三个风险等级之一。"
+        "一级（Advice，建议）：你挂了课程单元，但没有触及任何学业进度不达标标准。"
+        "二级（Monitoring，监督）：你第一次触及某项标准，必须填写 My Progress and Support，"
+        "学院也可能对你的注册附加条件。"
+        "三级（Intervention，干预）：例如连续两个审查期触及标准，或同一门必修课程单元挂了两次——"
+        "你必须填写 My Academic Progress Response，还可能被要求参加学业进度委员会（APC）听证，"
+        "听证结果可能是让你退学（exclusion）。请按邮件要求在截止日期前完成："
+        "你的配合程度会在之后的审查中被考虑进去。",
+    ),
     "how-to-apply-special-consideration": (
         "怎么申请特殊考虑（special consideration）？",
         "特殊考虑针对的是你无法控制、且影响了某次考核的短期状况。"
-        "申请在学生门户的特殊考虑表单里提交，"
-        "通常要在该次考核的截止日期或安排的考试时间之后两个学校工作日内提交，并附上证明材料。"
-        "平时作业的短期延期由课程的教学团队另行处理。申请前请先看官方页面，"
-        "确认当前的截止时限和所需的具体证明。",
+        "在网上用特殊考虑表格申请，短期延期（short extension）和通过特殊考虑申请延期用的是同一个表格。"
+        "不能直接找主考官（chief examiner）要延期。"
+        "请尽快申请，最晚在考核截止或安排考试的当天 23:55 前提交，并附上证明材料。"
+        "期末考核延期是另外单独申请。申请前请先看官方页面，确认具体规定。",
     ),
     "what-documents-for-sc": (
         "申请特殊考虑需要哪些材料？",
-        "你需要第三方出具的、覆盖受影响日期的证明——"
-        "最常见的是医生证明或 Monash 的 Health Professional Report。"
-        "截图、自己写的说明、没有日期的信函通常不被接受。官方页面列明了哪种情形对应哪种材料。",
+        "要看你是什么情况，官方页面按情况列出了所需材料。"
+        "生病的话要交医疗证明（medical certificate），用医疗机构或医生的信头纸，有签名、盖章和日期；"
+        "当时没能开到证明的话，官方页面写了可以改交什么。"
+        "医疗情况只交法定声明（statutory declaration）不行，照片和医学影像也不收。"
+        "在澳大利亚以外的校区（比如马来西亚）上学的，开证明的医生要在你就读的国家有完整注册资格。"
+        "非英文材料要由 NAATI 认证的译者译成英文。"
+        "另外要在申请表里写影响说明（impact statement），说清楚受了什么影响、从什么时候开始、持续多久。",
+    ),
+    "defer-a-final-assessment": (
+        "期末考试可以延期吗？",
+        "期末考核延期有单独的申请表，和短期延期、特殊考虑用的不是同一个表。"
+        "最晚在考核当天 23:55 前申请，并附上证明材料。"
+        "获批后，你会在延期考核期（deferred assessment period）参加这次考核，除非学院给你安排替代考核。"
+        "官方页面说明了什么情况可以延期、怎么改期，申请前请先看一遍。",
     ),
     "what-is-wam": (
         "WAM 是什么，怎么算？",
@@ -544,29 +624,76 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "what-is-gpa": (
         "Monash 的 GPA 是什么？",
-        "GPA 是 0–4 分制，按成绩等级（而不是具体分数）计算，HD 记 4 分，N 记 0 分。"
-        "Monash 有些奖学金和录取决定看 GPA，有些看 WAM，所以申请前要确认对方要的是哪一个。",
+        "GPA 按成绩等级（而不是具体分数）计算，满分 4.0：High Distinction 4.0，Distinction 3.0，"
+        "Credit 2.0，Pass 1.0，Near pass 0.7，Fail 和 Hurdle fail 0.3，Withdrawn fail 0.0。"
+        "SFR、NE 等一些结果不计入。GPA 在 WES 和成绩单上可以看到。"
+        "马来西亚另外还有累积绩点 CGPA，分值不一样：High Distinction 4.0，Distinction 3.67，"
+        "Credit 2.85，Pass 2.15，Near pass 1.7，Fail 和 Hurdle fail 1.15，Withdrawn fail 0.0。"
+        "CGPA 不显示在学业记录上，需要的话申请 CGPA 证明信（CGPA letter）。",
     ),
     "census-date-meaning": (
         "census date 是什么，为什么重要？",
         "census date 是你退选一门课而不用付这门课学费、也不留下记录的最后一天。"
         "过了这一天，学费就要照付，退课也会被记录在案。不同教学期的 census date 不一样，"
-        "所以要查你那门课的具体日期，不要以为整个学期只有一个日子。",
+        "所以要查你那门课的具体日期，不要以为整个学期只有一个日子。"
+        "马来西亚校区过了 census date 再退课，成绩会显示为 WD-LATE 或 WD-FAIL，"
+        "具体日期看 Monash Malaysia 的 Principal Dates。",
     ),
     "how-to-withdraw-from-a-unit": (
         "怎么退选一门课？",
-        "在选课变更开放期间，通过 WES 退选。census date 之前退，不收费也不留记录；"
-        "之后退，学费照付，并且这门课会显示为退课。如果你持学生签证，"
-        "课业量降到全日制以下可能影响签证，"
-        "先找顾问确认再操作。",
+        "澳大利亚：在选课变更开放期间，通过 WES 退选。census date 之前退，不收费也不留记录；"
+        "之后退，学费照付，并且这门课会显示为退课。持学生签证的同学有课业量要求："
+        "Monash 的 study load 页面写明，只有在情有可原或不得已的情况"
+        "（compassionate or compelling circumstances）下才能减少课业量，"
+        "除非你在最后一年并且能在 CoE 写的时间内毕业。"
+        "马来西亚：过了 census date 再退课，成绩会显示为 WD-LATE 或 WD-FAIL，"
+        "退课日期会影响退费和学业记录。不受学业处罚的最后退课时间是 WD-LATE 日期结束之前，"
+        "具体日期看 Monash Malaysia 的 Principal Dates。"
+        "持学生准证（Student Pass）的，每学期少于 24 学分就是减课（underload）："
+        "要经过批准，最少不能低于 18 学分，少于 18 学分就要申请休学（intermission）。",
+    ),
+    "international-student-underload": (
+        "持学生签证可以少修课（underload）吗？",
+        "要经过批准，规定看校区。"
+        "澳大利亚：持学生签证必须在 CoE 写的时间内读完课程，所以只有在情有可原或不得已的情况"
+        "（compassionate or compelling circumstances）下才能申请减课，比如重病，"
+        "或者课程结构让你没法按标准课业量选课。如果你在最后一年并且能在 CoE 写的时间内毕业，"
+        "不需要批准。要在 census date 当天墨尔本时间 23:59 前申请。"
+        "马来西亚：持学生准证（Student Pass）的全日制课业量是每年 48 学分（一般每学期 24 学分）。"
+        "每学期最少不能低于 18 学分，而且只限这几种情况：学业进度委员会附加的条件；"
+        "课程结构、修读规定或开课情况；生病或特殊个人情况；最后一个学期或最后一年需要的学分不够一整份。"
+        "先发邮件问国际学生准证办公室（mum.student.visa@monash.edu）对学生准证的影响，"
+        "再用 SORS 里的减课申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/underload-application）"
+        "附上证明材料申请，要在开学第 2 周的周五前交，否则会有费用上的处罚。"
+        "拿奖学金、助学金或学生贷款的，也要先问对应的办公室。"
+        "每学期少于 18 学分就要申请休学（intermission）。",
+    ),
+    "overload": (
+        "可以多修课（overload）吗？",
+        "overload 是选比标准课业量更多的课，要经过批准。"
+        "澳大利亚：最近 12 个月内修完 48 学分、WAM 在 60 或以上，才能申请。"
+        "参加特定项目的高分学生可能有例外，有些课程因为专业认证或临床要求不允许提前修。"
+        "要在教学期开始前至少 5 个工作日提交 Overload Request 表，而且要先拿到上一个教学期的成绩；"
+        "5 个工作日内会邮件通知结果。"
+        "马来西亚：一般只限在 Monash University Malaysia 连续两个学期修完 48 学分、"
+        "上一年平均分（含挂科）达到 60% 或以上的学生。用 SORS 里的 overload 申请表"
+        "（sors.monash.edu.my/sites/student-online-forms/enrol/overload-semester-enrolment）申请，"
+        "截止时间是开学第 2 周的周五；如果批准的是晚加课，要交一笔费用。"
+        "商学院的 FAQ 写的是一般只能多加一门，也就是一学期五门课，要学院批准。"
+        "拿奖学金、助学金或学生贷款的，先问对应的办公室。",
     ),
     "student-visa-work-hours": (
-        "（澳大利亚校区）持学生签证一周能打工多少小时？",
-        "这一条讲的是澳大利亚各校区。在马来西亚，居留身份是移民局通过 EMGS 签发的学生准证（Student Pass），适用条件与下面写的不是一回事，请以 monash.edu.my 为准。"
-            "学生签证的工作权限由澳大利亚政府规定，不是 Monash 定的，近几年上限改过好几次。"
-        "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定——"
-        "在按某个小时数行事之前，"
-        "务必到那里确认当前数字。",
+        "持学生签证一周能打工多少小时？",
+        "打工规定由各国政府定，不是 Monash 定的，两边不一样。"
+        "澳大利亚：学生签证的工作权限由澳大利亚政府规定，近几年上限改过好几次。"
+        "Monash 的页面会链到内政部（Department of Home Affairs）的现行规定，"
+        "按某个小时数打工之前，务必到那里确认当前数字。"
+        "马来西亚：持学生准证（Student Pass）只能在超过 7 天的学期假期或公共假期打工，"
+        "每周不超过 20 小时，只能在餐厅、加油站便利店、迷你超市或酒店工作；"
+        "页面还列出了不允许做的工作。每份工作都要经马来西亚移民局批准："
+        "通过国际学生准证办公室（International Student Pass office）申请，"
+        "递交申请时本人必须到场。",
     ),
     "when-do-results-come-out": (
         "成绩什么时候出？",
@@ -575,27 +702,92 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
     ),
     "what-is-coe": (
         "（澳大利亚校区）CoE 是什么？什么时候需要换新的？",
-        "这一条讲的是澳大利亚各校区；马来西亚签发的是通过 EMGS 办理的学生准证（Student Pass）。"
-            "CoE（入学确认书）是签发学生签证所依据的文件。一般来说，只要你的课程、"
-        "校区或完成日期发生变化，"
-        "就需要一份新的 CoE——包括申请休学或减少课业量的情况。请在现有 CoE 过期之前提出申请。",
+        "澳大利亚：CoE（入学确认书，Confirmation of Enrolment）是你的学生签证所依据的注册文件。"
+        "如果签证会在你读完课程之前到期，就需要一份新的 CoE，可以在签证到期前两个月申请。"
+        "Monash 只在以下情况批准新的 CoE：情有可原或不得已的情况、学业进度干预，"
+        "或者已获批的推迟入学或休学。改变课业量也可能需要一份写着新完成日期的 CoE。"
+        "马来西亚：用的是学生准证（Student Pass）。入境凭 eVisa 批准信（eVAL），"
+        "续签通过国际学生准证办公室（International Student Pass office）办理。",
+    ),
+    "international-student-health-insurance": (
+        "国际学生需要买医疗保险吗？",
+        "需要，两个校区都要，但保险不一样。"
+        "澳大利亚：持学生签证的国际学生在澳大利亚读书期间，要在整个签证有效期内持有"
+        "海外学生医疗保险（OSHC）。怎么买、谁可以豁免，看官方页面。"
+        "马来西亚：马来西亚高等教育部（MOHE）要求所有国际学生在整个学习期间持有有效的医疗保险，"
+        "保险证明是学生准证（Student Pass）的条件之一。申请学生准证时，"
+        "要通过 Monash University Malaysia 向它指定的保险公司购买，续签学生准证的费用里也包含了保险费。"
+        "自己的个人保险只能在这份保险之外另外加。",
     ),
     "apply-for-intermission": (
         "可以休学一个学期吗？",
-        "可以，这叫 intermission（休学）。授课型课程的学生通常可以申请到规定的最长期限，"
-        "但审批不是自动通过的。"
-        "持学生签证的国际学生要在申请前先确认对签证的影响，因为休学会改变你的 CoE。",
+        "可以，这叫 intermission（休学），审批不是自动通过的。国际学生的规定要看校区。"
+        "澳大利亚：读书期间最多可以休 12 个月，分在一个或两个教学期。"
+        "持学生签证的话，只有在情有可原或不得已的情况（compassionate or compelling circumstances）下才会批准。"
+        "回来之前要申请新的 CoE（入学确认书）；什么情况下还要办新的学生签证，看官方页面。"
+        "马来西亚：最多可以休两个学期或 12 个月，要在第一个 census date 过了之后才能申请，"
+        "并且应该在当前学期的 census date 之前申请。"
+        "持学生准证（Student Pass）的，因病休学可以留在马来西亚，但学生准证要一直有效，"
+        "并提供医疗证明；其他原因休学必须注销学生准证并离开马来西亚，"
+        "回来时要通过国际学生准证办公室（International Student Pass office）重新申请 eVisa 批准信（eVAL），"
+        "时间是开学前 4 个月到 2 个月之间。"
+        "另外，总学习时间不能超过全日制学制再加最多 12 个月的获批休学。",
     ),
     "exchange-eligibility": (
         "在 Monash 怎么去交换？",
-        "交换项目由 Monash Abroad 负责。是否符合条件通常取决于你的 WAM、课程完成的进度，"
-        "以及有没有可以转回学分的课程。申请轮次远早于你想出去的那个学期，所以要尽早查申请日期。",
+        "澳大利亚：交换项目由 Monash Abroad 负责。是否符合条件通常取决于你的 WAM、课程完成的进度，"
+        "以及有没有可以转回学分的课程。申请轮次远早于你想出去的那个学期，所以要尽早查申请日期。"
+        "马来西亚校区的同学先看 Monash Malaysia 的出境交换（outbound exchange）页面。",
     ),
     "how-to-get-a-transcript": (
         "怎么申请正式成绩单？",
         "通过官方文件服务（official documents）申请学业记录。"
         "在读学生可以在 WES 免费看到非正式的分数单；"
         "带认证的正式成绩单是另外的付费申请，有自己的处理时间。",
+    ),
+    "automatic-conferral": (
+        "毕业还需要自己申请吗？",
+        "从 2026 年 12 月起，Monash 会自动授予学位（conferral），你不需要再申请毕业"
+        "（apply to graduate）。学院确认你已完成课程后，你会在下一次按月进行的授予中拿到学位，"
+        "并在完成学业后不久收到学位证书（testamur）。新流程是先授予学位，再邀请你参加之后的"
+        "毕业典礼，所以缺席毕业（graduating in absentia）将不再适用。如果你今年已经申请了毕业，"
+        "仍然按官方页面上现在的流程办理。新流程的完整细节会在 12 月公布。"
+        "官网还没写、但 Monash 毕业事务部门在 2026 年 10 月确认过的："
+        "完成课程后，你可以在系统里自己申请把学位授予延后最多 3 个月；"
+        "如果因为毕业生招聘计划等原因要延后更久，通过 Monash Connect 申请人工处理，"
+        "最晚可以延到课程完成后 12 个月。学位证书上写的是实际授予学位的日期。"
+        "Monash Malaysia 自己的毕业页面目前还写着需要申请毕业，"
+        "马来西亚校区的同学在那边更新之前也要一起看。",
+    ),
+    "malaysia-general-studies": (
+        "马莫毕业要修哪些通识课（MPU）？",
+        "在马来西亚校区，高教部要求你毕业前修完并通过 General Studies 课程，也就是通识课、MPU 课。"
+        "要修哪几门看你哪个学期入学，以及你是马来西亚学生还是国际生；"
+        "2026 年第 2 学期（26S2）入学起，要修的课变多了。"
+        "国际生：26S2 入学修 MPU3143、MPU3172、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3143、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3143、MPU3193、MPU3312。"
+        "马来西亚学生：26S2 入学修 MPU3182、MPU3192、MPU3222、MPU3312、MPU3322、MPU3412；"
+        "25S1 入学修 MPU3183、MPU3193、MPU3312、MPU3412；"
+        "24S1 入学修 MPU3183、MPU3193、MPU3312。"
+        "SPM 马来文没拿到 Credit 或者没考 SPM 的马来西亚学生，还要加修 MPU3212。"
+        "Diploma of Business：国际生修 MPU2143、MPU2313、MPU2412；"
+        "马来西亚学生修 MPU2183、MPU2313、MPU2412，同样按 SPM 的条件加修 MPU2212。"
+        "官网只列了这几个入学批次，其他学期入学的，去问 Monash Connect 你对应哪一组。"
+        "什么时候修都可以，学校建议前三个学期内修完。",
+    ),
+    "malaysia-getting-around": (
+        "怎么去马莫，在双威附近怎么出行？",
+        "免费的 Sunway Shuttle Bus 停 Monash，早上 7 点到晚上 10:15，大约 45 分钟一班。"
+        "学校门口是 BRT 的 SunU-Monash 站：在 Setia Jaya 可以换 KTM 火车，在 USJ 7 可以换 "
+        "Kelana Jaya 线轻轨（LRT），两条都能到 KL Sentral，再坐机场快线去 KLIA。"
+        "学校有带顶棚的走廊直通 Sunway Pyramid，打 Grab 过去不到 RM10。"
+        "校车站点、BRT 各站和停车的地方看官方页面。",
+    ),
+    "malaysia-campus-map": (
+        "教室在哪？马莫有校园地图吗？",
+        "下载 Monash Study app，可以查看、搜索教室和楼在校园里的位置。"
+        "地图与交通页面上也有校园地图和到校路线图。",
     ),
 }
 
@@ -1095,6 +1287,25 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "Monash 很荣幸能一同庆祝你的学业成就。",
         "Your graduation journey":
             "你的毕业之路",
+        # The notice Monash added on 2026-10-16. Its apostrophes are U+2019,
+        # unlike the rest of the page, and the lookup is exact.
+        "Upcoming changes to the conferral process":
+            "学位授予流程即将调整",
+        "From December 2026, conferral of awards will be automatic and you "
+        "won’t need to apply to graduate. This means:":
+            "从 2026 年 12 月起，学位将自动授予（conferral），你不需要再申请毕业。也就是说：",
+        "once your faculty confirms you’ve completed your course, you’ll "
+        "be conferred in a monthly cycle":
+            "学院确认你已完成课程后，你会在按月进行的授予中拿到学位",
+        "you’ll receive your testamur shortly after completing your studies":
+            "完成学业后不久，你就会收到学位证书（testamur）",
+        "you’ll be conferred first, then invited to attend an upcoming "
+        "ceremony (graduating in absentia will no longer apply).":
+            "先授予学位，再邀请你参加之后的毕业典礼（缺席毕业 graduating in absentia 将不再适用）。",
+        "This website reflects the current graduation process for students who "
+        "have already applied to graduate this year. Full details on the new "
+        "process will be published in December.":
+            "本网站介绍的是现行毕业流程，适用于今年已经申请毕业的学生。新流程的完整细节将在 12 月公布。",
     },
     "results": {
         "Academic records (transcripts)":
@@ -2052,10 +2263,10 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "before returning to Malaysia. Please submit your passport to "
         "ISP (Building 2, Level 1) for the cancellation of your "
         "student pass.":
-            "1. 如果你人在马来西亚，并打算一直留到新学期开学，就必须确保学生准证（student "
-            "pass）始终在有效期内。若你的学生准证（student pass）已过期、或将在 14 "
+            "1. 如果你人在马来西亚，并打算一直留到新学期开学，就必须确保学生签证（student "
+            "pass）始终在有效期内。若你的学生签证（student pass）已过期、或将在 14 "
             "天内到期，可能需要申请特别准证（Special Pass）。2. 如果你人在马来西亚，并打算先回国、等拿到 eVAL "
-            "再返回马来西亚，请把护照交到 ISP（2 号楼 1 层）办理学生准证（student pass）注销。",
+            "再返回马来西亚，请把护照交到 ISP（2 号楼 1 层）办理学生签证（student pass）注销。",
         "1. If your student pass exceeds one year validity, you will "
         "need to cancel your student pass, exit Malaysia and apply for "
         "a new student pass that takes eight (8) weeks processing "
@@ -2069,11 +2280,11 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "for a new student pass due to a change of course is permitted "
         "up to a maximum of two times throughout your period of study "
         "in Malaysia.":
-            "1. 如果你的学生准证（student "
-            "pass）有效期超过一年，需要先注销准证、离境马来西亚，再重新申请新的学生准证（student pass），办理约需 8 "
-            "周。\n2. 如果你的学生准证（student "
-            "pass）有效期为一年：当前所读学位课程就读不满一年的，在新准证办理期间无需离境；就读超过一年的，则需要注销准证、离境马来西亚，再重新申请新的学生准证（student "
-            "pass），办理约需 8 周。\n3. 因更换学位课程而申请新学生准证（student "
+            "1. 如果你的学生签证（student "
+            "pass）有效期超过一年，需要先注销签证、离境马来西亚，再重新申请新的学生签证（student pass），办理约需 8 "
+            "周。\n2. 如果你的学生签证（student "
+            "pass）有效期为一年：当前所读学位课程就读不满一年的，在新签证办理期间无需离境；就读超过一年的，则需要注销签证、离境马来西亚，再重新申请新的学生签证（student "
+            "pass），办理约需 8 周。\n3. 因更换学位课程而申请新学生签证（student "
             "pass），在你于马来西亚就读期间最多只能办理两次。",
         "1. Letter of confirmation of enrolment by your home "
         "institution on your home institution's letterhead that has "
@@ -2091,21 +2302,21 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "may apply to you if you are in Malaysia and your pass has "
         "expired/ will be expiring in 14 days.":
             "1. 放行信（Release Letter）与出勤报告（出勤率不得低于 80%）；2. "
-            "最新有效准证的复印件，和／或出境章（若原准证已注销且你人在马来西亚境外）。3. "
-            "可选：如果你人在马来西亚，且准证已过期或将在 14 天内到期，可能需要申请特别准证（Special Pass）。",
+            "最新有效签证的复印件，和／或出境章（若原签证已注销且你人在马来西亚境外）。3. "
+            "可选：如果你人在马来西亚，且签证已过期或将在 14 天内到期，可能需要申请特别准证（Special Pass）。",
         "Additional documents and/or actions required":
             "需要补充的材料和／或需要办理的事项",
         "After the Immigration Department of Malaysia approves your "
         "student pass application, you will receive an email "
         "notification from ISP. You may download a softcopy of your "
         "Electronic Visa Approval Letter, which is also known as eVAL.":
-            "马来西亚移民局批准你的学生准证（student pass）申请之后，你会收到 ISP "
+            "马来西亚移民局批准你的学生签证（student pass）申请之后，你会收到 ISP "
             "发来的邮件通知，并可以下载电子签证批准函（eVAL）的电子版。",
         "As an international student coming to study at the University "
         "for a full-time course, you must accept your offer and apply "
         "for a student pass before coming to Malaysia to start your "
         "course.":
-            "作为来本校就读全日制学位课程的国际学生，你必须先接受录取并申请学生准证（student "
+            "作为来本校就读全日制学位课程的国际学生，你必须先接受录取并申请学生签证（student "
             "pass），然后才能来马来西亚开始学业。",
         "Before arriving Malaysia, you will need to ensure that you "
         "have prepared and completed the necessary pre-arrival steps "
@@ -2126,26 +2337,26 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "actions are required and to be provided during the submission "
         "of your student pass application if you are under these "
         "categories:":
-            "所需材料（电子版）：如果你属于下列情形，提交学生准证（student pass）申请时还需要补充材料和／或办理其他事项：",
+            "所需材料（电子版）：如果你属于下列情形，提交学生签证（student pass）申请时还需要补充材料和／或办理其他事项：",
         "Exchange and Study Abroad":
             "交换与海外学习",
         "For Undergraduates and Post Graduate Coursework students, you "
         "can start applying for your student pass as early as four "
         "months but no later than two months before the commencement "
         "of your course.":
-            "本科生和授课型研究生最早可在开课前四个月开始申请学生准证（student pass），但最迟不得晚于开课前两个月。",
+            "本科生和授课型研究生最早可在开课前四个月开始申请学生签证（student pass），但最迟不得晚于开课前两个月。",
         "For research students, please submit your request to amend "
         "your course commencement date in your offer letter if it is "
         "lesser than the minimum two months processing time.":
             "研究型学生如果距开课不足两个月的最短办理时间，请提交申请，修改录取通知书上的开课日期。",
         "Have you lodged an application for a Malaysian student pass "
         "before?":
-            "你此前申请过马来西亚学生准证（student pass）吗？",
+            "你此前申请过马来西亚学生签证（student pass）吗？",
         "IMPORTANT The estimated Student Pass Endorsement processing "
         "time by the Immigration Department of Malaysia is 6 weeks. "
         "You are advised not to make any travel plans until your "
         "passport has been returned with your student pass sticker.":
-            "重要提示：马来西亚移民局办理学生准证签注预计需要 6 周。在护照连同学生准证贴纸退回给你之前，建议不要做任何出行计划。",
+            "重要提示：马来西亚移民局办理学生签证签注预计需要 6 周。在护照连同学生签证贴纸退回给你之前，建议不要做任何出行计划。",
         "If your student pass has expired/will be expiring in 14 days "
         "from the date of your submission to ISP, you will be advised "
         "to apply for a Special Pass. A Special Pass ensures you have "
@@ -2157,7 +2368,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "payment at the Finance Helpdesk.Do you have more questions? "
         "Fret not, we have a collection of frequently asked questions "
         "here.":
-            "如果自你向 ISP 提交之日起，学生准证（student pass）已过期或将在 14 天内到期，ISP "
+            "如果自你向 ISP 提交之日起，学生签证（student pass）已过期或将在 14 天内到期，ISP "
             "会建议你申请特别准证（Special "
             "Pass）。特别准证的作用是在续期申请办理期间让你保持有效身份，是否签发由移民局酌情决定。如果 ISP "
             "建议你申请，请把下列材料提交到 ISP（2 号楼 1 层）：并在 Finance Helpdesk（财务服务台）缴纳 "
@@ -2185,7 +2396,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "请按下列步骤办理：\n1. 体检必须在 7 天内、到 EMGS 指定的诊所或医院完成。离 Monash "
             "马来西亚校区最近的诊所在 Subang Jaya。为方便起见，请确认该诊所自带 X "
             "光设备。请携带以下材料：**以上材料只需打印即可\n2. 请携带以下物品到 2 号楼 1 层的 ISP 柜台：\n3. "
-            "等待护照连同已签发的学生准证贴纸退回。此过程预计需要 6 个工作周，在拿到实体护照之前，建议不要做出行安排。\n4. "
+            "等待护照连同已签发的学生签证贴纸退回。此过程预计需要 6 个工作周，在拿到实体护照之前，建议不要做出行安排。\n4. "
             "护照可领取时，我们会发邮件通知你。\n5. 领到护照两周后会发放 i-Kad。可以领取时我们同样会发邮件通知你。i-Kad "
             "是国际学生的身份识别卡，可用于证明身份，但不能替代护照。直接申请者（Direct Applicants）需在 i-Kad "
             "到期前三个月办理一次性续期。",
@@ -2207,25 +2418,25 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "apply for a student pass duration of six (6) months , while "
         "students attending two (2) semesters must apply for a student "
         "pass duration of twelve (12) months .":
-            "参加交换或海外学习项目的学生必须直接向 EMGS 申请：读一个学期的，申请 6 个月有效期的学生准证（student "
-            "pass）；读两个学期的，申请 12 个月有效期的学生准证（student pass）。",
+            "参加交换或海外学习项目的学生必须直接向 EMGS 申请：读一个学期的，申请 6 个月有效期的学生签证（student "
+            "pass）；读两个学期的，申请 12 个月有效期的学生签证（student pass）。",
         "You are required to opt for DIRECT STUDENT PASS APPLICATION* "
         "where you have to apply directly to EMGS . Read this guide "
         "prior to applying for your student pass. *All direct "
         "applicants are advised to apply for a one-off student pass "
         "which covers the entire course duration.":
             "你需要选择 DIRECT STUDENT PASS APPLICATION（直接申请）*，即自行向 EMGS "
-            "提交申请。申请前请先阅读这份指南。*建议所有直接申请者申请一次性覆盖整个学位课程期限的学生准证（student pass）。",
+            "提交申请。申请前请先阅读这份指南。*建议所有直接申请者申请一次性覆盖整个学位课程期限的学生签证（student pass）。",
         "You are required to opt for NON-DIRECT STUDENT PASS "
         "APPLICATION where Monash will apply for your student pass. "
         "Fill out this form to start applying for your student pass.":
             "你需要选择 NON-DIRECT STUDENT PASS APPLICATION（非直接申请），即由 Monash "
-            "代你提交学生准证（student pass）申请。请填写这份表格开始办理。",
+            "代你提交学生签证（student pass）申请。请填写这份表格开始办理。",
         "You may check the status of your student pass application "
         "after 14 working days upon submitting the complete documents "
         "and payment to either EMGS (DA) or through the University "
         "(NDA).":
-            "在向 EMGS（直接申请）或学校（非直接申请）提交完整材料并付款后，满 14 个工作日即可查询学生准证（student "
+            "在向 EMGS（直接申请）或学校（非直接申请）提交完整材料并付款后，满 14 个工作日即可查询学生签证（student "
             "pass）申请进度。",
     },
     "malaysia-insurance": {
@@ -2247,7 +2458,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "国际旅行保险",
         "International students with a valid Student Pass studying at "
         "Monash University Malaysia.":
-            "在 Monash 马来西亚校区就读、且持有有效学生准证（Student Pass）的国际学生。",
+            "在 Monash 马来西亚校区就读、且持有有效学生签证（Student Pass）的国际学生。",
         "Kindly refer to the information page on medical insurance for "
         "international students website for more details.":
             "更多细节请查看国际学生医疗保险信息页。",
@@ -2335,10 +2546,14 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "无论你是刚来 Monash 还是要重新注册，都可以在这里了解如何管理自己的选课注册。",
     },
     "malaysia-exam-rules": {
+        "Bag":
+            "包袋",
         "Books, study materials":
             "书籍、学习资料",
+        "Calculators":
+            "计算器",
         "Cap, hooded top":
-            "帽子、连帽衫",
+            "帽子、连帽上衣",
         "Cheating can come in many forms, and can occur in exams and "
         "other types of assessments. To cheat could be to copy the "
         "work of others, to get someone to do your assessment for you, "
@@ -2346,7 +2561,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "breaches academic integrity and Monash University has various "
         "methods of detecting it.":
             "作弊有很多种形式，可能发生在考试里，也可能发生在其他类型的考核中。抄袭他人作业、找人代做考核、把未经许可的材料带进 "
-            "eExam（线上考试），都属于作弊。作弊违反学术诚信。",
+            "eExam（线上考试），都属于作弊。作弊违反学术诚信，Monash 大学也采用多种方法侦测作弊行为。",
         "Cheating is a very serious offence and could result in "
         "suspension or exclusion from the University.":
             "作弊是非常严重的违规行为，可能导致停学或被学校退学处理（exclusion）。",
@@ -2356,6 +2571,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
             "闭卷考试不允许你带笔记、书本或任何其他参考资料进场，只能完全靠记忆作答。",
         "Closed-book remote eExams":
             "远程闭卷 eExam（线上考试）",
+        "Clock":
+            "计时器",
         "Dictionaries (electronic)":
             "词典（电子版）",
         "Dictionaries (hard copy)":
@@ -2366,7 +2583,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "materials which haven’t been authorised for the exam. "
         "Possession of unauthorised materials, or attempting to cheat "
         "or cheating in an exam, is a disciplinary offence.":
-            "考试期间不得携带计算器、笔袋、手机、智能手表或智能设备，也不得有任何书本、笔记、纸张、写在身体任何部位的字迹，或其他未经本场考试许可的材料。持有未经许可的材料本身即构成违规。",
+            "考试期间不得携带计算器、笔袋、手机、智能手表或智能设备，也不得有任何书本、笔记、纸张、写在身体任何部位的字迹，或其他未经本场考试许可的材料。持有未经许可的材料、试图作弊或在考试中作弊，均属于纪律违规。",
         "During your exam, you must not speak with other students or "
         "persons outside the University. You should only communicate "
         "with your online supervisor or exam staff. Colluding with "
@@ -2380,7 +2597,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "it’s visible. The session will continue to be recorded while "
         "you’re out of the room.":
             "如果你的 "
-            "eExam（线上考试）有监考，全程都必须待在摄像头可见范围内。如需离开房间上洗手间，要把手机和所有考试材料留在考场内、放在摄像头前可见的位置。",
+            "eExam（线上考试）有监考，全程都必须待在摄像头可见范围内。如需离开房间上洗手间，要把手机和所有考试材料留在考场内、放在摄像头前可见的位置。离开房间期间，考试会话仍会继续录制。",
         "Learn more about academic integrity, plagiarism and collusion.":
             "进一步了解学术诚信、抄袭与合谋作弊。",
         "Mask-wearing is required for indoor settings and optional in "
@@ -2404,17 +2621,36 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "communicating with your online supervisor. You’re not allowed "
         "to listen to music, audio files or speak with anyone other "
         "than your online supervisor during your exam.":
-            "校内 eExam（线上考试）　有线上监考的 "
-            "eExam（线上考试）：你需要自带带麦克风的耳机或耳麦，以便与线上监考员清楚沟通，同时尽量不打扰同一考场的其他学生。",
+            "校内 eExam（线上考试）：有线上监考时，你需要自带带麦克风的耳机或耳麦，以便与线上监考员清楚沟通，同时尽量不打扰同一考场的其他学生；无线上监考时，可以使用耳机的降噪功能或耳塞来减少干扰。校外 eExam（线上考试）：校外有监考的场次可以选择使用带内置麦克风的耳机或耳麦，但只能用于与线上监考员沟通。考试期间不得听音乐或音频文件，也不得与线上监考员以外的任何人交谈。",
         "Open-book exams allow you to access notes, texts or resource "
         "materials in your exam.":
             "开卷考试允许你在考试中查阅笔记、教材或参考资料。",
         "Open-book remote eExams":
             "远程开卷 eExam（线上考试）",
+        "Exam Rules":
+            "考试规则",
+        "Face masks":
+            "口罩",
+        "Food and drink":
+            "食物和饮料",
+        "Headphones":
+            "耳机或耳麦",
+        "Item":
+            "物品",
+        "No":
+            "不允许",
+        "Notes":
+            "笔记",
         "Paper, including blank A4 paper":
             "纸张，包括空白 A4 纸",
+        "Pencil cases":
+            "笔袋",
+        "Smartphones":
+            "智能手机",
         "Specifically permitted items":
-            "特别许可携带的物品",
+            "特别许可物品",
+        "Stationery":
+            "文具",
         "There is an inbuilt timer on your eExam screen that will "
         "count down the time you have left.":
             "eExam（线上考试）界面自带计时器，会倒数你剩余的时间。",
@@ -2426,7 +2662,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "any unauthorised materials in an exam is a disciplinary "
         "offence.":
             "这些信息也会显示在 "
-            "eExam（线上考试）的首页上。开考前请仔细阅读，确认你的所有材料和设备都是经许可的。桌上出现的任何材料或物品，只要未经许可，我们都会视为违规。",
+            "eExam（线上考试）的首页上。开考前请仔细阅读，确认你的所有材料和设备都是经许可的。桌面、椅子或你身上的任何材料或物品，都会被视为由你持有。在考试中持有任何未经许可的材料，均属于纪律违规。",
         "To ensure you get your full exam time, log into the "
         "eAssessment platform 30 minutes before the scheduled start "
         "time (if it’s supervised) or 10 minutes before if you have an "
@@ -2447,6 +2683,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "device you’re using for your eExam (unless specifically "
         "instructed by your teaching staff or faculty).":
             "可以，但不得在你用来考 eExam（线上考试）的那台设备上查看电子版笔记（除非任课教师或学院另有明确指示）。",
+        "Yes":
+            "允许",
         "Yes, food and drink are allowed in your private exam space. "
         "If you have an on-campus eExam, please ensure any food you "
         "bring with you won't disturb those around you.":
@@ -2465,12 +2703,12 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "handwritten responses – don't access your phone until the "
         "instructions appear on your screen.":
             "你可以带智能手机，但必须调到「勿扰」模式并正面朝下放在桌上。手机的用途是：用多因素认证登录 "
-            "eExam（线上考试），以及在考试结束时上传手写作答的照片（如需要）。",
+            "eExam（线上考试），以及在考试结束时上传手写作答的照片（如需要）。在屏幕出现相关指示前，不得使用手机。",
         "You can wear a cap or hooded top, but you may be asked to "
         "remove it as part of your online supervision so we can verify "
         "your identity. Your online supervisor may ask you to remove "
         "your hood at any time.":
-            "你可以戴帽子或穿连帽衫，但线上监考过程中可能会被要求摘下，以便核验身份。线上监考员可以随时要求你放下帽兜。",
+            "你可以戴帽子或穿连帽上衣，但线上监考为核验身份可能要求你摘下帽子或放下帽兜。线上监考员可以随时要求你放下帽兜。",
         "You can’t cancel or reschedule your eExam. By starting your "
         "eExam, you’re confirming that you’re well enough to do the "
         "exam. If you suddenly become unwell during your exam, tell "
@@ -2480,7 +2718,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "and/or attempted to answer the exam questions, you won't be "
         "eligible for a deferred assessment.":
             "你不能取消或改期 "
-            "eExam（线上考试）。一旦开考，就等于确认自己身体状况适合参加考试。如果考试中途突然不适，请立刻告知监考员，他们会告诉你该怎么做。",
+            "eExam（线上考试）。一旦开考，就等于确认自己身体状况适合参加考试。如果考试中途突然不适，请立刻告知监考员，他们会告诉你该怎么做。如果身体状况允许，建议尽量完成考试；在大多数情况下，如果你已经看过试题或尝试作答，就不再符合延期考核的申请条件。",
         "You must have your M-Pass (student ID card) or a "
         "government-issued photo ID (e.g. your passport) if you’re "
         "sitting a supervised eExam or an unsupervised eExam on "
@@ -2488,7 +2726,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "microphone must be working – if the online supervisor can't "
         "see or hear you, you won't be allowed to sit your eExam.":
             "参加有监考的 eExam（线上考试）、或在校内参加无监考 eExam（线上考试）时，必须携带 "
-            "M-Pass（学生证）或政府签发的带照片身份证件（例如护照）。有监考的场次，摄像头和麦克风必须正常工作。",
+            "M-Pass（学生证）或政府签发的带照片身份证件（例如护照）。有监考的场次，摄像头和麦克风必须正常工作；如果线上监考员看不到或听不到你，你将无法参加 eExam（线上考试）。",
         "You must remove your smartwatch and place it face down on "
         "your desk for the duration of your eExam. The eExam on-screen "
         "timer will show you how much exam time you have left.":
@@ -2504,7 +2742,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "also be listed on your exam home screen if they apply. For "
         "example, you may be permitted to use a translation dictionary "
         "for your exam or a single A4 page of pre-prepared notes.":
-            "如果有特别许可携带进考场的物品，任课教师会告知你；适用时，这些物品也会列在考试首页上。例如，某些考试可能允许你使用翻译词典。",
+            "如果有特别许可携带进考场的物品，任课教师会告知你；适用时，这些物品也会列在考试首页上。例如，某些考试可能允许你使用翻译词典，或携带一张预先写好笔记的 A4 纸。",
         "Your personal belongings are allowed to be in the room, but "
         "they must not be in reach during your exam.":
             "个人物品可以放在房间里，但考试期间不得放在伸手可及之处。",
@@ -2515,7 +2753,7 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "required handwritten responses – don’t access your phone "
         "until the instructions appear on your screen.":
             "手机必须调到「勿扰」模式并正面朝下放在桌上。只能用于两件事：用多因素认证登录 "
-            "eExam（线上考试），以及在考试结束时上传所需的手写作答照片。",
+            "eExam（线上考试），以及在考试结束时上传所需的手写作答照片。在屏幕出现相关指示前，不得使用手机。",
         "You’ll need to check with your lecturer to see whether your "
         "exam requires the use of a calculator and, if so, whether "
         "there are restrictions on the type you’re allowed to use.":
@@ -2525,6 +2763,8 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
         "authorised materials on your unit’s Moodle page and the "
         "landing page of your eExam.":
             "只有经本场考试许可的纸张才可以带在身边。许可材料清单请查看该课程的 Moodle 页面，以及 eExam（线上考试）的首页。",
+        "USB devices":
+            "USB 设备",
         "eExam rules":
             "eExam（线上考试）规则",
         "the eExam spell check function will be disabled.":
@@ -8593,12 +8833,614 @@ GUIDE_BODIES: dict[str, dict[str, str]] = {
 }
 
 
+# Reviewed page-specific overrides are kept out of the global glossary because
+# short labels such as "Pass", "Credit", "View" and "Withdrawn" depend on the
+# guide in which they appear. This map was audited against all 45 guide payloads.
+GUIDE_AUDIT_OVERRIDES: dict[str, dict[str, str]] = {
+    "academic-progress": {"Hearing decisions": "听证决定"},
+    "academic-transcripts": {
+        "About your results": "关于你的成绩",
+        "Click Add.": "点击“添加”。",
+        "Click Continue.": "点击“继续”。",
+        "Click Link Account.": "点击“关联账户”。",
+        "Current students": "在读学生",
+        "Digital format": "电子版",
+        "Hard copy format": "纸质版",
+        "Log into My eQuals.": "登录 My eQuals。",
+        "Monash Study app.": "Monash Study 应用。",
+        "Official record": "正式学业记录",
+        "Past students": "往届学生",
+        "Results legend": "成绩等级说明",
+        "Unofficial record": "非正式学业记录",
+        "View": "查看",
+        "Your privacy View": "你的隐私（查看）",
+    },
+    "add-or-withdraw-units": {
+        "Adding units": "添加课程",
+        "Before enrolling": "选课注册前",
+        "Domestic students": "澳大利亚本地学生",
+        "How to add a unit": "如何添加课程",
+        "Dates to check": "需要留意的日期",
+        "Relevant policies": "相关政策",
+        "Selecting units": "选择课程",
+        "Withdrawn Early": "提前退课",
+        "Withdrawn Fail": "退课不及格",
+        "Withdrawn Late": "逾期退课",
+        "Withdrawn fail": "退课不及格",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+        "WD-EARLY": "WD-EARLY（提前退课）",
+        "WD-LATE": "WD-LATE（逾期退课）",
+        "WD-FAIL": "WD-FAIL（退课不及格）",
+    },
+    "assessment-at-monash": {
+        "Extensions": "延期提交",
+        "Grading and results": "评分与成绩",
+        "Late submissions": "逾期提交",
+        "Marking criteria": "评分标准",
+        "Relevant procedures": "相关流程",
+    },
+    "census-dates": {"View": "查看"},
+    "census-dates-explained": {
+        "Academic penalties": "学业后果",
+        "Before enrolling": "选课注册前",
+        "Financial penalties": "财务后果",
+        "HELP loans": "HELP 学生贷款",
+        "Research students": "研究型学位学生",
+    },
+    "changing-your-enrolment": {
+        "Honours students": "荣誉学位学生",
+        "Study load": "修读负荷",
+        "University changes": "学校对选课的调整",
+    },
+    "course-advice": {"Assessments View": "考核（查看）", "View": "查看"},
+    "defer-final-assessment": {
+        "Apply to reschedule": "申请改期",
+        "Late applications": "逾期申请",
+        "View": "查看",
+    },
+    "discontinue-course": {
+        "Go back": "返回",
+        "How to discontinue": "如何退读学位课程",
+        "Re-enrolling": "重新选课注册",
+        "What happens next": "接下来会怎样？",
+    },
+    "enrolments": {
+        "Double degrees": "双学位",
+        "Enrolments": "选课注册",
+        "Making changes": "更改选课注册",
+        "Re-enrol": "重新选课注册",
+        "Study load": "修读负荷",
+    },
+    "fees": {
+        "Course fees": "学位课程学费",
+        "Fees and payments": "学费与缴费",
+        "Fees statements": "费用账单",
+        "Payments": "缴费",
+    },
+    "final-assessment-dates": {
+        "Final assessments": "期末考核",
+        "Swot vac": "SWOT Vac（复习周）",
+        "View": "查看",
+    },
+    "gpa": {
+        "Converting your GPA": "GPA 换算",
+        "Cumulative Grade Point Average (CGPA)": "累计平均绩点（CGPA）",
+        "How to find out your GPA": "如何查看 GPA",
+        "How to get your CGPA": "如何计算 CGPA",
+        "Methodology": "计算方法",
+        "Re-marking": "复核评分",
+        "Hurdle fail": "未达到及格门槛",
+        "Withdrawn fail": "退课不及格",
+        "SFR (satisfied faculty requirements)": "SFR（已满足学院要求）",
+        "NE (not examinable)": "NE（无需参加考试）",
+        "NAS (not assessed)": "NAS（未评定）",
+        "WI (withdrawn incomplete)": "WI（退课未完成）",
+        "PGO (pass grade only)": "PGO（仅评定为及格）",
+        "N (fail)": "N（不及格）",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+    },
+    "important-dates": {"Principal dates": "校历主要日期", "Semester dates": "学期日期"},
+    "intermission": {"Go back": "返回", "View": "查看"},
+    "malaysia-insurance": {"Study Interruption": "学业中断"},
+    "malaysia-special-consideration": {
+        "Applying late": "逾期申请",
+        "Examples": "示例",
+        "Group assessments": "小组考核",
+    },
+    "malaysia-student-admin": {
+        "MonPlan": "MonPlan 学业规划系统",
+        "Principal dates": "校历主要日期",
+        "Timetabling": "排课与课表",
+    },
+    "malaysia-student-pass": {"Documents": "文件", "No": "不允许", "Yes": "允许"},
+    "malaysia-student-services": {
+        "Career services": "就业服务",
+        "New to Monash": "Monash 新生",
+        "News and Events": "新闻与活动",
+        "Support services": "支持服务",
+    },
+    "oshc": {"Pricing": "费用"},
+    "principal-dates": {
+        "Australian campuses": "澳大利亚各校区",
+        "Principal dates": "校历主要日期",
+        "University reopens": "大学恢复开放",
+        "Full year – 2026": "2026 全学年",
+    },
+    "results-legend": {
+        "2020 to 2021: Temporary grading system":
+            "2020–2021 年 COVID-19 疫情期间临时成绩评定制度",
+        "Credit": "良好（Credit）",
+        "Deferred Assessment": "延期考核",
+        "Did Not Sit": "未参加考试",
+        "Discontinued": "已终止修读",
+        "Distinction": "优秀（Distinction）",
+        "Exempt": "豁免",
+        "Faculty Pass": "学院评定及格",
+        "Fail": "不及格",
+        "First Class Honours": "一等荣誉",
+        "High Distinction": "最高等级优秀（High Distinction）",
+        "High Satisfactory": "高度满意",
+        "Higher Distinction": "更高等级优秀",
+        "Honours course grades": "荣誉学位课程成绩等级",
+        "Hurdle Fail": "未达到及格门槛",
+        "Incomplete": "未完成",
+        "Lower Level Pass": "低等级及格",
+        "Masters awarded with distinction": "获授优秀等级的硕士学位",
+        "Merit": "优良（Merit）",
+        "NGO (Fail)": "NGO（不及格）",
+        "Near Pass": "接近及格",
+        "Non Assessed": "未评定",
+        "Non-Assessed": "未评定",
+        "Not Assessed": "未评定",
+        "Not Examinable": "无需参加考试",
+        "Not Satisfied Requirements": "未满足要求",
+        "Not-Examinable": "无需参加考试",
+        "PGO (Pass)": "PGO（及格）",
+        "Pass": "及格",
+        "Pass Applies only to students who started on or after 1 January 2021":
+            "及格——仅适用于 2021 年 1 月 1 日或之后入学的学生",
+        "Pass Division I": "一等及格",
+        "Pass Division II": "二等及格",
+        "Pass Division IIE": "二等及格（补考）",
+        "Pass Grade Only. No higher grade available":
+            "仅评定为及格，不提供更高等级",
+        "Pass Grade Only (no higher grade available)":
+            "仅评定为及格（不提供更高等级）",
+        "Pass on Appeal": "申诉后评定及格",
+        "Pass with Credit": "良好及格",
+        "Provisional Grade": "暂定成绩",
+        "Satisfied Faculty Requirements": "已满足学院要求",
+        "Second Class Honours Division A": "二等荣誉 A 级",
+        "Second Class Honours Division B": "二等荣誉 B 级",
+        "Supplementary Assessment": "补考",
+        "Supplementary Assessment Granted": "已获准补考",
+        "Sound pass": "稳健及格",
+        "Subject Not Graded": "该科目不评定等级",
+        "The Monash grading system": "Monash 成绩评定体系",
+        "Third Class Honours": "三等荣誉",
+        "Third Class Honours Applies only to students who started before 2021":
+            "三等荣誉——仅适用于 2021 年之前入学的学生",
+        "2020–2021 Temporary grading system in response to COVID-19":
+            "2020–2021 年应对 COVID-19 的临时成绩评定制度",
+        "Withheld": "暂缓公布",
+        "Withdrawn": "已退课",
+        "Withdrawn Fail": "退课不及格",
+        "Withdrawn Incomplete": "退课未完成",
+        "Assessment Deferred": "考核延期",
+        "Literal Marks": "原始分数",
+        "Not Pass": "不及格",
+        "Satisfactory": "满意",
+        "Unsatisfactory": "不满意",
+    },
+    "special-consideration": {
+        "Applying late": "逾期申请",
+        "Examples": "示例",
+        "Group assessments": "小组考核",
+    },
+    "student-conduct": {"Breaches": "违规行为"},
+    "student-visa": {
+        "Processing times": "签证审理时间",
+        "Study load": "修读负荷",
+        "Study mode": "修读方式",
+    },
+    "study-at-another-institution": {
+        "Closing dates": "申请截止日期",
+        "Fees and offers": "费用与录取通知",
+        "Limits on credit": "学分限制",
+        "To apply": "申请方法",
+    },
+    "supporting-documents": {
+        "Extension documents": "延期申请所需文件",
+        "Impact statement": "影响情况说明",
+        "Loss or bereavement": "亲友去世或丧亲",
+        "View": "查看",
+    },
+    "visa-changes": {"Extending your stay": "延长在澳停留时间"},
+    "wam": {
+        "Converting your WAM": "WAM 换算",
+        "HWA for Engineering": "工程学院 HWA",
+        "HWA for Law": "法学院 HWA",
+        "Methodology": "计算方法",
+        "N (fail)": "N（不及格）",
+        "NAS (not assessed)": "NAS（未评定）",
+        "NE (not examinable)": "NE（无需参加考试）",
+        "NGO (fail grade)": "NGO（不及格成绩）",
+        "Re-marking": "复核评分",
+        "WDN (withdrawn)": "WDN（已退课）",
+        "WH (withheld)": "WH（暂缓公布）",
+        "WN (withdrawn fail)": "WN（退课不及格）",
+    },
+    "working-on-a-student-visa": {"The current rules": "现行规定"},
+}
+
+
+# Headings which were already readable in the generated Chinese are pinned as
+# reviewed too. This keeps a later machine-translation refresh from changing
+# navigation terminology that was checked during the same all-guide audit.
+GUIDE_REVIEWED_HEADINGS: dict[str, dict[str, str]] = {
+    "about-academic-progress": {
+        "Review periods": "审核周期",
+        "What we review": "审核内容",
+    },
+    "academic-integrity": {"Troubleshooting": "问题排查"},
+    "academic-progress": {"Appeals and reviews": "申诉与复核"},
+    "academic-transcripts": {"Graduates": "毕业生"},
+    "add-or-withdraw-units": {"Update Allocate+": "更新 Allocate+（排课系统）"},
+    "assessment-at-monash": {
+        "Academic integrity": "学术诚信",
+        "Assessment details": "考核详情",
+        "Types of assessment": "考核类型",
+    },
+    "census-dates-explained": {"Exceptions": "例外情况"},
+    "confirmation-of-enrolment": {"Application outcome": "申请结果"},
+    "course-advice": {"Course advice": "学位课程咨询"},
+    "defer-final-assessment": {"How to apply": "如何申请", "Outcome": "申请结果"},
+    "discontinue-course": {"Related links": "相关链接"},
+    "enrolments": {"Study options": "修读选项"},
+    "fee-payment-dates": {"Related links": "相关链接"},
+    "fees": {"Refunds": "退款"},
+    "final-assessment-dates": {"Related links": "相关链接"},
+    "gpa": {
+        "Australia": "澳大利亚",
+        "Calculation steps": "计算步骤",
+        "CGPA calculator": "CGPA 计算器",
+        "Example": "示例",
+        "GPA calculation formula": "GPA 计算公式",
+        "GPA calculator": "GPA 计算器",
+        "Malaysia": "马来西亚校区",
+    },
+    "graduations": {"Graduations": "毕业典礼"},
+    "important-dates": {
+        "Important dates": "重要日期",
+        "System access dates": "系统开放日期",
+    },
+    "intermission": {
+        "Before you apply": "申请前",
+        "Exception": "例外情况",
+        "Exceptions": "例外情况",
+        "Fees": "学费",
+        "How to apply": "如何申请",
+        "Related links": "相关链接",
+    },
+    "international-students": {"Student news": "学生资讯"},
+    "malaysia-special-consideration": {
+        "Eligibility": "申请资格",
+        "Outcome": "申请结果",
+        "Quick links": "快捷链接",
+    },
+    "malaysia-student-admin": {"Enrolment": "选课注册"},
+    "malaysia-student-services": {
+        "Campus Life": "校园生活",
+        "Study abroad": "海外学习与交换",
+    },
+    "oshc": {"Advice": "咨询", "Renewing your OSHC": "续保 OSHC"},
+    "principal-dates": {
+        "Exceptions": "例外情况",
+        "Monash Indonesia": "Monash 印度尼西亚校区",
+        "Monash Malaysia": "Monash 马来西亚校区",
+        "Previous years": "往年",
+        "This month": "本月",
+    },
+    "results-legend": {
+        "Marks from previous years": "往年成绩",
+        "Related links": "相关链接",
+    },
+    "special-consideration": {
+        "Eligibility": "申请资格",
+        "Outcome": "申请结果",
+        "Quick links": "快捷链接",
+    },
+    "student-visa": {
+        "After you apply": "申请后",
+        "Applying for a visa": "申请签证",
+        "Before you apply": "申请前",
+        "Visa conditions": "签证条件",
+    },
+    "study-abroad": {
+        "Contact Us": "联系我们",
+        "Monash Abroad": "Monash Abroad（海外学习与交换）",
+        "Study Overseas": "海外学习",
+    },
+    "study-at-another-institution": {
+        "Eligibility": "申请资格",
+        "Related links": "相关链接",
+        "Semester one": "第一学期",
+        "Semester two": "第二学期",
+        "Unit results": "课程成绩",
+    },
+    "wam": {
+        "Calculation steps": "计算步骤",
+        "Example": "示例",
+        "Formula": "计算公式",
+        "Related links": "相关链接",
+        "WAM calculator": "WAM 计算器",
+    },
+    "working-on-a-student-visa": {"Exceptions": "例外情况"},
+    # Machine translation turned the first heading into a sentence about
+    # course codes. The jump list repeats the headings, so pin both forms.
+    "hurdles": {
+        "What is a competency hurdle?": "什么是能力门槛（competency hurdle）？",
+        "What is a competency hurdle": "什么是能力门槛（competency hurdle）",
+        "How to design a competency hurdle": "如何设计能力门槛",
+        "Failed competency hurdle attempt": "能力门槛没通过",
+        "Use of grading schema": "评分方案的使用",
+        "Jump to these sections:": "跳转到以下部分：",
+    },
+}
+for _guide_slug, _headings in GUIDE_REVIEWED_HEADINGS.items():
+    GUIDE_AUDIT_OVERRIDES.setdefault(_guide_slug, {}).update(_headings)
+
+
+# The principal-dates page exposes weekday abbreviations as separate table
+# cells. Translating them one at a time produced nonsense such as “卫星1号” for
+# “Sat 01” and “结婚 28” for “Wed 28”. Pin every possible calendar cell.
+_WEEKDAYS_ZH = {
+    "Mon": "周一",
+    "Tue": "周二",
+    "Wed": "周三",
+    "Thu": "周四",
+    "Fri": "周五",
+    "Sat": "周六",
+    "Sun": "周日",
+}
+GUIDE_AUDIT_OVERRIDES["principal-dates"].update({
+    f"{weekday} {day:02d}": f"{chinese} {day:02d}"
+    for weekday, chinese in _WEEKDAYS_ZH.items()
+    for day in range(1, 32)
+})
+GUIDE_AUDIT_OVERRIDES["principal-dates"].update({
+    month: f"{number} 月"
+    for number, month in enumerate((
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ), start=1)
+})
+
+
+# Sentences found untranslated on the live guides in the October 2026 audit.
+# Applied with setdefault, so anything reviewed earlier keeps its wording.
+GUIDE_GAP_FIXES: dict[str, dict[str, str]] = {
+    'hurdles': {'Next': '下一页'},
+    'academic-progress-get-support': {
+        'help you prepare your response to an academic progress email (including advising you on the evidence to provide in support of your written response)':
+            '帮助你准备对学业进度邮件的回复（包括就支持书面回复所需提供的证据给你建议）',
+    },
+    'dates-timetables-review': {
+        'Monash Study app':
+            'Monash Study 应用',
+    },
+    'allocate-glossary': {
+        'Below are some examples of unit locations for Caulfield (CA), Parkville (PA), Peninsula (PE), and Malaysia (MA):':
+            '以下是 Caulfield（CA）、Parkville（PA）、Peninsula（PE）和马来西亚校区（MA）课程地点的一些示例：',
+    },
+    'government-support-commonwealth-supported-place': {
+        "From 1 January 2021, you won't be eligible for Commonwealth assistance for your units, if your study load for the previous 12 months was more than:":
+            '自 2021 年 1 月 1 日起，如果你过去 12 个月的学习负荷超过以下标准，你修读的课程将不再有资格获得联邦政府资助：',
+    },
+    'malaysia-enrol-and-re-enrol-enrol-first-time': {
+        'If you find errors contact Monash Malaysia Connect before the census date for that teaching period to avoid any academic and financial penalties.':
+            '如果你发现错误，请在该教学期的 census date（学籍统计日）之前联系 Monash Malaysia Connect，以避免学业和费用方面的处罚。',
+    },
+    'malaysia-frequent-asked-questions-faq-course-enrollm': {
+        'You can enrol into a maximum of only 8 units of non-Arts electives.':
+            '非文学院的选修课程最多只能选 8 门。',
+    },
+    'malaysia-enrolment-faqs': {
+        "The most appropriate person is your school's Program Director and/or Academic mentor. These individuals are best able to provide detailed guidance on the options available - dependent upon the specific course being undertaken, and time of year.":
+            '最合适的人选是你所在学院的项目主任和/或学业导师。他们最了解可选的方案，能根据你所修读的具体学位和所处的时间节点给出详细指导。',
+    },
+    'malaysia-undergraduate-honours-application-informati': {
+        '**Reminder: For those intending to pursue an Honours degree in Psychology, please contact the Psychology Education Management Office at malaysia.psychadmin@monash.edu for further information.':
+            '**提醒：如果你打算攻读心理学荣誉学位，请联系心理学教务管理办公室（malaysia.psychadmin@monash.edu）了解详情。',
+    },
+    'malaysia-course-and-unit-information-mentor-mentee-p': {
+        'New students of October intake 2026':
+            '2026 年 10 月入学的新生',
+        'Academic mentors will be assigned during Week 0 according to your study discipline. Join the Part 2: Getting Started with the School of Science session during the School of Science Orientation to meet your assigned mentor, learn more about the Mentor-Mentee Program, and begin building meaningful connections with the School of Science community.':
+            '学业导师会在第 0 周根据你的学习学科分配。请参加理学院迎新活动中的“第 2 部分：理学院入门”环节，见见分配给你的导师，进一步了解导师计划，并开始与理学院的师生建立有意义的联系。',
+        'Date: 22 October 2026 (Thursday)':
+            '日期：2026 年 10 月 22 日（星期四）',
+        'Venue: LT 5001 (Building 5, Basement)':
+            '地点：LT 5001（5 号楼地下一层）',
+    },
+    'malaysia-current-your-first-semester-pg': {
+        'All students will normally enrol in the following 4 units in their first semester: The following is only a guide of recommended units, student can enrol in alternative units if the student has plan their course map.':
+            '所有学生通常会在第一个学期选修以下 4 门课程。以下只是推荐课程的参考，如果你已规划好自己的课程路线，也可以选修其他课程。',
+    },
+    'malaysia-current-students2-peer-assisted-study-sessi': {
+        'Following are a few notes from participants:':
+            '以下是几位参加者的心得：',
+    },
+    'malaysia-undergraduate-student-forms': {
+        '1.5 + 1.5 Degree Pathway: A2011 Bachelor of Digital Media and Communication (Malaysia) → A2002 Bachelor of Media Communication (Australia)':
+            '1.5 + 1.5 学位路径：A2011 数字媒体与传播学士学位（马来西亚校区）→ A2002 媒体传播学士学位（澳大利亚）',
+        'Upon commencing A2002 at Monash University, Australia, students are required to select a specialisation. The units shown for A2002 are therefore indicative and may vary depending on the specialisation selected.':
+            '在澳大利亚 Monash 大学开始修读 A2002 时，学生需要选择专业方向。因此 A2002 所示的课程仅供参考，可能会因所选专业方向而有所不同。',
+        'CM1 Media specialisation with Screen gateways LINK':
+            'CM1 媒体专业方向（Screen 入门课程）LINK',
+        'CM2 Media specialisation with Public Relations gateways LINK':
+            'CM2 媒体专业方向（公共关系入门课程）LINK',
+        'CM3 Screen specialisation with Media gateways LINK':
+            'CM3 Screen 专业方向（媒体入门课程）LINK',
+        'CM4 Screen specialisation with Public Relations gateways  LINK':
+            'CM4 Screen 专业方向（公共关系入门课程）LINK',
+        'CM5 Public Relations specialisation with Media gateways  LINK':
+            'CM5 公共关系专业方向（媒体入门课程）LINK',
+        'CM6 Public Relations specialisation with Screen gateways  LINK':
+            'CM6 公共关系专业方向（Screen 入门课程）LINK',
+        'Students can choose from the following specialisations:':
+            '学生可以从以下专业方向中选择：',
+        'Reminder: You must decide on your specialisation before commencing your studies in A2011. This is important to ensure that the units you enrol in can be carried forward and aligned with the A2002 course progression when you transfer to Monash Australia.':
+            '提醒：你必须在开始修读 A2011 之前确定专业方向。这很重要，可以确保你所选的课程在转入澳大利亚 Monash 大学时能够顺利承接，并与 A2002 的课程进度保持一致。',
+    },
+    'malaysia-enrol-and-re-enrol-summer-and-winter-semest': {
+        'If you are a Monash Australia student interested to enrol for the above units at Monash University Malaysia, please contact your Faculty directly for course advice and planning.':
+            '如果你是澳大利亚 Monash 的学生，想在马来西亚 Monash 大学修读上述课程，请直接联系你所在的学院，获取选课建议和规划。',
+    },
+    'change-transfer-university': {
+        'Restricted transfer period temporarily increased':
+            '限制转学期临时延长',
+        'From Friday 2 October 2026, the restricted transfer period for overseas students has increased from six months to 12 months of their main course. This temporary change applies until Wednesday 30 June 2027.':
+            '自 2026 年 10 月 2 日（星期五）起，国际学生的限制转学期已从主修学位的前六个月延长至前 12 个月。这一临时调整适用至 2027 年 6 月 30 日（星期三）。',
+        'From Thursday 1 July 2027, the restricted transfer period will return to six months.':
+            '自 2027 年 7 月 1 日（星期四）起，限制转学期将恢复为六个月。',
+        'If you need to transfer to another university or college within the first 12 months of your main course of study, you’ll need to apply for release from the University. You won’t be able to accept an offer at another institution unless your release has been approved.':
+            '如果你需要在主修学位的前 12 个月内转到另一所大学或学院，必须向学校申请解除限制（release）。在解除申请获批之前，你不能接受其他院校的录取。',
+        'transferring after 12 months of studying your main course at Monash, or':
+            '在 Monash 完成主修学位的前 12 个月之后转学，或者',
+    },
+    'government-support-unit-pass-rate': {
+        'Due to legislation, Monash is unable to refund any full fees paid in teaching periods with a census date before 1 January 2024, or apply outstanding fees to a HELP loan.':
+            '根据法律规定，对于 census date（学籍统计日）早于 2024 年 1 月 1 日的教学期，Monash 无法退还已缴纳的全额学费，也无法把未结清的费用转入 HELP 贷款。',
+        'If their special circumstances application was not submitted (with correct documents) and approved before the census date of their next teaching period, they were transferred to a full fee place, and paid full fee upfront for that teaching period (without a HECS HELP or FEE HELP loan).':
+            '如果他们的特殊情况申请没有在下一个教学期的 census date（学籍统计日）之前提交（并附上正确的文件）并获批，就会被转为全额付费名额，并需要在该教学期预先缴纳全额学费（不能使用 HECS HELP 或 FEE HELP 贷款）。',
+    },
+    'independent-study-abroad-acicis': {
+        'Below is a list of programs available to students. Follow the links for more information on the ACICIS website:':
+            '以下是可供学生选择的项目列表。点击链接可在 ACICIS 网站查看更多信息：',
+    },
+    'other-programs-global-consortia-programs': {
+        'Below is a list of programs available to students. Follow the links for more information on the ACICIS website:':
+            '以下是可供学生选择的项目列表。点击链接可在 ACICIS 网站查看更多信息：',
+    },
+    'malaysia-department-of-psychology-intercampus-exchan': {
+        'It is important to understand your course structure and units you are supposed to enrol during the exchange semester (refer to Monash handbook for the unit information).':
+            '你需要了解自己的学位结构，以及在交换学期应当选修的课程（课程信息请参见 Monash Handbook）。',
+        'Here are some guidelines for choosing suitable units for your course:':
+            '以下是为你的学位选择合适课程的一些指引：',
+    },
+    'outbound-global-study-tours': {
+        'Below are the next steps to expect following your application submission.':
+            '提交申请后，接下来的步骤如下。',
+    },
+    'overseas-pre-departure': {
+        'Here are tips on how to be an excellent global ambassador:':
+            '以下是成为优秀全球大使的一些建议：',
+        'Below are some hints to help you combat culture shock if it creeps up on you:':
+            '如果你出现文化冲击，以下提示可以帮你应对：',
+    },
+    'study-in-malaysia-global-intercampus-program': {
+        'Below are the next steps to expect following submission of your application.':
+            '提交申请后，接下来的步骤如下。',
+    },
+    'other-costs-amenities': {
+        'Here are some examples of SSAF-funded activities for 2026:':
+            '以下是 2026 年由 SSAF（学生服务与设施费）资助的部分活动：',
+    },
+    'malaysia-re-enrol': {
+        'Re-enrolment is a process whereby students select and enrol in units for the following academic year. Students who do not complete their studies in 2026 must re-enrol using the Web Enrolment System (WES)':
+            '重新注册是学生为下一学年选择并注册课程的过程。2026 年没有完成学业的学生，必须通过网上选课系统（Web Enrolment System，WES）重新注册。',
+        'The re-enrolment period for 2027 will start from Monday, 12 October to 27 November 2026. You will receive our emails in October/November to remind you to re-enrol. You need to enrol for the entire year (unless applying for intermission).':
+            '2027 年的重新注册期为 2026 年 10 月 12 日（星期一）至 11 月 27 日。我们会在 10 月和 11 月发邮件提醒你重新注册。你需要注册整个学年的课程（申请休学的情况除外）。',
+        'On-time re-enrolment: 12 October - 27 November 2026':
+            '按时重新注册：2026 年 10 月 12 日至 11 月 27 日',
+        'Late re-enrolment via WES: 28 November - 11 December 2026':
+            '通过 WES 逾期重新注册：2026 年 11 月 28 日至 12 月 11 日',
+        'You can still re-enrol but a RM200 late fee will apply. If you do not re-enrol by 11 December 2026 you may lose your place in your course.':
+            '你仍然可以重新注册，但需要缴纳 RM200 的逾期费。如果你没有在 2026 年 12 月 11 日之前重新注册，可能会失去在该学位中的名额。',
+        "After late re-enrolment closes: Friday 11 December 2026 (subject to school's approval)":
+            '逾期重新注册截止之后：2026 年 12 月 11 日（星期五）（需经学院批准）',
+        'If your re-enrolment takes place prior to the release of results it is assumed when you enter your 2027 unit selection that you have met all the prerequisites for your units or course.':
+            '如果你在成绩公布之前重新注册，则默认你在提交 2027 年的选课时，已经满足所选课程或学位的所有先修要求。',
+    },
+    'malaysia-general-webdrives': {
+        'Below is a useful guide for your reference.':
+            '以下指南供你参考。',
+    },
+    'malaysia-its-our-services': {
+        'Below is a useful guide for your reference.':
+            '以下指南供你参考。',
+    },
+    'medical-lets-talk-about-sex': {
+        'penetrative sex: when an object, sex toy or penis is inserted into the vagina or anus':
+            '插入式性行为：指物体、性玩具或阴茎被插入阴道或肛门',
+        'oral sex: sexual pleasure using the mouth, genitals or anus':
+            '口交：用嘴、生殖器或肛门获得性快感',
+        'Specific: Everyone must enthusiastically consent to every single act that is taking place. For example, you might be okay with going to the bedroom to kiss, but that doesn’t mean you consent to having oral sex.':
+            '具体：每个人都必须对正在发生的每一个行为明确且积极地表示同意。例如，你也许愿意去卧室亲吻，但这并不代表你同意口交。',
+        'outercourse: engaging in sexual activities that don’t involve penetration of the vagina or anus':
+            '非插入式性行为：不涉及阴道或肛门插入的性行为',
+    },
+    'malaysia-self-help-resources-scheduling-time': {
+        'Here are some practical things that you can do to help stop procrastinating and become more productive.':
+            '以下是一些实用的做法，可以帮你改掉拖延，提高效率。',
+    },
+    'connect-forms': {
+        'Special consideration Unable to complete an assessment due to exceptional circumstances beyond your control':
+            '特殊考虑（special consideration）：因你无法控制的特殊情况而无法完成某项考核',
+        'Make a stage 3 formal complaint If you couldn’t resolve your issue through a stage 1 or 2 informal complaint':
+            '提出第三阶段正式投诉：如果你无法通过第一或第二阶段的非正式投诉解决问题',
+    },
+    'services-resources': {
+        'Below are some links to University resources and websites that may be of interest to you.':
+            '以下是一些你可能感兴趣的大学资源和网站链接。',
+    },
+}
+
+for _guide_slug, _gap_strings in GUIDE_GAP_FIXES.items():
+    for _english, _chinese in _gap_strings.items():
+        GUIDE_BODIES.setdefault(_guide_slug, {}).setdefault(_english, _chinese)
+
+
+for _guide_slug, _reviewed_strings in GUIDE_AUDIT_OVERRIDES.items():
+    GUIDE_BODIES.setdefault(_guide_slug, {}).update(_reviewed_strings)
+
+
+# Extractor v6 removes the nested-accordion button word from headings. Keep the
+# old source keys for a safe rolling deploy, and add the cleaned keys so the
+# reviewed Chinese survives the next crawl instead of falling back to a new
+# machine translation.
+for _guide_strings in GUIDE_BODIES.values():
+    for _english, _chinese in list(_guide_strings.items()):
+        if not _english.endswith((" View", " Close")):
+            continue
+        _clean_english = _english.rsplit(" ", 1)[0]
+        _clean_chinese = _chinese
+        for _suffix in (" 查看", " 收起", "（查看）", "（收起）", " (查看)", " (收起)"):
+            if _clean_chinese.endswith(_suffix):
+                _clean_chinese = _clean_chinese.removesuffix(_suffix)
+                break
+        _guide_strings.setdefault(_clean_english, _clean_chinese)
+
+
 def all_seeds() -> tuple[TranslationSeed, ...]:
     seeds: list[TranslationSeed] = [
         TranslationSeed(
             ZH, GLOBAL, "handbook", "strings",
             strings=HANDBOOK_BOILERPLATE,
             note="Handbook 模板化段落，逐句人工翻译",
+        ),
+        # A second row under the same global key, so that it can say what it is.
+        # The loader applies every global row for a locale; the field name only
+        # keeps the two from being one row.
+        TranslationSeed(
+            ZH, GLOBAL, "handbook", "structure",
+            strings=STRUCTURE_ZH,
+            note=(
+                "学位结构标签与 Handbook 通用句：AI 起草，仅对照英文逐条核对，"
+                "未经中文母语者审阅。见 app/knowledge/structure_zh.py"
+            ),
+            provenance=CURATED,
         ),
         TranslationSeed(
             ZH, OFFICIAL_PAGE, "gpa", "body",
@@ -8625,6 +9467,17 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
         )
         for slug, strings in GUIDE_BODIES.items()
     ]
+    # A field of their own, so they are a separate row from a guide's
+    # hand-written "body" and keep their curated standing.
+    seeds += [
+        TranslationSeed(
+            ZH, OFFICIAL_PAGE, slug, "gaps",
+            strings=strings,
+            note="AI 起草，仅对照英文逐条核对：机器翻译拒绝或校验未通过的句子",
+            provenance=CURATED,
+        )
+        for slug, strings in OFFICIAL_ZH_GAPS.items()
+    ]
     seeds += [
         TranslationSeed(
             ZH, UNIT, code, "content",
@@ -8636,7 +9489,37 @@ def all_seeds() -> tuple[TranslationSeed, ...]:
     for slug, (question, answer) in FAQ_ZH.items():
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "question", text=question))
         seeds.append(TranslationSeed(ZH, FAQ_ENTRY, slug, "answer", text=answer))
-    return tuple(seeds)
+    return _merged(seeds)
+
+
+def _merged(seeds: list[TranslationSeed]) -> tuple[TranslationSeed, ...]:
+    """One seed per stored row, with every string set for that row combined.
+
+    The database keeps one human row per (locale, target, field). The GPA page
+    had two seeds for its body - the full translation and the sentences the
+    machine could not do - and the seeder wrote them to the same row one after
+    the other, so the second replaced the first and 62 of the page's 81
+    hand-translated sentences were silently lost. The results legend lost its
+    grade names the same way. Merging here makes that impossible: strings are
+    combined, and where two sets translate the same sentence the later one -
+    the reviewed pass - wins.
+    """
+    merged: dict[tuple[str, str, str, str], TranslationSeed] = {}
+    for seed in seeds:
+        key = (seed.locale, seed.target_type, seed.target_key, seed.field)
+        first = merged.get(key)
+        if first is None:
+            merged[key] = seed
+            continue
+        notes = [n for n in (first.note, seed.note) if n]
+        merged[key] = TranslationSeed(
+            seed.locale, seed.target_type, seed.target_key, seed.field,
+            text=seed.text if seed.text is not None else first.text,
+            strings={**first.strings, **seed.strings},
+            translator=seed.translator,
+            note="；".join(dict.fromkeys(notes)) or None,
+        )
+    return tuple(merged.values())
 
 
 TRANSLATION_SEEDS: tuple[TranslationSeed, ...] = all_seeds()

@@ -12,8 +12,9 @@ have working first versions.**
 | --- | --- | --- |
 | 0 · Foundation | Done | Repo, Docker Compose, PostgreSQL, FastAPI, Nuxt shell, design tokens, CI, production deploy |
 | 1A · Handbook Core | Done | Parser, discovery through the Handbook's own search endpoint, and all 5,228 published 2026 units |
-| 1B · Official Knowledge Seed | Done at seed scale | 40 curated pages, clean text, hashes, Official Search |
+| 1B · Official Knowledge Seed | Done at seed scale | 82 curated pages plus the student sites' long tail, clean text, hashes, Official Search |
 | 2 · Unified Search + Zero-AI QA | First version | Grouped search, bilingual intent router, answer templates |
+| 2B · Study planning | First version | Degree pages, course map checked against the Handbook, unit tree, WAM/GPA with in-browser OCR, Handbook year picker |
 | 3 · Community | First version | Posts, answers, tags, votes, bookmarks, reports, moderation, verified accounts, password recovery, notifications |
 | 4 · Public Beta | In progress | Deployed and public at monashhub.secureview.tech; no promotion yet |
 | 5 · Knowledge Expansion | Not started | Driven by real search queries, not by crawling more |
@@ -21,7 +22,7 @@ have working first versions.**
 | 7 · Intelligence | Not started | Deliberately last. See AGENTS.md |
 | 8 · Mini Program | Not started | Reuses the same API |
 
-## Definition of done — MVP acceptance
+## Definition of done: MVP acceptance
 
 - [x] `https://monashhub.secureview.tech` loads over HTTPS
 - [x] No horizontal overflow on phone or desktop
@@ -46,11 +47,13 @@ have working first versions.**
    the next official seed pages.
 3. **Seed the community.** An empty forum stays empty. A handful of genuinely
    useful threads is what makes the first visitors post.
-4. **Then, and only then**, consider historical Handbook years and change
-   tracking.
+4. **Change tracking across Handbook years.** Earlier Handbook years are crawled
+   and translated too now, and the unit, degree and graph pages have a year picker;
+   what is still missing is showing a reader what changed between two years.
 
 ## Explicitly not now
 
-Advertising, sponsorship, an app, WeChat mini program, course planner, credit
-matching, and anything involving a language model. Each has a stage; none of
-them is this one.
+Advertising, sponsorship, an app, WeChat mini program, credit matching, and a
+language model inside the product. The only models in use are the translation
+engines in `crawler/translate/` (Argos offline, or an LLM API for changed
+pages), and neither ever answers a reader directly. Each of the rest has a stage; none of them is this one.

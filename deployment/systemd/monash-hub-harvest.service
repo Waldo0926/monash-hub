@@ -1,0 +1,16 @@
+# Daily harvest on a home machine: read the due official pages and store them
+# on the server. Installed to /etc/systemd/system/ on that machine, not on the
+# server - see docs/DEPLOYMENT.md.
+[Unit]
+Description=Monash Hub official-page harvest for the server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# SERVER=<ssh host of the server>, and anything else harvest-relay.sh reads.
+EnvironmentFile=/etc/monash-hub-harvest.env
+ExecStart=/data/monash-hub-harvest/repo/deployment/harvest-relay.sh
+# A browser page every few seconds; a day with most of both sites due is hours.
+TimeoutStartSec=20h
+Nice=10

@@ -10,6 +10,7 @@
 const route = useRoute()
 const { $t } = useNuxtApp()
 const query = ref((route.query.q as string) || '')
+const { locale } = useLocale()
 
 const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
   () => `/v1/search?q=${encodeURIComponent((route.query.q as string) || '')}`,
@@ -27,9 +28,17 @@ const { data: answer } = await useAsyncData<any>(
   () => {
     const q = ((route.query.q as string) || '').trim()
     if (!q) return Promise.resolve(null)
-    return $fetch<any>(apiUrl('/v1/ask'), { method: 'POST', body: { query: q } }).catch(() => null)
+    // The answer carries the unit's name, so it needs the reader's language
+    // like every other call - requested_locale reads a query parameter.
+    return $fetch<any>(apiUrl(`/v1/ask?locale=${locale.value}`), {
+      method: 'POST',
+      body: { query: q }
+    }).catch(() => null)
   },
-  { watch: [() => route.query.q] }
+  // A locale switch must re-run the answer request too. The grouped search
+  // results already do this through useLocalisedApiFetch; without this watch,
+  // the answer card kept the previous language until the query changed.
+  { watch: [() => route.query.q, locale] }
 )
 
 watch(() => route.query.q, q => { query.value = (q as string) || '' }, { immediate: true })
@@ -40,8 +49,27 @@ function search(value: string) {
 
 const hasResults = computed(() => (data.value?.groups || []).some((g: any) => g.results?.length))
 
+/**
+ * Whether to draw the answer card above the results.
+ *
+ * The router answers every query, and when it has nothing it answers "Nothing
+ * in the Handbook or the indexed official pages answers this". That is fine on
+ * its own and wrong sitting above five Handbook units, which is what a reader
+ * searching "2102" instead of "FIT2102" got: a failure notice on a page full of
+ * results. The router looks up FAQs and official pages, not units, so it does
+ * not know what the list below found.
+ *
+ * The card is worth drawing when it says something - a unit, an FAQ, matching
+ * official pages. When its whole content is "there is nothing", the result list
+ * has already answered better, and where there is genuinely nothing the empty
+ * state below says so once, with somewhere to go next.
+ */
+const showAnswer = computed(
+  () => !!answer.value && !!query.value && answer.value.answer_type !== 'community_fallback'
+)
+
 useSeoMeta({
-  title: () => (query.value ? `${query.value} — Monash Hub` : $t('search.title')),
+  title: () => (query.value ? query.value : $t('search.title')),
   robots: 'noindex'
 })
 </script>
@@ -53,7 +81,7 @@ useSeoMeta({
     <ErrorState v-if="error" :error="error" :on-retry="refresh" class="mt" />
 
     <template v-else>
-      <div v-if="answer && query" class="mt">
+      <div v-if="showAnswer" class="mt">
         <AnswerBlocks :answer="answer" />
       </div>
 
@@ -80,6 +108,9 @@ useSeoMeta({
           <div v-if="group.kind === 'handbook' && group.results.length" class="grid">
             <UnitCard v-for="unit in group.results" :key="unit.unit_code" :unit="unit" />
           </div>
+          <div v-else-if="group.kind === 'degrees' && group.results.length" class="degree-list">
+            <CourseCard v-for="course in group.results" :key="course.course_code" :course="course" />
+          </div>
           <div v-else-if="group.kind === 'official' && group.results.length" class="grid">
             <GuideCard v-for="page in group.results" :key="page.slug" :page="page" />
           </div>
@@ -90,6 +121,7 @@ useSeoMeta({
                 <CampusNotice :applies-to="faq.applies_to" compact />
               </div>
               <h3>{{ faq.question }}</h3>
+              <TranslationNotice v-if="faq.translation" :translation="faq.translation" :source-url="faq.official_url" />
               <p class="small">{{ faq.answer }}</p>
               <a
                 v-if="faq.official_url"
@@ -118,6 +150,7 @@ useSeoMeta({
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
 .section-head h2 { display: flex; align-items: center; gap: var(--s3); font-size: 1.1rem; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); }
+.degree-list { display: grid; gap: var(--s2); }
 .faq { padding: var(--s4); }
 .faq-top { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .faq h3 { margin: var(--s2) 0; font-size: 1rem; }

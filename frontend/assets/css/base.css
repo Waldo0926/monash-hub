@@ -10,6 +10,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* The phone bar is fixed over the bottom of the page. Scrolling a focused or
+   targeted element into view must stop above it, or a short screen lands the
+   element behind the bar. */
+@media (max-width: 1180px) {
+  html { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -17,6 +24,7 @@ body {
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   /* Stops long unit codes and URLs from pushing the page sideways on a phone. */
   overflow-wrap: break-word;
 }
@@ -28,7 +36,12 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
-h1 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); }
+h1, h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(1.7rem, 1.2rem + 1.8vw, 2.4rem); letter-spacing: -0.02em; }
 h2 { font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem); }
 h3 { font-size: 1.05rem; }
 
@@ -85,7 +98,7 @@ img { max-width: 100%; height: auto; }
   padding: 0 var(--s5);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--blue);
+  background: var(--ink);
   color: var(--text-inverse);
   font: inherit;
   font-weight: 500;
@@ -95,7 +108,7 @@ img { max-width: 100%; height: auto; }
      longer than the English wrap inside the button and break its height. */
   white-space: nowrap;
 }
-.btn:hover { background: var(--blue-700); text-decoration: none; }
+.btn:hover { background: var(--ink-700); text-decoration: none; }
 .btn--ghost {
   background: var(--surface);
   border-color: var(--border-strong);
@@ -154,3 +167,11 @@ th {
   white-space: nowrap;
 }
 tbody tr:last-child td { border-bottom: 0; }
+
+/* Printing a page prints its content. The site chrome is for getting around
+   on a screen; on paper it is a navigation bar nobody can click. */
+@media print {
+  body { background: #fff; }
+  .header, .footer, .mobile-nav, .skip { display: none !important; }
+  .main { padding: 0 !important; }
+}

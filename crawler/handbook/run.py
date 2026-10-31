@@ -28,11 +28,13 @@ from app.handbook.parser import ParseError, parse_unit_page, unit_url
 from app.handbook.repository import upsert_unit
 from app.models.handbook import Unit
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from crawler.handbook.discover import discover_unit_codes
 from crawler.handbook.fetch import HandbookFetcher
 from crawler.handbook.seeds import FIXTURE_CODES
-from crawler.sync.pipeline import crawl_job, record
+from crawler.handbook.withdrawn import mark_withdrawn, recheck_candidates, withdrawal_cap
+from crawler.sync.pipeline import MAX_FAILED_IN_A_ROW, crawl_job, record
 from crawler.throttling.limiter import RateLimit, Throttle
 
 log = logging.getLogger("crawler.handbook")
@@ -56,21 +58,45 @@ def _already_fresh(codes: list[str], year: int, hours: float) -> set[str]:
     return set(rows)
 
 
-def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]:
+def crawl(codes: list[str], year: int, *, min_interval: float,
+          max_withdrawals: int | None = None) -> dict[str, int]:
     throttle = Throttle(RateLimit(min_interval=min_interval))
-    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0}
+    summary = {"new": 0, "changed": 0, "unchanged": 0, "failed": 0, "withdrawn": 0}
+    cap = withdrawal_cap(len(codes)) if max_withdrawals is None else max_withdrawals
     started_at = time.monotonic()
 
     with (
         SessionLocal() as db,
         HandbookFetcher(throttle) as fetcher,
-        crawl_job(db, "handbook", targets=len(codes), transport="httpx") as job,
+        crawl_job(db, "handbook", targets=len(codes), transport="httpx",
+                  stop_after_failures=MAX_FAILED_IN_A_ROW) as job,
     ):
         for index, code in enumerate(codes, start=1):
             url = unit_url(code, year)
             started = time.monotonic()
             result = fetcher.fetch(url)
             elapsed = int((time.monotonic() - started) * 1000)
+
+            if not result.ok and result.status == 404 and summary["withdrawn"] >= cap:
+                # Too many 404s for one run to be Monash retiring units - see
+                # withdrawn.py. Keep the unit active and say so.
+                summary["failed"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="failed", http_status=404, transport=result.transport,
+                       duration_ms=elapsed,
+                       message=f"404 not acted on: {cap} withdrawals already this run")
+                log.error("%s: 404, kept active (withdrawal cap of %d reached)", code, cap)
+                continue
+
+            if not result.ok and result.status == 404:
+                # The Handbook says the unit is gone - see withdrawn.py.
+                if mark_withdrawn(db, Unit, "unit_code", code, year):
+                    log.warning("%s: no longer in the %s Handbook, marked inactive", code, year)
+                summary["withdrawn"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="withdrawn", http_status=404, transport=result.transport,
+                       duration_ms=elapsed, message="not in the Handbook")
+                continue
 
             if not result.ok:
                 summary["failed"] += 1
@@ -90,8 +116,19 @@ def crawl(codes: list[str], year: int, *, min_interval: float) -> dict[str, int]
                 log.error("%s: parse failed, keeping last valid record (%s)", code, exc)
                 continue
 
-            unit, outcome = upsert_unit(db, parsed)
-            db.commit()
+            try:
+                unit, outcome = upsert_unit(db, parsed)
+                db.commit()
+            except SQLAlchemyError as exc:
+                # One unit that will not fit the schema is that unit's problem,
+                # not the run's (run_courses.py learned this at page 87).
+                db.rollback()
+                summary["failed"] += 1
+                record(db, job, target_type="handbook_unit", target_key=code, url=url,
+                       outcome="failed", http_status=result.status, transport=result.transport,
+                       duration_ms=elapsed, message=f"database error: {exc}"[:2000])
+                log.error("%s: could not be stored, skipping (%s)", code, type(exc).__name__)
+                continue
             summary[outcome] += 1
             record(db, job, target_type="handbook_unit", target_key=code, url=url,
                    outcome=outcome, http_status=200, content_hash=parsed["content_hash"],
@@ -133,6 +170,17 @@ def main() -> None:
         default=3.0,
         help="minimum seconds between requests (floor: 1.0)",
     )
+    parser.add_argument(
+        "--max-withdrawals",
+        type=int,
+        default=None,
+        help="404s this run may mark inactive (default: 25, or 2%% of the units if more)",
+    )
+    parser.add_argument(
+        "--fail-on-errors",
+        action="store_true",
+        help="exit non-zero when any target failed, for verified repair/backfill jobs",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -151,6 +199,11 @@ def main() -> None:
         codes = [c.strip().upper() for c in args.units.split(",") if c.strip()]
     else:
         codes = discover_unit_codes(year, Throttle(RateLimit(min_interval=1.0, jitter=0.5)))
+        with SessionLocal() as db:
+            missing = recheck_candidates(db, Unit, "unit_code", year, codes)
+        if missing:
+            log.info("rechecking %d active units the index no longer lists", len(missing))
+            codes += missing
 
     if args.skip_fresh:
         fresh = _already_fresh(codes, year, args.skip_fresh)
@@ -169,8 +222,10 @@ def main() -> None:
     log.info("crawling %d units at >= %.1fs apart (about %d min)",
              len(codes), interval, len(codes) * (interval + 0.75) / 60)
 
-    summary = crawl(codes, year, min_interval=interval)
+    summary = crawl(codes, year, min_interval=interval, max_withdrawals=args.max_withdrawals)
     log.info("summary: %s", summary)
+    if args.fail_on_errors and summary["failed"]:
+        raise SystemExit(f"{summary['failed']} Handbook target(s) failed")
 
 
 if __name__ == "__main__":

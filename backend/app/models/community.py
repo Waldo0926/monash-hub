@@ -67,6 +67,10 @@ class CommunityPost(Base):
     is_solved: Mapped[bool] = mapped_column(Boolean, default=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Set when the author deleted it. The row stays hidden rather than being
+    # removed, so the thread under it and any report about it stay intact, and
+    # a moderator's "unhide" cannot bring back something its author took down.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     answer_count: Mapped[int] = mapped_column(Integer, default=0)
     vote_count: Mapped[int] = mapped_column(Integer, default=0)
     view_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -78,8 +82,9 @@ class CommunityPost(Base):
     search_vector: Mapped[str | None] = mapped_column(
         TSVECTOR,
         Computed(
-            "to_tsvector('english', coalesce(title, '') || ' ' || "
-            "coalesce(body, '') || ' ' || coalesce(unit_code, ''))",
+            "setweight(to_tsvector('english', coalesce(title, '') || ' ' || "
+            "coalesce(unit_code, '')), 'A') || "
+            "setweight(to_tsvector('english', coalesce(body, '')), 'D')",
             persisted=True,
         ),
     )
@@ -110,6 +115,7 @@ class CommunityAnswer(Base):
     is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False)
     is_accepted: Mapped[bool] = mapped_column(Boolean, default=False)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     vote_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

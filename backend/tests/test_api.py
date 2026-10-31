@@ -59,6 +59,17 @@ def test_health_reports_data_counts(client, loaded):
     assert body["data"]["official_pages_ok"] == 1
 
 
+def test_health_reports_the_built_commit(client, monkeypatch):
+    from app.core.config import get_settings
+
+    # Development has no commit baked in, so the field is there but empty.
+    assert client.get("/api/health").json()["commit"] is None
+
+    monkeypatch.setattr(get_settings(), "app_commit", "0123456789abcdef0123456789abcdef01234567")
+    assert client.get("/api/health").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+    assert client.get("/api").json()["commit"] == "0123456789abcdef0123456789abcdef01234567"
+
+
 def test_unit_detail_carries_source_and_structure(client, loaded):
     body = client.get("/api/v1/units/FIT2102").json()
     assert body["title"] == "Programming paradigms"
@@ -79,6 +90,12 @@ def test_unit_search_by_code_and_keyword(client, loaded):
 
     by_word = client.get("/api/v1/units", params={"q": "finance"}).json()
     assert "BFF2140" in {r["unit_code"] for r in by_word["results"]}
+
+
+def test_unit_list_by_codes_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/units?codes=bff2140,FIT2102,XYZ9999,FIT2102").json()
+    assert [u["unit_code"] for u in body["results"]] == ["BFF2140", "FIT2102"]
+    assert body["total"] == 2
 
 
 def test_unit_filter_by_exam(client, loaded):
@@ -138,6 +155,12 @@ def test_official_search_finds_the_seed_page(client, loaded):
     assert body["results"][0]["last_checked"] is not None
 
 
+def test_guide_list_by_slugs_keeps_the_given_order(client, loaded):
+    body = client.get("/api/v1/guides?slugs=nope,special-consideration").json()
+    assert [g["slug"] for g in body["results"]] == ["special-consideration"]
+    assert body["total"] == 1
+
+
 def test_guides_paginate(client, loaded):
     # The sitemap walks this endpoint a page at a time, so offset has to work.
     first = client.get("/api/v1/guides", params={"limit": 1, "offset": 0}).json()
@@ -151,9 +174,53 @@ def test_guides_paginate(client, loaded):
 def test_unified_search_groups_results_by_source(client, loaded):
     body = client.get("/api/v1/search", params={"q": "special consideration"}).json()
     kinds = {g["kind"]: g for g in body["groups"]}
-    assert set(kinds) == {"handbook", "official", "faq", "community"}
+    assert set(kinds) == {"handbook", "degrees", "official", "faq", "community"}
     assert kinds["official"]["total"] >= 1
     assert kinds["official"]["badge"] != kinds["community"]["badge"]
+
+
+def test_chinese_degree_title_is_searchable(client, loaded, db):
+    """A Chinese interface is not useful to a parent who must search in English."""
+    from app.models.curriculum import Course
+    from app.models.translation import COURSE, MACHINE, PUBLISHED, ContentTranslation
+
+    degree = Course(
+        course_code="S2000",
+        academic_year=2026,
+        title="Bachelor of Science",
+        abbreviated_name="BSc",
+        campuses=["Malaysia"],
+        source_url="https://handbook.monash.edu/2026/courses/S2000",
+        content_hash="hash-s2000",
+    )
+    db.add(degree)
+    db.add(
+        ContentTranslation(
+            locale="zh",
+            target_type=COURSE,
+            target_key="S2000",
+            field="content",
+            data={"strings": {"Bachelor of Science": "理学学士"}},
+            source_hash="hash-s2000",
+            status=PUBLISHED,
+            provenance=MACHINE,
+        )
+    )
+    db.commit()
+
+    body = client.get(
+        "/api/v1/search", params={"q": "理学学士", "locale": "zh"}
+    ).json()
+    degrees = next(group for group in body["groups"] if group["kind"] == "degrees")
+    assert [(row["course_code"], row["title"]) for row in degrees["results"]] == [
+        ("S2000", "理学学士")
+    ]
+
+    listing = client.get(
+        "/api/v1/courses",
+        params={"q": "理学学士", "locale": "zh", "campus": "Malaysia"},
+    ).json()
+    assert [row["course_code"] for row in listing["results"]] == ["S2000"]
 
 
 def test_ask_assessment_question(client, loaded):
@@ -273,13 +340,24 @@ def test_anonymous_can_read_everything_public(client, loaded):
 
 
 def test_reports_can_be_filed_and_only_admins_can_read_them(client, loaded, mailbox):
-    filed = client.post(
+    # Nothing to report yet: a report about a post that does not exist is
+    # refused rather than queued for a moderator to chase.
+    assert client.post(
         "/api/v1/community/reports",
         json={"target_type": "post", "target_id": 1, "reason": "spam"},
+    ).status_code == 404
+
+    token = _account(client, mailbox, "nosy@example.com", "nosy")
+    auth = {"Authorization": f"Bearer {token}"}
+    post = client.post("/api/v1/community/posts", headers=auth, json={
+        "title": "Buy cheap essays", "body": "Visit my totally legit website", "category": "units",
+    }).json()
+    filed = client.post(
+        "/api/v1/community/reports",
+        json={"target_type": "post", "target_id": post["id"], "reason": "spam"},
     )
     assert filed.status_code == 201
 
-    token = _account(client, mailbox, "nosy@example.com", "nosy")
     assert client.get(
         "/api/v1/community/reports", headers={"Authorization": f"Bearer {token}"}
     ).status_code == 403
@@ -362,6 +440,56 @@ def test_a_guide_says_which_campus_it_is_for(client, db):
     assert row["applies_to"] == "malaysia"
 
 
+def test_a_guide_names_its_publisher_in_the_readers_language(client, db):
+    """"Monash University Malaysia" sat in English over 355 Chinese guides."""
+    source = get_or_create_source(db, "monash-malaysia", "Monash University Malaysia",
+                                  "https://www.monash.edu.my")
+    page = upsert_seed_page(
+        db, source=source, slug="my-dates", url="https://www.monash.edu.my/dates",
+        title="Principal dates", category="fees-dates", tags=["dates"],
+        refresh_tier="medium", applies_to="malaysia",
+    )
+    record_fetch(db, page, clean_page("<h1>Principal dates</h1><p>Dates.</p>",
+                                      url=page.canonical_url))
+    db.commit()
+
+    def name(locale=None):
+        params = {"locale": locale} if locale else {}
+        return client.get("/api/v1/guides/my-dates", params=params).json()["source_name"]
+
+    assert name() == "Monash University Malaysia"
+    assert name("zh") == "Monash 大学马来西亚校区"
+    assert name("ko") == "Monash 대학교 말레이시아 캠퍼스"
+
+
+def test_guides_narrow_to_one_campus(client, db):
+    """A Malaysia reader sees Malaysia pages and the every-campus ones, never
+    the Australian fees or visa page; the category counts follow the filter."""
+    source = get_or_create_source(db, "monash", "Monash University", "https://www.monash.edu")
+    for slug, applies_to in (("fees-au", "australia"), ("fees-my", "malaysia"),
+                             ("results-all", "all")):
+        page = upsert_seed_page(
+            db, source=source, slug=slug, url=f"https://www.monash.edu/{slug}",
+            title=f"Fees {slug}", category="fees-dates", tags=["fees"],
+            refresh_tier="medium", applies_to=applies_to,
+        )
+        record_fetch(db, page, clean_page(f"<h1>Fees {slug}</h1><p>How to pay fees.</p>",
+                                          url=page.canonical_url))
+    db.commit()
+
+    def slugs(**params):
+        body = client.get("/api/v1/guides", params=params).json()
+        return {g["slug"] for g in body["results"]}, body
+
+    mine, body = slugs(campus="malaysia")
+    assert mine == {"fees-my", "results-all"}
+    assert {c["key"]: c["count"] for c in body["categories"]}["fees-dates"] == 2
+    assert slugs(campus="australia")[0] == {"fees-au", "results-all"}
+    assert slugs()[0] == {"fees-au", "fees-my", "results-all"}
+    assert slugs(q="fees", campus="malaysia")[0] == {"fees-my", "results-all"}
+    assert client.get("/api/v1/guides", params={"campus": "mars"}).status_code == 422
+
+
 def test_a_page_with_no_campus_stated_is_treated_as_australian():
     """39 of the 40 pages in the seed list are on monash.edu, so that is the
     safe default: a page that arrives without a campus is far likelier to be
@@ -371,8 +499,15 @@ def test_a_page_with_no_campus_stated_is_treated_as_australian():
     assert {s.applies_to for s in SEEDS} <= {"australia", "malaysia", "all"}
     for seed in SEEDS:
         host = "malaysia" if "monash.edu.my" in seed.url else "australia"
-        # "all" is only ever claimed by a page that says so in its own text.
-        assert seed.applies_to in (host, "all"), seed.slug
+        allowed = {host, "all"}
+        # monash.edu also carries a few pages about Malaysia itself - the
+        # Malaysian graduation ceremonies - and says so in the address.
+        if "malaysia" in seed.url.split("monash.edu", 1)[-1].lower():
+            allowed.add("malaysia")
+        # "all" is for a page that covers every campus - it says so, speaks to
+        # Malaysia alongside, or is a University-wide rule. See
+        # crawler/official/scope.py.
+        assert seed.applies_to in allowed, seed.slug
 
 
 def test_a_unit_is_found_by_part_of_its_code(client, loaded):
@@ -399,3 +534,179 @@ def test_a_sentence_is_not_treated_as_a_code_fragment(client, loaded):
     """Only a short run of letters and digits is a code; a phrase is not."""
     body = client.get("/api/v1/units", params={"q": "programming paradigms"}).json()
     assert "FIT2102" in {r["unit_code"] for r in body["results"]}
+
+
+def test_a_bare_unit_code_answers_with_the_way_in(client, loaded):
+    """Typing a code is asking for the unit, not for an essay about it.
+
+    This used to answer with the whole overview, which on a phone is the entire
+    first screen - so a reader searching FIT2102 met a wall of prose and never
+    scrolled to the unit itself. A table of facts was tried next and filled the
+    screen too.
+    """
+    body = client.post("/api/v1/ask", json={"query": "FIT2102"}).json()
+    assert [b["type"] for b in body["blocks"]] == ["link"]
+    assert body["blocks"][0]["to"] == "/units/FIT2102"
+
+
+def test_the_answer_title_is_in_the_readers_language(client, loaded, db):
+    """It is the whole visible answer when somebody types a unit code."""
+    from app.models.handbook import Unit
+    from app.models.translation import HUMAN, PUBLISHED, UNIT, ContentTranslation
+
+    unit = db.query(Unit).filter_by(unit_code="FIT2102").one()
+    db.add(
+        ContentTranslation(
+            locale="zh", target_type=UNIT, target_key="FIT2102", field="content",
+            data={"strings": {unit.title: "编程范式"}},
+            source_hash=unit.content_hash, status=PUBLISHED, provenance=HUMAN,
+        )
+    )
+    db.commit()
+
+    body = client.post(
+        "/api/v1/ask", json={"query": "FIT2102"}, params={"locale": "zh"}
+    ).json()
+    assert body["title"] == "FIT2102 · 编程范式"
+
+
+def test_search_results_carry_the_planner_period_tags(client, loaded):
+    # The add-unit dialog on /plan tags each result S1/S2 at the plan's campus.
+    # FIT2102's fixture spells the period "Semester 2", which has to read as S2
+    # just like "Second semester" does.
+    body = client.get("/api/v1/units?q=FIT2102&campus=Malaysia").json()
+    offerings = body["results"][0]["offerings"]
+    assert {o["campus_raw"] for o in offerings} >= {"Malaysia"}
+    assert all(o["short"] == "S2" for o in offerings)
+    assert all(o["teaching_period_raw"] for o in offerings)
+
+
+def _plain_unit(code, *, faculty, school=None, offerings=(), has_exam=None, level="Level 1"):
+    return Unit(
+        unit_code=code,
+        title=f"Unit {code}",
+        academic_year=2026,
+        level=level,
+        faculty=faculty,
+        school=school,
+        subject_prefix=code[:3],
+        has_exam=has_exam,
+        source_url=f"https://handbook.monash.edu/2026/units/{code}",
+        content_hash=f"{code}-test",
+        is_active=True,
+        offerings=[UnitOffering(campus=c, teaching_period=p) for c, p in offerings],
+    )
+
+
+@pytest.fixture
+def faculties(db):
+    db.add_all([
+        _plain_unit("FIT1001", faculty="Faculty of Information Technology",
+                    school="School of Information Technology",
+                    offerings=[("Malaysia", "First semester"), ("Clayton", "Second semester")],
+                    has_exam=True),
+        _plain_unit("FIT1002", faculty="Faculty of Information Technology",
+                    school="Department of Data Science and AI",
+                    offerings=[("Clayton", "First semester")], has_exam=False),
+        _plain_unit("ENG1001", faculty="Faculty of Engineering",
+                    school="Malaysia School of Engineering",
+                    offerings=[("Malaysia", "Second semester")], has_exam=True, level="Level 2"),
+    ])
+    db.commit()
+    return db
+
+
+def test_units_filter_by_faculty_and_school(client, faculties):
+    by_faculty = client.get("/api/v1/units", params={"faculty": "Faculty of Engineering"}).json()
+    assert [r["unit_code"] for r in by_faculty["results"]] == ["ENG1001"]
+
+    by_school = client.get(
+        "/api/v1/units", params={"school": "Department of Data Science and AI"}
+    ).json()
+    assert [r["unit_code"] for r in by_school["results"]] == ["FIT1002"]
+
+
+def test_several_values_in_one_filter_mean_any_of_them(client, faculties):
+    body = client.get(
+        "/api/v1/units",
+        params=[("campus", "Malaysia"), ("campus", "Clayton"), ("level", "Level 2")],
+    ).json()
+    assert [r["unit_code"] for r in body["results"]] == ["ENG1001"]
+
+    # Still one offering: FIT1002 is not taught at Malaysia in either semester.
+    body = client.get(
+        "/api/v1/units",
+        params=[("campus", "Malaysia"), ("teaching_period", "First semester"),
+                ("teaching_period", "Second semester")],
+    ).json()
+    assert {r["unit_code"] for r in body["results"]} == {"FIT1001", "ENG1001"}
+
+
+def test_filter_lists_put_the_biggest_value_first(client, faculties):
+    body = client.get("/api/v1/units/filters", params={"year": 2026}).json()
+    assert body["faculties"] == ["Faculty of Information Technology", "Faculty of Engineering"]
+    assert set(body["schools"]) == {
+        "School of Information Technology",
+        "Department of Data Science and AI",
+        "Malaysia School of Engineering",
+    }
+    assert body["levels"] == ["Level 1", "Level 2"]
+
+
+def test_filter_labels_come_from_the_glossary_in_every_language(client, faculties):
+    """The values stay English for the search; the labels are what the box shows.
+
+    The faculty list on /units used to be labelled by a Chinese-only dictionary
+    in the frontend, which knew 75 of the 120 names the Handbook uses: "School
+    of Mathematics" sat in English between 管理系 and 药学与制药科学学院.
+    """
+    zh = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "zh"}).json()
+    assert zh["faculties"] == ["Faculty of Information Technology", "Faculty of Engineering"]
+    assert zh["labels"]["Faculty of Engineering"] == "工程学院"
+    assert zh["labels"]["Malaysia School of Engineering"] == "马来西亚校区工程学院"
+    assert zh["labels"]["Malaysia"] == "马来西亚校区"
+    assert zh["labels"]["First semester"] == "第一学期"
+    # Not in the glossary: no label, and the page falls back to the English.
+    assert "Department of Data Science and AI" not in zh["labels"]
+
+    ja = client.get("/api/v1/units/filters", params={"year": 2026, "locale": "ja"}).json()
+    assert ja["labels"]["Faculty of Engineering"] == "工学部"
+    assert client.get("/api/v1/units/filters", params={"year": 2026}).json()["labels"] == {}
+
+
+def test_facet_counts_leave_out_their_own_filter(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets", params={"year": 2026, "campus": "Malaysia"}
+    ).json()["counts"]
+    # Ticking Malaysia still says what Clayton would add.
+    assert counts["campus"] == {"Malaysia": 2, "Clayton": 2}
+    # Every other filter counts within Malaysia only.
+    assert counts["faculty"] == {
+        "Faculty of Information Technology": 1,
+        "Faculty of Engineering": 1,
+    }
+    assert counts["has_exam"] == {"true": 2}
+
+
+def test_facet_counts_keep_campus_and_period_on_one_offering(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets",
+        params={"year": 2026, "teaching_period": "First semester"},
+    ).json()["counts"]
+    # FIT1001 is at Clayton only in second semester, so first semester at
+    # Clayton is FIT1002 alone.
+    assert counts["campus"] == {"Malaysia": 1, "Clayton": 1}
+
+
+def test_facet_counts_follow_the_text_query(client, faculties):
+    counts = client.get(
+        "/api/v1/units/facets", params={"year": 2026, "q": "ENG1001"}
+    ).json()["counts"]
+    assert counts["faculty"] == {"Faculty of Engineering": 1}
+
+
+def test_api_root_reports_the_version_constant(client):
+    from app.version import __version__
+
+    assert client.get("/api").json()["version"] == __version__
+    assert client.get("/api/openapi.json").json()["info"]["version"] == __version__

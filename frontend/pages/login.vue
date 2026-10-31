@@ -2,13 +2,20 @@
 const { $t } = useNuxtApp()
 const { user, restore, signIn } = useAuth()
 const { refresh: refreshNotifications } = useNotifications()
+const route = useRoute()
+
+// Back to the page that sent the reader here, such as a unit's ratings. Only
+// a path on this site: "//evil.example" would be a link to someone else's.
+const next = computed(() => {
+  const raw = String(route.query.next || '')
+  return raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/\\') ? raw : '/community'
+})
 
 onMounted(restore)
 
 // The Google callback sends people back here with a reason when it could not
 // finish, because they arrived by clicking a button and a JSON error would be
 // no use to them.
-const route = useRoute()
 const googleProblem = computed(() => {
   const code = route.query.google as string | undefined
   if (!code) return ''
@@ -27,9 +34,9 @@ async function submit() {
   try {
     await signIn(form.email.trim(), form.password)
     await refreshNotifications()
-    navigateTo('/community')
+    navigateTo(next.value)
   } catch (caught: any) {
-    message.value = caught?.data?.detail || $t('state.generic')
+    message.value = apiErrorMessage(caught, $t)
   } finally {
     submitting.value = false
   }
@@ -50,7 +57,7 @@ useSeoMeta({ title: () => $t('auth.metaSignIn'), robots: 'noindex' })
       <p class="small muted">{{ $t('auth.lead') }}</p>
 
       <!-- Only rendered when the server has credentials; see GoogleSignIn.vue. -->
-      <GoogleSignIn class="google-row" />
+      <GoogleSignIn class="google-row" :next="next" />
 
       <p v-if="googleProblem" class="small bad-text" role="alert">{{ googleProblem }}</p>
 

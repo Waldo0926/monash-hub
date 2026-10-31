@@ -1,8 +1,8 @@
 """Exchange module placeholder.
 
-The Monash Abroad Tracker already owns this data and keeps running on its own
-box. Rather than fork it, the MVP publishes an entry point and states plainly
-that integration is a later stage - see docs/ROADMAP-STATUS.md.
+Exchange data is maintained by a separate tracker/service. Rather than fork that
+dataset into Monash Hub, the product exposes an entry point and keeps API-level
+integration as a later stage - see docs/ROADMAP-STATUS.md.
 """
 from __future__ import annotations
 

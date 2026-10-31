@@ -63,7 +63,7 @@ function median(values: number[]): number {
   if (!values.length) return -1
   const sorted = [...values].sort((a, b) => a - b)
   const mid = sorted.length >> 1
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2
 }
 
 /**

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 /**
  * The prerequisite graph.
  *
@@ -15,20 +16,34 @@
  * hiding them would make an unreachable rule look satisfiable.
  */
 import { layoutTree, CARD_W, CARD_H, type TreeEdge, type TreeNode } from '~/composables/useTreeLayout'
+import { chainOf } from '~/utils/treeChain'
 
 const route = useRoute()
 const router = useRouter()
 const { $t } = useNuxtApp()
 
-const code = ref(String(route.query.unit || 'FIT2004').toUpperCase())
+useSeoMeta({ title: () => $t('tree.title') })
+
+// The graph opens on a unit in both the 2026 and 2027 Handbooks, taught at
+// Malaysia, with prerequisites to walk back through and plenty it unlocks. It
+// used to be FIT2004, which the 2027 Handbook dropped, so the page opened on an error.
+const DEFAULT_UNIT = 'FIT2086'
+const code = ref(String(route.query.unit || DEFAULT_UNIT).toUpperCase())
 const direction = ref(String(route.query.direction || 'upstream'))
 const campus = ref(String(route.query.campus ?? 'Malaysia'))
 const depth = ref(Number(route.query.depth || 3))
 const draft = ref(code.value)
+// Null is the newest Handbook that lists the unit; a year reads that Handbook.
+// A ref like the other controls, written to the URL by the same watcher below.
+const year = ref<number | null>(Number(route.query.year) || null)
+// The Handbook year the graph on screen was read from, named wherever a node is
+// reported missing: "this year" is whichever year the reader has in mind.
+const shownYear = computed(() => data.value?.academic_year ?? year.value ?? '')
 
 const query = computed(() => {
   const params = new URLSearchParams({ direction: direction.value, depth: String(depth.value) })
   if (campus.value) params.set('campus', campus.value)
+  if (year.value) params.set('year', String(year.value))
   return params.toString()
 })
 
@@ -37,23 +52,41 @@ const query = computed(() => {
 // rail changes the address bar and nothing else. See useApiFetch.
 const { data, pending, error } = await useLocalisedApiFetch<any>(
   () => `/v1/units/${code.value}/tree?${query.value}`,
-  { watch: [code, direction, campus, depth] }
+  { watch: [code, direction, campus, depth, year] }
 )
 
-watch([code, direction, campus, depth], () => {
+watch([code, direction, campus, depth, year], () => {
   router.replace({
     query: {
       unit: code.value,
       direction: direction.value,
       depth: String(depth.value),
-      ...(campus.value ? { campus: campus.value } : {})
+      ...(campus.value ? { campus: campus.value } : {}),
+      ...(year.value ? { year: String(year.value) } : {})
     }
   })
 })
 
 function show() {
   const next = draft.value.trim().toUpperCase()
-  if (next) code.value = next
+  if (next && next !== code.value) {
+    // Another unit may not be in the year picked for this one: start from its default.
+    year.value = null
+    code.value = next
+  }
+}
+
+/**
+ * The years this unit can be drawn in. Kept from the last graph that loaded,
+ * so the picker stays put while the next one is fetched.
+ */
+const unitYears = ref<number[]>([])
+watch(data, (value) => {
+  if (value?.available_years) unitYears.value = value.available_years
+}, { immediate: true })
+
+function pickYear(y: number) {
+  year.value = y === unitYears.value[0] ? null : y
 }
 
 const layout = computed(() =>
@@ -65,9 +98,8 @@ const layout = computed(() =>
  * own value ("Malaysia"), which is the right thing to send and the wrong thing
  * to drop into a Chinese sentence.
  */
-const campusLabel = computed(() =>
-  campus.value === 'Malaysia' ? $t('tree.campusMalaysia') : campus.value
-)
+const campusName = useCampusName()
+const campusLabel = computed(() => campusName(campus.value))
 
 /** Malaysia cannot teach every alternative, and the count is the headline. */
 const elsewhere = computed(() =>
@@ -189,6 +221,23 @@ onBeforeUnmount(() => watcher?.disconnect())
 
 const detail = computed(() => layout.value.nodes.find((n) => n.unit_code === selected.value) || null)
 
+/**
+ * Selecting a unit dims everything that is not on its own chain: the units it
+ * needs, all the way back, and the units that need it. On a graph of forty
+ * boxes the edges touching one node said what it connects to; the chain says
+ * which boxes are on the way to it, which is what the reader clicked to find
+ * out. The box in the side panel turns it off for the reader who wants the
+ * whole graph back while a unit stays selected.
+ */
+const focus = ref(true)
+const chain = computed(() => (selected.value ? chainOf(selected.value, layout.value.edges) : null))
+function dimmed(code: string): boolean {
+  return focus.value && chain.value !== null && !chain.value.has(code)
+}
+function onChain(edge: TreeEdge): boolean {
+  return chain.value !== null && chain.value.has(edge.source) && chain.value.has(edge.target)
+}
+
 /** A cut title needs to look cut - without the ellipsis it reads as a typo. */
 const TITLE_CHARS = 22
 function clip(title: string): string {
@@ -245,10 +294,17 @@ function hue(prefix: string): number {
 
           <label class="label" for="tree-campus">{{ $t('tree.campus') }}</label>
           <select id="tree-campus" v-model="campus" class="input">
-            <option value="Malaysia">{{ $t('tree.campusMalaysia') }}</option>
-            <option value="Clayton">Clayton</option>
+            <option v-for="choice in CAMPUS_CHOICES" :key="choice" :value="choice">{{ campusName(choice) }}</option>
             <option value="">{{ $t('tree.campusAny') }}</option>
           </select>
+
+          <YearPicker
+            v-if="unitYears.length > 1"
+            class="year"
+            :model-value="data?.academic_year ?? year"
+            :years="unitYears"
+            @update:model-value="pickYear"
+          />
         </section>
 
         <section v-if="campus && elsewhere" class="card notice">
@@ -264,7 +320,7 @@ function hue(prefix: string): number {
             <svg class="line line--dash" viewBox="0 0 40 8"><path d="M0 4 H40" /></svg>{{ $t('tree.keyCoreq') }}
           </p>
           <p class="key"><span class="swatch swatch--away" />{{ $t('tree.keyAway', { campus: campusLabel || '—' }) }}</p>
-          <p class="key"><span class="swatch swatch--gone" />{{ $t('tree.keyGone') }}</p>
+          <p class="key"><span class="swatch swatch--gone" />{{ $t('tree.keyGone', { year: shownYear }) }}</p>
         </section>
       </aside>
 
@@ -272,102 +328,130 @@ function hue(prefix: string): number {
         <ErrorState v-if="error" :error="error" />
         <Skeleton v-else-if="pending" :lines="6" />
         <template v-else>
-          <div class="canvas-tools">
-            <button class="tool" type="button" :aria-label="$t('tree.zoomIn')" @click="zoomBy(1.25)">+</button>
-            <button class="tool" type="button" :aria-label="$t('tree.zoomOut')" @click="zoomBy(1 / 1.25)">−</button>
-            <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
-            <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
-          </div>
+          <YearNotice v-if="data?.not_in_year" :code="data.seed" :year="data.academic_year" :missing="data.not_in_year" />
+          <IntakeYearNotice v-if="data" :year="data.academic_year" :closed="layout.nodes.some((n: any) => !n.in_year)" />
           <p v-if="data?.truncated" class="truncated">{{ $t('tree.truncated') }}</p>
 
-          <div
-            ref="frame"
-            class="canvas"
-            :class="{ 'canvas--dragging': dragging }"
-            @pointerdown="startDrag"
-            @pointermove="onDrag"
-            @pointerup="endDrag"
-            @pointercancel="endDrag"
-            @wheel="onWheel"
-          >
-            <svg
-              :width="natural.w"
-              :height="natural.h"
-              :viewBox="`${-PAD} ${-PAD} ${natural.w} ${natural.h}`"
-              class="graph"
-              :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }"
-              role="img"
-              :aria-label="$t('tree.figureLabel', { code })"
+          <div class="stage">
+            <div class="canvas-tools">
+              <button class="tool" type="button" :aria-label="$t('tree.zoomIn')" @click="zoomBy(1.25)">+</button>
+              <button class="tool" type="button" :aria-label="$t('tree.zoomOut')" @click="zoomBy(1 / 1.25)">−</button>
+              <button class="tool" type="button" :aria-label="$t('tree.fit')" @click="fit">⤢</button>
+              <span class="tool tool--read">{{ Math.round(zoom * 100) }}%</span>
+            </div>
+            <div
+              ref="frame"
+              class="canvas"
+              :class="{ 'canvas--dragging': dragging }"
+              @pointerdown="startDrag"
+              @pointermove="onDrag"
+              @pointerup="endDrag"
+              @pointercancel="endDrag"
+              @wheel="onWheel"
             >
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
-                        markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
-                </marker>
-              </defs>
-
-              <path
-                v-for="(edge, index) in layout.edges"
-                :key="index"
-                :d="edge.path"
-                class="edge"
-                :class="{ 'edge--coreq': edge.type === 'corequisite', 'edge--lit': selected === edge.source || selected === edge.target }"
-                marker-end="url(#arrow)"
-              />
-
-              <g
-                v-for="node in layout.nodes"
-                :key="node.unit_code"
-                class="node"
-                :class="{
-                  'node--seed': node.depth === 0,
-                  'node--away': campus && node.in_year && !node.offered_at_campus,
-                  'node--gone': !node.in_year,
-                  'node--on': selected === node.unit_code
-                }"
-                :transform="`translate(${node.x}, ${node.y})`"
-                :data-code="node.unit_code"
-                tabindex="0"
-                role="button"
-                @keydown.enter="selected = node.unit_code"
+              <svg
+                :width="natural.w"
+                :height="natural.h"
+                :viewBox="`${-PAD} ${-PAD} ${natural.w} ${natural.h}`"
+                class="graph"
+                :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }"
+                role="img"
+                :aria-label="$t('tree.figureLabel', { code })"
               >
-                <rect class="card-bg" :width="CARD_W" :height="CARD_H" rx="10" />
-                <rect
-                  class="stripe"
-                  width="6"
-                  :height="CARD_H"
-                  rx="3"
-                  :style="{ fill: `hsl(${hue(node.prefix)} 62% 48%)` }"
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                          markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border-strong)" />
+                  </marker>
+                </defs>
+
+                <path
+                  v-for="(edge, index) in layout.edges"
+                  :key="index"
+                  :d="edge.path"
+                  class="edge"
+                  :class="{
+                    'edge--coreq': edge.type === 'corequisite',
+                    'edge--lit': selected === edge.source || selected === edge.target,
+                    'edge--chain': focus && onChain(edge),
+                    'edge--dim': focus && chain && !onChain(edge)
+                  }"
+                  marker-end="url(#arrow)"
                 />
-                <text class="code" x="16" y="22">{{ node.unit_code }}</text>
-                <text class="period" :x="CARD_W - 12" y="22">{{ node.periods.join('·') }}</text>
-                <text class="name" x="16" y="40">
-                  {{ clip(node.title || $t('tree.notPublished')) }}
-                </text>
-                <text
-                  v-if="campus && node.in_year && !node.offered_at_campus"
-                  class="away-mark"
-                  :x="CARD_W - 12"
-                  :y="CARD_H - 10"
-                >✕</text>
-              </g>
-            </svg>
+
+                <g
+                  v-for="node in layout.nodes"
+                  :key="node.unit_code"
+                  class="node"
+                  :class="{
+                    'node--seed': node.depth === 0,
+                    'node--away': campus && node.in_year && !node.offered_at_campus,
+                    'node--gone': !node.in_year,
+                    'node--on': selected === node.unit_code,
+                    'node--dim': dimmed(node.unit_code)
+                  }"
+                  :transform="`translate(${node.x}, ${node.y})`"
+                  :data-code="node.unit_code"
+                  tabindex="0"
+                  role="button"
+                  @keydown.enter="selected = node.unit_code"
+                >
+                  <rect class="card-bg" :width="CARD_W" :height="CARD_H" rx="10" />
+                  <rect
+                    class="stripe"
+                    width="6"
+                    :height="CARD_H"
+                    rx="3"
+                    :style="{ fill: `hsl(${hue(node.prefix)} 62% 48%)` }"
+                  />
+                  <text class="code" x="16" y="22">{{ node.unit_code }}</text>
+                  <text class="period" :x="CARD_W - 12" y="22">{{ node.periods.join('·') }}</text>
+                  <text class="name" x="16" y="40">
+                    {{ clip(node.title || $t('tree.notPublished', { year: shownYear })) }}
+                  </text>
+                  <text
+                    v-if="campus && node.in_year && !node.offered_at_campus"
+                    class="away-mark"
+                    :x="CARD_W - 12"
+                    :y="CARD_H - 10"
+                  >✕</text>
+                </g>
+              </svg>
+            </div>
+
           </div>
+
+          <!-- The graph shows the shape; this is the names, for when the graph
+               is too wide to read and all the reader wanted was the next step. -->
+          <section v-if="data?.seed" class="card after">
+            <h2 class="after-title">{{ $t('unlocks.after', { code: data.seed }) }}</h2>
+            <UnitUnlocks
+              :code="data.seed"
+              :year="data.academic_year"
+              :campus="campus || null"
+              :graph-link="false"
+            />
+          </section>
         </template>
       </section>
 
       <aside v-if="detail" class="panel card">
         <button class="close" type="button" :aria-label="$t('tree.close')" @click="selected = null">×</button>
         <h2>{{ detail.unit_code }}</h2>
-        <p class="panel-title">{{ detail.title || $t('tree.notPublished') }}</p>
-        <p v-if="!detail.in_year" class="warn">{{ $t('tree.goneBody') }}</p>
+        <p class="panel-title">{{ detail.title || $t('tree.notPublished', { year: shownYear }) }}</p>
+        <p v-if="!detail.in_year" class="warn">{{ $t('tree.goneBody', { year: shownYear }) }}</p>
         <p v-else-if="campus && !detail.offered_at_campus" class="warn">
-          {{ $t('tree.awayBody', { campus: campusLabel }) }}
+          {{ $t('tree.awayBody', { campus: campusLabel, year: shownYear }) }}
         </p>
         <p v-if="detail.periods.length" class="meta">
           {{ $t('tree.periods') }}: {{ detail.periods.join(' · ') }}
         </p>
-        <NuxtLink v-if="detail.in_year" class="btn btn--ghost btn--small" :to="`/units/${detail.unit_code}`">
+        <label class="focus-toggle">
+          <input v-model="focus" type="checkbox" />
+          {{ $t('tree.focusChain') }}
+        </label>
+        <p v-if="focus && chain" class="meta">{{ $t('tree.chainCount', { n: chain.size - 1 }) }}</p>
+        <NuxtLink v-if="detail.in_year" class="btn btn--ghost btn--small" :to="`/units/${detail.unit_code}${year ? `?year=${year}` : ''}`">
           {{ $t('tree.openUnit') }}
         </NuxtLink>
         <button
@@ -425,6 +509,11 @@ function hue(prefix: string): number {
 .line--dash path { stroke-dasharray: 4 3; }
 
 .canvas-wrap { position: relative; min-height: 420px; }
+/* The zoom tools sit on the canvas, not on the section, so the list below
+   the graph does not push them out of place. */
+.stage { position: relative; }
+.after { margin-top: var(--s4); }
+.after-title { font-size: 1.1rem; margin-bottom: var(--s3); }
 .canvas {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   overflow: hidden; height: 620px; touch-action: none; cursor: grab;
@@ -452,8 +541,12 @@ function hue(prefix: string): number {
 .edge { fill: none; stroke: var(--border-strong); stroke-width: 1.4; }
 .edge--coreq { stroke-dasharray: 5 4; }
 .edge--lit { stroke: var(--blue); stroke-width: 2.2; }
+.edge--chain { stroke: var(--blue); stroke-width: 1.8; }
+.edge--dim { opacity: 0.18; }
 
-.node { cursor: pointer; }
+.node { cursor: pointer; transition: opacity 0.2s ease; }
+.node--dim { opacity: 0.22; }
+.focus-toggle { display: flex; align-items: center; gap: var(--s2); font-size: 0.85rem; cursor: pointer; }
 .card-bg { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; }
 .node--seed .card-bg { fill: var(--blue-50); stroke: var(--blue); stroke-width: 2; }
 .node--on .card-bg { stroke: var(--blue); stroke-width: 2; }
@@ -482,4 +575,6 @@ function hue(prefix: string): number {
   .canvas-wrap { order: -1; }
   .panel { order: -2; }
 }
+
+.year { margin-top: var(--s3); width: 100%; }
 </style>

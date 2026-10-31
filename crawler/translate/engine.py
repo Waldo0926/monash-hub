@@ -23,9 +23,14 @@ import logging
 import re
 import threading
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 
+from app.knowledge import degrees, structure, titles
 from app.knowledge.glossary import (
+    GENERAL,
     MASKS,
+    addresses_kept,
+    facts_kept,
     has_verbatim,
     is_critical,
     is_only_placeholders,
@@ -35,6 +40,9 @@ from app.knowledge.glossary import (
     terms_in,
     whole_value,
 )
+from app.knowledge.structure_zh import STRUCTURE_ZH
+from app.knowledge.titles import ZH_TITLE_OVERRIDES
+from app.knowledge.unit_title_baseline import ZH_TITLE_BASELINE
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +54,10 @@ _SKIP = re.compile(
     r"^\s*(?:[\W\d]+|Social Media Share Bar.*|Not Configured)\s*$",
     re.IGNORECASE,
 )
+# No word in it: "E116 - E140", "TP1/TP2", "S1-01". A table of code ranges
+# holds dozens of these, and a chat model asked to translate one explains it
+# instead, which is a failed string - enough of them in a row ended a pass.
+_NO_WORDS = re.compile(r"^(?:[^A-Za-z]|\b[A-Za-z]{1,2}(?=\d)|\b[A-Za-z]\b)*$")
 
 # A short all-capitals token standing on its own is a code, not a word. The
 # results legend is a whole table of them - P, N, NE, NGO, SFR, WDN - and the
@@ -61,6 +73,7 @@ _CODE = re.compile(r"^[A-Z][A-Z0-9]{0,4}$")
 # citation error message spliced into the middle. Each line is its own
 # translation problem, so each is translated alone and put back with the
 # separator it arrived with.
+_CODED_TITLE = re.compile(r"^([A-Z]{3}\d{4})\s+(\S.*)$")
 _LINES = re.compile(r"(\s*\n\s*)")
 
 # A label is not a sentence, and the dates pages are made of labels: "Trimester
@@ -164,6 +177,13 @@ _PUNCTUATION = {
     "ja": {",": "、", ";": "；", ":": "：", "?": "？", "!": "！", "(": "（", ")": "）"},
 }
 _CJK = r"㐀-䶿一-鿿぀-ヿ가-힯"
+# The scripts that do not space words. Korean does: the version of the rules
+# below that used _CJK took every space out of the Korean FAQ.
+_UNSPACED = r"㐀-䶿一-鿿぀-ヿ"
+
+# Characters that only exist in Simplified Chinese. A Japanese answer holding
+# one has Chinese in it - 缺席 for 欠席 - and the English is better than that.
+_SIMPLIFIED = re.compile("[们这说门为课时际认设计请让给选读须应该还进过对发现关题问员务缺么吗呢]")
 
 # Monash writes the curly apostrophe and the model was trained on the straight
 # one. Measured over the sentences that were failing on the live guides,
@@ -172,34 +192,209 @@ _CJK = r"㐀-䶿一-鿿぀-ヿ가-힯"
 # the apostrophe in "you're", not the token standing beside it.
 _CURLY = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
 
+# What the model produces when it has given up on a string and started
+# inventing. 兹卡 is its transliteration of the Zqa mask token and no Monash
+# page is about Zika; a run of one repeated letter is not a word in any of the
+# four languages. M6024's "SPECIALISATIONS AVAILABLE" came back as
+# 专业方向 AVALALLILL（兹卡 AVALLLLL）.
+_INVENTED = re.compile(r"兹卡|\b\w*([A-Za-z])\1{3,}\w*\b")
+
+
+def _wrong_script(result: str, locale: str) -> bool:
+    """Whether a Japanese translation slipped into Chinese."""
+    return locale == "ja" and bool(_SIMPLIFIED.search(result))
+
+
+def _undouble(text: str, wordings: Iterable[str]) -> str:
+    """Drop the word the model wrote again after an agreed term.
+
+    The model translates the English around a term as well as the term: "the
+    Malaysia campus" came back as マレーシアキャンパスキャンパス, the agreed
+    マレーシアキャンパス followed by its own キャンパス.
+    """
+    for wording in wordings:
+        for size in range(len(wording) - 1, 1, -1):
+            tail = wording[-size:]
+            if not re.fullmatch(rf"[{_CJK}]+", tail):
+                continue
+            text = re.sub(re.escape(wording) + r"[ \t]?" + re.escape(tail), wording, text)
+    return text
+
+
+# Korean particles that change with the noun before them: the first after a
+# final consonant, the second after a vowel. The model picks the particle for
+# the word it would have written, and the glossary puts a different word back -
+# 과목를, 요건는. 으로/로 is left alone because ㄹ takes 로 and the rule is not
+# worth getting wrong.
+_PARTICLES = (("은", "는"), ("이", "가"), ("을", "를"), ("과", "와"))
+_PARTICLE = re.compile(
+    "(" + "|".join(p for pair in _PARTICLES for p in pair) + r")(?=$|[\s.,!?;:)」』])"
+)
+
+
+def _batchim(word: str) -> bool | None:
+    """Whether a Korean word ends in a consonant. ``None`` when it does not end
+    in Hangul at all, so the particle is the model's call.
+
+    A bracketed English gloss does not count: 평가(additional assessment) takes
+    the particle for 평가.
+    """
+    word = re.sub(r"\s*\([^()]*\)$", "", word.strip())
+    if not word or not "가" <= word[-1] <= "힣":
+        return None
+    return (ord(word[-1]) - 0xAC00) % 28 != 0
+
+
+def _particles(text: str, wordings: Iterable[str]) -> str:
+    """Give each agreed Korean term the particle its last syllable needs."""
+    for wording in wordings:
+        final = _batchim(wording)
+        if final is None:
+            continue
+
+        def fix(match: re.Match[str], wording: str = wording, final: bool = final) -> str:
+            pair = next(pair for pair in _PARTICLES if match.group(1) in pair)
+            return wording + pair[0 if final else 1]
+
+        text = re.sub(re.escape(wording) + _PARTICLE.pattern, fix, text)
+    return text
+
+
+def _settle(text: str, wordings: list[str], locale: str) -> str:
+    """Fix what goes wrong around a term that has just been put back."""
+    text = _undouble(text, wordings)
+    return _particles(text, wordings) if locale == "ko" else text
+
+
+def _invented(result: str, source: str) -> bool:
+    """Whether the model made something up rather than translating.
+
+    Checked against the source, because a string that genuinely repeats a
+    letter should survive - and because the honest outcome for a string the
+    model cannot manage is the English, not an approximation of it.
+    """
+    return bool(_INVENTED.search(result)) and not _INVENTED.search(source)
+
+
+def stored_ok(source: str, target: str) -> bool:
+    """Whether a stored translation may be used again as it is.
+
+    Not a reply that carried the prompt with it ("GLOSSARY:" before a
+    person's name), stored before the reply check looked past the glossary,
+    not one that lost an address (reused as they were, a --refresh pass
+    on 2026-10-25 put 179 such strings back), not one whose money is in
+    another currency (1.10 澳元 for RM1.10), a year or a phone number changed,
+    or the model's apology. They are translated again.
+    """
+    if "GLOSSARY:" in target or "TEXT:" in target:
+        return False
+    return facts_kept(source, target)
+
 
 class Translator:
     """One loaded model per language, translating with the glossary in front."""
 
-    def __init__(self, locale: str) -> None:
+    #: Which glossary scope the strings being translated belong to. A class
+    #: attribute so an instance built without ``__init__`` - the tests do that
+    #: to avoid loading a model - still has one.
+    scope: str = GENERAL
+    #: Likewise: tests build a Translator without ``__init__``.
+    engine: str = "argos"
+    workers: int = 1
+
+    def __init__(
+        self, locale: str, scope: str = GENERAL, engine: str = "argos", workers: int = 1
+    ) -> None:
         if locale not in SUPPORTED:
             raise ValueError(f"no model for {locale!r}")
+        if engine not in ("argos", "google-cloud", "llm"):
+            raise ValueError(f"unknown engine {engine!r}")
         self.locale = locale
-        self._cache: dict[str, str] = {}
+        self.engine = engine
+        # Parallel strings only make sense when the model is somebody else's
+        # server; the offline one is already using every core it is given.
+        self.workers = workers if engine != "argos" else 1
+        # One cache per scope. The same English sentence is allowed to have two
+        # renderings - "complete the major" means one thing in a degree's
+        # structure and another in a unit's overview - so they must not share
+        # an entry.
+        self._caches: dict[str, dict[str, str]] = {}
         self._renderings: dict[str, str] = {}
         self._lock = threading.Lock()
-        self._translate = _load_model(locale)
+        self.use_scope(scope)
+        if engine == "llm":
+            from crawler.translate import llm
+
+            self._translate = llm.load(locale)
+        elif engine == "google-cloud":
+            from crawler.translate import google
+
+            self._translate = google.load_cloud(locale)
+        else:
+            self._translate = _load_model(locale)
+
+    def use_scope(self, scope: str) -> None:
+        """Translate the strings that follow as ``scope`` (see the glossary)."""
+        self.scope = scope
+        self._cache: dict[str, str] = self._caches.setdefault(scope, {})
+
+    def prime(self, known: dict[str, str]) -> None:
+        """Seed the current scope with translations already stored for a target.
+
+        The cache lives for one run, so a pass that had to look at a unit again -
+        because another Handbook year added English to it - used to send every one
+        of its sentences back to the model. Stored strings are reused instead and
+        only sentences nobody has translated yet reach the engine. A label with a
+        reviewed rendering is left out, so a fix to structure_zh still wins.
+        """
+        for source, target in known.items():
+            key = (source or "").strip()
+            if not key or not target or key in self._cache:
+                continue
+            if not stored_ok(key, target):
+                continue
+            if self.locale == "zh" and (STRUCTURE_ZH.get(key) or structure.compose(key, "zh")):
+                continue
+            # Stored before addresses were masked, some with www.Monash.edu.
+            self._cache[key] = addresses_kept(key, target)
 
     @property
     def cached(self) -> int:
-        return len(self._cache)
+        return sum(len(cache) for cache in self._caches.values())
 
     def text(self, source: str | None) -> str | None:
         """Translate one string. Returns ``None`` for nothing worth translating."""
         if not source:
             return None
         source = source.strip()
-        if not source or _SKIP.match(source):
+        if not source or _SKIP.match(source) or _NO_WORDS.match(source):
             return None
 
         cached = self._cache.get(source)
         if cached is not None:
             return cached or None
+
+        # A label or stock sentence somebody has already read against its
+        # English - see app/knowledge/structure_zh.py. It never reaches the
+        # model: the model's answer for "Breadth studies" was 面包研究, and a
+        # different wrong answer for the same words in the next sentence.
+        if self.locale == "zh":
+            reviewed = STRUCTURE_ZH.get(source) or structure.compose(source, "zh")
+            if reviewed:
+                self._cache[source] = reviewed
+                return reviewed
+
+        # "MCD1270 Drawing A": a unit code and a unit title, which already has one
+        # agreed Chinese title. A chat model dropped the "A".
+        listed = _CODED_TITLE.match(source)
+        if listed and self.locale == "zh":
+            title = ZH_TITLE_OVERRIDES.get(listed.group(2)) or ZH_TITLE_BASELINE.get(
+                listed.group(2)
+            )
+            if title:
+                rendered = f"{listed.group(1)} {title}"
+                self._cache[source] = rendered
+                return rendered
 
         if "\n" in source:
             return self._by_line(source)
@@ -212,14 +407,50 @@ class Translator:
             self._cache[source] = agreed
             return agreed
 
-        masked, terms = protect(source, self.locale)
+        # A degree's name is built, not translated - English names it
+        # front-to-back and Chinese back-to-front, and a model asked for the
+        # whole string drops the discipline or renders "Master" as 大师. The
+        # discipline itself goes through this same method, so it still gets the
+        # glossary. See app/knowledge/degrees.py.
+        composed = degrees.compose(source, self.locale, self.text)
+        if composed:
+            self._cache[source] = composed
+            return composed
+
+        # The same reordering problem in unit titles: "Introduction to X" is
+        # X导论, not 导论到X. See app/knowledge/titles.py.
+        composed = titles.compose(source, self.locale, self.text)
+        if composed:
+            self._cache[source] = composed
+            return composed
+
+        masked, terms = protect(source, self.locale, scope=self.scope)
+        if self.engine == "llm" and not is_only_placeholders(masked) and not _CODE.match(source):
+            # A chat model does better told the agreed wording than handed a
+            # placeholder: asked to translate "Zqa units", it writes 课程 for the
+            # unit *and* for the placeholder. So it gets the glossary in the
+            # prompt, and the answer is accepted only if every agreed wording
+            # (and every code and number) is in it. Anything else falls through
+            # to the masked path below, which cannot lose a term.
+            direct = self._llm_direct(source)
+            if direct:
+                result = _unsigned(_tidy(direct, self.locale).strip(), source)
+                if (
+                    not _invented(result, source)
+                    and not _wrong_script(result, self.locale)
+                    and result != source
+                    and facts_kept(source, addresses_kept(source, result))
+                ):
+                    result = addresses_kept(source, result)
+                    self._cache[source] = result
+                    return result
         if is_only_placeholders(masked):
             # Entirely known terms - a unit title like "Programming paradigms",
             # a campus name, an assessment type. Nothing for the model to do,
             # but still something to tidy: the space that separated the English
             # words is left sitting between two Chinese ones, and "Accounting
             # fundamentals" came out as 会计 基础.
-            result = _tidy(restore(masked, terms), self.locale)
+            result = _tidy(_settle(restore(masked, terms), terms, self.locale), self.locale)
         elif _CODE.match(source):
             # A grade code on its own. Checked after the glossary, so a term
             # that happens to look like one - WAM - still gets its agreed
@@ -269,16 +500,44 @@ class Translator:
                 # in place the punctuation rules see a Latin character where
                 # the finished sentence has a Chinese one, and leave the comma
                 # alone.
-                result = _tidy(restore(translated, terms, mask), self.locale)
+                result = _tidy(
+                    _settle(restore(translated, terms, mask), terms, self.locale), self.locale
+                )
 
         result = _unsigned(result.strip(), source)
+        if (
+            _invented(result, source)
+            or _wrong_script(result, self.locale)
+            or not facts_kept(source, addresses_kept(source, result))
+        ):
+            # Better the English than a sentence nobody wrote. An untranslated
+            # string stays in English; it is never approximated.
+            log.debug("invented output discarded: %s", source[:60])
+            self._cache[source] = ""
+            return None
         # A "translation" identical to the source is not one. Storing it would
         # mean the reader sees English behind a banner promising Chinese.
         if result == source:
             self._cache[source] = ""
             return None
+        result = addresses_kept(source, result)
         self._cache[source] = result
         return result
+
+    def _llm_direct(self, source: str) -> str | None:
+        """One chat-model call with the glossary in the prompt, or ``None``."""
+        from crawler.translate import llm
+
+        terms = terms_in(source, self.locale, scope=self.scope)
+        terms += degrees.names_in(source, self.locale)
+        try:
+            reply = self._translate(llm.prompt_with_glossary(source, terms))
+        except Exception as exc:  # one bad string must not end a batch of 5,000
+            log.debug("direct llm translation failed (%s): %s", exc, source[:60])
+            return None
+        if not llm.faithful(source, reply, terms):
+            return None
+        return _settle(reply, [agreed for _english, agreed in terms], self.locale)
 
     def _ask(self, text: str) -> str:
         """Hand a string to the model in the punctuation it was trained on."""
@@ -303,7 +562,7 @@ class Translator:
         Returns the translation, the replacements and the mask that survived.
         """
         for mask in MASKS:
-            masked, terms = protect(source, self.locale, mask)
+            masked, terms = protect(source, self.locale, mask, scope=self.scope)
             translated = self._ask(masked)
             if not placeholders_survived(translated, len(terms), mask):
                 log.debug("mask %s was rewritten: %s", mask[0], source[:60])
@@ -340,7 +599,7 @@ class Translator:
         # one word this glossary exists to keep out - reached a live page.
         unclaimed = plain
         for written, agreed in sorted(
-            terms_in(source, self.locale), key=lambda pair: -len(pair[1])
+            terms_in(source, self.locale, scope=self.scope), key=lambda pair: -len(pair[1])
         ):
             if agreed in unclaimed:
                 # Every occurrence, not the first: "course" is written three
@@ -482,17 +741,21 @@ class Translator:
 
     def many(self, sources: Iterable[str | None]) -> dict[str, str]:
         """Translate a batch, skipping what is already known. Source -> target."""
-        out: dict[str, str] = {}
+        keys: list[str] = []
+        seen: set[str] = set()
         for source in sources:
-            if not source:
-                continue
-            key = source.strip()
-            if not key or key in out:
-                continue
-            translated = self.text(key)
-            if translated:
-                out[key] = translated
-        return out
+            key = (source or "").strip()
+            if key and key not in seen:
+                seen.add(key)
+                keys.append(key)
+        if self.workers > 1 and len(keys) > 1:
+            # A remote model is latency, not CPU: several strings at once. A
+            # ``Blocked`` raised in a worker comes out of ``map`` below.
+            with ThreadPoolExecutor(max_workers=self.workers) as pool:
+                results = list(pool.map(self.text, keys))
+        else:
+            results = [self.text(key) for key in keys]
+        return {key: text for key, text in zip(keys, results, strict=True) if text}
 
 
 def quieten() -> None:
@@ -535,6 +798,39 @@ def _load_model(locale: str):
         return translate.translate(text, "en", locale)
 
     return run
+
+
+_POLISH = (
+    # *unit* is 课程; a model that has been told so still sometimes adds the
+    # word it would have chosen on its own.
+    (re.compile(r"课程单元"), "课程"),
+    # Credit points are 学分, not something counted in 门.
+    (re.compile(r"(\d)\s*[门个]\s*学分"), r"\1 学分"),
+    # One pronoun for the reader: structure_zh.py is written in 你.
+    (re.compile("您"), "你"),
+    # Malaysia's Student Pass is 学生签证 to the students who hold one; 学生准证
+    # is the official Chinese nobody on campus says. (特别准证, the Special Pass,
+    # is a different document and keeps its name.)
+    (re.compile("学生准证"), "学生签证"),
+    # "discipline" is conduct to the model. In a Handbook it is an academic
+    # field ("disciplinary approaches") or a quality of work ("a disciplined
+    # process"); the conduct senses - 纪律委员会, 纪律处分 - are left alone.
+    (re.compile("纪律办法"), "学科方法"),
+    (re.compile("有纪律的过程"), "规范的流程"),
+    (re.compile("的纪律(?:性)?习惯"), "的严谨习惯"),
+    (re.compile("纪律(?:性)?习惯"), "严谨的习惯"),
+    (re.compile("纪律性方法"), "严谨的方法"),
+    (re.compile("纪律性的决策"), "审慎的决策"),
+    (re.compile("规范和纪律约束"), "规范和规训"),
+    (re.compile("荣誉学位一年以上的纪律评估"), "荣誉学位学科，评估跨越一年以上"),
+)
+
+
+def polish_zh(text: str) -> str:
+    """Small, certain corrections for the way a model writes Handbook Chinese."""
+    for pattern, replacement in _POLISH:
+        text = pattern.sub(replacement, text)
+    return text
 
 
 def _tidy(text: str, locale: str) -> str:
@@ -587,15 +883,23 @@ def _tidy(text: str, locale: str) -> str:
     # glossary term back where a placeholder was; Chinese and Japanese do not
     # space words. A space between Latin and CJK is correct and stays
     # ("Monash 大学"), and so is one before a digit ("第 2 级").
-    text = re.sub(rf"(?<=[{_CJK}])[ \t]+(?=[{_CJK}])", "", text)
+    text = re.sub(rf"(?<=[{_UNSPACED}])[ \t]+(?=[{_UNSPACED}])", "", text)
     # A space against CJK punctuation is not - on either side of it. The
     # closing bracket of an agreed term ("WAM（加权平均分）") is the common
     # case: the term goes back in where a Latin word was, and the space that
     # followed the Latin word stays behind.
     text = re.sub(r"[ \t]+(?=[，。、；：？！）])", "", text)
-    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_CJK}])", "", text)
+    text = re.sub(rf"(?<=[，。、；：？！）])[ \t]+(?=[{_UNSPACED}])", "", text)
     text = re.sub(r"(?<=（)[ \t]+", "", text)
     text = re.sub(r"[ \t]{2,}", " ", text).strip()
+    text = polish_zh(text) if locale == "zh" else text
+    # Year before month. The model wrote "December 2026" as 12月2026年.
+    if locale in ("zh", "ja"):
+        text = re.sub(r"(?<!\d)(\d{1,2})月[ \t]*(\d{4})年", r"\2年\1月", text)
+    elif locale == "ko":
+        text = re.sub(r"(?<!\d)(\d{1,2})월[ \t]*(\d{4})년", r"\2년 \1월", text)
+    # A term put back next to the word the model wrote for it: 课程课程.
+    text = re.sub(r"(学位课程|课程)\1+", r"\1", text)
     for transliterated, name in _HOUSE.get(locale, {}).items():
         text = text.replace(transliterated, name)
     return text

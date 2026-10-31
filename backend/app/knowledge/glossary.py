@@ -24,6 +24,7 @@ English on an official page: they have to be able to match the two up.
 """
 from __future__ import annotations
 
+import functools
 import re
 
 LOCALES = ("zh", "ja", "ko")
@@ -47,10 +48,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "履修取消期限（census dates）",
         "ko": "수강 철회 마감일(census dates)",
     },
+    # Japanese and Korean get the noun, not the verb: the model conjugates
+    # whatever stands in the verb's place, and 履修取消する came back as
+    # 履修取消するする, 철회하다 as 철회하다할수있는.
     "withdraw": {
         "zh": "退选",
-        "ja": "履修取消する",
-        "ko": "철회하다",
+        "ja": "履修取消",
+        "ko": "철회",
     },
     "withdrawal": {
         "zh": "退选",
@@ -167,6 +171,26 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "除籍（exclusion）",
         "ko": "제적(exclusion)",
     },
+    "academic misconduct": {
+        "zh": "学术不端",
+        "ja": "学術不正行為",
+        "ko": "학업 부정행위",
+    },
+    "Academic Progress Committee": {
+        "zh": "学业进度委员会（APC）",
+        "ja": "学業進捗委員会（APC）",
+        "ko": "학업 진도 위원회(APC)",
+    },
+    "Exclusion Appeals Panel": {
+        "zh": "退学申诉委员会（EAP）",
+        "ja": "除籍不服審査委員会（EAP）",
+        "ko": "제적 이의 심사위원회(EAP)",
+    },
+    "Student Misconduct Panel": {
+        "zh": "学生违纪审理委员会",
+        "ja": "学生不正行為審査委員会",
+        "ko": "학생 부정행위 심사위원회",
+    },
     "academic integrity": {
         "zh": "学术诚信",
         "ja": "学術的誠実性",
@@ -198,6 +222,39 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "补考",
         "ja": "再評価",
         "ko": "보충 평가",
+    },
+    # The grounds for intermission, a reduced load or leaving a course early
+    # on a student visa. Taken word by word it came out as 有同情心或令人信服的情况.
+    "compassionate or compelling circumstances": {
+        "zh": "恩恤或特殊情况（compassionate or compelling circumstances）",
+        "ja": "やむを得ない事情（compassionate or compelling circumstances）",
+        "ko": "인도적 또는 불가피한 사정(compassionate or compelling circumstances)",
+    },
+    # The two kinds of hurdle Monash distinguishes, and what failing one is
+    # called. "hurdle" alone is 及格门槛; these keep the English beside it
+    # because the policy pages and Moodle only ever use the English names.
+    "threshold hurdle": {
+        "zh": "分数及格门槛（threshold hurdle）",
+        "ja": "最低点要件（threshold hurdle）",
+        "ko": "최저 점수 통과 요건(threshold hurdle)",
+    },
+    "competency hurdle": {
+        "zh": "能力及格门槛（competency hurdle）",
+        "ja": "能力到達要件（competency hurdle）",
+        "ko": "역량 통과 요건(competency hurdle)",
+    },
+    "hurdle fail": {
+        "zh": "未达及格门槛（Hurdle Fail）",
+        "ja": "必須要件不合格（Hurdle Fail）",
+        "ko": "필수 요건 불합격(Hurdle Fail)",
+    },
+    # A further attempt at a failed competency hurdle, within the teaching
+    # period. Not a supplementary assessment (补考), and the two have different
+    # rules - so not 补考 either.
+    "additional assessment": {
+        "zh": "额外考核（additional assessment）",
+        "ja": "追加評価（additional assessment）",
+        "ko": "추가 평가(additional assessment)",
     },
     "final assessment": {
         "zh": "期末考核",
@@ -431,6 +488,12 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "コース（学位課程）",
         "ko": "학위 과정",
     },
+    # Longer than "course", so matched first: 学位课程的行动 was on a live page.
+    "course of action": {
+        "zh": "行动方案",
+        "ja": "対応策",
+        "ko": "조치 방안",
+    },
     "courses": {
         "zh": "学位课程",
         "ja": "コース（学位課程）",
@@ -470,8 +533,8 @@ TERMS: dict[str, dict[str, str]] = {
     },
     "enrol": {
         "zh": "选课注册",
-        "ja": "履修登録する",
-        "ko": "수강 신청하다",
+        "ja": "履修登録",
+        "ko": "수강 신청",
     },
     # Longer first, or the hyphen lets *enrolment* match inside *Re-enrolment*
     # and WES's own menu came out as 选课注册/Re-选课注册.
@@ -497,6 +560,13 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "成绩单",
         "ja": "成績証明書",
         "ko": "성적 증명서",
+    },
+    # Left to the model, "apply to graduate" in Japanese was applying to
+    # graduate school (大学院).
+    "apply to graduate": {
+        "zh": "申请毕业",
+        "ja": "卒業申請",
+        "ko": "졸업 신청",
     },
     "graduation": {
         "zh": "毕业",
@@ -565,6 +635,24 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "フルタイムの履修量",
         "ko": "전일제 수강 부담",
     },
+    "full-time load": {
+        "zh": "全日制学习负荷",
+        "ja": "フルタイムの履修量",
+        "ko": "전일제 수강 부담",
+    },
+    # The certificate itself. Korean got a transliteration, 테스트아머.
+    "testamur": {
+        "zh": "毕业证书",
+        "ja": "学位記",
+        "ko": "학위증",
+    },
+    # Longer than "Department of", which would make it an academic department
+    # (学科：内務省).
+    "Department of Home Affairs": {
+        "zh": "澳大利亚内政部",
+        "ja": "オーストラリア内務省",
+        "ko": "호주 내무부",
+    },
 
     # --- Monash Malaysia -----------------------------------------------------
     #
@@ -579,9 +667,9 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "電子ビザ承認レター（eVAL）",
         "ko": "전자 비자 승인서(eVAL)",
     },
-    "student pass": {"zh": "学生准证（student pass）", "ja": "学生パス（student pass）",
+    "student pass": {"zh": "学生签证（student pass）", "ja": "学生パス（student pass）",
                      "ko": "학생 패스(student pass)"},
-    "Student Pass": {"zh": "学生准证（Student Pass）", "ja": "学生パス（Student Pass）",
+    "Student Pass": {"zh": "学生签证（Student Pass）", "ja": "学生パス（Student Pass）",
                      "ko": "학생 패스(Student Pass)"},
     "Special Pass": {"zh": "特别准证（Special Pass）", "ja": "特別パス（Special Pass）",
                      "ko": "특별 패스(Special Pass)"},
@@ -880,52 +968,52 @@ TERMS: dict[str, dict[str, str]] = {
     "Term 1": {
         "zh": "第 1 学季",
         "ja": "第1ターム",
-        "ko": "1학기(term)",
+        "ko": "1텀",
     },
     "Term 2": {
         "zh": "第 2 学季",
         "ja": "第2ターム",
-        "ko": "2학기(term)",
+        "ko": "2텀",
     },
     "Term 3": {
         "zh": "第 3 学季",
         "ja": "第3ターム",
-        "ko": "3학기(term)",
+        "ko": "3텀",
     },
     "Term 4": {
         "zh": "第 4 学季",
         "ja": "第4ターム",
-        "ko": "4학기(term)",
+        "ko": "4텀",
     },
     "Teaching period 1": {
         "zh": "教学期 1",
         "ja": "開講期 1",
-        "ko": "학기 1",
+        "ko": "수업 기간 1",
     },
     "Teaching period 2": {
         "zh": "教学期 2",
         "ja": "開講期 2",
-        "ko": "학기 2",
+        "ko": "수업 기간 2",
     },
     "Teaching period 3": {
         "zh": "教学期 3",
         "ja": "開講期 3",
-        "ko": "학기 3",
+        "ko": "수업 기간 3",
     },
     "Teaching period 4": {
         "zh": "教学期 4",
         "ja": "開講期 4",
-        "ko": "학기 4",
+        "ko": "수업 기간 4",
     },
     "Teaching period 5": {
         "zh": "教学期 5",
         "ja": "開講期 5",
-        "ko": "학기 5",
+        "ko": "수업 기간 5",
     },
     "Teaching period 6": {
         "zh": "教学期 6",
         "ja": "開講期 6",
-        "ko": "학기 6",
+        "ko": "수업 기간 6",
     },
 
     # --- campuses and periods (enumerable, so pin them exactly) --------------
@@ -949,7 +1037,16 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "Parkville キャンパス",
         "ko": "Parkville 캠퍼스",
     },
+    # The country, in a sentence: "Bank Negara Malaysia", "study in Malaysia",
+    # "a Malaysian student pass". As 马来西亚校区 it put the central bank and the
+    # immigration department on campus. The campus is "Monash Malaysia" or
+    # "Malaysia campus", and a campus label on its own is an ENUMS value.
     "Malaysia": {
+        "zh": "马来西亚",
+        "ja": "マレーシア",
+        "ko": "말레이시아",
+    },
+    "Malaysia campus": {
         "zh": "马来西亚校区",
         "ja": "マレーシアキャンパス",
         "ko": "말레이시아 캠퍼스",
@@ -1068,6 +1165,10 @@ TERMS: dict[str, dict[str, str]] = {
     "December round": {"zh": "12 月批次", "ja": "12月ラウンド", "ko": "12월 라운드"},
     "October round": {"zh": "10 月批次", "ja": "10月ラウンド", "ko": "10월 라운드"},
     "Australia": {"zh": "澳大利亚", "ja": "オーストラリア", "ko": "호주"},
+    # glm-4.5-flash dropped the break three times in thirty paragraphs: "the
+    # semester break" came back as 学期.
+    "semester break": {"zh": "学期假期", "ja": "学期休み", "ko": "학기 방학"},
+    "mid-semester break": {"zh": "学期中假期", "ja": "学期中の休み", "ko": "학기 중 방학"},
     "Summer semester": {
         "zh": "夏季学期",
         "ja": "サマーセメスター",
@@ -1077,16 +1178,6 @@ TERMS: dict[str, dict[str, str]] = {
         "zh": "冬季学期",
         "ja": "ウィンターセメスター",
         "ko": "겨울 학기",
-    },
-    "On-campus": {
-        "zh": "校内授课",
-        "ja": "対面授業",
-        "ko": "대면 수업",
-    },
-    "Off-campus": {
-        "zh": "校外授课",
-        "ja": "遠隔授業",
-        "ko": "원격 수업",
     },
 
     # --- the words that make a unit title ------------------------------------
@@ -1541,6 +1632,266 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "入門",
         "ko": "입문",
     },
+    # --- degree names -------------------------------------------------------
+    #
+    # Chinese names a degree by putting the award last: "Master of Arts" is
+    # 文学硕士, not 硕士文学. A translator that cannot reorder produces 艺术大师 -
+    # a grand master of art - and it did, on 61 of the 503 degrees. It got the
+    # other 131 Master titles right, which is worse than failing on all of
+    # them: nobody would trust a page that is wrong a third of the time.
+    #
+    # Pinned whole, because the reordering is the translation. A degree the
+    # Handbook adds next year is not covered and will need adding here.
+    'Master of Accounting': {
+        "zh": "会计硕士",
+        "ja": "会計学修士",
+        "ko": "회계학 석사",
+    },
+    'Master of Addictive Behaviours': {
+        "zh": "成瘾行为学硕士",
+        "ja": "嗜癖行動学修士",
+        "ko": "중독행동학 석사",
+    },
+    'Master of Advanced Clinical Nursing': {
+        "zh": "高级临床护理硕士",
+        "ja": "上級臨床看護学修士",
+        "ko": "고급 임상간호학 석사",
+    },
+    'Master of Advanced Engineering': {
+        "zh": "高级工程硕士",
+        "ja": "上級工学修士",
+        "ko": "고급 공학 석사",
+    },
+    'Master of Advanced Finance': {
+        "zh": "高级金融硕士",
+        "ja": "上級ファイナンス修士",
+        "ko": "고급 금융학 석사",
+    },
+    'Master of Advanced Health Care Practice': {
+        "zh": "高级医疗实践硕士",
+        "ja": "上級ヘルスケア実践修士",
+        "ko": "고급 보건의료 실무 석사",
+    },
+    'Master of Advanced Materials and Manufacturing Engineering': {
+        "zh": "先进材料与制造工程硕士",
+        "ja": "先端材料・製造工学修士",
+        "ko": "첨단소재·제조공학 석사",
+    },
+    'Master of Advanced Nursing': {
+        "zh": "高级护理硕士",
+        "ja": "上級看護学修士",
+        "ko": "고급 간호학 석사",
+    },
+    'Master of Advanced Study (Engineering Research)': {
+        "zh": "高级研究硕士（工程研究）",
+        "ja": "上級研究修士（工学研究）",
+        "ko": "고급 연구 석사(공학 연구)",
+    },
+    'Master of Analytics': {
+        "zh": "分析学硕士",
+        "ja": "アナリティクス修士",
+        "ko": "애널리틱스 석사",
+    },
+    'Master of Applied Data Science': {
+        "zh": "应用数据科学硕士",
+        "ja": "応用データサイエンス修士",
+        "ko": "응용 데이터과학 석사",
+    },
+    'Master of Applied Econometrics': {
+        "zh": "应用计量经济学硕士",
+        "ja": "応用計量経済学修士",
+        "ko": "응용 계량경제학 석사",
+    },
+    'Master of Applied Engineering': {
+        "zh": "应用工程硕士",
+        "ja": "応用工学修士",
+        "ko": "응용공학 석사",
+    },
+    'Master of Applied Linguistics': {
+        "zh": "应用语言学硕士",
+        "ja": "応用言語学修士",
+        "ko": "응용언어학 석사",
+    },
+    'Master of Applied Marketing': {
+        "zh": "应用市场营销硕士",
+        "ja": "応用マーケティング修士",
+        "ko": "응용 마케팅 석사",
+    },
+    'Master of Architecture': {
+        "zh": "建筑学硕士",
+        "ja": "建築学修士",
+        "ko": "건축학 석사",
+    },
+    'Master of Artificial Intelligence': {
+        "zh": "人工智能硕士",
+        "ja": "人工知能修士",
+        "ko": "인공지능 석사",
+    },
+    'Master of Arts': {
+        "zh": "文学硕士",
+        "ja": "文学修士",
+        "ko": "문학 석사",
+    },
+    'Master of Bioethics': {
+        "zh": "生命伦理学硕士",
+        "ja": "生命倫理学修士",
+        "ko": "생명윤리학 석사",
+    },
+    'Master of Biostatistics': {
+        "zh": "生物统计学硕士",
+        "ja": "生物統計学修士",
+        "ko": "생물통계학 석사",
+    },
+    'Master of Business': {
+        "zh": "商学硕士",
+        "ja": "ビジネス修士",
+        "ko": "경영학 석사",
+    },
+    'Master of Business Innovation': {
+        "zh": "商业创新硕士",
+        "ja": "ビジネスイノベーション修士",
+        "ko": "비즈니스 혁신 석사",
+    },
+    'Master of Cardiovascular Perfusion': {
+        "zh": "体外循环硕士",
+        "ja": "体外循環技術修士",
+        "ko": "체외순환학 석사",
+    },
+    'Master of Civil Engineering': {
+        "zh": "土木工程硕士",
+        "ja": "土木工学修士",
+        "ko": "토목공학 석사",
+    },
+    'Master of Clinical Psychology': {
+        "zh": "临床心理学硕士",
+        "ja": "臨床心理学修士",
+        "ko": "임상심리학 석사",
+    },
+    'Master of Commerce': {
+        "zh": "商学硕士",
+        "ja": "商学修士",
+        "ko": "상학 석사",
+    },
+    'Master of Computer Science': {
+        "zh": "计算机科学硕士",
+        "ja": "コンピュータサイエンス修士",
+        "ko": "컴퓨터과학 석사",
+    },
+    'Master of Critical Care Paramedicine': {
+        "zh": "重症救护医学硕士",
+        "ja": "救急集中治療修士",
+        "ko": "중환자 응급구조학 석사",
+    },
+    'Master of Data Science': {
+        "zh": "数据科学硕士",
+        "ja": "データサイエンス修士",
+        "ko": "데이터과학 석사",
+    },
+    'Master of Design': {
+        "zh": "设计学硕士",
+        "ja": "デザイン学修士",
+        "ko": "디자인학 석사",
+    },
+    'Master of Design by Research (Monash – Southeast University)': {
+        "zh": "设计学硕士（研究型，莫纳什–东南大学）",
+        "ja": "デザイン学修士（研究型、モナシュ–東南大学）",
+        "ko": "디자인학 석사(연구형, 모나시–동남대학)",
+    },
+    'Master of Educational and Developmental Psychology': {
+        "zh": "教育与发展心理学硕士",
+        "ja": "教育発達心理学修士",
+        "ko": "교육발달심리학 석사",
+    },
+    'Master of Engineering': {
+        "zh": "工程硕士",
+        "ja": "工学修士",
+        "ko": "공학 석사",
+    },
+    'Master of Engineering Science (Research)': {
+        "zh": "工程科学硕士（研究型）",
+        "ja": "工学修士（研究型）",
+        "ko": "공학 석사(연구형)",
+    },
+    'Master of Fine Art': {
+        "zh": "美术硕士",
+        "ja": "美術修士",
+        "ko": "미술 석사",
+    },
+    'Master of Genome Analytics': {
+        "zh": "基因组分析硕士",
+        "ja": "ゲノム解析修士",
+        "ko": "유전체 분석 석사",
+    },
+    'Master of Industrial Chemical Engineering': {
+        "zh": "工业化学工程硕士",
+        "ja": "工業化学工学修士",
+        "ko": "산업화학공학 석사",
+    },
+    'Master of Mathematics': {
+        "zh": "数学硕士",
+        "ja": "数学修士",
+        "ko": "수학 석사",
+    },
+    'Master of Nursing Practice': {
+        "zh": "护理实践硕士",
+        "ja": "看護実践修士",
+        "ko": "간호실무 석사",
+    },
+    'Master of Nutrition and Dietetics': {
+        "zh": "营养与膳食学硕士",
+        "ja": "栄養・食事学修士",
+        "ko": "영양·식이학 석사",
+    },
+    'Master of Occupational Therapy Practice': {
+        "zh": "职业治疗实践硕士",
+        "ja": "作業療法実践修士",
+        "ko": "작업치료 실무 석사",
+    },
+    'Master of Philosophy': {
+        "zh": "哲学硕士",
+        "ja": "哲学修士",
+        "ko": "철학 석사",
+    },
+    'Master of Professional Accounting': {
+        "zh": "专业会计硕士",
+        "ja": "専門会計修士",
+        "ko": "전문 회계 석사",
+    },
+    'Master of Professional Engineering': {
+        "zh": "专业工程硕士",
+        "ja": "専門工学修士",
+        "ko": "전문 공학 석사",
+    },
+    'Master of Professional Psychology': {
+        "zh": "专业心理学硕士",
+        "ja": "専門心理学修士",
+        "ko": "전문 심리학 석사",
+    },
+    'Master of Public Health': {
+        "zh": "公共卫生硕士",
+        "ja": "公衆衛生学修士",
+        "ko": "공중보건학 석사",
+    },
+    'Master of Science': {
+        "zh": "理学硕士",
+        "ja": "理学修士",
+        "ko": "이학 석사",
+    },
+    'Master of Surgery': {
+        "zh": "外科学硕士",
+        "ja": "外科学修士",
+        "ko": "외과학 석사",
+    },
+    'Master of Wound Care': {
+        "zh": "伤口护理硕士",
+        "ja": "創傷ケア修士",
+        "ko": "상처치료 석사",
+    },
+    'Bachelor of Architectural Design and Master of Architecture': {
+        "zh": "建筑设计学士与建筑学硕士",
+        "ja": "建築デザイン学士・建築学修士",
+        "ko": "건축디자인 학사 및 건축학 석사",
+    },
     # --- the names a degree gives its own parts ----------------------------
     #
     # The Part letter is pinned too, so that "Part A. Foundation studies" is
@@ -1770,6 +2121,13 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "ダブルディグリー",
         "ko": "복수학위",
     },
+    # The other half of a double degree. Read as 伴侣学位 - a spouse - in the
+    # sentence that tells a student which of their units count as electives.
+    "partner degree": {
+        "zh": "另一个学位",
+        "ja": "もう一方の学位",
+        "ko": "다른 한쪽 학위",
+    },
     # --- the words on an assessment table -----------------------------------
     #
     # "Assignment 1 and Assignment 2" read 转让1和转让2 - a transfer of legal
@@ -1943,6 +2301,30 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "副専攻科目",
         "ko": "부전공 과목",
     },
+    # Spelled out as phrases because they are the academic sense wherever they
+    # appear, including on the guides, where bare "major" is not (see
+    # STRUCTURE_TERMS). Longest-first matching means these win over the bare
+    # words when both are in play.
+    "major or minor": {
+        "zh": "主修或辅修专业",
+        "ja": "主専攻または副専攻",
+        "ko": "주전공 또는 부전공",
+    },
+    "majors or minors": {
+        "zh": "主修或辅修专业",
+        "ja": "主専攻または副専攻",
+        "ko": "주전공 또는 부전공",
+    },
+    "minor or major": {
+        "zh": "辅修或主修专业",
+        "ja": "副専攻または主専攻",
+        "ko": "부전공 또는 주전공",
+    },
+    "extended major": {
+        "zh": "扩展主修专业",
+        "ja": "拡張主専攻",
+        "ko": "확장 주전공",
+    },
     "specified studies": {
         "zh": "指定课程",
         "ja": "指定科目",
@@ -2098,7 +2480,330 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "交換留学",
         "ko": "교환학생",
     },
+
+    # --- words the offline model reads in the wrong field ----------------------
+    #
+    # Each of these was measured on the live site, where the model gave a
+    # different wrong answer for the same word in every sentence:
+    # mechatronics came back as 中程器, 中子医学, 中医药学, 中杂技 and 中转; curating
+    # as 惩罚 and 诅咒; "cervical" as 子宫颈 (the cervix) in a sentence about the
+    # cervical spine, which is 颈椎; "microcredential" as 微证据 (micro-evidence).
+    "mechatronics": {"zh": "机电一体化", "ja": "メカトロニクス", "ko": "메카트로닉스"},
+    "mechatronic": {"zh": "机电一体化", "ja": "メカトロニクス", "ko": "메카트로닉스"},
+    "curating": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curate": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curatorial": {"zh": "策展", "ja": "キュレーション", "ko": "큐레이팅"},
+    "curator": {"zh": "策展人", "ja": "キュレーター", "ko": "큐레이터"},
+    "cervical cancer": {"zh": "宫颈癌", "ja": "子宮頸がん", "ko": "자궁경부암"},
+    "cervical screening": {"zh": "宫颈筛查", "ja": "子宮頸がん検診", "ko": "자궁경부 검진"},
+    "cervical spine": {"zh": "颈椎", "ja": "頸椎", "ko": "경추"},
+    "cervical": {"zh": "颈椎", "ja": "頸椎", "ko": "경추"},
+    "lumbar spine": {"zh": "腰椎", "ja": "腰椎", "ko": "요추"},
+    "lumbar": {"zh": "腰椎", "ja": "腰椎", "ko": "요추"},
+    "thoracic spine": {"zh": "胸椎", "ja": "胸椎", "ko": "흉추"},
+    "microcredential": {
+        "zh": "微证书（microcredential）", "ja": "マイクロクレデンシャル",
+        "ko": "마이크로크리덴셜",
+    },
+    "breadth study unit": {
+        "zh": "通识课程（breadth study）", "ja": "教養科目（breadth study）",
+        "ko": "교양 과목(breadth study)",
+    },
+    "breadth study": {
+        "zh": "通识课程（breadth study）", "ja": "教養科目（breadth study）",
+        "ko": "교양 과목(breadth study)",
+    },
 }
+
+# ---------------------------------------------------------------------------
+# The Handbook's faculties, schools and departments, as whole values.
+#
+# Every owning organisation named by a unit, degree or area of study in the
+# 2025 to 2027 Handbooks. They are names, so the model has no sentence to read
+# them from: "School of Mathematics" left in English beside 管理系 in the same
+# filter list is what this table is for. Proper names (Jeffrey Cheah, Monash
+# Health, Eastern Health) stay in English; only the generic words around them
+# are translated.
+_ORGS: dict[str, tuple[str, str, str]] = {
+    # name: (zh, ja, ko)
+    # faculties
+    "Faculty of Art, Design and Architecture": (
+        "艺术、设计与建筑学院", "芸術・デザイン・建築学部", "예술·디자인·건축대학",
+    ),
+    "Faculty of Arts": ("文学院", "文学部", "인문대학"),
+    "Faculty of Business and Economics": ("商学与经济学院", "ビジネス・経済学部", "경영·경제대학"),
+    "Faculty of Education": ("教育学院", "教育学部", "교육대학"),
+    "Faculty of Engineering": ("工程学院", "工学部", "공과대학"),
+    "Faculty of Information Technology": ("信息技术学院", "情報技術学部", "정보기술대학"),
+    "Faculty of Law": ("法学院", "法学部", "법과대학"),
+    "Faculty of Medicine, Nursing and Health Sciences": (
+        "医学、护理与健康科学学院", "医学・看護・健康科学部", "의학·간호·보건과학대학",
+    ),
+    "Faculty of Pharmacy and Pharmaceutical Sciences": (
+        "药学与制药科学学院", "薬学・薬科学部", "약학·제약과학대학",
+    ),
+    "Faculty of Science": ("理学院", "理学部", "이과대학"),
+    # schools
+    "School of Biological Sciences": ("生物科学学院", "生物科学スクール", "생명과학부"),
+    "School of Biomedical Sciences": ("生物医学科学学院", "生物医科学スクール", "의생명과학부"),
+    "School of Chemistry": ("化学学院", "化学スクール", "화학부"),
+    "School of Clinical Sciences at Monash Health": (
+        "Monash Health 临床科学学院", "Monash Health 臨床科学スクール", "Monash Health 임상과학부",
+    ),
+    "School of Earth, Atmosphere and Environment": (
+        "地球、大气与环境学院", "地球・大気・環境スクール", "지구·대기·환경학부",
+    ),
+    "School of Languages, Literatures, Cultures and Linguistics": (
+        "语言、文学、文化与语言学学院",
+        "言語・文学・文化・言語学スクール",
+        "언어·문학·문화·언어학부",
+    ),
+    "School of Mathematics": ("数学学院", "数学スクール", "수학부"),
+    "School of Media, Film and Journalism": (
+        "媒体、电影与新闻学院",
+        "メディア・映画・ジャーナリズムスクール",
+        "미디어·영화·저널리즘학부",
+    ),
+    "School of Nursing and Midwifery": ("护理与助产学院", "看護・助産スクール", "간호·조산학부"),
+    "School of Philosophical, Historical and Indigenous Studies": (
+        "哲学、历史与原住民研究学院", "哲学・歴史・先住民研究スクール", "철학·역사·원주민학부",
+    ),
+    "School of Physics and Astronomy": (
+        "物理与天文学院", "物理学・天文学スクール", "물리·천문학부",
+    ),
+    "School of Primary & Allied Health Care": (
+        "初级卫生与联合医疗学院", "プライマリ・連携医療スクール", "1차·연합보건의료학부",
+    ),
+    "School of Primary Health Care": (
+        "初级卫生保健学院", "プライマリヘルスケアスクール", "1차보건의료학부",
+    ),
+    "School of Psychological Sciences": ("心理科学学院", "心理科学スクール", "심리과학부"),
+    "School of Public Health and Preventive Medicine": (
+        "公共卫生与预防医学学院", "公衆衛生・予防医学スクール", "공중보건·예방의학부",
+    ),
+    "School of Rural Health": ("乡村卫生学院", "地域医療スクール", "농촌보건학부"),
+    "School of Social Sciences": ("社会科学学院", "社会科学スクール", "사회과학부"),
+    "School of Translational Medicine": (
+        "转化医学学院", "トランスレーショナル医学スクール", "중개의학부",
+    ),
+    "Sir Zelman Cowen School of Music and Performance": (
+        "Sir Zelman Cowen 音乐与表演学院",
+        "Sir Zelman Cowen 音楽・パフォーマンススクール",
+        "Sir Zelman Cowen 음악·공연학부",
+    ),
+    "Jeffrey Cheah School of Medicine and Health Sciences Malaysia": (
+        "马来西亚校区 Jeffrey Cheah 医学与健康科学学院",
+        "マレーシア校 Jeffrey Cheah 医学・健康科学スクール",
+        "말레이시아 캠퍼스 Jeffrey Cheah 의학·보건과학부",
+    ),
+    "Clayton School of Information Technology": (
+        "Clayton 信息技术学院", "Clayton 情報技術スクール", "Clayton 정보기술학부",
+    ),
+    "FUA Gippsland School of Applied Science & Engineering": (
+        "FUA Gippsland 应用科学与工程学院",
+        "FUA Gippsland 応用科学・工学スクール",
+        "FUA Gippsland 응용과학·공학부",
+    ),
+    "Central Clinical School": ("中央临床学院", "セントラル臨床スクール", "중앙임상학부"),
+    "Eastern Health Clinical School": (
+        "Eastern Health 临床学院", "Eastern Health 臨床スクール", "Eastern Health 임상학부",
+    ),
+    # Malaysia
+    "Malaysia School of Arts and Social Sciences": (
+        "马来西亚校区文学与社会科学学院",
+        "マレーシア校 文学・社会科学スクール",
+        "말레이시아 캠퍼스 인문사회과학부",
+    ),
+    "Malaysia School of Engineering": (
+        "马来西亚校区工程学院", "マレーシア校 工学スクール", "말레이시아 캠퍼스 공학부",
+    ),
+    "Malaysia School of Science": (
+        "马来西亚校区理学院", "マレーシア校 理学スクール", "말레이시아 캠퍼스 이학부",
+    ),
+    "Malaysia School of Pathways & Immersion": (
+        "马来西亚校区衔接与沉浸式学习学院",
+        "マレーシア校 進学準備・体験学習スクール",
+        "말레이시아 캠퍼스 진학·몰입 학습부",
+    ),
+    "Malaysia Business Law & Taxation": (
+        "马来西亚校区商法与税法",
+        "マレーシア校 ビジネス法・税法",
+        "말레이시아 캠퍼스 비즈니스법·조세",
+    ),
+    # departments
+    "Department of Accounting": ("会计系", "会計学科", "회계학과"),
+    "Department of Anatomy and Development Biology": (
+        "解剖学与发育生物学系", "解剖学・発生生物学科", "해부학·발생생물학과",
+    ),
+    "Department of Architecture": ("建筑系", "建築学科", "건축학과"),
+    "Department of Banking and Finance": ("银行与金融系", "銀行・金融学科", "은행·금융학과"),
+    "Department of Biochemistry and Molecular Biology": (
+        "生物化学与分子生物学系", "生化学・分子生物学科", "생화학·분자생물학과",
+    ),
+    "Department of Business Law and Taxation": (
+        "商法与税法系", "ビジネス法・税法学科", "비즈니스법·조세학과",
+    ),
+    "Department of Chemical and Biological Engineering": (
+        "化学与生物工程系", "化学・生物工学科", "화학생물공학과",
+    ),
+    "Department of Civil and Environmental Engineering": (
+        "土木与环境工程系", "土木・環境工学科", "토목환경공학과",
+    ),
+    "Department of Design": ("设计系", "デザイン学科", "디자인학과"),
+    "Department of Econometrics and Business Statistics": (
+        "计量经济与商业统计系", "計量経済学・ビジネス統計学科", "계량경제·경영통계학과",
+    ),
+    "Department of Economics": ("经济学系", "経済学科", "경제학과"),
+    "Department of Electrical and Computer Systems Engineering": (
+        "电气与计算机系统工程系", "電気・コンピュータシステム工学科", "전기·컴퓨터시스템공학과",
+    ),
+    "Department of Epidemiology and Preventive Medicine": (
+        "流行病学与预防医学系", "疫学・予防医学科", "역학·예방의학과",
+    ),
+    "Department of Fine Art": ("美术系", "美術学科", "미술학과"),
+    "Department of Immunology": ("免疫学系", "免疫学科", "면역학과"),
+    "Department of Management": ("管理系", "経営学科", "경영학과"),
+    "Department of Marketing": ("市场营销系", "マーケティング学科", "마케팅학과"),
+    "Department of Materials Science and Engineering": (
+        "材料科学与工程系", "材料科学工学科", "재료공학과",
+    ),
+    "Department of Mechanical and Aerospace Engineering": (
+        "机械与航空航天工程系", "機械・航空宇宙工学科", "기계항공공학과",
+    ),
+    "Department of Microbiology": ("微生物学系", "微生物学科", "미생물학과"),
+    "Department of Nutrition, Dietetics and Food": (
+        "营养、膳食与食品系", "栄養・食事療法・食品学科", "영양·식이·식품학과",
+    ),
+    "Department of Obstetrics and Gynaecology": ("妇产科学系", "産婦人科学教室", "산부인과학교실"),
+    "Department of Occupational Therapy": ("作业治疗系", "作業療法学科", "작업치료학과"),
+    "Department of Paramedicine": ("院前急救系", "救急救命学科", "응급구조학과"),
+    "Department of Pharmacology": ("药理学系", "薬理学科", "약리학과"),
+    "Department of Physiology": ("生理学系", "生理学科", "생리학과"),
+    "Department of Physiotherapy": ("物理治疗系", "理学療法学科", "물리치료학과"),
+    "Department of Tourism": ("旅游系", "観光学科", "관광학과"),
+    # disciplines named on their own
+    "Anaesthesia Teaching and Research": (
+        "麻醉学教学与研究", "麻酔学教育・研究", "마취학 교육·연구",
+    ),
+    "Anthropology": ("人类学", "人類学", "인류학"),
+    "Archaeology and Ancient History": ("考古学与古代史", "考古学・古代史", "고고학·고대사"),
+    "Chinese Studies": ("汉学研究", "中国研究", "중국학"),
+    "Communications": ("传播学", "コミュニケーション学", "커뮤니케이션학"),
+    "Criminology": ("犯罪学", "犯罪学", "범죄학"),
+    "Critical Performance Studies": ("批判表演研究", "批判的パフォーマンス研究", "비판적 공연학"),
+    "European Languages": ("欧洲语言", "ヨーロッパ言語", "유럽 언어"),
+    "Film, Screen and Culture": ("电影、影像与文化", "映画・映像・文化", "영화·영상·문화"),
+    "Forensic Medicine": ("法医学", "法医学", "법의학"),
+    "History": ("历史学", "歴史学", "역사학"),
+    "Human Geography Anthropology & Development Studies": (
+        "人文地理、人类学与发展研究", "人文地理学・人類学・開発研究", "인문지리·인류학·개발학",
+    ),
+    "Indonesian Studies": ("印尼研究", "インドネシア研究", "인도네시아학"),
+    "Intercultural Studies": ("跨文化研究", "異文化研究", "상호문화연구"),
+    "Japanese Studies": ("日本研究", "日本研究", "일본학"),
+    "Journalism": ("新闻学", "ジャーナリズム", "저널리즘"),
+    "Korean Studies": ("韩国研究", "韓国研究", "한국학"),
+    "Linguistics": ("语言学", "言語学", "언어학"),
+    "Literary Studies": ("文学研究", "文学研究", "문학 연구"),
+    "Media": ("媒体研究", "メディア研究", "미디어학"),
+    "Medical Imaging and Radiation Sciences": (
+        "医学影像与放射科学", "医用画像・放射線科学", "의료영상·방사선과학",
+    ),
+    "Philosophy": ("哲学", "哲学", "철학"),
+    "Politics and International Relations": (
+        "政治学与国际关系", "政治学・国際関係", "정치학·국제관계",
+    ),
+    "Psychiatry Monash Health": (
+        "Monash Health 精神病学", "Monash Health 精神医学", "Monash Health 정신의학",
+    ),
+    "Psychology": ("心理学", "心理学", "심리학"),
+    "Social Work": ("社会工作", "ソーシャルワーク", "사회복지학"),
+    "Sociology": ("社会学", "社会学", "사회학"),
+    "Sustainable Development Education": (
+        "可持续发展教育", "持続可能な開発のための教育", "지속가능발전교육",
+    ),
+    "Translation Studies": ("翻译研究", "翻訳研究", "번역학"),
+    # centres and institutes
+    "Australian Centre for Jewish Civilisation": (
+        "澳大利亚犹太文明研究中心", "オーストラリア・ユダヤ文明センター", "호주 유대 문명 센터",
+    ),
+    "Australian Regenerative Medicine Institute": (
+        "澳大利亚再生医学研究所", "オーストラリア再生医学研究所", "호주 재생의학연구소",
+    ),
+    "Centre for Ancient Cultures": ("古代文化研究中心", "古代文化センター", "고대문화 센터"),
+    "Centre for Consciousness and Contemplative Studies": (
+        "意识与冥想研究中心", "意識・瞑想研究センター", "의식·명상 연구 센터",
+    ),
+    "Centre for Health Economics": ("健康经济学研究中心", "医療経済学センター", "보건경제학 센터"),
+    "Monash Bioethics Centre": (
+        "Monash 生物伦理中心", "Monash 生命倫理センター", "Monash 생명윤리 센터",
+    ),
+    "Monash Centre for Financial Studies": (
+        "Monash 金融研究中心", "Monash 金融研究センター", "Monash 금융연구센터",
+    ),
+    "Monash Indigenous Studies Centre": (
+        "Monash 原住民研究中心", "Monash 先住民研究センター", "Monash 원주민 연구 센터",
+    ),
+    "Monash Sustainable Development Institute": (
+        "Monash 可持续发展研究院", "Monash 持続可能な開発研究所", "Monash 지속가능발전연구소",
+    ),
+    "Monash University Accident Research Centre": (
+        "Monash 大学事故研究中心", "Monash 大学 事故研究センター", "Monash 대학교 사고연구센터",
+    ),
+    "Victorian Heart Institute (VHI)": (
+        "维多利亚心脏研究所（VHI）", "ビクトリア心臓研究所（VHI）", "빅토리아 심장연구소(VHI)",
+    ),
+    # the business school's programmes
+    "Monash Business School GEMBA": (
+        "Monash 商学院 GEMBA", "Monash ビジネススクール GEMBA", "Monash 경영대학원 GEMBA",
+    ),
+    "Monash Business School MBA": (
+        "Monash 商学院 MBA", "Monash ビジネススクール MBA", "Monash 경영대학원 MBA",
+    ),
+    "Monash Business School Online": (
+        "Monash 商学院在线课程", "Monash ビジネススクール オンライン", "Monash 경영대학 온라인",
+    ),
+    "Monash Business School of Executive Education": (
+        "Monash 商学院高管教育",
+        "Monash ビジネススクール エグゼクティブ教育",
+        "Monash 경영대학원 경영자 교육",
+    ),
+    # offices and programme codes the Handbook uses as an owner
+    "Office of the DVC Education and Senior VP": (
+        "教育副校长办公室", "教育担当副学長室", "교육 담당 부총장실",
+    ),
+    "Office of the DVC Student Experience and Senior VP": (
+        "学生体验副校长办公室", "学生体験担当副学長室", "학생 경험 담당 부총장실",
+    ),
+    "BMedSc Md": (
+        "医学科学学士与医学博士（BMedSc MD）",
+        "医科学士・医学博士（BMedSc MD）",
+        "의과학사·의학박사(BMedSc MD)",
+    ),
+    "MFJ Graduate Studies": (
+        "媒体、电影与新闻研究生课程",
+        "メディア・映画・ジャーナリズム大学院課程",
+        "미디어·영화·저널리즘 대학원 과정",
+    ),
+    "Capstone": ("毕业项目（Capstone）", "キャップストーン", "캡스톤"),
+    "Global Immersion Guarantee": (
+        "全球沉浸式学习保障项目",
+        "グローバル体験学習保証プログラム",
+        "글로벌 몰입 학습 보장 프로그램",
+    ),
+    "Education Faculty Activities": ("教育学院项目", "教育学部プログラム", "교육대학 프로그램"),
+    "Education Psychology Activities": (
+        "教育心理学项目", "教育心理学プログラム", "교육심리학 프로그램",
+    ),
+    "Rural Health Churchill": (
+        "乡村卫生（Churchill）", "地域医療（Churchill）", "농촌보건(Churchill)",
+    ),
+}
+
+ORG_NAMES: dict[str, dict[str, str]] = {
+    name: dict(zip(LOCALES, names, strict=True)) for name, names in _ORGS.items()
+}
+
 
 # ---------------------------------------------------------------------------
 # Whole field values, matched exactly rather than as substrings.
@@ -2110,9 +2815,9 @@ TERMS: dict[str, dict[str, str]] = {
 # unaided the model returns 锻炼 (physical exercise) for the assessment type
 # *Exercise* and 阈值 (a numeric threshold) for the hurdle type *Threshold*.
 #
-# Names of institutions are deliberately left in English. "Walter and Eliza Hall
-# Institute" is what is written on the building, and a student looking for it
-# needs the name that is on the building.
+# The proper part of an institution's name stays in English and only the generic
+# part is translated: "Walter and Eliza Hall 研究所". The name on the building is
+# what a student has to find, and 研究所 tells them what kind of place it is.
 ENUMS: dict[str, dict[str, str]] = {
     # --- a numbered choice in a degree structure ------------------------------
     #
@@ -2158,6 +2863,32 @@ ENUMS: dict[str, dict[str, str]] = {
     "Research": {"zh": "研究型", "ja": "研究型", "ko": "연구 중심"},
     "Honours - 1 yr": {"zh": "荣誉学位（1 年）", "ja": "オナーズ（1 年）", "ko": "우등 학위(1년)"},
     "Honours": {"zh": "荣誉学位", "ja": "オナーズ", "ko": "우등 학위"},
+    # Current 2026 course index values.  Earlier Handbook exports used the
+    # shorter PG coursework / Research labels above; these exact replacements
+    # keep the new abbreviations out of the translator too.
+    "Doctorate by research": {
+        "zh": "研究型博士学位", "ja": "研究博士課程", "ko": "연구 박사과정",
+    },
+    "Higher doctorate": {
+        "zh": "高级博士学位", "ja": "上位博士号", "ko": "고등 박사학위",
+    },
+    "Masters by research": {
+        "zh": "研究型硕士学位", "ja": "研究修士課程", "ko": "연구 석사과정",
+    },
+    "Non award pathway": {
+        "zh": "非学位衔接课程", "ja": "非学位進学課程", "ko": "비학위 진학과정",
+    },
+    "PG Grad Cert / Grad Dip": {
+        "zh": "研究生证书／研究生文凭",
+        "ja": "大学院サーティフィケート／ディプロマ",
+        "ko": "대학원 수료증 / 디플로마",
+    },
+    "PG Masters": {
+        "zh": "授课型硕士学位", "ja": "授業型修士課程", "ko": "수업형 석사과정",
+    },
+    "UG diploma": {
+        "zh": "本科文凭", "ja": "学部ディプロマ", "ko": "학부 디플로마",
+    },
 
     # --- what kind of area of study it is -------------------------------------
     "UG specialisation": {"zh": "本科专业方向", "ja": "学部専門分野", "ko": "학부 세부전공"},
@@ -2296,16 +3027,16 @@ ENUMS: dict[str, dict[str, str]] = {
         "ko": "겨울 학기(대체 일정)",
     },
     "November teaching period": {"zh": "11 月教学期", "ja": "11月開講期", "ko": "11월 학기"},
-    "Teaching period 1": {"zh": "教学期 1", "ja": "開講期 1", "ko": "학기 1"},
-    "Teaching period 2": {"zh": "教学期 2", "ja": "開講期 2", "ko": "학기 2"},
-    "Teaching period 3": {"zh": "教学期 3", "ja": "開講期 3", "ko": "학기 3"},
-    "Teaching period 4": {"zh": "教学期 4", "ja": "開講期 4", "ko": "학기 4"},
-    "Teaching period 5": {"zh": "教学期 5", "ja": "開講期 5", "ko": "학기 5"},
-    "Teaching period 6": {"zh": "教学期 6", "ja": "開講期 6", "ko": "학기 6"},
-    "Term 1": {"zh": "第 1 学季", "ja": "第1タームト", "ko": "1학기(term)"},
-    "Term 2": {"zh": "第 2 学季", "ja": "第2ターム", "ko": "2학기(term)"},
-    "Term 3": {"zh": "第 3 学季", "ja": "第3ターム", "ko": "3학기(term)"},
-    "Term 4": {"zh": "第 4 学季", "ja": "第4ターム", "ko": "4학기(term)"},
+    "Teaching period 1": {"zh": "教学期 1", "ja": "開講期 1", "ko": "수업 기간 1"},
+    "Teaching period 2": {"zh": "教学期 2", "ja": "開講期 2", "ko": "수업 기간 2"},
+    "Teaching period 3": {"zh": "教学期 3", "ja": "開講期 3", "ko": "수업 기간 3"},
+    "Teaching period 4": {"zh": "教学期 4", "ja": "開講期 4", "ko": "수업 기간 4"},
+    "Teaching period 5": {"zh": "教学期 5", "ja": "開講期 5", "ko": "수업 기간 5"},
+    "Teaching period 6": {"zh": "教学期 6", "ja": "開講期 6", "ko": "수업 기간 6"},
+    "Term 1": {"zh": "第 1 学季", "ja": "第1ターム", "ko": "1텀"},
+    "Term 2": {"zh": "第 2 学季", "ja": "第2ターム", "ko": "2텀"},
+    "Term 3": {"zh": "第 3 学季", "ja": "第3ターム", "ko": "3텀"},
+    "Term 4": {"zh": "第 4 学季", "ja": "第4ターム", "ko": "4텀"},
     "Trimester 1": {"zh": "第 1 学段", "ja": "第1トライメスター", "ko": "1트라이메스터"},
     "Trimester 2": {"zh": "第 2 学段", "ja": "第2トライメスター", "ko": "2트라이메스터"},
     "Trimester 3": {"zh": "第 3 学段", "ja": "第3トライメスター", "ko": "3트라이메스터"},
@@ -2313,6 +3044,14 @@ ENUMS: dict[str, dict[str, str]] = {
     "Research quarter 2": {"zh": "研究季度 2", "ja": "研究クォーター 2", "ko": "연구 분기 2"},
     "Research quarter 3": {"zh": "研究季度 3", "ja": "研究クォーター 3", "ko": "연구 분기 3"},
     "Research quarter 4": {"zh": "研究季度 4", "ja": "研究クォーター 4", "ko": "연구 분기 4"},
+
+    # --- who published an official guide -------------------------------------
+    "Monash University": {"zh": "Monash 大学", "ja": "Monash 大学", "ko": "Monash 대학교"},
+    "Monash University Malaysia": {
+        "zh": "Monash 大学马来西亚校区",
+        "ja": "Monash 大学マレーシアキャンパス",
+        "ko": "Monash 대학교 말레이시아 캠퍼스",
+    },
 
     # --- campus --------------------------------------------------------------
     "Clayton": {"zh": "Clayton 校区", "ja": "Clayton キャンパス", "ko": "Clayton 캠퍼스"},
@@ -2425,6 +3164,178 @@ ENUMS: dict[str, dict[str, str]] = {
         "ja": "学外在籍（EXT-CAND）",
         "ko": "교외 등록(EXT-CAND)",
     },
+    # --- more teaching periods ------------------------------------------------
+    "October intake teaching period, Malaysia campus": {
+        "zh": "10 月入学教学期（马来西亚校区）",
+        "ja": "10月入学開講期（マレーシアキャンパス）",
+        "ko": "10월 입학 학기(말레이시아 캠퍼스)",
+    },
+    "Monash Indonesia semester 1": {
+        "zh": "印尼校区第一学期", "ja": "インドネシア校 第1学期", "ko": "인도네시아 캠퍼스 1학기",
+    },
+    "Monash Indonesia semester 2": {
+        "zh": "印尼校区第二学期", "ja": "インドネシア校 第2学期", "ko": "인도네시아 캠퍼스 2학기",
+    },
+    "Monash Indonesia term 1": {
+        "zh": "印尼校区第 1 学季", "ja": "インドネシア校 第1ターム", "ko": "인도네시아 캠퍼스 1텀",
+    },
+    "Monash Indonesia term 2": {
+        "zh": "印尼校区第 2 学季", "ja": "インドネシア校 第2ターム", "ko": "인도네시아 캠퍼스 2텀",
+    },
+    "Monash Indonesia term 3": {
+        "zh": "印尼校区第 3 学季", "ja": "インドネシア校 第3ターム", "ko": "인도네시아 캠퍼스 3텀",
+    },
+    "Monash Indonesia term 4": {
+        "zh": "印尼校区第 4 学季", "ja": "インドネシア校 第4ターム", "ko": "인도네시아 캠퍼스 4텀",
+    },
+    "Monash Indonesia term 5": {
+        "zh": "印尼校区第 5 学季", "ja": "インドネシア校 第5ターム", "ko": "인도네시아 캠퍼스 5텀",
+    },
+    # A unit that starts in one period and finishes in the next.
+    "Second semester to First semester": {
+        "zh": "第二学期至第一学期", "ja": "第2学期〜第1学期", "ko": "2학기 ~ 1학기",
+    },
+    "Summer semester A to First semester": {
+        "zh": "夏季学期 A 至第一学期",
+        "ja": "サマーセメスター A〜第1学期",
+        "ko": "여름 학기 A ~ 1학기",
+    },
+    "Second semester to Summer semester A": {
+        "zh": "第二学期至夏季学期 A",
+        "ja": "第2学期〜サマーセメスター A",
+        "ko": "2학기 ~ 여름 학기 A",
+    },
+
+    # --- more campuses and teaching sites -------------------------------------
+    "Alfred Hospital": {"zh": "Alfred 医院", "ja": "Alfred 病院", "ko": "Alfred 병원"},
+    "Monash Medical Centre": {
+        "zh": "Monash Medical Centre（医疗中心）",
+        "ja": "Monash Medical Centre（医療センター）",
+        "ko": "Monash Medical Centre(의료 센터)",
+    },
+    "Monash Medical School - Alfred Hospital": {
+        "zh": "Monash 医学院 · Alfred 医院",
+        "ja": "Monash 医学部・Alfred 病院",
+        "ko": "Monash 의과대학 · Alfred 병원",
+    },
+    "Monash Law Chambers": {
+        "zh": "Monash Law Chambers（法学院市区教学楼）",
+        "ja": "Monash Law Chambers（法学部の市内校舎）",
+        "ko": "Monash Law Chambers(법과대학 시내 강의동)",
+    },
+    "Monash Suzhou Research Institute": {
+        "zh": "Monash 苏州研究院", "ja": "Monash 蘇州研究院", "ko": "Monash 쑤저우 연구원",
+    },
+    "Hudson Institute of Medical Research": {
+        "zh": "Hudson 医学研究所", "ja": "Hudson 医学研究所", "ko": "Hudson 의학연구소",
+    },
+    "Burnet Institute": {"zh": "Burnet 研究所", "ja": "Burnet 研究所", "ko": "Burnet 연구소"},
+    "Baker Institute": {"zh": "Baker 研究所", "ja": "Baker 研究所", "ko": "Baker 연구소"},
+    "Walter and Eliza Hall Institute": {
+        "zh": "Walter and Eliza Hall 研究所",
+        "ja": "Walter and Eliza Hall 研究所",
+        "ko": "Walter and Eliza Hall 연구소",
+    },
+    "Peter MacCallum Cancer Centre": {
+        "zh": "Peter MacCallum 癌症中心",
+        "ja": "Peter MacCallum がんセンター",
+        "ko": "Peter MacCallum 암센터",
+    },
+    "Murdoch Children's Research Institute": {
+        "zh": "Murdoch 儿童研究所", "ja": "Murdoch 小児研究所", "ko": "Murdoch 아동연구소",
+    },
+    "Victorian Heart Hospital": {
+        "zh": "维多利亚心脏医院", "ja": "ビクトリア心臓病院", "ko": "빅토리아 심장병원",
+    },
+    "King's College London": {
+        "zh": "伦敦国王学院", "ja": "キングス・カレッジ・ロンドン", "ko": "킹스 칼리지 런던",
+    },
+    "University of the Philippines": {
+        "zh": "菲律宾大学", "ja": "フィリピン大学", "ko": "필리핀 대학교",
+    },
+    "Sri Lanka": {"zh": "斯里兰卡", "ja": "スリランカ", "ko": "스리랑카"},
+    "Bairnsdale": {"zh": "Bairnsdale", "ja": "Bairnsdale", "ko": "Bairnsdale"},
+    "Wonthaggi": {"zh": "Wonthaggi", "ja": "Wonthaggi", "ko": "Wonthaggi"},
+
+    # --- more assessment types -------------------------------------------------
+    "Participation": {"zh": "课堂参与", "ja": "授業参加", "ko": "수업 참여"},
+    "Take home exam": {"zh": "居家考试", "ja": "持ち帰り試験", "ko": "재택 시험"},
+    "Thesis": {"zh": "学位论文", "ja": "論文", "ko": "학위 논문"},
+    "In class test": {"zh": "课堂测验", "ja": "授業内テスト", "ko": "수업 중 테스트"},
+
+    # --- more kinds of area of study, and study levels --------------------------
+    "Honours research area": {
+        "zh": "荣誉学位研究方向", "ja": "オナーズ研究分野", "ko": "우등 학위 연구 분야",
+    },
+    "HDR program": {
+        "zh": "研究型学位项目（HDR）",
+        "ja": "研究学位プログラム（HDR）",
+        "ko": "연구 학위 과정(HDR)",
+    },
+    "Undergraduate": {"zh": "本科", "ja": "学部", "ko": "학부"},
+    "Postgraduate": {"zh": "研究生", "ja": "大学院", "ko": "대학원"},
+
+    # --- AQF level of a degree --------------------------------------------------
+    #
+    # A double degree lists one per half, "Level 7 - Bachelor Degree / Level 9 -
+    # Master's Degree (Extended)"; ``whole_value`` translates each half.
+    "Level 5 - Diploma": {
+        "zh": "第 5 级 · 文凭", "ja": "レベル 5・ディプロマ", "ko": "레벨 5 · 디플로마",
+    },
+    "Level 7 - Bachelor Degree": {
+        "zh": "第 7 级 · 学士学位", "ja": "レベル 7・学士", "ko": "레벨 7 · 학사 학위",
+    },
+    "Level 8 - Bachelor Honours Degree": {
+        "zh": "第 8 级 · 荣誉学士学位",
+        "ja": "レベル 8・オナーズ学士",
+        "ko": "레벨 8 · 우등 학사 학위",
+    },
+    "Level 8 - Graduate Certificate": {
+        "zh": "第 8 级 · 研究生证书",
+        "ja": "レベル 8・大学院サーティフィケート",
+        "ko": "레벨 8 · 대학원 수료증",
+    },
+    "Level 8 - Graduate Diploma": {
+        "zh": "第 8 级 · 研究生文凭",
+        "ja": "レベル 8・大学院ディプロマ",
+        "ko": "레벨 8 · 대학원 디플로마",
+    },
+    "Level 9 - Master's Degree (Coursework)": {
+        "zh": "第 9 级 · 硕士学位（授课型）",
+        "ja": "レベル 9・修士（授業型）",
+        "ko": "레벨 9 · 석사 학위(수업형)",
+    },
+    # The Handbook writes this one with a curly apostrophe.
+    "Level 9 - Master’s Degree (Research)": {
+        "zh": "第 9 级 · 硕士学位（研究型）",
+        "ja": "レベル 9・修士（研究型）",
+        "ko": "레벨 9 · 석사 학위(연구형)",
+    },
+    "Level 9 - Master's Degree (Research)": {
+        "zh": "第 9 级 · 硕士学位（研究型）",
+        "ja": "レベル 9・修士（研究型）",
+        "ko": "레벨 9 · 석사 학위(연구형)",
+    },
+    "Level 9 - Master's Degree (Extended)": {
+        "zh": "第 9 级 · 硕士学位（扩展型）",
+        "ja": "レベル 9・修士（拡張型）",
+        "ko": "레벨 9 · 석사 학위(확장형)",
+    },
+    "Level 10 - Doctoral Degree": {
+        "zh": "第 10 级 · 博士学位", "ja": "レベル 10・博士", "ko": "레벨 10 · 박사 학위",
+    },
+    "Level 10 - Higher Doctoral Degree": {
+        "zh": "第 10 级 · 高级博士学位",
+        "ja": "レベル 10・上位博士",
+        "ko": "레벨 10 · 고등 박사 학위",
+    },
+
+    # --- faculties, schools and departments --------------------------------------
+    #
+    # The Handbook's owning organisation for a unit, degree or area of study,
+    # every value in the 2025 to 2027 data. The filter on /units lists them, so
+    # a missing one shows up as an English line among Chinese ones.
+    **ORG_NAMES,
 }
 
 
@@ -2474,7 +3385,8 @@ CRITICAL: frozenset[str] = frozenset({
     "weighted average mark", "WAM", "grade point average", "GPA",
     "hurdle requirement", "hurdle", "pass mark", "academic progress",
     "unsatisfactory progress", "exclusion", "academic integrity", "plagiarism",
-    "collusion",
+    "collusion", "threshold hurdle", "competency hurdle", "hurdle fail",
+    "additional assessment", "academic misconduct",
     # a second chance, or not
     "special consideration", "deferred assessment", "supplementary assessment",
     "final assessment", "extension",
@@ -2527,19 +3439,99 @@ def _inflected(term: str) -> tuple[str, ...]:
     return (plural, term + "'s", term + "\u2019s")
 
 
-# A form that is itself a listed term keeps its own entry: "credit points" is
-# 学分 whether or not "credit point" is.
-_FORMS: dict[str, str] = {term.lower(): term for term in TERMS}
-for _term in TERMS:
-    for _form in _inflected(_term):
-        _FORMS.setdefault(_form.lower(), _term)
+# Terms that are safe to pin only in the prose describing how a degree is put
+# together - a course's parts, an area of study's rules. Everywhere else the
+# same word is usually a different word.
+#
+# "major" is the case that forced this. Measured over the live corpus:
+#
+#   * in course and container descriptions, all 105 "major and", 52 "major in",
+#     43 "major or", 40 "major at" ... are the academic sense. Every occurrence
+#     is followed by a preposition or a verb; there is not one adjective use.
+#   * in unit overviews it is the adjective almost every time - major research,
+#     major themes, major issues, major outcomes, major challenges.
+#
+# So pinning it outright would fix the course pages and break several hundred
+# unit overviews, and leaving it unpinned reads "complete a major or minor from
+# other courses" as 完成一个少校或未成年人 - an army rank and a child. The sense
+# is decided by which kind of page the sentence is on, so that is what selects
+# it. Phrases that are unambiguous everywhere ("major or minor", "extended
+# major") live in TERMS instead and apply on every page.
+STRUCTURE_TERMS: dict[str, dict[str, str]] = {
+    "major": {
+        "zh": "主修专业",
+        "ja": "主専攻",
+        "ko": "주전공",
+    },
+    "minor": {
+        "zh": "辅修专业",
+        "ja": "副専攻",
+        "ko": "부전공",
+    },
+    # A Handbook "stream" is a track through a specialisation - the model's
+    # 溪流 (a brook) and 流 (a flow) were both on live pages. Structure pages only:
+    # in a unit overview the word is usually about data.
+    "stream": {"zh": "方向", "ja": "コース", "ko": "트랙"},
+}
 
-_SORTED = sorted(_FORMS, key=lambda t: (-len(t), t))
-_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in _SORTED) + r")(?![A-Za-z0-9])",
-    re.IGNORECASE,
-)
+# Words that mean one thing in any Handbook page - unit overviews included - and
+# another on the guides, where they belong to policy. "Discipline" is the case:
+# 纪律 (conduct, punishment) on a live unit page, for "discipline-specific
+# methodologies", on 50 distinct strings; on a policy page it is usually
+# "disciplinary action", which the model gets right. So it is pinned for units
+# and degrees and left alone for the guides.
+HANDBOOK_TERMS: dict[str, dict[str, str]] = {
+    # In the Handbook "Malaysia" is where a unit is taught: "Part C. Applied
+    # studies - Malaysia". On a guide it is the country.
+    "Malaysia": {"zh": "马来西亚校区", "ja": "マレーシアキャンパス", "ko": "말레이시아 캠퍼스"},
+    "discipline": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
+    "disciplinary": {"zh": "学科", "ja": "学問分野", "ko": "학문 분야"},
+    # The Handbook's attendance modes. On a guide the words are ordinary
+    # English: "off-campus accommodation" came back as 校外授课住宿.
+    "On-campus": {"zh": "校内授课", "ja": "対面授業", "ko": "대면 수업"},
+    "Off-campus": {"zh": "校外授课", "ja": "遠隔授業", "ko": "원격 수업"},
+}
+
+#: Scope names accepted by ``protect`` and ``terms_in``.
+GENERAL = "general"
+STRUCTURE = "structure"
+HANDBOOK = "handbook"
+
+_ALL_TERMS: dict[str, dict[str, dict[str, str]]] = {
+    GENERAL: TERMS,
+    HANDBOOK: {**TERMS, **HANDBOOK_TERMS},
+    STRUCTURE: {**TERMS, **HANDBOOK_TERMS, **STRUCTURE_TERMS},
+}
+
+
+def _compile(terms: dict[str, dict[str, str]]) -> tuple[dict[str, str], re.Pattern[str]]:
+    """The lookup and the matcher for one set of terms.
+
+    A form that is itself a listed term keeps its own entry: "credit points" is
+    学分 whether or not "credit point" is.
+    """
+    forms: dict[str, str] = {term.lower(): term for term in terms}
+    for term in terms:
+        for form in _inflected(term):
+            forms.setdefault(form.lower(), term)
+    ordered = sorted(forms, key=lambda t: (-len(t), t))
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9])(" + "|".join(re.escape(t) for t in ordered) + r")(?![A-Za-z0-9])",
+        re.IGNORECASE,
+    )
+    return forms, pattern
+
+
+_COMPILED = {scope: _compile(terms) for scope, terms in _ALL_TERMS.items()}
+
+_FORMS, _PATTERN = _COMPILED[GENERAL]
 _LOOKUP = _FORMS
+
+
+def _matcher(scope: str) -> tuple[dict[str, str], re.Pattern[str], dict[str, dict[str, str]]]:
+    """The forms, pattern and terms for a scope. An unknown scope is general."""
+    forms, pattern = _COMPILED.get(scope, _COMPILED[GENERAL])
+    return forms, pattern, _ALL_TERMS.get(scope, TERMS)
 
 # Letter placeholders: the model rewrites digits (XX1XX came back as X22XX) but
 # passes an unknown capitalised token through untouched.
@@ -2590,7 +3582,20 @@ def whole_value(text: str, locale: str) -> str | None:
     both safer and better than translating them as prose.
     """
     entry = ENUMS.get(text.strip())
-    return entry.get(locale) if entry else None
+    if entry:
+        return entry.get(locale)
+    # A double degree names one value per half: "Level 7 - Bachelor Degree /
+    # Level 9 - Master's Degree (Extended)". Both halves have to be known; one
+    # half in English beside one in Chinese reads as a bug. The Handbook also
+    # writes "X / X" for a double degree whose halves are the same level, and
+    # that is said once.
+    parts = [part.strip() for part in text.split(" / ")]
+    if len(parts) < 2 or not all(part in ENUMS for part in parts):
+        return None
+    done = [ENUMS[part].get(locale) for part in parts]
+    if not all(done):
+        return None
+    return done[0] if len(set(done)) == 1 else " / ".join(done)
 
 
 # ---------------------------------------------------------------------------
@@ -2646,14 +3651,33 @@ _CLOCK = r"(?P<hour>\d{1,2})(?:[.:](?P<minute>\d{2}))?\s?(?P<half>[ap]m|[AP]M)"
 # told to write to when they cannot finish the compulsory module, translated
 # into an address that does not exist. There is no grammar in an address.
 _EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
+# A web address. The glossary keeps "Monash" as written, and matched without
+# regard to case it rewrote www.monash.edu as www.Monash.edu in 1,174 stored
+# translations - and a path such as /mon2750-monash-innovation-guarantee is
+# case-sensitive. Either a scheme or a www., or a bare host on a domain Monash
+# links to; trailing punctuation belongs to the sentence.
+_URL = (
+    r"(?:https?://|www\.)[^\s<>\"'()\[\]]*[^\s<>\"'()\[\].,;:!?。，；：！？]"
+    r"|[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(?:edu|com|org|net|gov)(?:\.(?:my|au))?"
+    r"(?:/[^\s<>\"'()\[\]]*[^\s<>\"'()\[\].,;:!?。，；：！？])?"
+)
 # A unit code (ATS1192, MON1001), and the codes the dates pages hang off
 # (S2-01, MO-TP1-01).
+# An amount of money with its currency: RM1.10, RM 45,000, A$50, $31. The
+# Malaysia printing page's "RM1.10 per page / per side" was published as
+# 每页/每面 1.10 澳元 - the right number in the wrong country's dollars. The
+# number check passed it. Kept as written, the amount reads the same in every
+# language, and ``currencies_kept`` below catches a currency put next to it.
+_MONEY = (
+    r"(?:RM|MYR|AUD|USD|A\$|AU\$|US\$|\$)\s?\d+(?:,\d{3})*(?:\.\d+)?"
+    r"(?:\s?(?:million|billion|bn|m|k)(?![A-Za-z]))?"
+)
 _UNIT_CODE = r"[A-Z]{2,4}\d{4}"
 _PERIOD_CODE = r"[A-Z]{1,3}\d?-[A-Z0-9]{1,4}(?:-\d{1,2})?"
 
 VERBATIM = re.compile(
     r"(?<![A-Za-z0-9])(?:"
-    + "|".join((_EMAIL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _UNIT_CODE, _PERIOD_CODE))
+    + "|".join((_EMAIL, _URL, _SPAN, _DAY_SPAN, _DATE, _CLOCK, _MONEY, _UNIT_CODE, _PERIOD_CODE))
     + r")(?![A-Za-z0-9])"
 )
 _SPAN_ONLY = re.compile(rf"^{_SPAN}$")
@@ -2749,14 +3773,18 @@ def rendered_verbatim(value: str, locale: str) -> str:
 
 
 def protect(
-    text: str, locale: str, mask: tuple[str, str] = MASKS[0]
+    text: str, locale: str, mask: tuple[str, str] = MASKS[0], *, scope: str = GENERAL
 ) -> tuple[str, list[str]]:
     """Replace every known term, date, time and code with a placeholder.
 
     Returns the masked text and the replacements, in placeholder order. The
     ``mask`` is the retry handle: the same sentence masked with a different
     token is a different problem to the model, and often an easier one.
+
+    ``scope`` picks which terms are in play - see ``STRUCTURE_TERMS`` for the
+    handful whose sense depends on the kind of page they are on.
     """
+    forms, pattern, terms = _matcher(scope)
     replacements: list[str] = []
 
     def keep(match: re.Match[str]) -> str:
@@ -2766,37 +3794,185 @@ def protect(
     text = VERBATIM.sub(keep, text)
 
     def swap(match: re.Match[str]) -> str:
-        canonical = _LOOKUP[match.group(1).lower()]
-        translated = TERMS[canonical].get(locale)
+        translated = terms[forms[match.group(1).lower()]].get(locale)
         if not translated:
             return match.group(0)
         replacements.append(translated)
         return placeholder(len(replacements) - 1, mask)
 
-    return _PATTERN.sub(swap, text), replacements
+    return pattern.sub(swap, text), replacements
 
 
-def terms_in(text: str, locale: str) -> list[tuple[str, str]]:
+def terms_in(text: str, locale: str, *, scope: str = GENERAL) -> list[tuple[str, str]]:
     """The reserved terms this string uses: (English as written, agreed wording).
 
     ``protect`` returns only the agreed side, which is all a placeholder needs.
     Repairing a translation needs the English too: to find what the model made
     of a term, you have to be able to ask it to translate that term.
     """
+    forms, pattern, terms = _matcher(scope)
     found: list[tuple[str, str]] = []
     seen: set[str] = set()
 
     def note(match: re.Match[str]) -> str:
         written = match.group(1)
-        agreed = TERMS[_LOOKUP[written.lower()]].get(locale)
+        agreed = terms[forms[written.lower()]].get(locale)
         if agreed and written.lower() not in seen:
             seen.add(written.lower())
             found.append((written, agreed))
         return match.group(0)
 
-    _PATTERN.sub(note, text)
+    # Not inside an address: "monash" in www.monash.edu is not a term, and
+    # listing it told the model to write Monash there.
+    pattern.sub(note, VERBATIM.sub(" ", text))
     return found
 
+
+def addresses_kept(source: str, translated: str) -> str:
+    """Put back any address the translation changed only the case of.
+
+    A model, or a term restored inside a link, can turn www.monash.edu into
+    www.Monash.edu. The host still works; the path may not. Also used on
+    stored translations, which were made before addresses were masked.
+    """
+    for found in re.finditer(_URL + "|" + _EMAIL, source):
+        written = found.group(0)
+        translated = re.sub(
+            r"(?<![A-Za-z0-9])" + re.escape(written) + r"(?![A-Za-z0-9])",
+            lambda _match, written=written: written, translated, flags=re.IGNORECASE,
+        )
+    return translated
+
+
+def addresses_lost(source: str, translated: str) -> bool:
+    """Whether a web or email address in ``source`` is not in the translation
+    as written, even after ``addresses_kept``. Translations stored before
+    addresses were masked had the glossary inside the path:
+    forms.monash.edu/enrolment-amendment became forms.Monash.edu/选课注册-amendment,
+    an address that does not exist."""
+    kept = addresses_kept(source, translated)
+    return any(found.group(0) not in kept for found in re.finditer(_URL + "|" + _EMAIL, source))
+
+
+# Which currencies a text is in. On the English side "RM" counts only in front
+# of a number or as a column's unit, "Fee (RM)" (it is also a room, and a
+# person's initials), and the codes only in capitals ("for aud" is not money).
+# "$" in front of an amount is how the Australian pages write Australian
+# dollars, so 澳元 is a fair rendering of it and 美元 is not; the word "dollars"
+# alone can be either ("billions of dollars invested through foreign aid"). The
+# translated side lists the ways the three languages write each currency.
+_CURRENCY_SOURCE = {
+    "MYR": re.compile(r"(?<![A-Za-z])(?:RM\s?\d|RM(?=\s*\))|MYR(?![A-Za-z]))|(?i:\bringgit)"),
+    "AUD": re.compile(r"(?<![A-Za-z])(?:AUD(?![A-Za-z])|AU?\$)|(?i:\bAustralian dollars?)"),
+    "USD": re.compile(r"(?<![A-Za-z])(?:USD(?![A-Za-z])|US\$)|(?i:\bUS dollars?)"),
+}
+_DOLLAR_SIGN = re.compile(r"(?<![A-Za-z$])\$\s?\d")
+_DOLLAR_WORD = re.compile(r"\bdollars?\b", re.IGNORECASE)
+_CURRENCY_TARGET = {
+    "MYR": re.compile(
+        r"(?<![A-Za-z-])(?:RM|MYR)(?![A-Za-z])|令吉|林吉特|马币|马来西亚币|马来西亚元|リンギット|링깃"
+    ),
+    "AUD": re.compile(
+        r"(?<![A-Za-z])(?:AUD(?![A-Za-z])|AU?\$)"
+        r"|澳元|澳币|澳幣|澳大利亚元|豪ドル|オーストラリアドル|호주\s?달러"
+    ),
+    # 去美元化 is de-dollarisation, a word and not an amount.
+    "USD": re.compile(r"(?<![A-Za-z])(?:USD(?![A-Za-z])|US\$)|美元(?!化)|美金|米ドル|미국\s?달러"),
+}
+
+
+def currencies_kept(source: str, translated: str) -> bool:
+    """Whether a translation is in the same currencies as its English.
+
+    Fails when it names a currency the English does not (1.10 澳元 for
+    RM1.10), or drops one the English has (1.10 元). A failed string is not
+    used: the reader gets the English, which at least has the right money.
+    """
+    have = {name for name, rx in _CURRENCY_SOURCE.items() if rx.search(source)}
+    allowed = set(have)
+    if _DOLLAR_SIGN.search(source):
+        allowed.add("AUD")
+    if _DOLLAR_WORD.search(source):
+        allowed |= {"AUD", "USD"}
+    named = {name for name, rx in _CURRENCY_TARGET.items() if rx.search(translated)}
+    if named - allowed:
+        return False
+    return all(
+        name in named or _CURRENCY_SOURCE[name].search(translated) for name in have
+    )
+
+
+
+# A number of three digits or more - a year, a phone number, a meeting ID, an
+# amount - is copied as written, so one the translation does not have was
+# changed or dropped. February 2021 intake came back as 2022年2月, July 2026 as
+# 2027年7月, a Zoom ID 89367936761 as an apology, and +61 3 990 59987 was left
+# out. Grouping is not a change (45,000 and 45000), nor is a magnitude written
+# the Chinese way (250 million is 2.5亿), nor a decade (the 1980s is 20 世纪 80 年代).
+_LONG_NUMBER = re.compile(r"(?<![\d.])\d{3,}(?![\d]|['’]?s\b)")
+_GROUPED = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+_MAGNITUDE = re.compile(r"\s?(?:million|billion|thousand|bn|m|k)(?![A-Za-z])", re.IGNORECASE)
+_ADDRESS = re.compile(_URL + "|" + _EMAIL)
+
+
+def numbers_kept(source: str, translated: str) -> bool:
+    """Whether every long number in the English is in the translation."""
+    text = _GROUPED.sub("", _ADDRESS.sub(" ", source))
+    target = _GROUPED.sub("", translated)
+    # Spaces inside a number are layout: 990 59987 and 99059987.
+    joined = re.sub(r"(?<=\d)\s+(?=\d)", "", target)
+    for found in _LONG_NUMBER.finditer(text):
+        if _MAGNITUDE.match(text, found.end()):
+            continue
+        if found.group(0) not in target and found.group(0) not in joined:
+            return False
+    return True
+
+
+# The model saying it will not translate, stored as the translation:
+# 很抱歉，我无法提供该会议的链接 in place of a Zoom meeting ID.
+_REFUSAL = re.compile(
+    r"很抱歉|抱歉[，,]?\s?我|我(?:无法|不能)|无法(?:为您)?(?:翻译|提供|协助|处理)"
+    r"|作为(?:一个)?(?:AI|人工智能)|申し訳(?:ありません|ございません)|できかねます"
+    r"|죄송합니다|번역할 수 없|(?i:\bI(?:['’]m| am) sorry\b|\bI (?:cannot|can['’]t)\b|\bas an AI\b)"
+)
+# Monash writes the apostrophe curly ("I can’t log in"), so both spellings: a
+# straight-only match threw away every rendering of those FAQ questions.
+_APOLOGY = re.compile(
+    r"\b(?:sorry|apologi[sz]e|unable|cannot|can['’]?t|can not|could(?:n['’]?t| not)"
+    r"|not able|won['’]?t be able|regret)\b",
+    re.IGNORECASE,
+)
+
+
+def refused(source: str, translated: str) -> bool:
+    """Whether the translation is the model declining, not a translation."""
+    return bool(_REFUSAL.search(translated)) and not _APOLOGY.search(source)
+
+
+@functools.lru_cache(maxsize=100_000)
+def facts_kept(source: str, translated: str) -> bool:
+    """Everything a translation copies as written is still there: the money in
+    its currency, every web and email address, every long number. And it is a
+    translation, not the model declining. Checked when a string is translated,
+    when a stored one is reused, and when a machine one is read, so a string
+    that fails is shown in English until it is translated again."""
+    # Read for every machine string on every page, so the slow checks only
+    # where they can fail.
+    return (
+        (not _MAY_BE_MONEY.search(source + translated) or currencies_kept(source, translated))
+        and (not _HAS_LONG_NUMBER.search(source) or numbers_kept(source, translated))
+        and (not _MAY_BE_ADDRESS.search(source) or not addresses_lost(source, translated))
+        and not refused(source, translated)
+    )
+
+
+_MAY_BE_MONEY = re.compile(
+    r"RM|MYR|AUD|USD|\$|(?i:ringgit|dollar)|令吉|林吉特|马币|马来西亚[币元]|澳[元币幣]|澳大利亚元|美[元金]"
+    r"|リンギット|ドル|링깃|달러"
+)
+_HAS_LONG_NUMBER = re.compile(r"\d{3}")
+_MAY_BE_ADDRESS = re.compile(r"@|://|www\.|\.(?:edu|com|org|net|gov)\b", re.IGNORECASE)
 
 def restore(
     text: str, replacements: list[str], mask: tuple[str, str] = MASKS[0]
@@ -2833,4 +4009,3 @@ def is_only_placeholders(text: str) -> bool:
     ``Zqa`` it returns 兹卡.
     """
     return not re.search(r"[A-Za-z]", _ANY_PLACEHOLDER.sub("", text))
-

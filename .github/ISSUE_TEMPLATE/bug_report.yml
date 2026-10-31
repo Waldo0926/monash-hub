@@ -1,0 +1,45 @@
+name: Bug report / 功能故障
+description: Something on the site or in the API does not work. / 网站或接口的某个功能坏了。
+labels: [bug]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Page or endpoint / 页面或接口
+      description: The address where it happens. / 出问题的地址。
+      placeholder: https://monashhub.secureview.tech/units/FIT2102
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected / 期望的结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead / 实际的结果
+      description: Error text and a screenshot help. Please remove anything personal. / 报错文字和截图都有帮助，请去掉个人信息。
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language / 界面语言
+      options: [English, 简体中文, 日本語, 한국어]
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device / 浏览器和设备
+      placeholder: Chrome 131 on macOS, Safari on iPhone

@@ -18,22 +18,50 @@ router = APIRouter(tags=["guides"])
 
 @router.get("/guides")
 def list_guides(
-    q: str = "",
+    q: str = Query("", max_length=300),
     category: str | None = None,
-    limit: int = Query(50, le=200),
-    offset: int = 0,
+    campus: str | None = Query(None, pattern="^(australia|malaysia)$"),
+    slugs: str | None = Query(
+        None, max_length=600, description="Comma-separated slugs, returned in that order"
+    ),
+    # Up to every page at once: the list is a few hundred curated rows, and
+    # "show more" grows the limit rather than paging.
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0, le=100_000),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
-    pages, total = service.search_official(db, q, limit=limit, offset=offset, category=category)
+    if slugs:
+        # A hand-picked list (the home page names the guides for exam season).
+        # Exactly these, in the order given; a slug that is not indexed is
+        # skipped rather than failing the whole list.
+        wanted = list(dict.fromkeys(x.strip() for x in slugs.split(",") if x.strip()))[:20]
+        found = {
+            p.slug: p
+            for p in db.scalars(
+                select(OfficialPage).where(
+                    OfficialPage.slug.in_(wanted), OfficialPage.status == "ok"
+                )
+            )
+        }
+        pages = [found[x] for x in wanted if x in found]
+        total = len(pages)
+    else:
+        pages, total = service.search_official(
+            db, q, limit=limit, offset=offset, category=category, campus=campus
+        )
     # One query for the whole page of results, not one per row.
     page_translations = translations.load_many(
         db, locale, OFFICIAL_PAGE, [p.slug for p in pages],
         source_hashes={p.slug: p.content_hash for p in pages},
     )
+    counted = select(OfficialPage.category, func.count(OfficialPage.id)).where(
+        OfficialPage.status == "ok"
+    )
+    if campus:
+        counted = counted.where(OfficialPage.applies_to.in_((campus, "all")))
     categories = db.execute(
-        select(OfficialPage.category, func.count(OfficialPage.id))
-        .where(OfficialPage.status == "ok")
+        counted
         .group_by(OfficialPage.category)
         .order_by(OfficialPage.category)
     ).all()
@@ -60,11 +88,20 @@ def get_guide(
         select(FaqEntry).where(FaqEntry.official_page_id == page.id).limit(5)
     ).all()
     if not related_faq:
-        related_faq = service.search_faq(db, page.title, limit=3)
+        # No FAQ cites this page, so offer the ones on the same topic: any whose
+        # curated vocabulary shares a tag with the page. A page title is not a
+        # question, and feeding it to the FAQ matcher as one finds nothing.
+        page_tags = {tag.lower() for tag in page.tags or []}
+        related_faq = [
+            entry
+            for entry in db.scalars(select(FaqEntry).order_by(FaqEntry.priority.desc()))
+            if page_tags & {word.lower() for word in (*entry.tags, *entry.keywords)}
+        ][:3]
     posts, _ = service.search_community(db, page.title, limit=4)
 
     tr = translations.load(db, locale, OFFICIAL_PAGE, page.slug, source_hash=page.content_hash)
-    faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in related_faq])
+    faq_tr = translations.load_many(
+        db, locale, FAQ_ENTRY, [f.slug for f in related_faq], global_key=None)
     return {
         **official_detail(page, tr),
         "related_faq": [faq_brief(f, faq_tr[f.slug]) for f in related_faq],
@@ -76,11 +113,11 @@ def get_guide(
 
 @router.get("/faq")
 def list_faq(
-    q: str = "",
-    limit: int = Query(50, le=200),
+    q: str = Query("", max_length=300),
+    limit: int = Query(50, ge=1, le=200),
     locale: str | None = Depends(requested_locale),
     db: Session = Depends(get_db),
 ) -> dict:
     entries = service.search_faq(db, q, limit=limit)
-    tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in entries])
+    tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in entries], global_key=None)
     return {"total": len(entries), "results": [faq_brief(f, tr[f.slug]) for f in entries]}

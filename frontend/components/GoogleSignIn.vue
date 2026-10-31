@@ -16,32 +16,25 @@ const props = withDefaults(defineProps<{ next?: string }>(), { next: '/' })
 const { $t } = useNuxtApp()
 const available = ref(false)
 const busy = ref(false)
-const error = ref('')
 
 onMounted(async () => {
-  // A HEAD-ish probe: the start endpoint answers 503 when unconfigured, so
-  // asking it is also how we find out whether to show anything.
+  // Only asks whether the server has credentials; nothing is issued until the
+  // button is actually pressed.
   try {
-    await apiFetch<{ url: string }>(`/v1/auth/google/start?next=${encodeURIComponent(props.next)}`)
-    available.value = true
+    const { enabled } = await apiFetch<{ enabled: boolean }>('/v1/auth/google')
+    available.value = enabled
   } catch {
     available.value = false
   }
 })
 
-async function go() {
+function go() {
   if (busy.value) return
   busy.value = true
-  error.value = ''
-  try {
-    const { url } = await apiFetch<{ url: string }>(
-      `/v1/auth/google/start?next=${encodeURIComponent(props.next)}`
-    )
-    window.location.href = url
-  } catch {
-    error.value = $t('auth.google.unavailable')
-    busy.value = false
-  }
+  // A real navigation, not a fetch: the API sets a cookie on the way out to
+  // Google that the callback checks on the way back, which is what stops a
+  // callback URL from somebody else's sign-in completing in this browser.
+  window.location.href = apiUrl(`/v1/auth/google/start?next=${encodeURIComponent(props.next)}`)
 }
 </script>
 
@@ -56,7 +49,6 @@ async function go() {
       </svg>
       <span>{{ busy ? $t('auth.google.redirecting') : $t('auth.google.button') }}</span>
     </button>
-    <p v-if="error" class="tiny bad-text" role="alert">{{ error }}</p>
     <p class="divider"><span>{{ $t('auth.google.or') }}</span></p>
   </div>
 </template>
@@ -79,7 +71,6 @@ async function go() {
 .gbtn:hover:not(:disabled) { background: var(--surface-2); }
 .gbtn:disabled { opacity: 0.6; cursor: default; }
 .g { width: 18px; height: 18px; flex: none; }
-.bad-text { color: var(--danger); margin: 0; }
 
 /* A rule with the word "or" sitting in it, so the two ways in read as
    alternatives rather than as a stack of buttons. */

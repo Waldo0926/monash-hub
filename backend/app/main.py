@@ -16,25 +16,34 @@ from app.api.v1 import (
     auth,
     community,
     courses,
+    dates,
     exchange,
+    fees,
     guides,
     health,
     marks,
     notifications,
     plan,
     profile,
+    reviews,
     search,
     units,
 )
 from app.core.config import get_settings
+from app.version import __version__
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 settings = get_settings()
 
+# Refuse to serve rather than serve with forgeable sessions. Only the API
+# checks this; the migration and crawler containers never sign anything.
+if settings.environment == "production" and (problem := settings.secret_key_problem()):
+    raise RuntimeError(f"Refusing to start: {problem}. Set SECRET_KEY in the environment.")
+
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version=__version__,
     description=(
         "Structured Monash Handbook data, indexed official pages and a public "
         "student community. No generative AI in this version by design."
@@ -57,7 +66,7 @@ app.include_router(health.router, prefix="/api")
 
 for module in (
     units, courses, plan, search, ask, guides, community, auth, exchange, notifications,
-    marks, profile,
+    marks, profile, dates, reviews, fees,
 ):
     app.include_router(module.router, prefix=settings.api_prefix)
 
@@ -67,6 +76,7 @@ def api_root() -> dict:
     return {
         "name": settings.app_name,
         "version": app.version,
+        "commit": settings.app_commit or None,
         "docs": "/api/docs",
         "disclaimer": (
             "Monash Hub is an independent student information platform and is not "
