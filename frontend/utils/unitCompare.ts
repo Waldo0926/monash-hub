@@ -49,20 +49,44 @@ function sorted(values: string[]): string[] {
   return values.sort((a, b) => a.localeCompare(b, 'en'))
 }
 
-/** Preserve AND/OR group boundaries, not just a set of unit codes. */
-function requisite(group: Record<string, unknown>): string {
+const REQUISITE_LABEL: Record<string, string> = {
+  prerequisite: 'Prerequisite', corequisite: 'Corequisite', prohibition: 'Prohibition'
+}
+
+/**
+ * Preserve AND/OR group boundaries, not just a set of unit codes. Nested
+ * groups are bracketed; the Handbook's internal "Container 1.2" titles are
+ * layout, not rule text, so they are left out.
+ */
+function requisiteBody(group: Record<string, unknown>): string {
   const parts = (Array.isArray(group.items) ? group.items : [])
-    .map((item: Record<string, unknown>) => [
-      item.code, item.type, item.credit_points
-    ].map(text).filter(Boolean).join(' · ') || text(item.name))
+    .map((item: Record<string, unknown>) => text(item.code) || text(item.name))
     .filter(Boolean)
   const children = (Array.isArray(group.groups) ? group.groups : [])
-    .map((child: Record<string, unknown>) => requisite(child))
+    .map((child: Record<string, unknown>) => requisiteBody(child))
     .filter(Boolean)
-  const connector = text(group.connector) || '?'
-  const label = text(group.requisite_type)
-  const body = [...parts, ...children].join(` ${connector} `)
-  return `${label}:(${body}) ${text(group.title)} ${text(group.description)}`.trim()
+    .map(body => /\s(AND|OR|\?)\s/.test(body) ? `(${body})` : body)
+  const title = text(group.title)
+  const notes = [/^Container\b/i.test(title) ? '' : title, text(group.description)].filter(Boolean)
+  return [[...parts, ...children].join(` ${text(group.connector) || '?'} `), ...notes].filter(Boolean).join(' · ')
+}
+
+function requisite(group: Record<string, unknown>): string {
+  const type = text(group.requisite_type)
+  const body = requisiteBody(group)
+  return body ? `${REQUISITE_LABEL[type] || type}: ${body}` : ''
+}
+
+/** "15" in the Handbook's weight column is a percentage. */
+function weight(value: unknown): string {
+  const w = text(value)
+  return /^\d+(\.\d+)?$/.test(w) ? `${w}%` : w
+}
+
+/** "Teaching activities are on-campus (ON-CAMPUS)" reads as its code. */
+function mode(value: unknown): string {
+  const m = text(value)
+  return m.match(/\(([A-Z][A-Z-]+)\)\s*$/)?.[1] || m
 }
 
 export function comparable(unit: UnitSnapshot, field: ComparisonField): string {
@@ -71,13 +95,14 @@ export function comparable(unit: UnitSnapshot, field: ComparisonField): string {
       return unit.has_exam == null ? '' : unit.has_exam ? 'Yes' : 'No'
     case 'offerings':
       return sorted((unit.offerings || []).map(o =>
-        [o.campus_raw || o.campus, o.teaching_period_raw || o.teaching_period, o.attendance_mode]
-          .map(text).filter(Boolean).join(' · ')
+        [text(o.campus_raw || o.campus), text(o.teaching_period_raw || o.teaching_period), mode(o.attendance_mode)]
+          .filter(Boolean).join(' · ')
       ).filter(Boolean)).join('\n')
     case 'assessments':
+      // The name often repeats the number ("1 - Assignment A1a"), so it goes.
       return (unit.assessments || []).map(a =>
-        [a.number == null ? '' : String(a.number), a.name, a.type, a.weight, a.hurdle]
-          .map(text).filter(Boolean).join(' · ')
+        [text(a.name).replace(/^\d+\s*-\s*/, ''), text(a.type), weight(a.weight), text(a.hurdle)]
+          .filter(Boolean).join(' · ')
       ).join('\n')
     case 'requisites':
       return sorted((unit.requisites || []).map(g => requisite(g)).filter(Boolean)).join('\n')

@@ -293,18 +293,18 @@ export function keyDateRange(item: KeyDate, lang: KeyDateLang, today: string | u
     const yr = (p: typeof a) => (withYear ? `${p.y}年` : '')
     if (!b) return `${yr(a)}${a.m}月${a.d}日`
     if (a.m === b.m && a.y === b.y) return `${yr(a)}${a.m}月${a.d}–${b.d}日`
-    return `${yr(a)}${a.m}月${a.d}日–${yr(b)}${b.m}月${b.d}日`
+    return `${yr(a)}${a.m}月${a.d}日–${a.y === b.y ? '' : yr(b)}${b.m}月${b.d}日`
   }
   if (lang === 'ko') {
     const yr = (p: typeof a) => (withYear ? `${p.y}년 ` : '')
     if (!b) return `${yr(a)}${a.m}월 ${a.d}일`
     if (a.m === b.m && a.y === b.y) return `${yr(a)}${a.m}월 ${a.d}–${b.d}일`
-    return `${yr(a)}${a.m}월 ${a.d}일 – ${yr(b)}${b.m}월 ${b.d}일`
+    return `${yr(a)}${a.m}월 ${a.d}일 – ${a.y === b.y ? '' : yr(b)}${b.m}월 ${b.d}일`
   }
   const yr = (p: typeof a) => (withYear ? ` ${p.y}` : '')
   if (!b) return `${a.d} ${MONTHS_EN[a.m - 1]}${yr(a)}`
   if (a.m === b.m && a.y === b.y) return `${a.d}–${b.d} ${MONTHS_EN[a.m - 1]}${yr(a)}`
-  return `${a.d} ${MONTHS_EN[a.m - 1]}${yr(a)} – ${b.d} ${MONTHS_EN[b.m - 1]}${yr(b)}`
+  return `${a.d} ${MONTHS_EN[a.m - 1]}${a.y === b.y ? '' : yr(a)} – ${b.d} ${MONTHS_EN[b.m - 1]}${yr(b)}`
 }
 
 /** The most recent check across the source pages, as a short date. */

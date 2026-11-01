@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { compareUnitSnapshots, type UnitSnapshot } from '../utils/unitCompare'
+import { comparable, compareUnitSnapshots, type UnitSnapshot } from '../utils/unitCompare'
 
 const unit: UnitSnapshot = {
   unit_code: 'FIT2102',
@@ -36,5 +36,21 @@ describe('Handbook year comparison', () => {
   it('does not confuse unknown with an explicit no-exam entry', () => {
     expect(compareUnitSnapshots(unit, { ...unit, has_exam: false })
       .find(x => x.field === 'has_exam')?.status).toBe('added')
+  })
+})
+
+describe('Handbook year comparison text', () => {
+  it('reads nested requisite groups without the Handbook container titles', () => {
+    const nested = { ...unit, requisites: [{
+      requisite_type: 'prerequisite', connector: 'AND', title: 'Container 1', items: [], groups: [
+        { connector: 'OR', title: 'Container 1.2', items: [{ code: 'FIT1045' }, { code: 'FIT1053' }] },
+        { connector: 'OR', title: 'Container 1.5', items: [{ code: 'FIT1058' }, { code: 'MAT1830' }] }
+      ]
+    }] }
+    expect(comparable(nested, 'requisites')).toBe('Prerequisite: (FIT1045 OR FIT1053) AND (FIT1058 OR MAT1830)')
+  })
+  it('shows assessment weights as percentages without repeating the number', () => {
+    const marked = { ...unit, assessments: [{ number: 1, name: '1 - Assignment A1a', type: 'Artefact', weight: '15' }] }
+    expect(comparable(marked, 'assessments')).toBe('Assignment A1a · Artefact · 15%')
   })
 })

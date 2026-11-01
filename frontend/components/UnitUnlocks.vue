@@ -7,6 +7,8 @@
  * only wants the names, so this is the list, with the campus mark the graph
  * uses and a link to the graph for when the depth matters.
  */
+import { joinSentences } from '~/utils/prose'
+
 const props = withDefaults(defineProps<{
   code: string
   year?: number | null
@@ -18,6 +20,7 @@ const props = withDefaults(defineProps<{
 }>(), { year: null, campus: null, limit: 8, graphLink: true })
 
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 const campusName = useCampusName()
 const { withYear } = useHandbookYear()
 
@@ -53,10 +56,10 @@ const awayCount = computed(() => rows.value.filter((r) => !r.offered_at_campus).
       </p>
       <template v-else>
         <p class="small summary">
-          {{ $t(rows.length === 1 ? 'unlocks.countOne' : 'unlocks.count', { code: data.seed, count: rows.length }) }}
-          <template v-if="data.total_downstream > rows.length">
-            {{ $t(data.truncated ? 'unlocks.leadsOnAtLeast' : 'unlocks.leadsOn', { total: data.total_downstream }) }}
-          </template>
+          {{ joinSentences([
+            $t(rows.length === 1 ? 'unlocks.countOne' : 'unlocks.count', { code: data.seed, count: rows.length }),
+            data.total_downstream > rows.length && $t(data.truncated ? 'unlocks.leadsOnAtLeast' : 'unlocks.leadsOn', { total: data.total_downstream })
+          ], locale) }}
         </p>
         <p v-if="campus && awayCount" class="tiny away-note">
           {{ $t('unlocks.awayNote', { count: awayCount, campus: campusName(campus) }) }}

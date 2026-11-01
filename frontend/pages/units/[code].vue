@@ -9,6 +9,8 @@
  * level), every card has an icon to find it by, and the contents on the
  * right follow the scroll.
  */
+import { joinList, joinSentences } from '~/utils/prose'
+
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t, $term } = useNuxtApp() as any
@@ -211,7 +213,7 @@ const faq = computed(() => {
   items.push({
     q: $t('faq.prereqQ', { code: c }),
     a: prereqs.length
-      ? $t('faq.prereqSome', { code: c, year: y, units: prereqs.join(', ') })
+      ? $t('faq.prereqSome', { code: c, year: y, units: joinList(prereqs, locale.value) })
       : $t('faq.prereqNone', { code: c, year: y })
   })
 
@@ -220,21 +222,24 @@ const faq = computed(() => {
     items.push({
       q: $t('faq.afterQ', { code: c }),
       a: next.length
-        ? $t('faq.afterSome', {
-          code: c,
-          count: next.length,
-          units: next.slice(0, 6).map((n: any) => n.unit_code).join(', ')
-        }) + (unlocks.value.total_downstream > next.length ? ` ${$t('unlocks.leadsOn', { total: unlocks.value.total_downstream })}` : '')
+        ? joinSentences([
+          $t('faq.afterSome', {
+            code: c,
+            count: next.length,
+            units: joinList(next.slice(0, 6).map((n: any) => n.unit_code), locale.value)
+          }),
+          unlocks.value.total_downstream > next.length && $t('unlocks.leadsOn', { total: unlocks.value.total_downstream })
+        ], locale.value)
         : $t('unlocks.none', { code: c, year: y })
     })
   }
 
   const everywhere = periodsAt(null)
-  const campuses = [...new Set((u.offerings || []).map((o: any) => o.campus))]
+  const campuses = [...new Set<string>((u.offerings || []).map((o: any) => o.campus))]
   items.push({
     q: $t('faq.whenQ', { code: c }),
     a: everywhere.length
-      ? $t('faq.whenSome', { code: c, year: y, periods: everywhere.join(', '), campuses: campuses.join(', ') })
+      ? $t('faq.whenSome', { code: c, year: y, periods: joinList(everywhere, locale.value), campuses: joinList(campuses, locale.value) })
       : $t('unit.noOfferingsPublished')
   })
 
@@ -251,7 +256,7 @@ const faq = computed(() => {
   const difficulty = rating.value?.dimensions?.difficulty
   items.push({
     q: $t('faq.hardQ', { code: c }),
-    a: [
+    a: joinSentences([
       $t('faq.hardIntro'),
       difficulty?.count
         ? $t(difficulty.count === 1 ? 'faq.hardRatedOne' : 'faq.hardRated', {
@@ -260,13 +265,13 @@ const faq = computed(() => {
         : '',
       totalHours.value ? $t('faq.hardHours', { hours: totalHours.value }) : '',
       said ? $t('faq.hardCommunity', { count: said }) : $t('faq.hardNoCommunity')
-    ].filter(Boolean).join(' ')
+    ], locale.value)
   })
 
   if (u.areas?.length) {
     items.push({
       q: $t('faq.areasQ', { code: c }),
-      a: $t('faq.areasSome', { code: c, areas: u.areas.map((a: any) => a.title).join(', ') })
+      a: $t('faq.areasSome', { code: c, areas: joinList([...new Set<string>(u.areas.map((a: any) => a.title))], locale.value) })
     })
   }
   return items
@@ -376,7 +381,7 @@ useHead(() => ({
           </div>
           <div class="fact">
             <dt>{{ $t('unit.factOffered', { campus: campusName(campus) }) }}</dt>
-            <dd v-if="periodsHere.length">{{ periodsHere.join(', ') }}</dd>
+            <dd v-if="periodsHere.length">{{ joinList(periodsHere, locale) }}</dd>
             <dd v-else class="fact-warn">{{ $t('unit.factNotHere') }}</dd>
           </div>
           <div class="fact">
@@ -586,7 +591,7 @@ useHead(() => ({
                   <span v-if="area.aos_type" class="fit-type">{{ area.aos_type }}</span>
                 </span>
                 <span class="fit-title">{{ area.title }}</span>
-                <span v-if="area.parts.length" class="fit-parts">{{ area.parts.join(', ') }}</span>
+                <span v-if="area.parts.length" class="fit-parts">{{ joinList(area.parts, locale) }}</span>
               </NuxtLink>
             </div>
           </section>

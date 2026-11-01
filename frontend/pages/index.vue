@@ -2,7 +2,7 @@
 /**
  * Home: a search box and eight entries, with the next dates at the student's
  * campus and the systems people log into beside them. Under that, the guides
- * for this part of the semester, the马莫百科block, and one unit per faculty.
+ * for this part of the semester, the 马莫百科 block, and one unit per faculty.
  *
  * For a signed-in reader it also carries the notification list, because the
  * point of being told your question was answered is that you see it without
