@@ -48,6 +48,30 @@ function search(value: string) {
 }
 
 const hasResults = computed(() => (data.value?.groups || []).some((g: any) => g.results?.length))
+const missingCategory = ref('units')
+const feedbackStatus = ref<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+watch(() => route.query.q, () => { feedbackStatus.value = 'idle' })
+
+/**
+ * Opt-in feedback: never send free-text queries to the feedback endpoint.
+ * Only a well-formed unit/degree code or a controlled topic category goes.
+ */
+async function sendMissingFeedback() {
+  if (!query.value || feedbackStatus.value !== 'idle') return
+  feedbackStatus.value = 'sending'
+  const term = String(route.query.q || '').trim().toUpperCase()
+  const code = /^(?:[A-Z]{3}\d{4}|[A-Z]\d{4})$/.test(term) ? term : null
+  try {
+    await apiFetch('/v1/search/missing', {
+      method: 'POST',
+      body: { category: missingCategory.value, code }
+    })
+    feedbackStatus.value = 'sent'
+  } catch {
+    feedbackStatus.value = 'failed'
+  }
+}
+
 
 /**
  * Whether to draw the answer card above the results.
@@ -91,6 +115,26 @@ useSeoMeta({
         <EmptyState :title="$t('search.nothing')" :hint="$t('search.nothingHint')">
           <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
         </EmptyState>
+        <div class="missing-feedback card">
+          <p><strong>{{ locale === 'zh' ? '找不到需要的资料？' : 'Missing something?' }}</strong></p>
+          <p class="small muted">{{ locale === 'zh' ? '可以匿名反馈缺少哪类资料。我们只记录分类和有效课程代码，不保存你的完整搜索内容或账号信息' : 'Optionally flag the missing topic. Only a category or a valid unit code is counted, never your full search, account or identifying details.' }}</p>
+          <label class="missing-label">
+            {{ locale === 'zh' ? '资料类别' : 'Topic' }}
+            <select v-model="missingCategory" class="field" :disabled="feedbackStatus !== 'idle'">
+              <option value="units">{{ locale === 'zh' ? '课程' : 'Units' }}</option>
+              <option value="degrees">{{ locale === 'zh' ? '学位' : 'Degrees' }}</option>
+              <option value="dates">{{ locale === 'zh' ? '重要日期' : 'Academic dates' }}</option>
+              <option value="fees">{{ locale === 'zh' ? '学费' : 'Tuition fees' }}</option>
+              <option value="policies">{{ locale === 'zh' ? '学校政策' : 'University policies' }}</option>
+              <option value="other">{{ locale === 'zh' ? '其他' : 'Other' }}</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn--ghost" :disabled="feedbackStatus !== 'idle'" @click="sendMissingFeedback">
+            {{ feedbackStatus === 'sending' ? (locale === 'zh' ? '正在发送…' : 'Sending…') : (locale === 'zh' ? '反馈缺失资料' : 'Send missing-topic feedback') }}
+          </button>
+          <p v-if="feedbackStatus === 'sent'" role="status" class="small">{{ locale === 'zh' ? '已收到反馈，谢谢' : 'Feedback received. Thanks.' }}</p>
+          <p v-if="feedbackStatus === 'failed'" role="alert" class="small">{{ locale === 'zh' ? '发送失败，请稍后再试' : 'Could not send feedback. Please try again later.' }}</p>
+        </div>
       </div>
 
       <div v-else-if="query" class="groups mt">
@@ -146,6 +190,8 @@ useSeoMeta({
 
 <style scoped>
 .mt { margin-top: var(--s5); }
+.missing-feedback { padding: var(--s4); margin-top: var(--s3); max-width: 680px; }
+.missing-label { display: grid; gap: var(--s2); margin: var(--s3) 0; max-width: 240px; }
 .groups { display: grid; gap: var(--s6); }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
 .section-head h2 { display: flex; align-items: center; gap: var(--s3); font-size: 1.1rem; }
