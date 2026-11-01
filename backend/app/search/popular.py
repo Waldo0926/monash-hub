@@ -96,7 +96,8 @@ def record_missing(db: Session, category: str, code: str | None = None) -> None:
     term_code = (code or "").strip().lower()
     # Only a structurally valid unit/degree code can be kept. A query about
     # somebody's name, marks, visa or email never reaches persistent storage.
-    token = f"missing:code:{term_code}" if _FEEDBACK_CODE.fullmatch(term_code) else f"missing:category:{category}"
+    token = (f"missing:code:{term_code}" if _FEEDBACK_CODE.fullmatch(term_code)
+             else f"missing:category:{category}")
     stmt = insert(SearchTerm).values(term=token, label=token, day=date.today(), hits=1)
     stmt = stmt.on_conflict_do_update(
         constraint="uq_search_terms_term_day",
