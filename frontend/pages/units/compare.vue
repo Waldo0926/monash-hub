@@ -1,0 +1,172 @@
+<script setup lang="ts">
+/**
+ * Compare two *explicit* Handbook years. Never fall back silently when one
+ * is missing: the difference between a 404 and a changed rule matters.
+ */
+import { compareUnitSnapshots, type UnitSnapshot } from '~/utils/unitCompare'
+
+const route = useRoute()
+const router = useRouter()
+const config = useRuntimeConfig()
+const { locale } = useLocale()
+const zh = computed(() => locale.value === 'zh')
+const code = ref(String(route.query.code || '').toUpperCase())
+const from = ref(Number(route.query.from) || 0)
+const to = ref(Number(route.query.to) || 0)
+const busy = ref(false)
+const message = ref('')
+const result = shallowRef<{ before: UnitSnapshot | null; after: UnitSnapshot | null } | null>(null)
+
+const { data: filters } = await useApiFetch<{ years: number[] }>('/v1/units/filters')
+const years = computed(() => filters.value?.years || [])
+watch(years, (available) => {
+  if (!available.length) return
+  if (!available.includes(to.value)) to.value = available[0]!
+  if (!available.includes(from.value)) from.value = available.find(y => y !== to.value) || available[0]!
+}, { immediate: true })
+
+const namesEn = {
+  title: 'Unit title', credit_points: 'Credit points', level: 'Level', has_exam: 'Exam listed',
+  offerings: 'Campuses and teaching periods', assessments: 'Assessments',
+  requisites: 'Prerequisites, corequisites and prohibitions',
+  assessment_summary: 'Assessment overview', workload_requirements: 'Workload'
+}
+const namesZh = {
+  title: '课程名称', credit_points: '学分', level: '课程级别', has_exam: '是否列出考试',
+  offerings: '校区和开课学期', assessments: '考核项目',
+  requisites: '先修、并修及禁止同时修读要求',
+  assessment_summary: '考核说明', workload_requirements: '学习负担'
+}
+const names = computed(() => zh.value ? namesZh : namesEn)
+const statusZh = { added: '新增', removed: '移除', changed: '变化', unchanged: '相同', unavailable: '无法比较' }
+const statusEn = { added: 'Added', removed: 'Removed', changed: 'Changed', unchanged: 'Unchanged', unavailable: 'Unavailable' }
+const rows = computed(() => result.value ? compareUnitSnapshots(result.value.before, result.value.after) : [])
+const changes = computed(() => rows.value.filter(row => row.status !== 'unchanged'))
+
+function notFound(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const e = error as { status?: number; statusCode?: number; response?: { status?: number } }
+  return [e.status, e.statusCode, e.response?.status].includes(404)
+}
+async function load(codeValue: string, year: number): Promise<UnitSnapshot | null> {
+  try {
+    return await apiFetch<UnitSnapshot>(`/v1/units/${encodeURIComponent(codeValue)}?year=${year}`)
+  } catch (error) {
+    if (notFound(error)) return null
+    throw error
+  }
+}
+
+async function compare() {
+  const wanted = code.value.trim().toUpperCase()
+  result.value = null
+  message.value = ''
+  if (!/^[A-Z]{2,8}\d{3,5}$/.test(wanted) || !years.value.includes(from.value) || !years.value.includes(to.value) || from.value === to.value) {
+    message.value = zh.value ? '请填写正确的课程代码，并选择两个不同的已收录年份' : 'Enter a valid unit code and choose two different loaded Handbook years.'
+    return
+  }
+  busy.value = true
+  try {
+    const [before, after] = await Promise.all([load(wanted, from.value), load(wanted, to.value)])
+    result.value = { before, after }
+    code.value = wanted
+    await router.replace({ query: { code: wanted, from: String(from.value), to: String(to.value) } })
+  } catch {
+    message.value = zh.value ? '暂时无法读取Handbook，请稍后重试' : 'Could not read the Handbook right now. Please try again.'
+  } finally {
+    busy.value = false
+  }
+}
+
+onMounted(() => {
+  if (route.query.code && route.query.from && route.query.to) void compare()
+})
+useSeoMeta({
+  title: () => zh.value ? 'Handbook年份比较｜Monash Hub' : 'Compare Handbook years | Monash Hub',
+  description: () => zh.value ? '比较同一门Monash课程在不同年份的开课信息、先修课与考核' : 'Compare unit requisites, offerings and assessments across published Handbook years.'
+})
+useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compare` }] })
+</script>
+
+<template>
+  <div class="page compare-page">
+    <header class="intro">
+      <p class="crumb"><NuxtLink to="/units">{{ zh ? '课程搜索' : 'Unit search' }}</NuxtLink></p>
+      <h1>{{ zh ? 'Handbook年份比较' : 'Compare Handbook years' }}</h1>
+      <p class="lede">{{ zh ? '对照同一门课程在两个年份的先修要求、考核和开课安排。仅比较已收录的Handbook版本' : 'See how a unit changed between two loaded Handbook editions. Every result links back to the original sources.' }}</p>
+    </header>
+
+    <form class="compare-form card" @submit.prevent="compare">
+      <label>{{ zh ? '课程代码' : 'Unit code' }}
+        <input v-model="code" class="compare-input" type="text" placeholder="FIT2102" maxlength="16" required autocomplete="off">
+      </label>
+      <label>{{ zh ? '原年份' : 'From year' }}
+        <select v-model.number="from" class="compare-input" required>
+          <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+        </select>
+      </label>
+      <label>{{ zh ? '新年份' : 'To year' }}
+        <select v-model.number="to" class="compare-input" required>
+          <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+        </select>
+      </label>
+      <button type="submit" class="compare-submit" :disabled="busy || !years.length">{{ busy ? (zh ? '正在比较…' : 'Comparing…') : (zh ? '比较变化' : 'Compare') }}</button>
+    </form>
+    <p v-if="message" role="alert" class="compare-message">{{ message }}</p>
+    <p v-if="!years.length" class="small muted">{{ zh ? '暂时没有可用的Handbook年份' : 'No Handbook years are available right now.' }}</p>
+
+    <template v-if="result">
+      <div v-if="!result.before || !result.after" class="card compare-warning" role="status">
+        <h2>{{ zh ? '有年份未收录这门课' : 'A selected edition does not list this unit' }}</h2>
+        <p>{{ zh ? '这不等于课程已经取消或要求被移除。只有两个年份都有对应记录时，才会显示正式差异' : 'Missing data is not proof the unit was discontinued or its rules were removed. Comparison requires records in both years.' }}</p>
+        <p>{{ from }}：{{ result.before ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }} · {{ to }}：{{ result.after ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }}</p>
+      </div>
+      <template v-else>
+        <p class="compare-summary">{{ zh ? `共${changes.length}项有变化或新增／移除，${rows.length - changes.length}项相同` : `${changes.length} fields differ; ${rows.length - changes.length} unchanged` }}</p>
+        <div class="compare-grid">
+          <section v-for="row in rows" :key="row.field" class="card compare-row" :class="{ unchanged: row.status === 'unchanged' }">
+            <div class="compare-row-head">
+              <h2>{{ names[row.field] }}</h2>
+              <span class="compare-tag">{{ zh ? statusZh[row.status] : statusEn[row.status] }}</span>
+            </div>
+            <div class="compare-two">
+              <div><strong>{{ from }}</strong><pre>{{ row.from || (zh ? '未列出' : 'Not listed') }}</pre></div>
+              <div><strong>{{ to }}</strong><pre>{{ row.to || (zh ? '未列出' : 'Not listed') }}</pre></div>
+            </div>
+          </section>
+        </div>
+      </template>
+      <div class="compare-sources card">
+        <h2>{{ zh ? '原始资料' : 'Original sources' }}</h2>
+        <p v-if="result.before?.source_url"><a :href="result.before.source_url" target="_blank" rel="noopener external">{{ from }} Monash Handbook ↗</a> · {{ zh ? '核对时间' : 'Checked' }}：{{ result.before.last_checked || (zh ? '未知' : 'Unknown') }}</p>
+        <p v-if="result.after?.source_url"><a :href="result.after.source_url" target="_blank" rel="noopener external">{{ to }} Monash Handbook ↗</a> · {{ zh ? '核对时间' : 'Checked' }}：{{ result.after.last_checked || (zh ? '未知' : 'Unknown') }}</p>
+        <p class="small muted">{{ zh ? '这里只比较当前抓取的数据，不代表学校已批准选课、先修豁免、交换学分或毕业资格。考核和开课信息可能继续变化，请以原始页面为准' : 'These are snapshots, not enrolment, prerequisite-waiver, credit-transfer or graduation approvals. Confirm current details on Monash’s original pages.' }}</p>
+      </div>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.compare-page { max-width: 980px; margin-inline: auto; }
+.intro { margin-bottom: var(--s5); }
+.lede { color: var(--muted); max-width: 65ch; }
+.compare-form { display: flex; flex-wrap: wrap; align-items: end; gap: var(--s3); padding: var(--s5); }
+.compare-form label { display: grid; gap: 6px; font-weight: 600; flex: 1 1 160px; font-size: .9rem; }
+.compare-input { min-height: 44px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 8px 12px; font: inherit; width: 100%; background: var(--surface); }
+.compare-submit { min-height: 44px; border: 0; border-radius: 8px; padding: 10px 18px; background: var(--ink); color: var(--text-inverse); cursor: pointer; }
+.compare-submit:disabled { opacity: .6; cursor: wait; }
+.compare-message { color: var(--danger); }
+.compare-summary { margin: var(--s5) 0; font-weight: 600; }
+.compare-grid { display: grid; gap: var(--s3); }
+.compare-row { padding: var(--s4) var(--s5); }
+.compare-row.unchanged { opacity: .85; }
+.compare-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.compare-row h2, .compare-sources h2, .compare-warning h2 { font-size: 1rem; margin: 0; }
+.compare-tag { font-size: .8rem; background: var(--surface-2); color: var(--muted); border-radius: 5px; padding: 3px 8px; white-space: nowrap; }
+.compare-two { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--s5); }
+.compare-two > div + div { border-left: 1px solid var(--border); padding-left: var(--s5); }
+.compare-two pre { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .88rem; margin: var(--s2) 0 0; }
+.compare-sources, .compare-warning { margin-top: var(--s5); padding: var(--s5); }
+.compare-sources p { margin-top: var(--s2); overflow-wrap: anywhere; }
+@media (max-width: 620px) { .compare-two { grid-template-columns: 1fr; } .compare-two > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; } }
+</style>
