@@ -155,12 +155,12 @@ def test_every_reviewed_chinese_degree_title_is_an_exact_override(english, chine
 
 def test_reported_malaysia_degree_names_use_the_reviewed_wording():
     assert compose("Bachelor of Digital Media and Communication", "zh", tr) == (
-        "数字媒体与传播学士学位"
+        "数字媒体与传播学士"
     )
-    assert compose("Bachelor of Business and Commerce", "zh", tr) == "商业与贸易学士学位"
+    assert compose("Bachelor of Business and Commerce", "zh", tr) == "商务与商业学士"
     assert compose(
         "Bachelor of Business and Commerce and Bachelor of Computer Science", "zh", tr
-    ) == "商业学士和计算机科学学士"
+    ) == "商务与商业学士和计算机科学学士"
 
 
 def test_reviewed_titles_do_not_contain_known_machine_translation_failures():

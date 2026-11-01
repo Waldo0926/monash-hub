@@ -26,12 +26,13 @@ const MULTI = ['campus', 'teaching_period', 'faculty', 'school', 'prefix', 'leve
 type MultiKey = typeof MULTI[number]
 
 const query = ref((route.query.q as string) || '')
-const compareRoute = computed(() => {
+const compareCode = computed(() => {
   const code = query.value.trim().toUpperCase()
-  return /^[A-Z]{2,8}\d{3,5}$/.test(code)
-    ? { path: '/units/compare', query: { code } }
-    : { path: '/units/compare' }
+  return /^[A-Z]{2,8}\d{3,5}$/.test(code) ? code : null
 })
+const compareRoute = computed(() => compareCode.value
+  ? { path: '/units/compare', query: { code: compareCode.value } }
+  : { path: '/units/compare' })
 
 const filters = reactive({
   // Empty is the current Handbook. A year is kept in the URL so a link to the
@@ -257,10 +258,17 @@ useSeoMeta({
       @submit="v => (query = v)"
     />
 
-    <p class="compare-entry small">
-      <span class="muted">{{ $t('handbook.compareIntro') }}</span>
-      <NuxtLink :to="compareRoute">{{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span></NuxtLink>
-    </p>
+    <div class="compare-entry">
+      <p class="small">
+        <strong>{{ $t('handbook.compareTitle') }}</strong>
+        <span class="muted">{{ compareCode
+          ? $t('handbook.compareIntroCode', { code: compareCode })
+          : $t('handbook.compareIntro') }}</span>
+      </p>
+      <NuxtLink class="btn btn--ghost btn--small" :to="compareRoute">
+        {{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span>
+      </NuxtLink>
+    </div>
 
     <button
       class="btn btn--ghost btn--small filter-toggle"
@@ -495,8 +503,14 @@ useSeoMeta({
 
 <style scoped>
 h1 { margin-bottom: var(--s2); }
-.compare-entry { display: flex; flex-wrap: wrap; gap: 4px var(--s3); margin: var(--s2) 0 0; }
-.compare-entry a { font-weight: 600; padding: 2px 0; }
+/* Under the search box rather than above it, but still a strip with a button, not a footnote. */
+.compare-entry {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: var(--s2) var(--s4); margin-top: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2);
+}
+.compare-entry p { margin: 0; display: flex; flex-wrap: wrap; gap: 2px var(--s2); }
+.compare-entry .btn { flex-shrink: 0; background: var(--surface); }
 
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
 /* A card that scrolls on its own, so the headings stay in reach beside a

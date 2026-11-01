@@ -143,15 +143,15 @@ export const ENTRY_SCHOOLS: EntrySchool[] = [
   {
     school: '商学院',
     courses: ([
-      ['商务和商业学士（含 10 个方向）', 3, '2、7、10', 'Bachelor of Business and Commerce', 54240, 60, '高考数学 60%，或高二数学及格',
+      ['商务与商业学士（含 10 个方向）', 3, '2、7、10', 'Bachelor of Business and Commerce', 54240, 60, '高考数学 60%，或高二数学及格',
         '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '50%'],
       ['数字商务学士', 3, '2、7', 'Bachelor of Digital Business', 54240, 65, '高考数学 60%',
         '70%', '78.50%', '8', '75', '26', '1160', '24', '6', '15', '7', '/'],
       ['精算分析学士', 3, '2、7', 'Bachelor in Actuarial Analytics', 57600, 70, '高考数学 60%',
         '72.5%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '/'],
-      ['商务学士与计算机科学学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Computer Science', 57600, 70, '高考数学 60%',
+      ['商务与商业学士和计算机科学学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Computer Science', 57600, 70, '高考数学 60%',
         '70%', '81.60%', '9', '80', '28', '1190', '24', '7', '17', '7.5', '60%'],
-      ['商务学士与数字媒体与传播学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Digital Media and Communication', 54240, 60, '高考数学 60%，或高二数学及格',
+      ['商务与商业学士和数字媒体与传播学士', 4, '2、7、10', 'Bachelor of Business and Commerce and Bachelor of Digital Media and Communication', 54240, 60, '高考数学 60%，或高二数学及格',
         '60%', '75.40%', '7', '70', '25', '1120', '22', '6', '13', '6.5', '55%']
     ] as Row[]).map(row)
   },
@@ -307,7 +307,7 @@ export const LIVING = {
  * row covers on /ugfees. Engineering is one row for all its honours degrees.
  */
 export const FEE_EXAMPLES = [
-  { label: '商务和商业学士', match: 'Bachelor of Business and Commerce' },
+  { label: '商务与商业学士', match: 'Bachelor of Business and Commerce' },
   { label: '数字媒体与传播学士', match: 'Bachelor of Digital Media and Communication' },
   { label: '计算机科学学士', match: 'Bachelor of Computer Science' },
   { label: '工程学士（荣誉）', match: 'Bachelor of Civil Engineering (Honours)' }
