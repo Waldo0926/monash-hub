@@ -411,6 +411,13 @@ useHead(() => ({
               :years="unit.available_years"
               @update:model-value="pickYear"
             />
+            <NuxtLink
+              v-if="(unit.available_years || []).length > 1"
+              class="compare-years"
+              :to="{ path: '/units/compare', query: { code: unit.unit_code, from: unit.available_years[1], to: unit.available_years[0] } }"
+            >
+              {{ locale === 'zh' ? '比较年份变化' : 'Compare years' }} →
+            </NuxtLink>
           </div>
         </div>
       </header>
@@ -865,4 +872,5 @@ useHead(() => ({
 @media (max-width: 600px) {
   .head, .section { padding: var(--s4); }
 }
+ .compare-years { font-size: .85rem; white-space: nowrap; }
 </style>
