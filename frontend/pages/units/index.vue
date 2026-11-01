@@ -251,22 +251,16 @@ useSeoMeta({
   <div class="container">
     <h1>{{ $t('units.title') }}</h1>
     <p class="muted">{{ $t('units.lead', { year: data?.academic_year || '' }) }}</p>
-    <aside class="compare-entry card" :aria-label="$t('handbook.compareTitle')">
-      <div class="compare-entry-text">
-        <strong>{{ $t('handbook.compareTitle') }}</strong>
-        <p class="small muted">{{ $t('handbook.compareIntro') }}</p>
-      </div>
-      <NuxtLink class="btn btn--ghost compare-entry-link" :to="compareRoute">
-        {{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span>
-      </NuxtLink>
-    </aside>
-
-
     <SearchInput
       v-model="query"
       :placeholder="$t('units.searchPlaceholder')"
       @submit="v => (query = v)"
     />
+
+    <p class="compare-entry small">
+      <span class="muted">{{ $t('handbook.compareIntro') }}</span>
+      <NuxtLink :to="compareRoute">{{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span></NuxtLink>
+    </p>
 
     <button
       class="btn btn--ghost btn--small filter-toggle"
@@ -501,16 +495,8 @@ useSeoMeta({
 
 <style scoped>
 h1 { margin-bottom: var(--s2); }
-.compare-entry {
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: var(--s3); padding: var(--s4); margin: var(--s4) 0;
-  border: 1px solid var(--border); border-radius: var(--radius);
-}
-.compare-entry-text { flex: 1 1 300px; }
-.compare-entry-text strong { display: block; margin-bottom: 4px; }
-.compare-entry-text p { margin: 0; }
-.compare-entry-link { flex-shrink: 0; }
-@media (max-width: 600px) { .compare-entry-link { width: 100%; justify-content: center; } }
+.compare-entry { display: flex; flex-wrap: wrap; gap: 4px var(--s3); margin: var(--s2) 0 0; }
+.compare-entry a { font-weight: 600; padding: 2px 0; }
 
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
 /* A card that scrolls on its own, so the headings stay in reach beside a

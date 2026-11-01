@@ -100,8 +100,8 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
             </select>
           </label>
           <div class="intake-facts small">
-            <p>{{ locale === 'zh' ? '马来西亚申请人常规截止日期' : 'General Malaysian application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineMalaysia }}</strong></p>
-            <p>{{ locale === 'zh' ? '国际申请人常规截止日期' : 'General international application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineInternational }}</strong></p>
+            <p>{{ locale === 'zh' ? '马来西亚学生申请截止' : 'Malaysian students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ intakeEvidence.generalDeadlineMalaysia }}</strong></p>
+            <p>{{ locale === 'zh' ? '国际学生申请截止' : 'International students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ intakeEvidence.generalDeadlineInternational }}</strong></p>
           </div>
           <p class="small muted">{{ intakeEvidence.hasVerifiedDegreeList
             ? (locale === 'zh' ? '学校已公布10月可选课程名单，下方按课程原名精确标注。未列入名单的学位统一显示“未核实”，不能推断停招' : 'An explicit October available-courses list exists. Exact title matches are marked below; other degrees remain unverified, not discontinued.')
