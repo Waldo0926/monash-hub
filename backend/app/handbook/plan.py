@@ -16,7 +16,13 @@ does:
 * its prerequisites are satisfied by units placed strictly earlier, with the
   Handbook's own AND/OR grouping honoured - an OR group needs one of its
   members, an AND group needs all of them;
-* no two units in the plan prohibit each other.
+* no unit is placed at or after a unit it prohibits. A prohibition runs one
+  way: ETW1001 lists ETW2001, so a student who has taken ETW2001 cannot then
+  enrol in ETW1001, but ETW2001 does not list ETW1001, so ETW1001 followed by
+  ETW2001 is allowed. Monash's Handbook glossary defines a prohibition as a
+  unit that, "if you've already completed it, means you won't be allowed to
+  study your chosen unit", and WES also refuses one while the prohibited
+  unit is in progress - so the same semester counts as a clash too.
 
 Each unit is read from the Handbook of the calendar year it sits in. A 2026
 semester is checked against the 2026 Handbook even after the site has moved to
@@ -321,14 +327,18 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
         for group in unit.requisite_groups:
             kind = (group.requisite_type or "").lower()
             if kind.startswith("prohibit"):
+                # Only a prohibited unit already done or under way blocks this
+                # one; a prohibited unit placed after it is that unit's own
+                # business, and is reported there if it lists this one back.
                 clash = [
-                    (item.item_code or "").upper()
-                    for item in group.items
-                    if (item.item_code or "").upper() in seen
+                    code
+                    for code in ((item.item_code or "").upper() for item in group.items)
+                    if code in seen and code != entry.unit_code
+                    and not entry.slot.finishes_before(seen[code])
                 ]
                 if clash:
                     issues.append(Issue(entry.unit_code, entry.slot.year, entry.slot.period,
-                                        "error", "prohibited_with", {"units": sorted(clash)}))
+                                        "error", "prohibited_with", {"units": sorted(set(clash))}))
                 continue
             if not ("prerequisite" in kind or "corequisite" in kind):
                 continue
