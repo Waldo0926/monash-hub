@@ -40,3 +40,23 @@ test('a code the Handbook does not have says so instead of showing an empty page
   expect(response?.status()).toBe(404)
   await expect(page.getByRole('main').getByRole('alert')).toContainText('没有找到这个内容')
 })
+
+
+test('unit search always links to the Handbook year comparison, without requiring a matching unit', async ({ page }) => {
+  await page.goto('/units')
+  const link = page.getByRole('link', { name: /比较年份|Compare years/ }).first()
+  await expect(link).toBeVisible()
+  await link.click()
+  await expect(page).toHaveURL(/\/units\/compare$/)
+  await expect(page.getByRole('heading', { name: /Handbook年份比较|Compare Handbook years/ })).toBeVisible()
+  await expect(page.getByPlaceholder('FIT2102')).toBeVisible()
+})
+
+test('a single-year unit still gives a route to the comparison page', async ({ page }) => {
+  await page.goto('/units/FIT2004')
+  const link = page.getByRole('link', { name: /比较年份|Compare years/ })
+  await expect(link).toBeVisible()
+  await link.click()
+  await expect(page).toHaveURL(/\/units\/compare\?/)
+  await expect(page.getByPlaceholder('FIT2102')).toHaveValue('FIT2004')
+})

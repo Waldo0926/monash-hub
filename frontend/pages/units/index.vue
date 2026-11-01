@@ -26,6 +26,13 @@ const MULTI = ['campus', 'teaching_period', 'faculty', 'school', 'prefix', 'leve
 type MultiKey = typeof MULTI[number]
 
 const query = ref((route.query.q as string) || '')
+const compareRoute = computed(() => {
+  const code = query.value.trim().toUpperCase()
+  return /^[A-Z]{2,8}\d{3,5}$/.test(code)
+    ? { path: '/units/compare', query: { code } }
+    : { path: '/units/compare' }
+})
+
 const filters = reactive({
   // Empty is the current Handbook. A year is kept in the URL so a link to the
   // 2025 list stays the 2025 list, and the unit cards carry it on.
@@ -244,6 +251,16 @@ useSeoMeta({
   <div class="container">
     <h1>{{ $t('units.title') }}</h1>
     <p class="muted">{{ $t('units.lead', { year: data?.academic_year || '' }) }}</p>
+    <aside class="compare-entry card" :aria-label="$t('handbook.compareTitle')">
+      <div class="compare-entry-text">
+        <strong>{{ $t('handbook.compareTitle') }}</strong>
+        <p class="small muted">{{ $t('handbook.compareIntro') }}</p>
+      </div>
+      <NuxtLink class="btn btn--ghost compare-entry-link" :to="compareRoute">
+        {{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span>
+      </NuxtLink>
+    </aside>
+
 
     <SearchInput
       v-model="query"
@@ -484,6 +501,17 @@ useSeoMeta({
 
 <style scoped>
 h1 { margin-bottom: var(--s2); }
+.compare-entry {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: var(--s3); padding: var(--s4); margin: var(--s4) 0;
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.compare-entry-text { flex: 1 1 300px; }
+.compare-entry-text strong { display: block; margin-bottom: 4px; }
+.compare-entry-text p { margin: 0; }
+.compare-entry-link { flex-shrink: 0; }
+@media (max-width: 600px) { .compare-entry-link { width: 100%; justify-content: center; } }
+
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
 /* A card that scrolls on its own, so the headings stay in reach beside a
    long result list. */
