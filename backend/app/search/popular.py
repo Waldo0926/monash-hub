@@ -83,6 +83,29 @@ def record(db: Session, query: str) -> None:
         db.rollback()
 
 
+# Explicit missing-result feedback is stored as an aggregate only, in the
+# existing daily term counter. No raw free-text, account, IP, or search history
+# is saved. Values are limited to controlled categories or a unit/degree code.
+MISSING_CATEGORIES = frozenset(("units", "degrees", "dates", "fees", "policies", "other"))
+_FEEDBACK_CODE = re.compile(r"^(?:[a-z]{3}\\d{4}|[a-z]\\d{4})$")
+
+
+def record_missing(db: Session, category: str, code: str | None = None) -> None:
+    if category not in MISSING_CATEGORIES:
+        raise ValueError("Unrecognised feedback category")
+    term_code = (code or "").strip().lower()
+    # Only a structurally valid unit/degree code can be kept. A query about
+    # somebody's name, marks, visa or email never reaches persistent storage.
+    token = f"missing:code:{term_code}" if _FEEDBACK_CODE.fullmatch(term_code) else f"missing:category:{category}"
+    stmt = insert(SearchTerm).values(term=token, label=token, day=date.today(), hits=1)
+    stmt = stmt.on_conflict_do_update(
+        constraint="uq_search_terms_term_day",
+        set_={"hits": func.least(SearchTerm.hits + 1, DAILY_CAP)},
+    )
+    db.execute(stmt)
+    db.commit()
+
+
 def popular(db: Session, limit: int = 6, *, today: date | None = None) -> list[dict]:
     """The most searched terms of the last DAYS days, most searched first."""
     now = time.monotonic()
@@ -95,7 +118,7 @@ def popular(db: Session, limit: int = 6, *, today: date | None = None) -> list[d
     capped = func.sum(func.least(SearchTerm.hits, DAILY_CAP))
     rows = db.execute(
         select(SearchTerm.term, func.max(SearchTerm.label), capped.label("hits"))
-        .where(SearchTerm.day >= since)
+        .where(SearchTerm.day >= since, ~SearchTerm.term.like("missing:%"))
         .group_by(SearchTerm.term)
         .having(func.count(func.distinct(SearchTerm.day)) >= MIN_DAYS)
         .order_by(capped.desc(), SearchTerm.term)
