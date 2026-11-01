@@ -195,8 +195,8 @@ const zhRequisiteType: Dictionary = {
   'prerequisites': '先修要求',
   'corequisite': '同修要求',
   'corequisites': '同修要求',
-  'prohibition': '互斥课程',
-  'prohibitions': '互斥课程'
+  'prohibition': '禁修课程',
+  'prohibitions': '禁修课程'
 }
 
 const zhConnector: Dictionary = { AND: '且', OR: '或' }

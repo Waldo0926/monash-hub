@@ -27,6 +27,11 @@ the fees page. Subject and degree words reach units and degrees as well.
 from __future__ import annotations
 
 ZH_ADMIN_TERMS: dict[str, tuple[str, ...]] = {
+    # --- enrolment rules ------------------------------------------------------
+    # The site says 禁修课程 now; 互斥 is what it said before and what students
+    # still type.
+    "禁修": ("prohibition",),
+    "互斥": ("prohibition",),
     # --- visas and international students -----------------------------------
     # Both campuses' documents: Monash Malaysia students call their Student
     # Pass 学生签证 too. A campus named in the question picks one.

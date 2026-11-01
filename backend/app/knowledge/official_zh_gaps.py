@@ -302,7 +302,7 @@ OFFICIAL_ZH_GAPS: dict[str, dict[str, str]] = {
     },
     "level-one-units-chemistry": {
         "Unit code | Unit title | Semester | Campus | Mode | Prerequisites/\nadditional information | How to enrol\nCHM1011 | Chemistry 1 | 1 | Clayton | On-campus | No prerequisites\nProhibition: CHM1051 | Web enrolment system\nCHM1022 | Chemistry 2 | 2 | Clayton | On-campus | No prerequisites\nProhibition: CHM1052 | Web enrolment system\nCHM1051 | Chemistry 1 advanced | 1 | Clayton | On-campus | VCE Chemistry ":
-            "课程代码 | 课程名称 | 学期 | 校区 | 授课方式 | 先修课程/\n其他信息 | 注册方式\nCHM1011 | 化学 1 | 1 | Clayton | 校内授课 | 无先修课程\n互斥课程：CHM1051 | 网上选课系统（WES）\nCHM1022 | 化学 2 | 2 | Clayton | 校内授课 | 无先修课程\n互斥课程：CHM1052 | 网上选课系统（WES）\nCHM1051 | 化学 1（高级） | 1 | Clayton | 校内授课 | VCE 化学 ",
+            "课程代码 | 课程名称 | 学期 | 校区 | 授课方式 | 先修课程/\n其他信息 | 注册方式\nCHM1011 | 化学 1 | 1 | Clayton | 校内授课 | 无先修课程\n禁修课程：CHM1051 | 网上选课系统（WES）\nCHM1022 | 化学 2 | 2 | Clayton | 校内授课 | 无先修课程\n禁修课程：CHM1052 | 网上选课系统（WES）\nCHM1051 | 化学 1（高级） | 1 | Clayton | 校内授课 | VCE 化学 ",
     },
     "level-one-units-earth--atmosphere-and-environment": {
         "Unit code | Unit title | Semester | Campus | Mode | Prerequisites/\nadditional information | How to enrol\nCLI1100 | Climate change: A wicked problem | 1 | Clayton | On-campus | No prerequisites | Web enrolment system\nCLI1200 | Climate change: Impacts and adaptations | 2 | Clayton | On-campus | No prerequisites | Web enrolment system\nEAE1011 | The Earth system: From the core to the atmosphere | 1 | ":

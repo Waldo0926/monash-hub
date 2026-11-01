@@ -398,13 +398,15 @@ TERMS: dict[str, dict[str, str]] = {
         "ja": "同時履修科目",
         "ko": "동시 수강 과목",
     },
+    # 禁修, not 互斥: a prohibition runs one way (ETW1001 lists ETW2001, not the
+    # reverse), and 互斥 tells a student it runs both.
     "prohibition": {
-        "zh": "互斥课程",
+        "zh": "禁修课程",
         "ja": "履修不可科目",
         "ko": "중복 수강 불가 과목",
     },
     "prohibitions": {
-        "zh": "互斥课程",
+        "zh": "禁修课程",
         "ja": "履修不可科目",
         "ko": "중복 수강 불가 과목",
     },

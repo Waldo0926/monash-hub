@@ -128,17 +128,54 @@ def test_a_unit_taught_here_but_not_that_semester_is_an_error(client, chain):
     assert issue["detail"]["offered_in"] == [S1]
 
 
-def test_a_prohibited_pair_is_reported(client, db):
+@pytest.fixture
+def one_way(db):
+    """AAA1001 prohibits ZZZ2001; ZZZ2001 lists nothing back (ETW1001 and ETW2001)."""
     a = _unit(db, "AAA1001")
-    _unit(db, "ZZZ1001")
-    _requires(db, a, "ZZZ1001", kind="prohibitions")
+    _unit(db, "ZZZ2001")
+    _requires(db, a, "ZZZ2001", kind="prohibitions", connector="OR")
+    db.commit()
+
+
+def test_a_prohibited_unit_taken_first_blocks_the_unit_that_lists_it(client, one_way):
+    body = _post(client, [
+        {"unit_code": "ZZZ2001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S2},
+    ])
+    issue = next(i for i in body["issues"] if i["kind"] == "prohibited_with")
+    assert issue["unit_code"] == "AAA1001"
+    assert issue["detail"]["units"] == ["ZZZ2001"]
+
+
+def test_a_prohibition_does_not_run_backwards(client, one_way):
+    """AAA1001 then ZZZ2001 is allowed: ZZZ2001 does not prohibit AAA1001."""
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "ZZZ2001", "year": 2026, "teaching_period": S2},
+    ])
+    assert "prohibited_with" not in kinds(body)
+
+
+def test_a_prohibited_unit_in_the_same_semester_is_a_clash(client, one_way):
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
+        {"unit_code": "ZZZ2001", "year": 2026, "teaching_period": S1},
+    ])
+    assert "prohibited_with" in kinds(body, "AAA1001")
+
+
+def test_a_two_way_prohibition_is_reported_on_the_later_unit(client, db):
+    a = _unit(db, "AAA1001")
+    b = _unit(db, "BBB1001")
+    _requires(db, a, "BBB1001", kind="prohibitions")
+    _requires(db, b, "AAA1001", kind="prohibitions")
     db.commit()
     body = _post(client, [
         {"unit_code": "AAA1001", "year": 2026, "teaching_period": S1},
-        {"unit_code": "ZZZ1001", "year": 2026, "teaching_period": S2},
+        {"unit_code": "BBB1001", "year": 2026, "teaching_period": S2},
     ])
-    issue = next(i for i in body["issues"] if i["kind"] == "prohibited_with")
-    assert issue["detail"]["units"] == ["ZZZ1001"]
+    assert "prohibited_with" in kinds(body, "BBB1001")
+    assert "prohibited_with" not in kinds(body, "AAA1001")
 
 
 def test_a_full_year_unit_does_not_finish_before_its_own_second_semester(client, db):

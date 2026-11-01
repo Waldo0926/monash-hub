@@ -137,7 +137,7 @@ def test_placeholders_are_letters_only():
         ("credit points", "学分"),
         ("hurdle", "及格门槛"),
         ("prerequisite", "先修课程"),
-        ("prohibition", "互斥课程"),
+        ("prohibition", "禁修课程"),
         ("intermission", "休学（intermission）"),
     ],
 )

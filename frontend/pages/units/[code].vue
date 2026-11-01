@@ -515,6 +515,9 @@ useHead(() => ({
                 <template v-if="unit.requisites.length">
                   <div v-for="(groups, type) in requisitesByType" :key="type" class="req">
                     <h4 class="req-type">{{ $term('requisiteType', String(type)) }}</h4>
+                    <p v-if="String(type).startsWith('prohibit')" class="tiny muted req-hint">
+                      {{ $t('unit.prohibitionHint', { code: unit.unit_code }) }}
+                    </p>
                     <RequisiteRule
                       v-for="(group, gi) in groups"
                       :key="gi"
@@ -801,6 +804,7 @@ useHead(() => ({
 .before-after { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6); }
 .req + .req { margin-top: var(--s5); }
 .req-type { text-transform: capitalize; }
+.req-hint { margin: 0 0 var(--s2); }
 .req-group ul { margin: var(--s2) 0; padding-left: var(--s5); }
 .outcomes { padding-left: var(--s5); }
 .outcomes li + li { margin-top: var(--s2); }
