@@ -111,10 +111,13 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
           <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
         </select>
       </label>
-      <button type="submit" class="compare-submit" :disabled="busy || !years.length">{{ busy ? (zh ? '正在比较…' : 'Comparing…') : (zh ? '比较变化' : 'Compare') }}</button>
+      <button type="submit" class="compare-submit" :disabled="busy || years.length < 2">{{ busy ? (zh ? '正在比较…' : 'Comparing…') : (zh ? '比较变化' : 'Compare') }}</button>
     </form>
     <p v-if="message" role="alert" class="compare-message">{{ message }}</p>
     <p v-if="!years.length" class="small muted">{{ zh ? '暂时没有可用的Handbook年份' : 'No Handbook years are available right now.' }}</p>
+    <p v-if="years.length === 1" class="small muted" role="status">
+      {{ zh ? '目前仅收录一个Handbook年份，暂时无法比较。课程搜索中的年份变化入口仍可使用，待其他年份有资料后再比较' : 'Only one Handbook year is indexed. Comparison needs two years; the search shortcut remains available until more editions are loaded.' }}
+    </p>
 
     <template v-if="result">
       <div v-if="!result.before || !result.after" class="card compare-warning" role="status">
