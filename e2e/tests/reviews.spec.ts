@@ -10,13 +10,13 @@ test('a guest rates a unit, others see it as someone else\'s, and the author can
 
   // Picking a star on the short prompt opens the full form with that score in it.
   await reviews.locator('.prompt .star').nth(3).click()
-  await expect(reviews.getByRole('group', { name: '总体评分' }).getByRole('radio', { name: '4 星，满分 5 星' })).toBeChecked()
+  await expect(reviews.getByRole('group', { name: '总体评分' }).getByRole('radio', { name: '4星，满分5星' })).toBeChecked()
   await reviews.getByLabel('你的评价（选填）').fill('Weekly exercises help a lot.')
   await reviews.getByRole('button', { name: '发布评分' }).click()
 
   await expect(reviews.getByRole('status')).toHaveText('谢谢，评分已保存')
   await expect(reviews.locator('.score')).toContainText('4.0')
-  await expect(reviews.locator('.score')).toContainText('1 人评分')
+  await expect(reviews.locator('.score')).toContainText('1人评分')
   // The header chip above the Handbook sections picks the new average up too.
   await expect(page.locator('.chip--rating')).toContainText('4.0')
 
