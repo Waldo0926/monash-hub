@@ -60,7 +60,7 @@ async function sendMissingFeedback() {
   if (!query.value || feedbackStatus.value !== 'idle') return
   feedbackStatus.value = 'sending'
   const term = String(route.query.q || '').trim().toUpperCase()
-  const code = /^(?:[A-Z]{3}\\d{4}|[A-Z]\\d{4})$/.test(term) ? term : null
+  const code = /^(?:[A-Z]{3}\d{4}|[A-Z]\d{4})$/.test(term) ? term : null
   try {
     await apiFetch('/v1/search/missing', {
       method: 'POST',
