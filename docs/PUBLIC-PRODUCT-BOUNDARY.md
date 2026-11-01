@@ -23,7 +23,7 @@ Only Monash can confirm enrolment, transfer credit, scholarship awards and gradu
 
 ## Content and privacy standards
 
-- Chinese UI strings follow [Chinese copy guidelines](CHINESE-COPY-STYLE.md) where available; labels and buttons need no final punctuation.
+- Chinese UI labels and buttons need no final punctuation. Follow the site's established copy conventions, without changing official quotes or user content.
 - Never silently modify official quotation or policy text for stylistic reasons.
 - Keep individual planning data in the browser by default. A deliberate plan check may send the minimum necessary entries to an API; do not persist that material in server analytics or logs.
 - State when a source was checked and distinguish a missing response from a verified negative finding.
