@@ -87,7 +87,7 @@ def record(db: Session, query: str) -> None:
 # existing daily term counter. No raw free-text, account, IP, or search history
 # is saved. Values are limited to controlled categories or a unit/degree code.
 MISSING_CATEGORIES = frozenset(("units", "degrees", "dates", "fees", "policies", "other"))
-_FEEDBACK_CODE = re.compile(r"^(?:[a-z]{3}\\d{4}|[a-z]\\d{4})$")
+_FEEDBACK_CODE = re.compile(r"^(?:[a-z]{3}\d{4}|[a-z]\d{4})$")
 
 
 def record_missing(db: Session, category: str, code: str | None = None) -> None:
