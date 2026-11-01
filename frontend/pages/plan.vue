@@ -782,7 +782,7 @@ useSeoMeta({ title: () => $t('plan.title') })
       <div class="intro-text">
         <h1>{{ $t('plan.title') }}</h1>
         <p class="lede">{{ $t('plan.lede') }}</p>
-        <p><NuxtLink to="/graduation-checklist">{{ $t('plan.title') && $t('nav.mainLabel') === '' ? 'Graduation checklist' : 'Graduation checklist / 毕业准备清单' }} →</NuxtLink></p>
+        <p><NuxtLink to="/graduation-checklist">{{ locale === 'zh' ? '毕业准备清单' : 'Graduation checklist' }} →</NuxtLink></p>
       </div>
 
       <div class="tools" role="toolbar" :aria-label="$t('plan.tools')">
