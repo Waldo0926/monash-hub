@@ -50,7 +50,8 @@ function notFound(error: unknown): boolean {
 }
 async function load(codeValue: string, year: number): Promise<UnitSnapshot | null> {
   try {
-    return await apiFetch<UnitSnapshot>(`/v1/units/${encodeURIComponent(codeValue)}?year=${year}`)
+    // Compare the original Handbook wording, not potentially staggered translated snapshots.
+    return await apiFetch<UnitSnapshot>(`/v1/units/${encodeURIComponent(codeValue)}?year=${year}&locale=en`)
   } catch (error) {
     if (notFound(error)) return null
     throw error
