@@ -72,8 +72,7 @@ function chip(change: string): string | null {
         </ul>
         <p v-else class="small none">{{ $t('teachOut.none') }}</p>
         <p class="tiny muted">
-          {{ $t('teachOut.source') }}
-          <template v-for="([slug, source], n) in r.pages" :key="slug">
+          {{ $t('teachOut.source') }}<template v-for="([slug, source], n) in r.pages" :key="slug">
             <template v-if="n">, </template>
             <a :href="source.url" rel="noopener external" target="_blank">{{ source.title }}</a>
             <template v-if="source.last_checked"> · <LastChecked :value="source.last_checked" /></template>

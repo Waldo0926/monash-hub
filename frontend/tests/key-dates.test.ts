@@ -24,6 +24,10 @@ describe('key date wording', () => {
     expect(keyDateRange(exams, 'zh', '2026-10-25')).toBe('11月2–18日')
     expect(keyDateRange(exams, 'en', '2026-10-25')).toBe('2–18 Nov')
     expect(keyDateRange(item({ date: '2027-03-31' }), 'zh', '2026-10-25')).toBe('2027年3月31日')
+    const swot = item({ date: '2027-05-31', end: '2027-06-04' })
+    expect(keyDateRange(swot, 'zh', '2026-10-25')).toBe('2027年5月31日–6月4日')
+    expect(keyDateRange(swot, 'en', '2026-10-25')).toBe('31 May – 4 Jun 2027')
+    expect(keyDateRange(item({ date: '2027-12-28', end: '2028-01-08' }), 'zh', '2027-10-25')).toBe('2027年12月28日–2028年1月8日')
   })
 
   it('puts the printed time beside the teaching period', () => {

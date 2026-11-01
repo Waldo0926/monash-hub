@@ -50,15 +50,15 @@ LOCALES = ("zh", "ja", "ko")
 # without waiting for another machine-translation batch.
 ZH_TITLE_OVERRIDES: dict[str, str] = {
     # Malaysia undergraduate titles reported by readers.
-    "Bachelor of Digital Media and Communication": "数字媒体与传播学士学位",
+    "Bachelor of Digital Media and Communication": "数字媒体与传播学士",
     "Bachelor of Actuarial Science and Master of Actuarial Studies":
         "精算学学士和精算学硕士",
-    "Bachelor of Business and Commerce": "商业与贸易学士学位",
-    "Bachelor of Business and Commerce (Honours)": "商业与贸易学士学位（荣誉）",
+    "Bachelor of Business and Commerce": "商务与商业学士",
+    "Bachelor of Business and Commerce (Honours)": "商务与商业学士（荣誉学位）",
     "Bachelor of Business and Commerce and Bachelor of Computer Science":
-        "商业学士和计算机科学学士",
+        "商务与商业学士和计算机科学学士",
     "Bachelor of Business and Commerce and Bachelor of Digital Media and Communication":
-        "商业与贸易学士学位和数字媒体与传播学士学位",
+        "商务与商业学士和数字媒体与传播学士",
 
     # Undergraduate names where a conjunction, modifier or subtitle was lost.
     "Bachelor of Arts and Social Sciences": "文学与社会科学学士",
@@ -87,7 +87,7 @@ ZH_TITLE_OVERRIDES: dict[str, str] = {
     "Monash Access Program": "Monash 入学衔接课程",
     "Monash Advanced Preparation Program": "Monash 高级预科课程",
     "Monash Transition Program": "Monash 过渡课程",
-    "Postgraduate Diploma in Business and Commerce": "商业与贸易研究生文凭",
+    "Postgraduate Diploma in Business and Commerce": "商务与商业研究生文凭",
 
     # Certificates and diplomas whose noun phrase was translated in the wrong sense.
     "Graduate Certificate of Advanced Pharmacy Practice": "高级药学实践研究生证书",

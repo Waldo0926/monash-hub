@@ -46,9 +46,14 @@ const sections = computed(() =>
 const empty = computed(() => !data.value?.sections?.length)
 const selectedIntake = ref<IntakePeriod>('october')
 const intakeEvidence = computed(() => INTAKES_2027.find(item => item.id === selectedIntake.value)!)
+/** "2027-10-15" as 2027年10月15日 in Chinese; English keeps the ISO date. */
+const day = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number)
+  return locale.value === 'zh' && y && m && d ? `${y}年${m}月${d}日` : iso
+}
 const intakeLabel = (id: IntakePeriod) => {
-  if (locale.value === 'zh') return id === 'february' ? '2月' : id === 'july' ? '7月' : '10月'
-  return id === 'february' ? 'February' : id === 'july' ? 'July' : 'October'
+  if (locale.value === 'zh') return `2027年${id === 'february' ? '2月' : id === 'july' ? '7月' : '10月'}入学`
+  return `${id === 'february' ? 'February' : id === 'july' ? 'July' : 'October'} 2027`
 }
 
 
@@ -96,12 +101,12 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
           <label class="intake-picker">
             {{ locale === 'zh' ? '入学批次' : 'Intake period' }}
             <select v-model="selectedIntake" class="field" aria-label="2027 intake">
-              <option v-for="item in INTAKES_2027" :key="item.id" :value="item.id">{{ intakeLabel(item.id) }} 2027</option>
+              <option v-for="item in INTAKES_2027" :key="item.id" :value="item.id">{{ intakeLabel(item.id) }}</option>
             </select>
           </label>
           <div class="intake-facts small">
-            <p>{{ locale === 'zh' ? '马来西亚申请人常规截止日期' : 'General Malaysian application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineMalaysia }}</strong></p>
-            <p>{{ locale === 'zh' ? '国际申请人常规截止日期' : 'General international application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineInternational }}</strong></p>
+            <p>{{ locale === 'zh' ? '马来西亚学生申请截止' : 'Malaysian students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ day(intakeEvidence.generalDeadlineMalaysia) }}</strong></p>
+            <p>{{ locale === 'zh' ? '国际学生申请截止' : 'International students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ day(intakeEvidence.generalDeadlineInternational) }}</strong></p>
           </div>
           <p class="small muted">{{ intakeEvidence.hasVerifiedDegreeList
             ? (locale === 'zh' ? '学校已公布10月可选课程名单，下方按课程原名精确标注。未列入名单的学位统一显示“未核实”，不能推断停招' : 'An explicit October available-courses list exists. Exact title matches are marked below; other degrees remain unverified, not discontinued.')
@@ -109,7 +114,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
           <p class="small muted" v-if="intakeEvidence.exceptionsApply">{{ locale === 'zh' ? '部分专业有特别截止日期，例如医学、临床心理学或专业心理咨询，请以官网对应类别为准' : 'Special deadlines apply to some programmes, including medicine and certain psychology/counselling degrees. Check the matching official category.' }}</p>
           <p class="small muted">{{ locale === 'zh' ? '是否现在开放申请' : 'Applications open now' }}：{{ APPLICATION_STATUS_2027 === 'not_verified' ? (locale === 'zh' ? '未核实' : 'Not verified') : '' }} ·
             <a :href="intakeEvidence.source" target="_blank" rel="noopener external">{{ locale === 'zh' ? '查看官方招生页面' : 'Official intake page' }} ↗</a>
-            · {{ locale === 'zh' ? '资料核对日期' : 'Reviewed' }}：{{ intakeEvidence.checkedOn }}
+            · {{ locale === 'zh' ? '资料核对日期' : 'Reviewed' }}：{{ day(intakeEvidence.checkedOn) }}
           </p>
         </section>
         <p class="fee-planner-link"><NuxtLink to="/fees/planner">{{ locale === 'zh' ? '自己估算学费、减免和生活费' : 'Estimate tuition, discounts and living costs' }} →</NuxtLink></p>
@@ -173,7 +178,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
                     <template v-if="row.mode"> · {{ modeName(row.mode) }}</template>
                   </span>
                   <span v-if="row.covers.length" class="tiny muted covers">
-                    {{ $t('fees.covers') }}: {{ row.covers.join(', ') }}
+                    {{ $t('fees.covers') }}{{ locale === 'zh' ? '：' : ': ' }}{{ row.covers.join(', ') }}
                   </span>
                   <span v-if="row.note" class="tiny note">{{ feeNote(row.note, locale) }}</span>
                   <span v-if="row.unreadable" class="tiny warn">{{ $t('fees.unreadable') }}</span>
@@ -269,6 +274,6 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 .intake-evidence p { margin: var(--s2) 0; }
 .intake-picker { display: grid; max-width: 240px; gap: var(--s1); font-size: .9rem; font-weight: 600; }
 .intake-picker select { min-height: 44px; }
-.intake-facts { display: flex; flex-wrap: wrap; gap: 2px var(--s5); }
-.intake-facts p { margin: var(--s2) 0; }
+.intake-facts { display: flex; flex-wrap: wrap; gap: 4px var(--s5); margin: var(--s3) 0; }
+.intake-facts p { margin: 0; }
 </style>

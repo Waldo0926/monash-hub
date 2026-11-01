@@ -158,9 +158,8 @@ function ask(question: string) {
 
     <div v-if="answer.sources?.length" class="sources tiny">
       <span v-for="source in answer.sources" :key="source.url">
-        {{ $t('answer.source') }}
-        <a :href="source.url" rel="noopener external" target="_blank">{{ source.label }} ↗</a>
-        <LastChecked :value="source.last_checked" />
+        {{ $t('answer.source') }}<a :href="source.url" rel="noopener external" target="_blank">{{ source.label }} ↗</a>
+        <template v-if="source.last_checked"> · <LastChecked :value="source.last_checked" /></template>
       </span>
     </div>
 

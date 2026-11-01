@@ -34,7 +34,7 @@ const namesEn = {
 const namesZh = {
   title: '课程名称', credit_points: '学分', level: '课程级别', has_exam: '是否列出考试',
   offerings: '校区和开课学期', assessments: '考核项目',
-  requisites: '先修、并修及禁止同时修读要求',
+  requisites: '先修、同修和禁修条件',
   assessment_summary: '考核说明', workload_requirements: '学习负担'
 }
 const names = computed(() => zh.value ? namesZh : namesEn)
@@ -42,6 +42,15 @@ const statusZh = { added: '新增', removed: '移除', changed: '变化', unchan
 const statusEn = { added: 'Added', removed: 'Removed', changed: 'Changed', unchanged: 'Unchanged', unavailable: 'Unavailable' }
 const rows = computed(() => result.value ? compareUnitSnapshots(result.value.before, result.value.after) : [])
 const changes = computed(() => rows.value.filter(row => row.status !== 'unchanged'))
+const same = computed(() => rows.value.filter(row => row.status === 'unchanged'))
+
+/** Requisite rules stay in the Handbook's words; only the joining words are put into Chinese. */
+function shown(row: { field: string }, value: string) {
+  if (!zh.value || row.field !== 'requisites') return value
+  return value
+    .replace(/^Prerequisite:/gm, '先修条件：').replace(/^Corequisite:/gm, '同修条件：').replace(/^Prohibition:/gm, '禁修：')
+    .replace(/ AND /g, ' 且 ').replace(/ OR /g, ' 或 ')
+}
 
 function notFound(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -79,18 +88,19 @@ async function compare() {
   }
 }
 
+// A link from a unit page or the search box carries the code; compare at once.
 onMounted(() => {
-  if (route.query.code && route.query.from && route.query.to) void compare()
+  if (route.query.code) void compare()
 })
 useSeoMeta({
-  title: () => zh.value ? 'Handbook年份比较｜Monash Hub' : 'Compare Handbook years | Monash Hub',
+  title: () => zh.value ? 'Handbook年份比较 | Monash Hub' : 'Compare Handbook years | Monash Hub',
   description: () => zh.value ? '比较同一门Monash课程在不同年份的开课信息、先修课与考核' : 'Compare unit requisites, offerings and assessments across published Handbook years.'
 })
 useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compare` }] })
 </script>
 
 <template>
-  <div class="page compare-page">
+  <div class="container compare-page">
     <header class="intro">
       <p class="crumb"><NuxtLink to="/units">{{ zh ? '课程搜索' : 'Unit search' }}</NuxtLink></p>
       <h1>{{ zh ? 'Handbook年份比较' : 'Compare Handbook years' }}</h1>
@@ -126,24 +136,35 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
         <p>{{ from }}：{{ result.before ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }} · {{ to }}：{{ result.after ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }}</p>
       </div>
       <template v-else>
-        <p class="compare-summary">{{ zh ? `共${changes.length}项有变化或新增／移除，${rows.length - changes.length}项相同` : `${changes.length} fields differ; ${rows.length - changes.length} unchanged` }}</p>
+        <p class="compare-summary">{{ changes.length
+          ? (zh ? `${from}年和${to}年之间有${changes.length}项不同` : `${changes.length} ${changes.length === 1 ? 'field differs' : 'fields differ'} between ${from} and ${to}`)
+          : (zh ? `${from}年和${to}年的Handbook内容相同` : `Nothing differs between ${from} and ${to}`) }}</p>
         <div class="compare-grid">
-          <section v-for="row in rows" :key="row.field" class="card compare-row" :class="{ unchanged: row.status === 'unchanged' }">
+          <section v-for="row in changes" :key="row.field" class="card compare-row">
             <div class="compare-row-head">
               <h2>{{ names[row.field] }}</h2>
               <span class="compare-tag">{{ zh ? statusZh[row.status] : statusEn[row.status] }}</span>
             </div>
             <div class="compare-two">
-              <div><strong>{{ from }}</strong><pre>{{ row.from || (zh ? '未列出' : 'Not listed') }}</pre></div>
-              <div><strong>{{ to }}</strong><pre>{{ row.to || (zh ? '未列出' : 'Not listed') }}</pre></div>
+              <div><strong>{{ from }}</strong><pre>{{ row.from ? shown(row, row.from) : (zh ? '未列出' : 'Not listed') }}</pre></div>
+              <div><strong>{{ to }}</strong><pre>{{ row.to ? shown(row, row.to) : (zh ? '未列出' : 'Not listed') }}</pre></div>
             </div>
           </section>
         </div>
+        <details v-if="same.length" class="compare-same">
+          <summary>{{ zh ? `两年相同：${same.map(row => names[row.field]).join('、')}` : `Same in both years: ${same.map(row => names[row.field]).join(', ')}` }}</summary>
+          <dl>
+            <div v-for="row in same" :key="row.field">
+              <dt>{{ names[row.field] }}</dt>
+              <dd><pre>{{ row.from ? shown(row, row.from) : (zh ? '未列出' : 'Not listed') }}</pre></dd>
+            </div>
+          </dl>
+        </details>
       </template>
       <div class="compare-sources card">
         <h2>{{ zh ? '原始资料' : 'Original sources' }}</h2>
-        <p v-if="result.before?.source_url"><a :href="result.before.source_url" target="_blank" rel="noopener external">{{ from }} Monash Handbook ↗</a> · {{ zh ? '核对时间' : 'Checked' }}：{{ result.before.last_checked || (zh ? '未知' : 'Unknown') }}</p>
-        <p v-if="result.after?.source_url"><a :href="result.after.source_url" target="_blank" rel="noopener external">{{ to }} Monash Handbook ↗</a> · {{ zh ? '核对时间' : 'Checked' }}：{{ result.after.last_checked || (zh ? '未知' : 'Unknown') }}</p>
+        <p v-if="result.before?.source_url"><a :href="result.before.source_url" target="_blank" rel="noopener external">{{ from }} Monash Handbook ↗</a><template v-if="result.before.last_checked"> · <LastChecked :value="result.before.last_checked" /></template></p>
+        <p v-if="result.after?.source_url"><a :href="result.after.source_url" target="_blank" rel="noopener external">{{ to }} Monash Handbook ↗</a><template v-if="result.after.last_checked"> · <LastChecked :value="result.after.last_checked" /></template></p>
         <p class="small muted">{{ zh ? '这里只比较当前抓取的数据，不代表学校已批准选课、先修豁免、交换学分或毕业资格。考核和开课信息可能继续变化，请以原始页面为准' : 'These are snapshots, not enrolment, prerequisite-waiver, credit-transfer or graduation approvals. Confirm current details on Monash’s original pages.' }}</p>
       </div>
     </template>
@@ -163,7 +184,12 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
 .compare-summary { margin: var(--s5) 0; font-weight: 600; }
 .compare-grid { display: grid; gap: var(--s3); }
 .compare-row { padding: var(--s4) var(--s5); }
-.compare-row.unchanged { opacity: .85; }
+.compare-same { margin-top: var(--s4); padding: var(--s4) var(--s5); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.compare-same summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 10px 0; }
+.compare-same dl { margin: var(--s3) 0 0; display: grid; gap: var(--s3); }
+.compare-same dt { font-weight: 600; font-size: .9rem; }
+.compare-same dd { margin: 0; }
+.compare-same pre { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .88rem; margin: var(--s1) 0 0; color: var(--muted); }
 .compare-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
 .compare-row h2, .compare-sources h2, .compare-warning h2 { font-size: 1rem; margin: 0; }
 .compare-tag { font-size: .8rem; background: var(--surface-2); color: var(--muted); border-radius: 5px; padding: 3px 8px; white-space: nowrap; }
@@ -172,5 +198,5 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
 .compare-two pre { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .88rem; margin: var(--s2) 0 0; }
 .compare-sources, .compare-warning { margin-top: var(--s5); padding: var(--s5); }
 .compare-sources p { margin-top: var(--s2); overflow-wrap: anywhere; }
-@media (max-width: 620px) { .compare-two { grid-template-columns: 1fr; } .compare-two > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; } }
+@media (max-width: 620px) { .compare-submit { width: 100%; } .compare-two { grid-template-columns: 1fr; } .compare-two > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; } }
 </style>

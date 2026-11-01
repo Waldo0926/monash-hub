@@ -26,12 +26,13 @@ const MULTI = ['campus', 'teaching_period', 'faculty', 'school', 'prefix', 'leve
 type MultiKey = typeof MULTI[number]
 
 const query = ref((route.query.q as string) || '')
-const compareRoute = computed(() => {
+const compareCode = computed(() => {
   const code = query.value.trim().toUpperCase()
-  return /^[A-Z]{2,8}\d{3,5}$/.test(code)
-    ? { path: '/units/compare', query: { code } }
-    : { path: '/units/compare' }
+  return /^[A-Z]{2,8}\d{3,5}$/.test(code) ? code : null
 })
+const compareRoute = computed(() => compareCode.value
+  ? { path: '/units/compare', query: { code: compareCode.value } }
+  : { path: '/units/compare' })
 
 const filters = reactive({
   // Empty is the current Handbook. A year is kept in the URL so a link to the
@@ -251,33 +252,23 @@ useSeoMeta({
   <div class="container">
     <h1>{{ $t('units.title') }}</h1>
     <p class="muted">{{ $t('units.lead', { year: data?.academic_year || '' }) }}</p>
-    <aside class="compare-entry card" :aria-label="$t('handbook.compareTitle')">
-      <div class="compare-entry-text">
-        <strong>{{ $t('handbook.compareTitle') }}</strong>
-        <p class="small muted">{{ $t('handbook.compareIntro') }}</p>
-      </div>
-      <NuxtLink class="btn btn--ghost compare-entry-link" :to="compareRoute">
-        {{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span>
-      </NuxtLink>
-    </aside>
-
-
     <SearchInput
       v-model="query"
       :placeholder="$t('units.searchPlaceholder')"
       @submit="v => (query = v)"
     />
 
-    <button
-      class="btn btn--ghost btn--small filter-toggle"
-      type="button"
-      :aria-expanded="drawerOpen"
-      aria-controls="unit-filters"
-      @click="drawerOpen = true"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M7 12h10 M10 18h4" /></svg>
-      {{ $t('units.filters') }}<span v-if="active.length" class="toggle-count">{{ active.length }}</span>
-    </button>
+    <div class="compare-entry">
+      <p class="small">
+        <strong>{{ $t('handbook.compareTitle') }}</strong>
+        <span class="muted">{{ compareCode
+          ? $t('handbook.compareIntroCode', { code: compareCode })
+          : $t('handbook.compareIntro') }}</span>
+      </p>
+      <NuxtLink class="btn btn--ghost btn--small" :to="compareRoute">
+        {{ $t('handbook.compareCta') }} <span aria-hidden="true">→</span>
+      </NuxtLink>
+    </div>
 
     <div class="layout">
       <div v-if="drawerOpen" class="backdrop" aria-hidden="true" @click="drawerOpen = false" />
@@ -391,8 +382,18 @@ useSeoMeta({
             </template>
           </p>
           <div class="bar-tools">
+        <button
+          class="btn btn--ghost btn--small filter-toggle"
+          type="button"
+          :aria-expanded="drawerOpen"
+          aria-controls="unit-filters"
+          @click="drawerOpen = true"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M7 12h10 M10 18h4" /></svg>
+          {{ $t('units.filters') }}<span v-if="active.length" class="toggle-count">{{ active.length }}</span>
+        </button>
             <label class="sort">
-              <span class="tiny muted">{{ $t('units.sort') }}</span>
+              <span class="tiny muted sort-label">{{ $t('units.sort') }}</span>
               <select v-model="filters.sort" class="field field--small">
                 <option value="relevance">{{ $t('units.sortRelevance') }}</option>
                 <option value="code">{{ $t('units.sortCode') }}</option>
@@ -501,16 +502,14 @@ useSeoMeta({
 
 <style scoped>
 h1 { margin-bottom: var(--s2); }
+/* Under the search box rather than above it, but still a strip with a button, not a footnote. */
 .compare-entry {
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: var(--s3); padding: var(--s4); margin: var(--s4) 0;
-  border: 1px solid var(--border); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: var(--s2) var(--s4); margin-top: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2);
 }
-.compare-entry-text { flex: 1 1 300px; }
-.compare-entry-text strong { display: block; margin-bottom: 4px; }
-.compare-entry-text p { margin: 0; }
-.compare-entry-link { flex-shrink: 0; }
-@media (max-width: 600px) { .compare-entry-link { width: 100%; justify-content: center; } }
+.compare-entry p { margin: 0; display: flex; flex-wrap: wrap; gap: 2px var(--s2); }
+.compare-entry .btn { flex-shrink: 0; background: var(--surface); }
 
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); margin-top: var(--s5); }
 /* A card that scrolls on its own, so the headings stay in reach beside a
@@ -587,7 +586,7 @@ h1 { margin-bottom: var(--s2); }
 .page-btn.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); font-weight: 600; }
 .page-gap { padding: 0 4px; color: var(--muted); }
 
-.filter-toggle { display: none; gap: 6px; margin-top: var(--s3); }
+.filter-toggle { display: none; gap: 6px; }
 .filter-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .toggle-count {
   display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px;
@@ -615,6 +614,15 @@ h1 { margin-bottom: var(--s2); }
   .show-btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 600px) {
+  /* Filter, sort and view share one row under the count, all the same height. */
+  .bar { gap: var(--s2); }
+  .bar-tools { width: 100%; gap: var(--s2); }
+  .filter-toggle { min-height: 40px; margin-right: auto; }
+  .sort-label { display: none; }
+  .bar-tools .field--small { min-height: 40px; }
+  .view-btn { width: 40px; height: 38px; }
+  .compare-entry { flex-wrap: nowrap; padding: var(--s3); }
+  .compare-entry p { display: grid; gap: 2px; }
   .row { grid-template-columns: 80px minmax(0, 1fr); }
   .row-meta { display: none; }
   .page-word { display: none; }

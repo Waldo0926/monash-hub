@@ -124,7 +124,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/dates` }] }
         :disabled="!data?.items?.length"
         @click="exportCalendar"
       >
-        {{ lang === 'zh' ? '导出日历(.ics)' : 'Download calendar (.ics)' }}
+        {{ lang === 'zh' ? '导出日历（.ics）' : 'Download calendar (.ics)' }}
       </button>
     </div>
     <p class="periods small muted">
@@ -158,10 +158,9 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/dates` }] }
 
     <footer class="foot small muted">
       <p>{{ t.otherPeriods }}</p>
-      <p>{{ lang === 'zh' ? '日历使用全天提醒，以免误把官网显示的本地时间换算成错误时区；具体截止时刻保留在事件说明中。导出的是当前列表快照，不会自动更新' : 'Calendar events use all-day markers to avoid timezone mistakes; source times appear in event descriptions. This is a one-time snapshot, not an auto-updating subscription.' }}</p>
+      <p>{{ lang === 'zh' ? '导出的日历都是全天事件，避免时区换算出错，具体截止时刻写在事件说明里。导出的是当前列表，以后官网改了日期不会自动同步' : 'Calendar events use all-day markers to avoid timezone mistakes; source times appear in event descriptions. This is a one-time snapshot, not an auto-updating subscription.' }}</p>
       <p v-if="sources.length">
-        {{ t.source }}:
-        <template v-for="(s, i) in sources" :key="s.url">
+        {{ t.source }}{{ lang === 'zh' ? '：' : ': ' }}<template v-for="(s, i) in sources" :key="s.url">
           <a :href="s.url" rel="noopener external" target="_blank">{{ s.title }} ↗</a><template v-if="i < sources.length - 1"> · </template>
         </template>
         <template v-if="checkedOn"> · {{ t.checked }} {{ checkedOn }}</template>

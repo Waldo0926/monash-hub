@@ -6,6 +6,7 @@ import { possibleMissingExplicitUnits } from '~/utils/courseGaps'
  */
 const { plan } = usePlan()
 const { locale } = useLocale()
+const campusName = useCampusName()
 const zh = computed(() => locale.value === 'zh')
 const report = shallowRef<{ issues: Array<{ unit_code: string; kind: string; severity: string; year: number; teaching_period: string; detail?: Record<string, unknown> }>; credit_points?: number } | null>(null)
 const checking = ref(false)
@@ -33,10 +34,14 @@ const labels = {
   not_offered_at_campus: { en: 'Not offered at the selected campus', zh: '当前校区未开设' },
   not_offered_in_period: { en: 'Not offered in the planned period', zh: '所选学期未开设' },
   missing_prerequisite: { en: 'Prerequisite needs checking', zh: '先修要求有待核对' },
-  missing_corequisite: { en: 'Corequisite needs checking', zh: '并修要求有待核对' },
-  prohibited_with: { en: 'Prohibition conflict', zh: '课程存在禁止同时修读的冲突' },
+  missing_corequisite: { en: 'Corequisite needs checking', zh: '同修要求有待核对' },
+  prohibited_with: { en: 'Prohibition conflict', zh: '和计划里的另一门课禁修冲突' },
   duplicate: { en: 'Duplicated unit', zh: '同一门课重复安排' }
 } as const
+function severityText(severity: string): string {
+  if (!zh.value) return severity
+  return severity === 'error' ? '需要处理' : severity === 'warning' ? '需要留意' : severity === 'info' ? '提示' : severity
+}
 function issueText(kind: string): string {
   const entry = labels[kind as keyof typeof labels]
   return entry ? (zh.value ? entry.zh : entry.en) : kind.replace(/_/g, ' ')
@@ -75,13 +80,13 @@ function toggle(id: string, checked: boolean) {
 }
 watch(() => JSON.stringify([plan.value.entries, plan.value.campus, plan.value.startYear, plan.value.courseCode]), () => { report.value = null; degree.value = null; degreeUnavailable.value = false })
 useSeoMeta({
-  title: () => zh.value ? '毕业准备清单｜Monash Hub' : 'Graduation preparation checklist | Monash Hub',
+  title: () => zh.value ? '毕业准备清单 | Monash Hub' : 'Graduation preparation checklist | Monash Hub',
   description: () => zh.value ? '根据自己的课程计划和官方流程检查待确认事项，不代替学校毕业资格审核' : 'Prepare for graduation using your study plan without claiming official clearance.'
 })
 </script>
 
 <template>
-  <div class="page graduation-page">
+  <div class="container graduation-page">
     <header class="intro">
       <p><NuxtLink to="/plan">{{ zh ? '返回学位规划' : 'Back to degree planner' }}</NuxtLink></p>
       <h1>{{ zh ? '毕业准备清单' : 'Graduation preparation checklist' }}</h1>
@@ -89,12 +94,15 @@ useSeoMeta({
     </header>
     <section class="card graduation-section">
       <h2>{{ zh ? '现有学位计划' : 'Your study plan' }}</h2>
-      <p>{{ plan.name || (zh ? '未命名计划' : 'Untitled plan') }} · {{ plan.courseCode || (zh ? '未选择学位' : 'No degree selected') }} · {{ plan.campus }} · {{ plan.entries.length }}{{ zh ? '门课' : ' units' }}</p>
-      <p class="small muted">{{ zh ? '点击后会将课程代码、年份、学期和校区临时发送至MonashHub的计划检查API，服务端不保存你的计划' : 'Clicking the check button sends unit codes, years, periods and campus to the plan-check API temporarily; the server does not save your plan.' }}</p>
-      <button type="button" class="check-button" :disabled="checking || !plan.entries.length" @click="checkPlan">
-        {{ checking ? (zh ? '检查中…' : 'Checking…') : (zh ? '检查课程安排' : 'Check planned units') }}
-      </button>
-      <p v-if="!plan.entries.length"><NuxtLink to="/plan">{{ zh ? '先添加课程到学位规划' : 'Add units to your plan first' }}</NuxtLink></p>
+      <p>{{ plan.name || (zh ? '未命名计划' : 'Untitled plan') }} · {{ plan.courseCode || (zh ? '未选择学位' : 'No degree selected') }} · {{ campusName(plan.campus) }} · {{ plan.entries.length }}{{ zh ? '门课' : ' units' }}</p>
+      <!-- With nothing planned there is nothing to check, so the way forward is the button. -->
+      <NuxtLink v-if="!plan.entries.length" to="/plan" class="btn">{{ zh ? '先去学位规划添加课程' : 'Add units to your plan first' }} →</NuxtLink>
+      <template v-else>
+        <p class="small muted">{{ zh ? '点击后会将课程代码、年份、学期和校区临时发送至Monash Hub的计划检查接口，服务端不保存你的计划' : 'Clicking the check button sends unit codes, years, periods and campus to the plan-check API temporarily; the server does not save your plan.' }}</p>
+        <button type="button" class="check-button" :disabled="checking" @click="checkPlan">
+          {{ checking ? (zh ? '检查中…' : 'Checking…') : (zh ? '检查课程安排' : 'Check planned units') }}
+        </button>
+      </template>
       <p v-if="failed" role="alert">{{ zh ? '当前无法检查计划，请稍后再试' : 'Could not check the plan. Try again later.' }}</p>
       <template v-if="report">
         <p v-if="!findings.length">{{ zh ? '目前未发现开课、先修或重复安排的冲突。但不能据此判定符合全部毕业要求' : 'No scheduling or prerequisite issues were reported. This does not confirm degree completion.' }}</p>
@@ -104,7 +112,7 @@ useSeoMeta({
             <li v-for="(issue, i) in findings" :key="i">
               <strong>{{ issue.unit_code }} · {{ issue.year }}</strong>
               <span>{{ issueText(issue.kind) }}</span>
-              <span class="severity">{{ issue.severity }}</span>
+              <span class="severity">{{ severityText(issue.severity) }}</span>
             </li>
           </ul>
           <p class="small muted"><NuxtLink to="/plan">{{ zh ? '返回学位规划查看详细原因和相关课程' : 'Open your plan for detailed findings and source links' }}</NuxtLink></p>

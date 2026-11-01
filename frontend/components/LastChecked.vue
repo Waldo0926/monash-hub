@@ -17,6 +17,7 @@
  */
 const props = defineProps<{ value?: string | null; label?: string }>()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 
 const STALE_AFTER_DAYS = 14
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -31,8 +32,12 @@ const parsed = computed(() => {
 const formatted = computed(() => {
   const date = parsed.value
   if (!date) return null
-  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()} UTC`
+  const [y, m, d] = [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()]
+  if (locale.value === 'zh' || locale.value === 'ja') return `${y}年${m}月${d}日`
+  if (locale.value === 'ko') return `${y}년 ${m}월 ${d}일`
+  return `${d} ${MONTHS[m - 1]} ${y} UTC`
 })
+const colon = computed(() => (locale.value === 'zh' || locale.value === 'ja') ? '：' : ': ')
 
 const isStale = ref(false)
 onMounted(() => {
@@ -44,7 +49,7 @@ onMounted(() => {
 
 <template>
   <span v-if="formatted" class="last-checked tiny" :class="{ stale: isStale }">
-    {{ label || $t('source.lastChecked') }}: {{ formatted }}
+    {{ label || $t('source.lastChecked') }}{{ colon }}{{ formatted }}
     <span v-if="isStale"> · {{ $t('source.mayHaveChanged') }}</span>
   </span>
 </template>

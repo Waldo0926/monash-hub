@@ -5,7 +5,7 @@
  * Written from what the code actually stores, so it has to change when that
  * does: the User model, the throttle table, the browser's localStorage, the
  * Google sign-in cookie, and the services a request is passed on to (email,
- * the马莫百科bot, Google) and the locale cookie. Chinese and English; Japanese and Korean readers
+ * the 马莫百科 bot, Google) and the locale cookie. Chinese and English; Japanese and Korean readers
  * get the English text rather than an unreviewed translation.
  */
 const { $t } = useNuxtApp()
@@ -110,7 +110,7 @@ useSeoMeta({ title: () => $t('privacy.title') })
         <p>To limit password guessing and request floods, the site briefly counts failed sign-ins, code requests, reports and ratings by email address or network address, and deletes the counts when they expire. The web server's access log also records network addresses.</p>
 
         <h2>The Ask panel</h2>
-        <p>A question typed into the Ask panel is also sent to the马莫百科WeChat bot to add to the answer, together with a random key your browser makes up. Your account details are not sent.</p>
+        <p>A question typed into the Ask panel is also sent to the 马莫百科 WeChat bot to add to the answer, together with a random key your browser makes up. Your account details are not sent.</p>
 
         <h2>Stored in your browser</h2>
         <ul>

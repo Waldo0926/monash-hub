@@ -57,7 +57,7 @@ watch(() => route.query.q, () => { feedbackStatus.value = 'idle' })
  * Only a well-formed unit/degree code or a controlled topic category goes.
  */
 async function sendMissingFeedback() {
-  if (!query.value || feedbackStatus.value !== 'idle') return
+  if (!query.value || feedbackStatus.value === 'sending' || feedbackStatus.value === 'sent') return
   feedbackStatus.value = 'sending'
   const term = String(route.query.q || '').trim().toUpperCase()
   const code = /^(?:[A-Z]{3}\d{4}|[A-Z]\d{4})$/.test(term) ? term : null
@@ -120,7 +120,7 @@ useSeoMeta({
           <p class="small muted">{{ locale === 'zh' ? '可以匿名反馈缺少哪类资料。我们只记录分类和有效课程代码，不保存你的完整搜索内容或账号信息' : 'Optionally flag the missing topic. Only a category or a valid unit code is counted, never your full search, account or identifying details.' }}</p>
           <label class="missing-label">
             {{ locale === 'zh' ? '资料类别' : 'Topic' }}
-            <select v-model="missingCategory" class="field" :disabled="feedbackStatus !== 'idle'">
+            <select v-model="missingCategory" class="field" :disabled="feedbackStatus === 'sending' || feedbackStatus === 'sent'">
               <option value="units">{{ locale === 'zh' ? '课程' : 'Units' }}</option>
               <option value="degrees">{{ locale === 'zh' ? '学位' : 'Degrees' }}</option>
               <option value="dates">{{ locale === 'zh' ? '重要日期' : 'Academic dates' }}</option>
@@ -129,7 +129,7 @@ useSeoMeta({
               <option value="other">{{ locale === 'zh' ? '其他' : 'Other' }}</option>
             </select>
           </label>
-          <button type="button" class="btn btn--ghost" :disabled="feedbackStatus !== 'idle'" @click="sendMissingFeedback">
+          <button type="button" class="btn btn--ghost" :disabled="feedbackStatus === 'sending' || feedbackStatus === 'sent'" @click="sendMissingFeedback">
             {{ feedbackStatus === 'sending' ? (locale === 'zh' ? '正在发送…' : 'Sending…') : (locale === 'zh' ? '反馈缺失资料' : 'Send missing-topic feedback') }}
           </button>
           <p v-if="feedbackStatus === 'sent'" role="status" class="small">{{ locale === 'zh' ? '已收到反馈，谢谢' : 'Feedback received. Thanks.' }}</p>

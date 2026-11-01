@@ -162,7 +162,7 @@ const options = ['malaysia', 'australia'] as const
 }
 /* A date already underway has no number to count down, so the word takes its
    place at a size that still reads as the headline. */
-.count b.now { font-size: 1.9rem; color: var(--soon); letter-spacing: 0; }
+.count b.now { font-size: 1.9rem; color: var(--soon); letter-spacing: 0; white-space: nowrap; flex-shrink: 0; }
 .count-text { display: grid; color: var(--muted); }
 .count-text small { color: var(--text); font-size: 0.9rem; font-weight: 500; }
 .count-date { color: var(--muted-2); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
@@ -190,6 +190,7 @@ const options = ['malaysia', 'australia'] as const
 
 @media (max-width: 520px) {
   .dates { padding: var(--s4); }
+  .count b.now { font-size: 1.6rem; }
   .list li { grid-template-columns: 1fr auto; row-gap: 0; }
   .d { grid-column: 1; }
   .when { grid-column: 2; grid-row: 1; }
