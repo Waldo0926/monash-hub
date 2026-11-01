@@ -7,7 +7,7 @@
 # Same Python as the API image, so the backend code the crawler imports runs
 # on the version CI tests. Playwright installs its own Chromium below, so the
 # playwright pin in crawler/requirements.txt does not wait for a prebuilt image.
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
