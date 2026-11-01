@@ -80,6 +80,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ title }}</h1>
         <p class="lede">{{ $t('fees.lede') }}</p>
+        <p class="fee-planner-link"><NuxtLink to="/fees/planner">{{ locale === 'zh' ? '自己估算学费、减免和生活费' : 'Estimate tuition, discounts and living costs' }} →</NuxtLink></p>
       </header>
 
       <EmptyState v-if="empty" :title="$t('fees.emptyTitle')" :hint="$t('fees.emptyBody')" />
@@ -222,4 +223,5 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
     font: 400 0.7rem var(--font); color: var(--muted);
   }
 }
+.fee-planner-link { margin-top: var(--s2); font-weight: 600; }
 </style>
