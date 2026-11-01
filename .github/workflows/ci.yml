@@ -105,6 +105,10 @@ jobs:
         working-directory: frontend
         run: npm run audit
 
+      - name: Chinese UI copy check
+        working-directory: frontend
+        run: node scripts/check-chinese-copy.mjs
+
       - name: Typecheck
         working-directory: frontend
         run: npm run typecheck
