@@ -16,6 +16,7 @@ import {
   KEY_DATE_TEXT, checkedOnLabel, dayNumber, keyDateLabel, keyDateRange,
   type KeyDate, type KeyDateLang, type KeyDates
 } from '~/utils/keyDates'
+import { buildKeyDatesIcs } from '~/utils/calendarIcs'
 
 const config = useRuntimeConfig()
 const { locale } = useLocale()
@@ -73,6 +74,20 @@ const sources = computed(() => Object.values(data.value?.sources ?? {}))
 const checkedOn = computed(() => checkedOnLabel(sources.value, lang.value))
 const options = ['malaysia', 'australia'] as const
 
+function exportCalendar() {
+  if (!data.value?.items?.length || !import.meta.client) return
+  const file = buildKeyDatesIcs(data.value, lang.value, showHolidays.value)
+  const url = URL.createObjectURL(new Blob([file], { type: 'text/calendar;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `monash-${campus.value}-key-dates.ics`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+
 useSeoMeta({
   title: () => t.value.pageTitle,
   description: () => t.value.pageLead
@@ -103,6 +118,14 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/dates` }] }
         <input v-model="showHolidays" type="checkbox">
         {{ t.showHolidays }}
       </label>
+      <button
+        type="button"
+        class="calendar-download"
+        :disabled="!data?.items?.length"
+        @click="exportCalendar"
+      >
+        {{ lang === 'zh' ? '导出日历(.ics)' : 'Download calendar (.ics)' }}
+      </button>
     </div>
     <p class="periods small muted">
       {{ t.periodsLabel }}{{ t.periods[campus] }}
@@ -135,6 +158,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/dates` }] }
 
     <footer class="foot small muted">
       <p>{{ t.otherPeriods }}</p>
+      <p>{{ lang === 'zh' ? '日历使用全天提醒，以免误把官网显示的本地时间换算成错误时区；具体截止时刻保留在事件说明中。导出的是当前列表快照，不会自动更新' : 'Calendar events use all-day markers to avoid timezone mistakes; source times appear in event descriptions. This is a one-time snapshot, not an auto-updating subscription.' }}</p>
       <p v-if="sources.length">
         {{ t.source }}:
         <template v-for="(s, i) in sources" :key="s.url">
@@ -167,6 +191,8 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/dates` }] }
 .seg button[aria-pressed='true'] { background: var(--ink); color: var(--text-inverse); }
 .toggle { display: inline-flex; align-items: center; gap: var(--s2); min-height: 44px; cursor: pointer; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--brand); }
+.calendar-download { padding: 8px 14px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); font: inherit; cursor: pointer; min-height: 44px; }
+.calendar-download:disabled { opacity: .5; cursor: not-allowed; }
 .periods { margin: var(--s2) 0 var(--s5); }
 
 .loading { display: grid; gap: var(--s2); }
