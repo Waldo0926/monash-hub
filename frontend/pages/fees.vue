@@ -8,6 +8,7 @@
  * (Monash English, a PhD in each school, the two DHES streams).
  */
 import { deltaAt, feeNote, feeTitle, filterFees, formatAmount, type FeeRow } from '~/utils/tuition'
+import { october2027Status, OCTOBER_2027_SOURCE, OCTOBER_2027_CHECKED } from '~/utils/intake2027'
 
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
@@ -80,6 +81,13 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ title }}</h1>
         <p class="lede">{{ $t('fees.lede') }}</p>
+        <p v-if="data?.year === 2027" class="small muted intake-explainer">
+          {{ locale === 'zh'
+            ? '学费表和招生状态是两回事。已单独核对2027年10月入学的官方可选课程名单：标注“名单列出”的学位有对应证据，其他学位均为未核实，不代表停招'
+            : 'Published fees and intake eligibility are separate. The October 2027 available-courses list was checked independently: an unlisted degree is not automatically closed.' }}
+          <a :href="OCTOBER_2027_SOURCE" rel="noopener external" target="_blank">{{ locale === 'zh' ? '查看官方10月名单' : 'Official October list' }} ↗</a>
+          ({{ OCTOBER_2027_CHECKED }})
+        </p>
         <p class="fee-planner-link"><NuxtLink to="/fees/planner">{{ locale === 'zh' ? '自己估算学费、减免和生活费' : 'Estimate tuition, discounts and living costs' }} →</NuxtLink></p>
       </header>
 
@@ -131,6 +139,9 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
                 <span class="name" role="cell">
                   <b>{{ label(row) }}</b>
                   <span v-if="locale === 'zh' && row.title_zh" class="tiny muted en">{{ row.title }}</span>
+                  <span v-if="data?.year === 2027 && october2027Status(row.title) === 'listed'" class="tiny intake-listed">
+                    {{ locale === 'zh' ? '2027年10月名单列出' : 'Listed for October 2027' }}
+                  </span>
                   <span class="tiny muted">
                     <template v-if="row.duration && !row.variant">{{ duration(row.duration) }}</template>
                     <template v-if="row.mode"> · {{ modeName(row.mode) }}</template>
@@ -224,4 +235,6 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
   }
 }
 .fee-planner-link { margin-top: var(--s2); font-weight: 600; }
+.intake-explainer { line-height: 1.6; }
+.intake-listed { display: inline-block; color: var(--success); font-weight: 600; }
 </style>
