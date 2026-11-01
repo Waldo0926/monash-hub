@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import requested_locale
@@ -101,6 +102,21 @@ def unified_search(
             },
         ],
     }
+
+
+class MissingSearchFeedback(BaseModel):
+    category: str = Field(max_length=24)
+    code: str | None = Field(default=None, max_length=16)
+
+
+@router.post("/search/missing", status_code=202)
+def missing_search_feedback(body: MissingSearchFeedback, db: Session = Depends(get_db)) -> dict:
+    """Explicitly opted-in category/code aggregate. Never store raw search text."""
+    if body.category not in popular.MISSING_CATEGORIES:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail="Invalid feedback category")
+    popular.record_missing(db, body.category, body.code)
+    return {"accepted": True}
 
 
 @router.get("/search/popular")

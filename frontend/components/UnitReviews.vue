@@ -15,11 +15,13 @@
  * back the reader's own rating and the "you" marks.
  */
 import { STAR_PATH } from './StarRating.vue'
+import { olderThanMonths } from '~/utils/contentAge'
 
 const props = defineProps<{ code: string; campus: string }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
 const { user, restore } = useAuth()
 const campusName = useCampusName()
 const route = useRoute()
@@ -434,6 +436,9 @@ function scoresOf(review: any) {
                 </span>
               </div>
               <p v-if="when(review)" class="tiny muted when">{{ when(review) }}</p>
+              <p v-if="olderThanMonths(review.updated_at, 18)" class="tiny muted">
+                {{ locale === 'zh' ? '较早的课程评价，教学与考核可能已有变化' : 'Older review; teaching and assessment may have changed.' }}
+              </p>
               <p v-if="review.body" class="small pre body">{{ review.body }}</p>
               <p v-if="scoresOf(review).length" class="scores">
                 <span v-for="s in scoresOf(review)" :key="s.name" class="score-chip tiny">

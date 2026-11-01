@@ -1,6 +1,8 @@
 <script setup lang="ts">
 defineProps<{ post: any }>()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
+import { olderThanMonths } from '~/utils/contentAge'
 </script>
 
 <template>
@@ -8,6 +10,7 @@ const { $t } = useNuxtApp()
     <div class="top">
       <SourceBadge kind="community" />
       <span v-if="post.is_solved" class="solved tiny">{{ $t('community.solved') }}</span>
+      <span v-if="olderThanMonths(post.updated_at || post.created_at, 18)" class="tiny muted">{{ locale === 'zh' ? '较早的讨论' : 'Older discussion' }}</span>
     </div>
     <h3>{{ post.title }}</h3>
     <p class="tiny muted">

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { olderThanMonths } from '~/utils/contentAge'
 const route = useRoute()
+const { locale } = useLocale()
 const { $t } = useNuxtApp()
 const { user, restore } = useAuth()
 onMounted(restore)
@@ -177,6 +179,9 @@ useSeoMeta({
         </p>
         <p class="pre">{{ post.body }}</p>
         <p class="callout tiny">{{ $t('community.experienceNote') }}</p>
+        <p v-if="olderThanMonths(post.updated_at || post.created_at, 18)" class="callout tiny" role="note">
+          {{ locale === 'zh' ? '这是较早的学生讨论，课程安排和学校政策可能已经变化。请核对最新Handbook和官方通知' : 'This is an older student discussion. Course offerings and university policies may have changed; check the current Handbook and official notices.' }}
+        </p>
         <div class="actions">
           <button
             class="like"
