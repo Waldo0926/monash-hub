@@ -8,7 +8,7 @@
  * (Monash English, a PhD in each school, the two DHES streams).
  */
 import { deltaAt, feeNote, feeTitle, filterFees, formatAmount, type FeeRow } from '~/utils/tuition'
-import { october2027Status, OCTOBER_2027_SOURCE, OCTOBER_2027_CHECKED } from '~/utils/intake2027'
+import { INTAKES_2027, intake2027Status, APPLICATION_STATUS_2027, type IntakePeriod } from '~/utils/intake2027'
 
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
@@ -44,6 +44,13 @@ const sections = computed(() =>
 )
 
 const empty = computed(() => !data.value?.sections?.length)
+const selectedIntake = ref<IntakePeriod>('october')
+const intakeEvidence = computed(() => INTAKES_2027.find(item => item.id === selectedIntake.value)!)
+const intakeLabel = (id: IntakePeriod) => {
+  if (locale.value === 'zh') return id === 'february' ? '2月' : id === 'july' ? '7月' : '10月'
+  return id === 'february' ? 'February' : id === 'july' ? 'July' : 'October'
+}
+
 
 function label(row: FeeRow) {
   const title = feeTitle(row, locale.value)
@@ -81,13 +88,30 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ title }}</h1>
         <p class="lede">{{ $t('fees.lede') }}</p>
-        <p v-if="data?.year === 2027" class="small muted intake-explainer">
-          {{ locale === 'zh'
-            ? '学费表和招生状态是两回事。已单独核对2027年10月入学的官方可选课程名单：标注“名单列出”的学位有对应证据，其他学位均为未核实，不代表停招'
-            : 'Published fees and intake eligibility are separate. The October 2027 available-courses list was checked independently: an unlisted degree is not automatically closed.' }}
-          <a :href="OCTOBER_2027_SOURCE" rel="noopener external" target="_blank">{{ locale === 'zh' ? '查看官方10月名单' : 'Official October list' }} ↗</a>
-          ({{ OCTOBER_2027_CHECKED }})
-        </p>
+        <section v-if="data?.year === 2027" class="intake-evidence" aria-labelledby="intake-evidence-title">
+          <h2 id="intake-evidence-title">{{ locale === 'zh' ? '2027年各批次招生信息' : '2027 intake evidence' }}</h2>
+          <p class="small muted">{{ locale === 'zh'
+            ? '学费已经公布，不代表该学位在每个批次都开放申请。请选择入学批次查看学校公布的资料'
+            : 'A published fee does not mean applications for that degree or intake are open. Select the intake to see what Monash has actually published.' }}</p>
+          <label class="intake-picker">
+            {{ locale === 'zh' ? '入学批次' : 'Intake period' }}
+            <select v-model="selectedIntake" class="field" aria-label="2027 intake">
+              <option v-for="item in INTAKES_2027" :key="item.id" :value="item.id">{{ intakeLabel(item.id) }} 2027</option>
+            </select>
+          </label>
+          <div class="intake-facts small">
+            <p>{{ locale === 'zh' ? '马来西亚申请人常规截止日期' : 'General Malaysian application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineMalaysia }}</strong></p>
+            <p>{{ locale === 'zh' ? '国际申请人常规截止日期' : 'General international application deadline' }}：<strong>{{ intakeEvidence.generalDeadlineInternational }}</strong></p>
+          </div>
+          <p class="small muted">{{ intakeEvidence.hasVerifiedDegreeList
+            ? (locale === 'zh' ? '学校已公布10月可选课程名单，下方按课程原名精确标注。未列入名单的学位统一显示“未核实”，不能推断停招' : 'An explicit October available-courses list exists. Exact title matches are marked below; other degrees remain unverified, not discontinued.')
+            : (locale === 'zh' ? '目前只有该批次的申请截止日期资料，未找到逐学位可选课程名单，因此下方招生状态全部显示“未核实”' : 'Published deadlines are available, but no intake-specific degree-by-degree list was verified. All degree statuses therefore remain unverified.') }}</p>
+          <p class="small muted" v-if="intakeEvidence.exceptionsApply">{{ locale === 'zh' ? '部分专业有特别截止日期，例如医学、临床心理学或专业心理咨询，请以官网对应类别为准' : 'Special deadlines apply to some programmes, including medicine and certain psychology/counselling degrees. Check the matching official category.' }}</p>
+          <p class="small muted">{{ locale === 'zh' ? '是否现在开放申请' : 'Applications open now' }}：{{ APPLICATION_STATUS_2027 === 'not_verified' ? (locale === 'zh' ? '未核实' : 'Not verified') : '' }} ·
+            <a :href="intakeEvidence.source" target="_blank" rel="noopener external">{{ locale === 'zh' ? '查看官方招生页面' : 'Official intake page' }} ↗</a>
+            · {{ locale === 'zh' ? '资料核对日期' : 'Reviewed' }}：{{ intakeEvidence.checkedOn }}
+          </p>
+        </section>
         <p class="fee-planner-link"><NuxtLink to="/fees/planner">{{ locale === 'zh' ? '自己估算学费、减免和生活费' : 'Estimate tuition, discounts and living costs' }} →</NuxtLink></p>
       </header>
 
@@ -139,8 +163,10 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
                 <span class="name" role="cell">
                   <b>{{ label(row) }}</b>
                   <span v-if="locale === 'zh' && row.title_zh" class="tiny muted en">{{ row.title }}</span>
-                  <span v-if="data?.year === 2027 && october2027Status(row.title) === 'listed'" class="tiny intake-listed">
-                    {{ locale === 'zh' ? '2027年10月名单列出' : 'Listed for October 2027' }}
+                  <span v-if="data?.year === 2027" class="tiny" :class="intake2027Status(row.title, selectedIntake) === 'listed' ? 'intake-listed' : 'intake-unverified'">
+                    {{ intake2027Status(row.title, selectedIntake) === 'listed'
+                      ? (locale === 'zh' ? '该批次官方名单列出' : 'Listed for this intake')
+                      : (locale === 'zh' ? '该批次招生状态未核实' : 'Intake status unverified') }}
                   </span>
                   <span class="tiny muted">
                     <template v-if="row.duration && !row.variant">{{ duration(row.duration) }}</template>
@@ -237,4 +263,12 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 .fee-planner-link { margin-top: var(--s2); font-weight: 600; }
 .intake-explainer { line-height: 1.6; }
 .intake-listed { display: inline-block; color: var(--success); font-weight: 600; }
+.intake-unverified { display: inline-block; color: var(--muted); }
+.intake-evidence { background: var(--surface-2); border: 1px solid var(--border); padding: var(--s4); border-radius: var(--radius); margin-bottom: var(--s4); }
+.intake-evidence h2 { margin: 0 0 var(--s2); font-size: 1.05rem; }
+.intake-evidence p { margin: var(--s2) 0; }
+.intake-picker { display: grid; max-width: 240px; gap: var(--s1); font-size: .9rem; font-weight: 600; }
+.intake-picker select { min-height: 44px; }
+.intake-facts { display: flex; flex-wrap: wrap; gap: 2px var(--s5); }
+.intake-facts p { margin: var(--s2) 0; }
 </style>
