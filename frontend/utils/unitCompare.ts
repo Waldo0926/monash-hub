@@ -52,15 +52,17 @@ function sorted(values: string[]): string[] {
 /** Preserve AND/OR group boundaries, not just a set of unit codes. */
 function requisite(group: Record<string, unknown>): string {
   const parts = (Array.isArray(group.items) ? group.items : [])
-    .map((item: Record<string, unknown>) => text(item.code) || text(item.name))
+    .map((item: Record<string, unknown>) => [
+      item.code, item.type, item.credit_points
+    ].map(text).filter(Boolean).join(' · ') || text(item.name))
     .filter(Boolean)
   const children = (Array.isArray(group.groups) ? group.groups : [])
     .map((child: Record<string, unknown>) => requisite(child))
     .filter(Boolean)
-  const connector = text(group.connector) || 'AND'
+  const connector = text(group.connector) || '?'
   const label = text(group.requisite_type)
   const body = [...parts, ...children].join(` ${connector} `)
-  return `${label}:(${body || text(group.description) || text(group.title)})`
+  return `${label}:(${body}) ${text(group.title)} ${text(group.description)}`.trim()
 }
 
 export function comparable(unit: UnitSnapshot, field: ComparisonField): string {
