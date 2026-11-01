@@ -99,16 +99,28 @@ def test_missing_search_feedback_is_opt_in_categorical_and_private(client, one_u
         "category": "units", "code": "FIT9999",
     })
     assert response.status_code == 202
+    # A short but invalid identifier is accepted as feedback, with only the
+    # selected category recorded. The identifier itself is never retained.
     response = client.post("/api/v1/search/missing", json={
-        "category": "policies", "code": "someone@student.monash.edu",
+        "category": "policies", "code": "not-a-unit",
     })
     assert response.status_code == 202
+
+    # Oversized identifiers are rejected at the API boundary by Pydantic,
+    # not silently accepted or stored (code has max_length=16).
+    long_code = client.post("/api/v1/search/missing", json={
+        "category": "policies", "code": "someone@student.monash.edu",
+    })
+    assert long_code.status_code == 422
+
+    invalid = client.post("/api/v1/search/missing", json={
+        "category": "private", "code": "FIT9999",
+    })
+    assert invalid.status_code == 422
+
     stored = {row.term: row.hits for row in one_unit.query(SearchTerm).all()}
     assert stored == {"missing:code:fit9999": 1, "missing:category:policies": 1}
-    assert all("@" not in term and "someone" not in term for term in stored)
-
-    invalid = client.post("/api/v1/search/missing", json={"category": "private", "code": "FIT9999"})
-    assert invalid.status_code == 422
+    assert all("@" not in term and "not-a-unit" not in term for term in stored)
 
 
 def test_missing_feedback_is_never_exposed_as_popular_search(one_unit):
