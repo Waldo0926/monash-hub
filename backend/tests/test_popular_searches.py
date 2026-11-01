@@ -88,3 +88,32 @@ def test_popular_endpoint_shape_and_pruning(client, one_unit):
     body = client.get("/api/v1/search/popular", params={"limit": 3}).json()
     assert body == {"days": popular.DAYS, "terms": [{"term": "fit2102", "label": "FIT2102", "hits": 6}]}
     assert one_unit.query(SearchTerm).filter(SearchTerm.term == "gone").count() == 0
+
+
+def test_missing_search_feedback_is_opt_in_categorical_and_private(client, one_unit):
+    # An ordinary miss does not add a feedback row.
+    client.get("/api/v1/search", params={"q": "ZZZ9999"})
+    assert one_unit.query(SearchTerm).count() == 0
+
+    response = client.post("/api/v1/search/missing", json={
+        "category": "units", "code": "FIT9999",
+    })
+    assert response.status_code == 202
+    response = client.post("/api/v1/search/missing", json={
+        "category": "policies", "code": "someone@student.monash.edu",
+    })
+    assert response.status_code == 202
+    stored = {row.term: row.hits for row in one_unit.query(SearchTerm).all()}
+    assert stored == {"missing:code:fit9999": 1, "missing:category:policies": 1}
+    assert all("@" not in term and "someone" not in term for term in stored)
+
+    invalid = client.post("/api/v1/search/missing", json={"category": "private", "code": "FIT9999"})
+    assert invalid.status_code == 422
+
+
+def test_missing_feedback_is_never_exposed_as_popular_search(one_unit):
+    today = date.today()
+    one_unit.add(SearchTerm(term="missing:category:fees", label="missing:category:fees", day=today, hits=10))
+    one_unit.add(SearchTerm(term="missing:category:fees", label="missing:category:fees", day=today - timedelta(days=1), hits=10))
+    one_unit.commit()
+    assert popular.popular(one_unit, 6, today=today) == []
