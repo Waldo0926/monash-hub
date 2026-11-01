@@ -412,12 +412,19 @@ useHead(() => ({
               @update:model-value="pickYear"
             />
             <NuxtLink
-              v-if="(unit.available_years || []).length > 1"
               class="compare-years"
-              :to="{ path: '/units/compare', query: { code: unit.unit_code, from: unit.available_years[1], to: unit.available_years[0] } }"
+              :to="{
+                path: '/units/compare',
+                query: (unit.available_years || []).length > 1
+                  ? { code: unit.unit_code, from: unit.available_years[1], to: unit.available_years[0] }
+                  : { code: unit.unit_code }
+              }"
             >
               {{ locale === 'zh' ? '比较年份变化' : 'Compare years' }} →
             </NuxtLink>
+            <span v-if="(unit.available_years || []).length < 2" class="tiny muted">
+              {{ locale === 'zh' ? '这门课目前没有两个可对照的年份，其他年份可能尚未收录' : 'This unit has fewer than two recorded years; other editions may be missing.' }}
+            </span>
           </div>
         </div>
       </header>
