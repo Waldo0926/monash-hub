@@ -12,8 +12,8 @@
     "audit": "node scripts/audit.mjs"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
-    "nuxt": "^4.6.2",
+    "@types/node": "^26.6.6",
+    "nuxt": "^4.6.3",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5",
     "vue": "^3.5.44",
