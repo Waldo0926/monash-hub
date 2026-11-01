@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { possibleMissingExplicitUnits } from '~/utils/courseGaps'
 /**
  * Graduation preparation only. The faculty, not this app, decides whether
  * course requirements, exemptions and transfer credits have been satisfied.
@@ -8,6 +9,14 @@ const { locale } = useLocale()
 const zh = computed(() => locale.value === 'zh')
 const report = shallowRef<{ issues: Array<{ unit_code: string; kind: string; severity: string; year: number; teaching_period: string; detail?: Record<string, unknown> }>; credit_points?: number } | null>(null)
 const checking = ref(false)
+const degree = shallowRef<any>(null)
+const degreeUnavailable = ref(false)
+const candidateGaps = computed(() => degree.value?.containers ? possibleMissingExplicitUnits(degree.value.containers, plan.value.entries.map(e => e.unit_code)) : [])
+const potentialCreditShortfall = computed(() => {
+  const expected = Number(degree.value?.credit_points)
+  const planned = Number(report.value?.credit_points)
+  return expected > 0 && Number.isFinite(planned) ? Math.max(0, expected - planned) : null
+})
 const failed = ref(false)
 const steps = ref<string[]>([])
 const checks = [
@@ -34,6 +43,8 @@ function issueText(kind: string): string {
 }
 async function checkPlan() {
   report.value = null
+  degree.value = null
+  degreeUnavailable.value = false
   failed.value = false
   if (!plan.value.entries.length) return
   checking.value = true
@@ -42,6 +53,17 @@ async function checkPlan() {
       method: 'POST',
       body: { campus: plan.value.campus, entries: plan.value.entries }
     })
+    // Compare against the course Handbook of the year the student commenced,
+    // never silently substitute the newest degree rules. The source may be
+    // absent for older years; unknown means unknown, not "all requirements met".
+    if (plan.value.courseCode && Number.isInteger(plan.value.startYear)) {
+      const params = new URLSearchParams({ year: String(plan.value.startYear), campus: plan.value.campus })
+      try {
+        degree.value = await apiFetch<any>(`/v1/courses/${encodeURIComponent(plan.value.courseCode)}?${params}`)
+      } catch {
+        degreeUnavailable.value = true
+      }
+    }
   } catch {
     failed.value = true
   } finally {
@@ -51,7 +73,7 @@ async function checkPlan() {
 function toggle(id: string, checked: boolean) {
   steps.value = checked ? [...steps.value.filter(x => x !== id), id] : steps.value.filter(x => x !== id)
 }
-watch(() => JSON.stringify([plan.value.entries, plan.value.campus]), () => { report.value = null })
+watch(() => JSON.stringify([plan.value.entries, plan.value.campus, plan.value.startYear, plan.value.courseCode]), () => { report.value = null; degree.value = null; degreeUnavailable.value = false })
 useSeoMeta({
   title: () => zh.value ? '毕业准备清单｜Monash Hub' : 'Graduation preparation checklist | Monash Hub',
   description: () => zh.value ? '根据自己的课程计划和官方流程检查待确认事项，不代替学校毕业资格审核' : 'Prepare for graduation using your study plan without claiming official clearance.'
@@ -87,6 +109,30 @@ useSeoMeta({
           </ul>
           <p class="small muted"><NuxtLink to="/plan">{{ zh ? '返回学位规划查看详细原因和相关课程' : 'Open your plan for detailed findings and source links' }}</NuxtLink></p>
         </template>
+      </template>
+    </section>
+    <section v-if="report && plan.courseCode" class="card graduation-section">
+      <h2>{{ zh ? '可能遗漏的学位要求' : 'Possible course requirement gaps' }}</h2>
+      <p v-if="degreeUnavailable" class="small muted">
+        {{ zh ? '没有找到入学年份对应的学位Handbook，无法核对完整课程结构。请查看当年的官方Course Map' : 'The Handbook for your commencement-year degree could not be loaded. Check the applicable official course map.' }}
+      </p>
+      <template v-else-if="degree">
+        <p v-if="potentialCreditShortfall !== null">
+          {{ zh ? '计划所列学分' : 'Credits in plan' }}：{{ report.credit_points || 0 }} /
+          {{ degree.credit_points }}
+          <span v-if="potentialCreditShortfall > 0">{{ zh ? `（可能还差${potentialCreditShortfall}学分）` : `(possible shortfall: ${potentialCreditShortfall} points)` }}</span>
+        </p>
+        <p class="small muted">{{ zh ? '这里数的是课程计划，不代表这些课程已经通过或交换学分已入账' : 'These are planned, not necessarily passed or officially credited, units.' }}</p>
+        <p v-if="candidateGaps.length">
+          {{ zh ? '下面是结构中单独列出的课程，尚未出现在你的计划里。请逐项核对是否必修、可替代或已获减免' : 'These units appear individually in the Handbook structure but not in your plan. Check whether they are required, substituted or exempted.' }}
+        </p>
+        <ul v-if="candidateGaps.length" class="findings">
+          <li v-for="gap in candidateGaps" :key="gap.code">
+            <strong>{{ gap.code }}</strong><span>{{ gap.part }}</span>
+          </li>
+        </ul>
+        <p v-else class="small muted">{{ zh ? '没有发现可直接列出的单门课程遗漏；这不代表选修、专业方向和全部必修要求已满足' : 'No single-unit candidates found; this does not confirm majors, electives or full degree completion.' }}</p>
+        <p v-if="degree.source_url"><a :href="degree.source_url" target="_blank" rel="noopener external">{{ zh ? '查看入学年份对应的官方Handbook' : 'View the relevant official Handbook edition' }} ↗</a></p>
       </template>
     </section>
     <section class="card graduation-section">
