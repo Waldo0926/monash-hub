@@ -36,7 +36,7 @@ have working first versions.**
 - [x] Basic SEO: titles, meta, canonical, sitemap, robots
 - [x] Registration and password recovery through an emailed code
 - [x] An answer reaches the person who asked, on the home page and in the header
-- [x] Interface in English, 简体中文, 日本語 and 한국어
+- [x] Selectable interface in English and 简体中文 (Japanese/Korean were retired from the language switcher in October 2026; translation tables remain temporarily for compatibility)
 
 ## Next, in order
 

@@ -28,7 +28,7 @@ test('the manifest names the app and describes it in the reader\'s language', as
   expect(manifest.name).toBe('Monash Hub')
   expect(manifest.display).toBe('standalone')
   expect(manifest.start_url).toBe('/')
-  expect(manifest.description).toBe('Monash 课程、学位、官方指南和学生社区')
+  expect(manifest.description).toBe('Monash课程、学位、官方指南和学生社区')
   expect(manifest.shortcuts.map((s: any) => s.name)).toContain('课程')
   for (const icon of manifest.icons) {
     const file = await request.get(icon.src)
