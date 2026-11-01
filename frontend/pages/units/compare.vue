@@ -100,7 +100,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
 </script>
 
 <template>
-  <div class="page compare-page">
+  <div class="container compare-page">
     <header class="intro">
       <p class="crumb"><NuxtLink to="/units">{{ zh ? '课程搜索' : 'Unit search' }}</NuxtLink></p>
       <h1>{{ zh ? 'Handbook年份比较' : 'Compare Handbook years' }}</h1>
@@ -198,5 +198,5 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
 .compare-two pre { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .88rem; margin: var(--s2) 0 0; }
 .compare-sources, .compare-warning { margin-top: var(--s5); padding: var(--s5); }
 .compare-sources p { margin-top: var(--s2); overflow-wrap: anywhere; }
-@media (max-width: 620px) { .compare-two { grid-template-columns: 1fr; } .compare-two > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; } }
+@media (max-width: 620px) { .compare-submit { width: 100%; } .compare-two { grid-template-columns: 1fr; } .compare-two > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 12px 0 0; } }
 </style>

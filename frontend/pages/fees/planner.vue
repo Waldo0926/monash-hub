@@ -56,7 +56,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <div class="page fee-planner">
+  <div class="container fee-planner">
     <header class="intro">
       <p><NuxtLink to="/fees">{{ zh ? '返回官方学费列表' : 'Back to published fee table' }}</NuxtLink></p>
       <h1>{{ zh ? '学费与奖学金估算' : 'Tuition & scholarship scenario' }}</h1>

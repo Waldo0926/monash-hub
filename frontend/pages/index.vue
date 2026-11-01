@@ -155,6 +155,11 @@ const ENTRIES = [
 ]
 
 // One phrase per line under each entry title.
+/** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
+const shortLabel = (key: string) => {
+  const text = $t(`nav.short.${key}`)
+  return text === `nav.short.${key}` ? null : text
+}
 const hintLines = (key: string) => $t(`home.toolHint.${key}`).split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
 
 const systems = computed(() =>
@@ -218,7 +223,11 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
           <NuxtLink v-for="item in ENTRIES" :key="item.to" :to="item.to" class="tool">
             <span class="tool-icon"><PlanIcon :name="item.icon" :size="26" /></span>
             <span class="tool-text">
-              <b>{{ $t(`nav.${item.key}`) }}</b>
+              <b v-if="shortLabel(item.key)">
+                <span class="label-full">{{ $t(`nav.${item.key}`) }}</span>
+                <span class="label-short">{{ shortLabel(item.key) }}</span>
+              </b>
+              <b v-else>{{ $t(`nav.${item.key}`) }}</b>
               <span class="tool-hint">
                 <span v-for="line in hintLines(item.key)" :key="line">{{ line }}</span>
               </span>
@@ -371,6 +380,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 .tool-text { display: grid; gap: 4px; }
 .tool b { font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.label-short { display: none; }
 .tool-hint { display: grid; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
 
 .guides { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink); }
@@ -453,6 +463,8 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   .tool-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); box-shadow: none; }
   .tool:hover .tool-icon { background: var(--blue-50); }
   .tool b { font-size: 0.8rem; font-weight: 500; }
+  .label-full { display: none; }
+  .label-short { display: inline; }
   .tool-hint { display: none; }
   .unit { grid-template-columns: 1fr; gap: 0; }
   .area { padding: var(--s3) 0 0; }

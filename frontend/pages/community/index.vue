@@ -65,12 +65,10 @@ useSeoMeta({
 <template>
   <div class="container">
     <div class="head">
-      <div>
-        <h1>{{ $t('community.title') }}</h1>
-        <p class="muted">{{ $t('community.lead') }}</p>
-      </div>
+      <h1>{{ $t('community.title') }}</h1>
       <button class="btn" @click="showCompose = !showCompose">{{ $t('community.ask') }}</button>
     </div>
+    <p class="muted lead">{{ $t('community.lead') }}</p>
 
     <section v-if="showCompose" class="card compose">
       <h2>{{ $t('community.ask') }}</h2>
@@ -170,8 +168,10 @@ useSeoMeta({
   font-size: 0.85rem; color: var(--muted); margin: var(--s3) 0 var(--s1);
 }
 
-.head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s4); }
-.head h1 { margin-bottom: var(--s2); }
+/* The ask button sits beside the title at every width, not alone above the search box. */
+.head { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s2); }
+.head h1 { margin: 0; }
+.lead { margin: 0 0 var(--s4); }
 .compose { padding: var(--s5); margin-bottom: var(--s5); display: grid; gap: var(--s3); }
 .field-row { display: grid; gap: var(--s1); }
 .body { min-height: 120px; padding: var(--s3); font-family: inherit; }
@@ -192,7 +192,6 @@ useSeoMeta({
 .sort { width: auto; min-height: 36px; margin-left: auto; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s3); }
 @media (max-width: 700px) {
-  .head { flex-direction: column; }
   .row { grid-template-columns: 1fr; }
   .sort { margin-left: 0; }
 }

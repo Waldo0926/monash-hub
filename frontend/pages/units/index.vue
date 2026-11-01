@@ -270,17 +270,6 @@ useSeoMeta({
       </NuxtLink>
     </div>
 
-    <button
-      class="btn btn--ghost btn--small filter-toggle"
-      type="button"
-      :aria-expanded="drawerOpen"
-      aria-controls="unit-filters"
-      @click="drawerOpen = true"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M7 12h10 M10 18h4" /></svg>
-      {{ $t('units.filters') }}<span v-if="active.length" class="toggle-count">{{ active.length }}</span>
-    </button>
-
     <div class="layout">
       <div v-if="drawerOpen" class="backdrop" aria-hidden="true" @click="drawerOpen = false" />
       <aside
@@ -393,8 +382,18 @@ useSeoMeta({
             </template>
           </p>
           <div class="bar-tools">
+        <button
+          class="btn btn--ghost btn--small filter-toggle"
+          type="button"
+          :aria-expanded="drawerOpen"
+          aria-controls="unit-filters"
+          @click="drawerOpen = true"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16 M7 12h10 M10 18h4" /></svg>
+          {{ $t('units.filters') }}<span v-if="active.length" class="toggle-count">{{ active.length }}</span>
+        </button>
             <label class="sort">
-              <span class="tiny muted">{{ $t('units.sort') }}</span>
+              <span class="tiny muted sort-label">{{ $t('units.sort') }}</span>
               <select v-model="filters.sort" class="field field--small">
                 <option value="relevance">{{ $t('units.sortRelevance') }}</option>
                 <option value="code">{{ $t('units.sortCode') }}</option>
@@ -587,7 +586,7 @@ h1 { margin-bottom: var(--s2); }
 .page-btn.on { background: var(--navy); border-color: var(--navy); color: var(--text-inverse); font-weight: 600; }
 .page-gap { padding: 0 4px; color: var(--muted); }
 
-.filter-toggle { display: none; gap: 6px; margin-top: var(--s3); }
+.filter-toggle { display: none; gap: 6px; }
 .filter-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .toggle-count {
   display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px;
@@ -615,6 +614,15 @@ h1 { margin-bottom: var(--s2); }
   .show-btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 600px) {
+  /* Filter, sort and view share one row under the count, all the same height. */
+  .bar { gap: var(--s2); }
+  .bar-tools { width: 100%; gap: var(--s2); }
+  .filter-toggle { min-height: 40px; margin-right: auto; }
+  .sort-label { display: none; }
+  .bar-tools .field--small { min-height: 40px; }
+  .view-btn { width: 40px; height: 38px; }
+  .compare-entry { flex-wrap: nowrap; padding: var(--s3); }
+  .compare-entry p { display: grid; gap: 2px; }
   .row { grid-template-columns: 80px minmax(0, 1fr); }
   .row-meta { display: none; }
   .page-word { display: none; }

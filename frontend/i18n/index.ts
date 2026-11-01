@@ -1290,6 +1290,7 @@ const zh: Messages = {
   // --- 先修图 -------------------------------------------------------------
   'nav.tree': '先修图',
   'nav.marks': 'WAM/GPA计算',
+  'nav.short.marks': 'WAM/GPA',
 
   // --- WAM and GPA calculator ---------------------------------------------
   'marks.metaTitle': 'WAM / GPA计算器',
@@ -1488,7 +1489,7 @@ const zh: Messages = {
   'courses.lede': '查看每个专业（学位课程）的结构：每组要求占多少学分，以及哪些课你的校区不开',
   'courses.feesHint': '马来西亚校区全部专业每年的学费，本地生和国际生分开列出',
   'courses.search': '搜索',
-  'courses.searchPlaceholder': '学位代码或名称，例如C2001或Computer Science',
+  'courses.searchPlaceholder': 'C2001、Computer Science…',
   'courses.count': '学位 {n} 个',
   'courses.countAt': '{campus}开设的学位共 {n} 个',
   'courses.groupCount': '{n} 个学位',

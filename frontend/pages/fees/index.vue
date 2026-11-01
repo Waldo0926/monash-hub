@@ -274,6 +274,6 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 .intake-evidence p { margin: var(--s2) 0; }
 .intake-picker { display: grid; max-width: 240px; gap: var(--s1); font-size: .9rem; font-weight: 600; }
 .intake-picker select { min-height: 44px; }
-.intake-facts { display: flex; flex-wrap: wrap; gap: 2px var(--s5); }
-.intake-facts p { margin: var(--s2) 0; }
+.intake-facts { display: flex; flex-wrap: wrap; gap: 4px var(--s5); margin: var(--s3) 0; }
+.intake-facts p { margin: 0; }
 </style>

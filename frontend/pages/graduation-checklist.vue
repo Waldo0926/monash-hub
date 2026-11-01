@@ -86,7 +86,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <div class="page graduation-page">
+  <div class="container graduation-page">
     <header class="intro">
       <p><NuxtLink to="/plan">{{ zh ? '返回学位规划' : 'Back to degree planner' }}</NuxtLink></p>
       <h1>{{ zh ? '毕业准备清单' : 'Graduation preparation checklist' }}</h1>
@@ -95,11 +95,14 @@ useSeoMeta({
     <section class="card graduation-section">
       <h2>{{ zh ? '现有学位计划' : 'Your study plan' }}</h2>
       <p>{{ plan.name || (zh ? '未命名计划' : 'Untitled plan') }} · {{ plan.courseCode || (zh ? '未选择学位' : 'No degree selected') }} · {{ campusName(plan.campus) }} · {{ plan.entries.length }}{{ zh ? '门课' : ' units' }}</p>
-      <p class="small muted">{{ zh ? '点击后会将课程代码、年份、学期和校区临时发送至Monash Hub的计划检查接口，服务端不保存你的计划' : 'Clicking the check button sends unit codes, years, periods and campus to the plan-check API temporarily; the server does not save your plan.' }}</p>
-      <button type="button" class="check-button" :disabled="checking || !plan.entries.length" @click="checkPlan">
-        {{ checking ? (zh ? '检查中…' : 'Checking…') : (zh ? '检查课程安排' : 'Check planned units') }}
-      </button>
-      <p v-if="!plan.entries.length"><NuxtLink to="/plan">{{ zh ? '先添加课程到学位规划' : 'Add units to your plan first' }}</NuxtLink></p>
+      <!-- With nothing planned there is nothing to check, so the way forward is the button. -->
+      <NuxtLink v-if="!plan.entries.length" to="/plan" class="btn">{{ zh ? '先去学位规划添加课程' : 'Add units to your plan first' }} →</NuxtLink>
+      <template v-else>
+        <p class="small muted">{{ zh ? '点击后会将课程代码、年份、学期和校区临时发送至Monash Hub的计划检查接口，服务端不保存你的计划' : 'Clicking the check button sends unit codes, years, periods and campus to the plan-check API temporarily; the server does not save your plan.' }}</p>
+        <button type="button" class="check-button" :disabled="checking" @click="checkPlan">
+          {{ checking ? (zh ? '检查中…' : 'Checking…') : (zh ? '检查课程安排' : 'Check planned units') }}
+        </button>
+      </template>
       <p v-if="failed" role="alert">{{ zh ? '当前无法检查计划，请稍后再试' : 'Could not check the plan. Try again later.' }}</p>
       <template v-if="report">
         <p v-if="!findings.length">{{ zh ? '目前未发现开课、先修或重复安排的冲突。但不能据此判定符合全部毕业要求' : 'No scheduling or prerequisite issues were reported. This does not confirm degree completion.' }}</p>
