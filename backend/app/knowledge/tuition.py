@@ -474,11 +474,10 @@ def year_in(blocks: list[dict]) -> int | None:
 
 
 def year_of(pages: list[OfficialPage]) -> int | None:
-    for page in pages:
-        year = year_in(page.blocks or [])
-        if year:
-            return year
-    return None
+    # Independently refreshed sources can temporarily cover different years.
+    # A missing year is not evidence that it matches the other page either.
+    years = {year_in(page.blocks or []) for page in pages}
+    return next(iter(years)) if len(years) == 1 else None
 
 
 # --- Last year's fees, for the change ----------------------------------------
@@ -604,6 +603,7 @@ def table(db: Session) -> dict:
             schools.setdefault(fee.school, []).append(_row(fee, base=base))
         sections.append({
             "source": page.slug,
+            "year": year_in(page.blocks or []),
             "level": LEVEL[page.slug],
             "schools": [{"school": k, "rows": v} for k, v in schools.items()],
         })
@@ -654,7 +654,7 @@ def for_course(db: Session, title: str | None, faculty: str | None,
     if not hits and not missing:
         return None
     used = {f.page for f, _ in hits} or {pages[-1].slug}
-    year = year_of(pages)
+    year = year_of([page for page in pages if page.slug in used])
     base = baseline(db, year)
     rows = [_row(f, t, base) for f, t in hits]
     cited = {r["change"]["source"] for r in rows if r["change"]}

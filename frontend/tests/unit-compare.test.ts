@@ -54,3 +54,19 @@ describe('Handbook year comparison text', () => {
     expect(comparable(marked, 'assessments')).toBe('Assignment A1a · Artefact · 15%')
   })
 })
+
+
+describe('equivalent requisite ordering', () => {
+  it('does not report source-only reordering of AND/OR alternatives as a rule change', () => {
+    const before = { ...unit, requisites: [{ requisite_type: 'prerequisite', connector: 'AND', groups: [
+      { connector: 'OR', items: [{ code: 'FIT1045' }, { code: 'FIT1053' }] },
+      { connector: 'OR', items: [{ code: 'FIT1058' }, { code: 'MAT1830' }] }
+    ] }] }
+    const after = { ...before, academic_year: 2027, requisites: [{ ...before.requisites[0], groups:
+      [...before.requisites[0]!.groups].reverse().map(g => ({ ...g, items: [...g.items].reverse() }))
+    }] }
+    expect(compareUnitSnapshots(before, after).find(r => r.field === 'requisites')?.status).toBe('unchanged')
+    after.requisites[0]!.connector = 'OR'
+    expect(compareUnitSnapshots(before, after).find(r => r.field === 'requisites')?.status).toBe('changed')
+  })
+})

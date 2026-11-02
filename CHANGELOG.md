@@ -2,6 +2,13 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-03 — source-year and rule-comparison accuracy
+
+- Fee tables with mixed or undated source years no longer inherit the first page's year. Each fee section retains its own year, and degree cards use only the matched fee source. No intake/application status is inferred from a published fee.
+- Handbook comparisons treat reordered AND/OR alternatives as equivalent while preserving nested groups and connector changes.
+- 收费来源年份不一致或缺失时，不再沿用第一份来源的年份；分组保留自身年份，学位卡只使用匹配的收费来源。学费不用于推断开放申请状态。
+- Handbook 对照不再把 AND/OR 选项单纯换序误报为规则变化，仍保留嵌套和连接符差异。
+
 ## Unreleased
 
 ### Changed (course map: extra semesters and adding several units at once)

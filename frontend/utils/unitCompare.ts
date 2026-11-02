@@ -68,7 +68,11 @@ function requisiteBody(group: Record<string, unknown>): string {
     .map(body => /\s(AND|OR|\?)\s/.test(body) ? `(${body})` : body)
   const title = text(group.title)
   const notes = [/^Container\b/i.test(title) ? '' : title, text(group.description)].filter(Boolean)
-  return [[...parts, ...children].join(` ${text(group.connector) || '?'} `), ...notes].filter(Boolean).join(' · ')
+  const connector = text(group.connector) || '?'
+  const values = [...parts, ...children]
+  // A OR B and B OR A are the same rule; keep nested groups intact.
+  const ordered = connector === 'AND' || connector === 'OR' ? sorted(values) : values
+  return [ordered.join(` ${connector} `), ...notes].filter(Boolean).join(' · ')
 }
 
 function requisite(group: Record<string, unknown>): string {
