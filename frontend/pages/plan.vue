@@ -16,7 +16,7 @@ import { CAMPUS_CHOICES } from '~/composables/useCampuses'
 import { toCsv } from '~/utils/csv'
 import { degreeCandidates, firstOpenSlot } from '~/utils/planCandidates'
 import { handbookYearFor } from '~/composables/useHandbookYear'
-import { MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
+import { DEFAULT_PERIODS, MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 import { encodePlan, findPlanCode } from '~/utils/planCode'
 
 const { $t } = useNuxtApp()
@@ -47,9 +47,9 @@ function openPickerFor(part: number) {
   if (slot) picking.value = { ...slot, part }
 }
 
-function place(unitCode: string) {
+function place(codes: string[]) {
   if (!picking.value) return
-  add(unitCode, picking.value.year, picking.value.period)
+  for (const code of codes) add(code, picking.value.year, picking.value.period)
 }
 
 // --- checking --------------------------------------------------------------
@@ -530,16 +530,47 @@ onMounted(() => {
 })
 onBeforeUnmount(() => window.removeEventListener('hashchange', readHash))
 
-const showOptional = ref(false)
-function togglePeriod(period: string) {
-  const at = plan.value.periods.indexOf(period)
-  if (at >= 0) {
-    plan.value.periods.splice(at, 1)
-    plan.value.entries = plan.value.entries.filter((e) => e.teaching_period !== period)
-  } else {
-    plan.value.periods.push(period)
-  }
+// --- extra teaching periods --------------------------------------------------
+//
+// Summer, winter and the October intake used to sit behind a "Teaching
+// periods" button in the toolbar, and almost nobody found it. Now each year
+// ends with a row of the periods that are not on the map yet, so the option is
+// right where a student is looking when they want to put a unit in summer.
+// A period is a row in every year, not just the year it was added from.
+
+const OCT = 'October intake teaching period, Malaysia campus'
+
+/** The periods the map could still show, the October intake first at Malaysia. */
+const addablePeriods = computed(() => {
+  const campus = plan.value.campus
+  const list = OPTIONAL_PERIODS.filter((p) => !plan.value.periods.includes(p))
+    // The October intake only runs at Malaysia, so other campuses never need it.
+    .filter((p) => p !== OCT || !campus || campus === 'Malaysia')
+  if (campus === 'Malaysia' && list.includes(OCT)) return [OCT, ...list.filter((p) => p !== OCT)]
+  return list
+})
+
+function showPeriod(period: string, year: number) {
+  if (plan.value.periods.includes(period)) return
+  plan.value.periods.push(period)
+  // Scroll the new row into view in the year the button was pressed in, so
+  // it is obvious something happened and where.
+  nextTick(() => {
+    const row = document.querySelector(`[data-slot="${CSS.escape(slotKey(year, period))}"]`)
+    row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  })
 }
+
+function hidePeriod(period: string) {
+  const at = plan.value.periods.indexOf(period)
+  if (at < 0) return
+  const units = plan.value.entries.filter((e) => e.teaching_period === period).length
+  if (units && !window.confirm($t('plan.hidePeriodConfirm', { period: shortPeriod(period), n: units }))) return
+  plan.value.periods.splice(at, 1)
+  plan.value.entries = plan.value.entries.filter((e) => e.teaching_period !== period)
+}
+
+const isOptional = (period: string) => !DEFAULT_PERIODS.includes(period)
 
 function shortPeriod(period: string): string {
   const key = `plan.period.${period}`
@@ -805,13 +836,6 @@ useSeoMeta({ title: () => $t('plan.title') })
           ><PlanIcon name="redo" /></button>
         </div>
         <div class="tool-group">
-          <button
-            class="tool"
-            :class="{ 'tool--on': showOptional }"
-            type="button"
-            :aria-expanded="showOptional"
-            @click="showOptional = !showOptional"
-          ><PlanIcon name="calendar" />{{ $t('plan.periods') }}</button>
           <details ref="moreMenu" class="more">
             <summary class="tool">{{ $t('plan.more') }}<PlanIcon name="chevron-down" :size="14" /></summary>
             <div class="more-list">
@@ -958,19 +982,6 @@ useSeoMeta({ title: () => $t('plan.title') })
           </li>
         </ol>
 
-        <div v-if="showOptional" class="periods">
-          <span class="periods-label">{{ $t('plan.periodsHelp') }}</span>
-          <button
-            v-for="period in OPTIONAL_PERIODS"
-            :key="period"
-            class="chip"
-            :class="{ 'chip--on': plan.periods.includes(period) }"
-            type="button"
-            :aria-pressed="plan.periods.includes(period)"
-            @click="togglePeriod(period)"
-          >{{ shortPeriod(period) }}</button>
-        </div>
-
         <article v-for="(year, yearIndex) in yearsList" :key="year" class="year">
           <header class="year-bar">
             <h2 class="year-name">
@@ -994,6 +1005,7 @@ useSeoMeta({ title: () => $t('plan.title') })
             v-for="period in plan.periods"
             :key="period"
             class="term"
+            :data-slot="slotKey(year, period)"
             :class="{ 'term--target': dropTarget === slotKey(year, period) }"
             @dragover.prevent="onDragOver(year, period)"
             @dragleave="onDragLeave"
@@ -1014,6 +1026,14 @@ useSeoMeta({ title: () => $t('plan.title') })
                   · {{ $t('plan.cp', { n: pointsIn(slotEntries(year, period)) }) }}
                 </template>
               </p>
+              <button
+                v-if="isOptional(period)"
+                class="term-hide"
+                type="button"
+                :title="$t('plan.hidePeriod', { period: shortPeriod(period) })"
+                :aria-label="$t('plan.hidePeriod', { period: shortPeriod(period) })"
+                @click="hidePeriod(period)"
+              ><PlanIcon name="close" :size="12" /></button>
               <button
                 v-if="!placeholders(year, period)"
                 class="term-add"
@@ -1106,6 +1126,17 @@ useSeoMeta({ title: () => $t('plan.title') })
                 </button>
               </li>
             </ul>
+          </div>
+
+          <div v-if="addablePeriods.length" class="periods">
+            <span class="periods-label">{{ $t('plan.addPeriod') }}</span>
+            <button
+              v-for="period in addablePeriods"
+              :key="period"
+              class="chip"
+              type="button"
+              @click="showPeriod(period, year)"
+            ><PlanIcon name="plus" :size="12" />{{ shortPeriod(period) }}</button>
           </div>
         </article>
 
@@ -1243,7 +1274,6 @@ useSeoMeta({ title: () => $t('plan.title') })
 .tool:hover:not(:disabled) { background: var(--surface-2); }
 .tool:disabled { color: var(--muted-2); cursor: default; }
 .tool--icon { padding: 0 8px; }
-.tool--on { background: var(--blue-50); color: var(--brand-700); }
 .tool--danger {
   border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm);
   min-height: 40px; color: var(--muted);
@@ -1373,11 +1403,12 @@ select.ctl-input {
 }
 .periods-label { font-size: 0.8rem; color: var(--muted); }
 .chip {
-  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
-  border-radius: var(--radius-pill); padding: 4px 12px; font: inherit;
+  display: inline-flex; align-items: center; gap: 4px; min-height: 36px;
+  border: 1px dashed var(--border-strong); background: var(--surface); color: var(--text);
+  border-radius: var(--radius-pill); padding: 4px 12px 4px 10px; font: inherit;
   font-size: 0.8rem; cursor: pointer;
 }
-.chip--on { background: var(--ink); color: var(--text-inverse); border-color: var(--ink); }
+.chip:hover { border-color: var(--brand); color: var(--brand); background: var(--blue-50); }
 
 /* One dark bar per year. It is the only dark block on the page, which is the
    point: it is what the eye uses to find "third year" in a long plan. */
@@ -1422,6 +1453,12 @@ select.ctl-input {
   background: var(--surface); color: var(--muted); font: inherit; font-size: 0.74rem; cursor: pointer;
 }
 .term-add:hover { border-color: var(--brand); color: var(--brand); }
+.term-hide {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; margin: var(--s2) var(--s1) 0 0;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--muted); cursor: pointer;
+  vertical-align: middle;
+}
+.term-hide:hover { border-color: var(--danger); color: var(--danger); }
 
 .cards {
   list-style: none; margin: 0; padding: var(--s3);
@@ -1627,6 +1664,7 @@ button.part-line:hover, button.part-line:focus-visible { background: var(--tone-
   }
   .term-meta { margin: 0 0 0 auto; }
   .term-add { margin-top: 0; }
+  .term-hide { margin: 0; order: 3; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--s2) var(--s4) var(--s4); gap: var(--s2); }
   .slot-li--extra { display: none; }
   .slot, .ucard { min-height: 92px; }
@@ -1641,7 +1679,7 @@ button.part-line:hover, button.part-line:focus-visible { background: var(--tone-
  * from its own heading. */
 @media print {
   .page { max-width: none; padding: 0; }
-  .tools, .periods, .slot-li, .add-year, .board-foot, .ucard-tools, .term-add, .panel--quiet, .lede, .start, .local { display: none !important; }
+  .tools, .periods, .slot-li, .add-year, .board-foot, .ucard-tools, .term-add, .term-hide, .panel--quiet, .lede, .start, .local { display: none !important; }
   .split { grid-template-columns: minmax(0, 1fr); }
   .board, .panel { box-shadow: none; border-color: #c9d2dc; }
   .board-head { padding: 8px 12px; }

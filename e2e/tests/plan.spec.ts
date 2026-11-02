@@ -102,6 +102,43 @@ test('with a degree chosen, the dialog offers its units before anything is typed
   await expect(dialog.getByRole('option', { name: /FIT2102/ })).toBeVisible()
 })
 
+test('several units can be ticked and added in one go', async ({ page }) => {
+  await page.getByLabel('专业与学位').selectOption('C9001')
+  await page.getByRole('button', { name: '添加课程: 第一学期, 2026' }).first().click()
+  const dialog = page.getByRole('dialog')
+
+  await dialog.getByRole('option', { name: /FIT1008/ }).click()
+  await dialog.getByRole('option', { name: /FIT2085/ }).click()
+  await expect(dialog.getByRole('option', { name: /FIT1008/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(dialog.getByText('已选 2 门')).toBeVisible()
+  // Tapping a ticked unit again unticks it.
+  await dialog.getByRole('option', { name: /FIT2085/ }).click()
+  await expect(dialog.getByText('已选 1 门')).toBeVisible()
+  await dialog.getByRole('option', { name: /FIT2004/ }).click()
+
+  await dialog.getByRole('button', { name: '把 2 门课加到 第一学期, 2026' }).click()
+  await expect(dialog.getByRole('status')).toContainText('共 2 门')
+  await expect(dialog.getByRole('option')).toHaveCount(1)
+  await dialog.getByRole('button', { name: '关闭' }).click()
+  await expect(card(page, 'FIT1008')).toBeVisible()
+  await expect(card(page, 'FIT2004')).toBeVisible()
+})
+
+test('summer, winter and the October intake are added from under each year', async ({ page }) => {
+  // The plan defaults to Malaysia, so the October intake is offered first.
+  const extra = page.locator('.periods').first()
+  await expect(extra.getByRole('button').first()).toHaveText('10月入学期')
+  await extra.getByRole('button', { name: '10月入学期' }).click()
+  await expect(page.getByRole('heading', { name: '10月入学期' })).toHaveCount(3)
+  await expect(extra.getByRole('button', { name: '10月入学期' })).toHaveCount(0)
+
+  await addUnit(page, '10月入学期, 2026', 'FIT1008')
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: '每一年都不再显示10月入学期' }).first().click()
+  await expect(page.getByRole('heading', { name: '10月入学期' })).toHaveCount(0)
+  await expect(card(page, 'FIT1008')).toHaveCount(0)
+})
+
 test('an unfinished part of the degree opens the dialog on what it still wants', async ({ page }) => {
   await page.getByLabel('专业与学位').selectOption('C9001')
   await addUnit(page, '第一学期, 2026', 'FIT1008')
