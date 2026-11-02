@@ -4,6 +4,22 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Changed (course map: extra semesters and adding several units at once)
+
+- Summer A, Summer B, winter, full year and the October intake are now added
+  from a row of buttons under each year on the course map. They used to be
+  behind a "Teaching periods" toggle in the toolbar that most students never
+  found. At the Malaysia campus the October intake is listed first, and other
+  campuses do not see it at all because it only runs in Malaysia.
+- An extra semester has a small remove button on its label. If units are
+  already planned in it, the page asks before taking them off the plan.
+- The add-unit dialog lets you tick several units and add them in one go.
+  Tapping a row ticks it and shows its details at the same time, and tapping
+  it again unticks it. The footer says how many are ticked, warns about any
+  that do not run in that semester, and warns when the semester would go past
+  the usual four units. With nothing ticked the button still adds the unit on
+  screen, so the old one-at-a-time way works as before.
+
 ### Added (sign in with Google)
 
 - Signing in with Google. An account is matched by email address, so a Google

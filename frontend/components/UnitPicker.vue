@@ -8,6 +8,11 @@
  * red mark under it. This shows the unit first: what it is, where and when it
  * runs, what it needs, and whether it fits the slot you opened, checked by the
  * same /plan/check the map uses so the two can never disagree.
+ *
+ * Several units can be ticked and added in one go. Before this a student had
+ * to open the dialog once per unit, which for a first year with four core
+ * units was four trips. Tapping a row ticks it and shows it on the right (or
+ * below on a phone), so reading about a unit and choosing it is one action.
  */
 import type { PlanEntry } from '~/composables/usePlan'
 import type { Candidate } from '~/utils/planCandidates'
@@ -34,7 +39,7 @@ const props = defineProps<{
    */
   handbookYear?: number
 }>()
-const emit = defineEmits<{ add: [code: string]; close: []; clearFocus: [] }>()
+const emit = defineEmits<{ add: [codes: string[]]; close: []; clearFocus: [] }>()
 
 const { $t, $term } = useNuxtApp() as any
 const { locale } = useLocale()
@@ -50,7 +55,7 @@ const results = ref<any[]>([])
 const searching = ref(false)
 const searchError = ref('')
 const active = ref<string | null>(null)
-const lastAdded = ref('')
+const lastAdded = ref<string[]>([])
 const input = ref<HTMLInputElement | null>(null)
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
@@ -221,9 +226,10 @@ const detail = computed(() => (active.value ? details[active.value] : null))
 const verdict = computed(() => (active.value ? verdicts[active.value] : undefined))
 const errors = computed(() => (Array.isArray(verdict.value) ? verdict.value.filter((i) => i.severity === 'error') : []))
 const warnings = computed(() => (Array.isArray(verdict.value) ? verdict.value.filter((i) => i.severity !== 'error') : []))
-const alreadyHere = computed(() =>
-  props.entries.some((e) => e.unit_code === active.value && e.year === props.year && e.teaching_period === props.period)
-)
+function inSlot(code: string | null): boolean {
+  return props.entries.some((e) => e.unit_code === code && e.year === props.year && e.teaching_period === props.period)
+}
+const alreadyHere = computed(() => inSlot(active.value))
 
 /** Offerings grouped by teaching period, the way a student reads them. */
 const offeringGroups = computed(() => {
@@ -244,16 +250,67 @@ const requisiteGroups = computed(() => {
   return byType
 })
 
+// --- choosing ----------------------------------------------------------------
+//
+// The ticked units, in the order they were ticked. The unit itself is kept so
+// the footer can still say which ones do not run this semester after a new
+// search has replaced the list they were ticked from.
+
+const picked = ref<Map<string, any>>(new Map())
+const pickedCodes = computed(() => [...picked.value.keys()])
+const isPicked = (code: string) => picked.value.has(code)
+
+function toggle(unit: any) {
+  const code = unit.unit_code
+  if (inSlot(code)) {
+    active.value = code
+    return
+  }
+  const next = new Map(picked.value)
+  if (next.has(code)) next.delete(code)
+  else next.set(code, unit)
+  picked.value = next
+  active.value = code
+}
+
+/** Ticked units the Handbook does not list for this semester at this campus. */
+const pickedOff = computed(() => [...picked.value.values()].filter((u) => !runsInSlot(u)).map((u) => u.unit_code))
+
+/** How many units the semester would hold, against the usual full-time four. */
+const slotCount = computed(
+  () => props.entries.filter((e) => e.year === props.year && e.teaching_period === props.period).length
+)
+const overLoad = computed(() => slotCount.value + picked.value.size > 4)
+
 // --- actions ---------------------------------------------------------------
 
-function add(code: string | null = active.value) {
-  if (!code) return
-  emit('add', code)
-  lastAdded.value = code
+function add(codes: string[] = pickedCodes.value.length ? pickedCodes.value : active.value ? [active.value] : []) {
+  const fresh = codes.filter((c) => !inSlot(c))
+  if (!fresh.length) return
+  emit('add', fresh)
+  lastAdded.value = fresh
+  picked.value = new Map()
   query.value = ''
   results.value = []
   active.value = null
   nextTick(() => input.value?.focus())
+}
+
+function clearPicked() {
+  picked.value = new Map()
+}
+
+/**
+ * Space ticks the highlighted row, the way a checklist works from the
+ * keyboard. Only while browsing the degree's list: in a search, space is part
+ * of what is being typed.
+ */
+function onSpace(event: KeyboardEvent) {
+  if (!browsing.value || query.value) return
+  const unit = visible.value.find((r) => r.unit_code === active.value)
+  if (!unit) return
+  event.preventDefault()
+  toggle(unit)
 }
 
 function move(step: number) {
@@ -294,13 +351,16 @@ onBeforeUnmount(() => {
           @keydown.down.prevent="move(1)"
           @keydown.up.prevent="move(-1)"
           @keydown.enter.prevent="add()"
+          @keydown.space.exact="onSpace"
         />
         <button class="close" type="button" :aria-label="$t('picker.close')" @click="emit('close')">×</button>
       </header>
 
       <div class="body" :class="{ 'body--empty': !active }">
         <div class="list">
-          <p v-if="lastAdded && !query" class="added" role="status">{{ $t('picker.added', { code: lastAdded, slot: slotLabel }) }}</p>
+          <p v-if="lastAdded.length && !query" class="added" role="status">
+            {{ $t(lastAdded.length === 1 ? 'picker.added' : 'picker.addedMany', { code: lastAdded.join(', '), n: lastAdded.length, slot: slotLabel }) }}
+          </p>
           <p v-if="searchError" class="hint bad-text" role="alert">{{ searchError }}</p>
           <template v-else-if="browsing">
             <p v-if="props.candidates == null" class="hint">{{ $t('picker.hint', { campus: campusName(campus), year: handbook }) }}</p>
@@ -315,6 +375,7 @@ onBeforeUnmount(() => {
           <ul
             v-if="visible.length"
             role="listbox"
+            aria-multiselectable="true"
             :aria-label="browsing ? $t('picker.fromDegree', { n: candidates.length }) : $t('picker.results')"
           >
             <li
@@ -322,15 +383,22 @@ onBeforeUnmount(() => {
               :id="`pick-${unit.unit_code}`"
               :key="unit.unit_code"
               role="option"
-              :aria-selected="active === unit.unit_code"
+              :aria-selected="isPicked(unit.unit_code)"
             >
               <button
                 type="button"
                 class="row"
-                :class="{ 'row--on': active === unit.unit_code, 'row--off': !runsInSlot(unit) }"
-                @click="active = unit.unit_code"
-                @dblclick="add(unit.unit_code)"
+                :class="{
+                  'row--on': active === unit.unit_code,
+                  'row--picked': isPicked(unit.unit_code),
+                  'row--off': !runsInSlot(unit),
+                  'row--here': inSlot(unit.unit_code)
+                }"
+                @click="toggle(unit)"
               >
+                <span class="tick" aria-hidden="true">
+                  <svg v-if="isPicked(unit.unit_code) || inSlot(unit.unit_code)" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" /></svg>
+                </span>
                 <span class="row-top">
                   <span class="mono code">{{ unit.unit_code }}</span>
                   <span class="title">{{ unit.title }}</span>
@@ -355,6 +423,7 @@ onBeforeUnmount(() => {
                   <span v-if="unit.offered_at_campus === false" class="tag tag--away">
                     {{ $t('tree.keyAway', { campus: campusName(campus) }) }}
                   </span>
+                  <span v-if="inSlot(unit.unit_code)" class="tag">{{ $t('picker.alreadyHere') }}</span>
                 </span>
               </button>
             </li>
@@ -430,15 +499,34 @@ onBeforeUnmount(() => {
                 </template>
               </template>
             </div>
-
-            <footer class="foot">
-              <button class="btn btn--primary" type="button" :disabled="alreadyHere" @click="add()">
-                {{ $t('picker.add', { slot: slotLabel }) }}
-              </button>
-            </footer>
           </template>
         </section>
       </div>
+
+      <!-- One button for the whole selection. With nothing ticked it adds the
+           unit being previewed, which keeps the old one-at-a-time way working. -->
+      <footer v-if="picked.size || active" class="foot">
+        <div class="foot-text">
+          <template v-if="picked.size">
+            <p class="foot-count">
+              {{ $t('picker.picked', { n: picked.size }) }}
+              <button type="button" class="foot-clear" @click="clearPicked">{{ $t('picker.clear') }}</button>
+            </p>
+            <p class="foot-codes mono">{{ pickedCodes.join(' · ') }}</p>
+            <p v-if="pickedOff.length" class="foot-warn">{{ $t('picker.pickedOff', { codes: pickedOff.join(', '), slot: slotLabel }) }}</p>
+            <p v-else-if="overLoad" class="foot-warn">{{ $t('picker.overLoad', { n: slotCount + picked.size }) }}</p>
+          </template>
+          <p v-else class="foot-tip">{{ $t('picker.tapToPick') }}</p>
+        </div>
+        <button
+          class="btn btn--primary"
+          type="button"
+          :disabled="!picked.size && alreadyHere"
+          @click="add()"
+        >
+          {{ picked.size > 1 ? $t('picker.addMany', { n: picked.size, slot: slotLabel }) : $t('picker.add', { slot: slotLabel }) }}
+        </button>
+      </footer>
     </div>
   </div>
 </template>
@@ -449,7 +537,7 @@ onBeforeUnmount(() => {
   padding: var(--s5) var(--s4); background: rgba(12, 27, 42, 0.42);
 }
 .dialog {
-  width: min(1040px, 100%); height: min(720px, 100%); display: grid; grid-template-rows: auto minmax(0, 1fr);
+  width: min(1040px, 100%); height: min(720px, 100%); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--surface); border-radius: 14px; overflow: hidden;
   box-shadow: 0 24px 64px -24px rgba(12, 27, 42, 0.45);
 }
@@ -465,12 +553,24 @@ onBeforeUnmount(() => {
 .hint { color: var(--muted); font-size: 0.9rem; padding: var(--s3); margin: 0; }
 .added { margin: var(--s2); padding: var(--s2) var(--s3); border-radius: var(--radius-sm); background: var(--success-bg); color: var(--success); font-size: 0.88rem; }
 .row {
-  width: 100%; display: grid; gap: 6px; padding: var(--s3); border: 0; border-radius: var(--radius-sm);
+  width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s3); row-gap: 6px;
+  padding: var(--s3); border: 0; border-radius: var(--radius-sm);
   background: transparent; text-align: left; font: inherit; color: var(--text); cursor: pointer;
 }
 .row:hover { background: var(--surface-2); }
 .row--on, .row--on:hover { background: var(--blue-50); box-shadow: inset 3px 0 0 var(--brand); }
 .row--off .title { color: var(--muted); }
+.row--here { cursor: default; }
+.row--here .code, .row--here .title { color: var(--muted); }
+/* The tick box spans both lines of the row so it lines up with the code. */
+.tick {
+  grid-row: 1 / span 2; align-self: center; display: grid; place-items: center;
+  width: 22px; height: 22px; border: 1.5px solid var(--border-strong); border-radius: 6px; background: var(--surface);
+}
+.tick svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2.2; }
+.row--picked .tick { background: var(--brand); border-color: var(--brand); }
+.row--here .tick { background: var(--surface-2); }
+.row--here .tick svg { stroke: var(--muted); }
 .row-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: baseline; }
 .code { font-weight: 600; font-size: 0.88rem; color: var(--navy); }
 .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -493,7 +593,7 @@ onBeforeUnmount(() => {
 .scope .scope-title { padding: 0; }
 .scope-all { flex: none; border: 0; background: none; padding: 0; font: inherit; font-size: 0.78rem; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 
-.preview { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; background: var(--bg); }
+.preview { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; background: var(--bg); }
 .empty { margin: auto; padding: var(--s6); color: var(--muted); text-align: center; grid-row: 1 / -1; }
 .verdict-bar { display: grid; gap: var(--s1); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border); background: var(--surface); }
 .verdict { display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 3px 10px; border-radius: var(--radius-sm); font-size: 0.86rem; font-weight: 500; }
@@ -520,12 +620,25 @@ onBeforeUnmount(() => {
 .place { padding: 2px 8px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); }
 .place--here { border-color: var(--brand); background: var(--blue-50); }
 .mode { color: var(--muted); font-size: 0.75rem; margin-left: 6px; }
-.foot { display: flex; justify-content: flex-end; padding: var(--s3) var(--s4); border-top: 1px solid var(--border); background: var(--surface); }
+.foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s3) var(--s4); border-top: 1px solid var(--border); background: var(--surface);
+}
+.foot-text { min-width: 0; display: grid; gap: 2px; }
+.foot-text p { margin: 0; }
+.foot-count { font-weight: 600; font-size: 0.92rem; display: flex; align-items: baseline; gap: var(--s3); }
+.foot-clear { border: 0; background: none; padding: 0; font: inherit; font-size: 0.8rem; font-weight: 400; color: var(--brand); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.foot-codes { font-size: 0.8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.foot-warn { font-size: 0.8rem; color: var(--warning); }
+.foot-tip { font-size: 0.82rem; color: var(--muted); }
+.foot .btn { flex: none; }
 
 @media (max-width: 760px) {
   .backdrop { padding: 0; }
   .dialog { height: 100%; border-radius: 0; }
-  .body { grid-template-columns: 1fr; grid-template-rows: minmax(140px, 38%) minmax(0, 1fr); }
+  /* The list gets a bit more than before now that it is where several units
+     are ticked, and the footer under both takes some height of its own. */
+  .body { grid-template-columns: 1fr; grid-template-rows: minmax(160px, 46%) minmax(0, 1fr); }
   /* With nothing picked yet the preview is one sentence, so the list gets the
      screen; the split comes back once there is a unit to show. */
   .body--empty { grid-template-rows: minmax(0, 1fr) auto; }
@@ -533,6 +646,8 @@ onBeforeUnmount(() => {
   .list { border-right: 0; border-bottom: 1px solid var(--border); }
   .scope { flex-wrap: wrap; }
   .scroll { padding: var(--s4); }
-  .foot .btn { width: 100%; min-height: 44px; }
+  .foot { flex-direction: column; align-items: stretch; gap: var(--s2); padding-bottom: max(var(--s3), env(safe-area-inset-bottom)); }
+  .foot .btn { width: 100%; min-height: 48px; }
+  .row { min-height: 56px; }
 }
 </style>
