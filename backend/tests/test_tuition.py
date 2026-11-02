@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 
 from app.knowledge import tuition as tu
 from app.models.knowledge import OfficialPage, OfficialSource
+from sqlalchemy import select
 
 UG_COLS = ["Course", "Duration (years)", "Tuition fees per year (RM)", ""]
 UG_HEAD = ["", "", "Malaysian", "International"]
@@ -423,3 +424,29 @@ def select_page(slug):
     from sqlalchemy import select
 
     return select(OfficialPage).where(OfficialPage.slug == slug)
+
+
+def test_mixed_or_undated_fee_sources_do_not_inherit_the_first_year():
+    from types import SimpleNamespace
+
+    def page(year):
+        blocks = [] if year is None else [_p(f"{year} tuition fees are listed below")]
+        return SimpleNamespace(blocks=blocks)
+
+    assert tu.year_of([page(2027), page(2027)]) == 2027
+    assert tu.year_of([page(2027), page(2026)]) is None
+    assert tu.year_of([page(2027), page(None)]) is None
+    assert tu.year_of([]) is None
+
+
+def test_course_fee_year_comes_from_its_own_source(db):
+    _store(db)
+    pg = db.scalar(select(OfficialPage).where(OfficialPage.slug == "malaysia-pgfees"))
+    pg.blocks = [_p("2026 tuition fees are listed below"), *PG[1:]]
+    db.commit()
+    # A current undergraduate page must not relabel an older postgraduate row.
+    card = tu.for_course(db, "Master of Data Science", "Faculty of Information Technology", ["Malaysia"])
+    assert card["year"] == 2026
+    table = tu.table(db)
+    assert table["year"] is None
+    assert [section["year"] for section in table["sections"]] == [2027, 2026]

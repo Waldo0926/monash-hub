@@ -13,7 +13,7 @@ import { INTAKES_2027, intake2027Status, APPLICATION_STATUS_2027, type IntakePer
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
   year: number | null
-  sections: { source: string; level: string; schools: { school: string; rows: FeeRow[] }[] }[]
+  sections: { source: string; year?: number | null; level: string; schools: { school: string; rows: FeeRow[] }[] }[]
   general: string[]
   sources: Record<string, Source>
   previous: { year: number; kind: 'versions' | 'printed'; sources: Record<string, { title: string; url: string; read_on?: string }> } | null
@@ -147,7 +147,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
         <p v-if="!sections.length" class="small muted">{{ $t('fees.noMatch', { q: query }) }}</p>
 
         <section v-for="section in sections" :key="section.source" class="level">
-          <h2>{{ $t(`fees.level.${section.level}`) }}</h2>
+          <h2>{{ $t(`fees.level.${section.level}`) }}<span v-if="section.year"> · {{ section.year }}</span></h2>
           <p class="tiny muted">
             <a :href="data!.sources[section.source]?.url" rel="noopener external" target="_blank">{{ data!.sources[section.source]?.title }}</a>
             <template v-if="data!.sources[section.source]?.last_checked">
