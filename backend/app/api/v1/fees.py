@@ -21,7 +21,5 @@ def list_fees(db: Session = Depends(get_db)) -> dict:
         for group in section["schools"]
         for row in group["rows"]
     ]
-    evidence = admissions.for_titles(db, [row["title"] for row in rows])
-    for row in rows:
-        row["admissions"] = evidence[row["title"]]
+    result["admissions_coverage"] = admissions.for_rows(db, rows)
     return result

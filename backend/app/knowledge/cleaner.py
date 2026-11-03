@@ -325,7 +325,9 @@ def _skip_covered(cells: list[str], below: dict[int, int]) -> bool:
     return covered
 
 
-def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
+def _table_rows(
+    rows: list[Tag], links: list[dict] | None = None,
+) -> tuple[list[list[str]], list[list[int]]]:
     """Cells as plain strings on a regular grid, and the merged cells.
 
     A cell that spans columns or rows keeps its text in its first position and
@@ -351,6 +353,14 @@ def _table_rows(rows: list[Tag]) -> tuple[list[list[str]], list[list[int]]]:
             if rowspan > 1:
                 for column in range(len(cells), len(cells) + colspan):
                     below[column] = rowspan - 1
+            if links is not None:
+                for anchor in cell.find_all("a", href=True):
+                    href = anchor["href"].strip()
+                    label = _flat(anchor)
+                    if label and _is_linkable(href):
+                        item = {"row": len(out), "column": len(cells), "text": label, "url": href}
+                        if item not in links:
+                            links.append(item)
             cells.append(_cell_text(cell))
             cells.extend([""] * (colspan - 1))
         # Columns past the last cell that a cell above still covers.
@@ -369,16 +379,24 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
     body = table.find("tbody")
     foot = table.find("tfoot")
 
-    header_rows, head_merged = _table_rows(head.find_all("tr")) if head else ([], [])
+    head_links: list[dict] = []
+    body_links: list[dict] = []
+    foot_links: list[dict] = []
+    header_rows, head_merged = _table_rows(head.find_all("tr"), head_links) if head else ([], [])
 
     container = body or table
     body_rows, body_merged = _table_rows(
-        [tr for tr in container.find_all("tr") if tr.find_parent(["thead", "tfoot"]) is None]
+        [tr for tr in container.find_all("tr") if tr.find_parent(["thead", "tfoot"]) is None],
+        body_links,
     )
     if not head and body_rows:
         # No <thead>: if the first row is all <th>, it is the header anyway.
         first = container.find("tr")
         if first is not None and first.find("td") is None and first.find("th") is not None:
+            head_links = [link for link in body_links if link["row"] == 0]
+            body_links = [
+                {**link, "row": link["row"] - 1} for link in body_links if link["row"] > 0
+            ]
             header_rows, body_rows = body_rows[:1], body_rows[1:]
             head_merged = [m for m in body_merged if m[0] == 0]
             body_merged = [[r - 1, *rest] for r, *rest in body_merged if r > 0]
@@ -387,10 +405,11 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
         # Every row in <thead>, every cell a <th>: the Let's Begin important
         # dates are two tables of "date | what happens" written this way. That
         # is a body in the wrong tag, not five header rows over no data.
+        body_links, head_links = head_links, []
         body_rows, header_rows = header_rows, []
         body_merged, head_merged = head_merged, []
 
-    foot_rows, foot_merged = _table_rows(foot.find_all("tr")) if foot else ([], [])
+    foot_rows, foot_merged = _table_rows(foot.find_all("tr"), foot_links) if foot else ([], [])
     columns = header_rows[0] if header_rows else []
 
     if not body_rows and not columns:
@@ -406,6 +425,13 @@ def _table_block(table: Tag) -> dict[str, Any] | None:
         "columns": columns + [""] * (width - len(columns)),
         "rows": pad(body_rows),
     }
+    cell_links = [
+        {"section": section, **link}
+        for section, items in (("head", head_links), ("body", body_links), ("foot", foot_links))
+        for link in items
+    ]
+    if cell_links:
+        block["cell_links"] = cell_links
     # A second header row ("Domestic | International" under "Fee") used to be
     # dropped. It is kept apart so ``columns`` still means the first one.
     if len(header_rows) > 1:

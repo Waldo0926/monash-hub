@@ -394,7 +394,9 @@ def get_course(
     # title. None when Malaysia does not teach the degree or the pages do not
     # price it.
     payload["tuition"] = tuition.for_course(db, course.title, course.faculty, course.campuses)
-    payload["admissions"] = admissions.for_titles(db, [course.title])[course.title]
+    payload["admissions"] = admissions.for_course(
+        db, course.title, payload["tuition"], course.campuses
+    )
     payload["containers"] = containers
     payload["units"] = units
     _name_units(containers, units)

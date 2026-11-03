@@ -9,6 +9,7 @@ export type FeeAmount = { value: number | null; written: string; label: string |
 
 export type FeeRow = {
   admissions?: AdmissionsEvidence
+  programme_url?: string | null
   title: string
   title_zh: string | null
   covers: string[]

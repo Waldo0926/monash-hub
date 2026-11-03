@@ -15,6 +15,10 @@ const cn = { open: '课程页明确显示开放申请', closed: '课程页明确
       {{ zh ? '来源已过期或暂不可用，不能继续确认旧状态' : 'The source is stale or unavailable; its earlier status cannot be confirmed.' }}
     </span>
     <span class="notice-line" v-if="!compact">{{ zh ? '这是课程页面的当前通知，不代表所选未来批次已开放，也不代表个人申请资格。收费表和截止日期不能代替课程通知' : 'This is a current programme-page notice, not confirmation that a future intake is open or that you are eligible. Fees and deadlines do not establish application status.' }}</span>
+    <span v-if="evidence.programme_page_verified" class="small notice-line">
+      {{ zh ? '课程来源索引有效；申请状态仍以明确通知为准' : 'Current matching programme source indexed; application status still requires an explicit notice.' }}
+      <template v-if="evidence.course_code"> · {{ evidence.course_code }}</template>
+    </span>
     <span v-if="evidence.source_url" class="small notice-line">
       <a :href="evidence.source_url" target="_blank" rel="noopener external">{{ zh ? '官方课程页' : 'Official programme page' }} ↗</a>
       <template v-if="evidence.last_checked"> · <LastChecked :value="evidence.last_checked" /></template>

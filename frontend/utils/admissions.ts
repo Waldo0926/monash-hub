@@ -1,4 +1,6 @@
 export type AdmissionsEvidence = {
+  programme_page_verified?: boolean
+  identity_basis?: string
   course_code: string | null
   campus: 'Malaysia'
   status: 'open' | 'closed' | 'suspended' | 'conflict' | 'not_verified'

@@ -49,6 +49,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.knowledge import tuition_2026
+from app.knowledge.programme_sources import programme_url, title_key
 from app.models.knowledge import OfficialPage, OfficialPageVersion
 
 #: The indexed pages that carry the fee tables, undergraduate first.
@@ -205,6 +206,7 @@ class Fee:
     basis: str | None = None
     domestic: list[Amount] = field(default_factory=list)
     international: list[Amount] = field(default_factory=list)
+    programme_urls: dict[str, str] = field(default_factory=dict)
 
 
 def norm(text: str | None) -> str:
@@ -286,7 +288,9 @@ def _columns(table: dict) -> dict | None:
     the data starts on. None for a table that is not a fee table."""
     head = table.get("head") or []
     rows = table.get("rows") or []
-    for i, row in enumerate([*head, *rows[:1]]):
+    headers = [(table.get("columns") or [], 0), *[(row, 0) for row in head]]
+    headers += [(row, 1) for row in rows[:1]]
+    for row, start in headers:
         low = [_clean(c).lower() for c in row]
         if "malaysian" in low and "international" in low:
             cols = [_clean(c).lower() for c in table.get("columns") or []]
@@ -297,7 +301,7 @@ def _columns(table: dict) -> dict | None:
                 "mode": next((j for j, c in enumerate(cols) if c == "type"), None),
                 # The labels are usually the first body row. When the cleaner
                 # kept them as a second header row, data starts at row 0.
-                "start": 0 if i < len(head) else 1,
+                "start": start,
                 "per_year": any("per year" in c for c in cols),
             }
     return None
@@ -326,7 +330,7 @@ def parse_blocks(blocks: list[dict], page: str) -> list[Fee]:
             continue
         dom, intl = cols["domestic"], cols["international"]
         last: Fee | None = None
-        for row in (block.get("rows") or [])[cols["start"]:]:
+        for row_index, row in enumerate((block.get("rows") or [])[cols["start"]:], cols["start"]):
             width = max(dom, intl, cols["duration"], cols["mode"] or 0) + 1
             cells = [*row, *[""] * (width - len(row))]
             d, d_basis = amounts(cells[dom])
@@ -352,6 +356,28 @@ def parse_blocks(blocks: list[dict], page: str) -> list[Fee]:
                 basis = "full_course"
             if basis is None and cols["per_year"]:
                 basis = "per_year"
+            urls: dict[str, set[str]] = {}
+            for link in block.get("cell_links", []):
+                if link.get("section") != "body" or link.get("row") != row_index or link.get("column") != 0:
+                    continue
+                key, url = title_key(link.get("text")), programme_url(link.get("url"))
+                if url and key in {title_key(t) for t in titles}:
+                    urls.setdefault(key, set()).add(url)
+            # Older indexed pages retain a whole-row link label, but no cell
+            # coordinates. Accept it only for one-title rows with exact full-row
+            # text and one unambiguous programme URL. Never guess among covers.
+            if not block.get("cell_links") and len(titles) == 1:
+                row_text = " ".join(" ".join(str(c).split()) for c in row).strip()
+                for spans in block.get("links", []):
+                    for link in spans:
+                        if " ".join(str(link.get("text", "")).split()) != row_text:
+                            continue
+                        url = programme_url(link.get("url"))
+                        if url:
+                            urls.setdefault(title_key(titles[0]), set()).add(url)
+            programme_urls = {key: next(iter(values)) for key, values in urls.items() if len(values) == 1}
+            if variant and last is not None:
+                programme_urls = dict(last.programme_urls)
             fee = Fee(
                 titles=titles,
                 school=school,
@@ -362,6 +388,7 @@ def parse_blocks(blocks: list[dict], page: str) -> list[Fee]:
                 basis=basis,
                 domestic=d,
                 international=i,
+                programme_urls=programme_urls,
             )
             if not variant:
                 last = fee
@@ -448,6 +475,7 @@ def _row(fee: Fee, title: str | None = None, base: Baseline | None = None) -> di
         "title_zh": TITLE_ZH.get(norm(title)),
         "covers": list(fee.titles[1:]) if title == fee.titles[0] else [],
         "school": fee.school,
+        "programme_url": fee.programme_urls.get(title_key(title)),
         "source": fee.page,
         "duration": fee.duration or None,
         "mode": fee.mode or None,
