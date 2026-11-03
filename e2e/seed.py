@@ -119,8 +119,9 @@ UNITS = [
 
 
 # Three deliberately sparse editions for source-aware year comparison tests.
-# They are unrelated to the four units used by the planner/browser fixtures.
-for comparison_year in (2025, 2026, 2027):
+# Historical editions keep the latest indexed year at 2026 so the planner
+# fixtures continue to use their original fallback Handbook.
+for comparison_year in (2024, 2025, 2026):
     comparison_record = unit("TST1001", "Synthetic comparison unit", [])
     comparison_record.update(academic_year=comparison_year,
         source_url=f"https://handbook.monash.edu/{comparison_year}/units/TST1001",
