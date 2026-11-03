@@ -121,7 +121,10 @@ def compute_content_hash(payload: dict[str, Any]) -> str:
     deploy; hashing the normalised record means an unchanged unit costs us no
     write and no reindex.
     """
-    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
+    canonical = json.dumps(
+        {key: value for key, value in payload.items() if key != "comparison_coverage"},
+        sort_keys=True, ensure_ascii=False, default=str,
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -602,6 +605,15 @@ def parse_unit_page(html: str, source_url: str) -> dict[str, Any]:
         # student pays for the unit. It is published as "Band 2" or just "2".
         "sca_band": _band(content.get("highest_sca_band")),
         "study_abroad": _yes_no(content.get("study_abroad_unit")),
+    }
+    # Keep source collection availability independently from the normalized
+    # empty lists. A missing/null collection is not an explicit empty array.
+    record["comparison_coverage"] = {
+        "offerings": bool(record["offerings"]) or content.get("unit_offering") == [],
+        "assessments": bool(assessments) or content.get("assessments") == [],
+        "requisites": bool(requisite_groups) or (
+            content.get("requisites") == [] and not _rule_text_candidates(content)
+        ),
     }
     record["has_exam"] = derive_has_exam(assessments, assessment_summary)
     record["content_hash"] = compute_content_hash(record)

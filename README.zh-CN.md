@@ -26,6 +26,11 @@ Monash Hub 把课程、学位、选课规划、WAM/GPA、重要日期、马来�
 
 > Monash Hub 不隶属于，也未获 Monash University 官方认可。选课、签证、评估、学术政策等重要事项，请始终以 Monash 官网、Handbook、Moodle 或 WES 为准。
 
+### 对照 Handbook 年份
+
+`/units/compare` 对照两个明确收录的课程单元版本，保留各自原文和核对时间；修改选项后，旧结果仍显示原来的年份，直到再次比较。缺失字段和旧索引中的空集合显示无法比较；只有保留了源结构证据，才认定该集合明确为空。单元年份不能代替你入学年份的学位要求，后者仍在[课程图](https://monashhub.secureview.tech/plan)中读取。详见[比较说明](docs/HANDBOOK-COMPARISON.zh-CN.md)。
+
+
 ## 为什么还要做一个网站？
 
 以前学生有问题，要去三个地方找，每个地方只管一部分：

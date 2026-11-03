@@ -15,7 +15,8 @@ const from = ref(Number(route.query.from) || 0)
 const to = ref(Number(route.query.to) || 0)
 const busy = ref(false)
 const message = ref('')
-const result = shallowRef<{ before: UnitSnapshot | null; after: UnitSnapshot | null } | null>(null)
+const result = shallowRef<{ code: string; fromYear: number; toYear: number; before: UnitSnapshot | null; after: UnitSnapshot | null } | null>(null)
+const changedInputs = computed(() => result.value && (code.value.trim().toUpperCase() !== result.value.code || from.value !== result.value.fromYear || to.value !== result.value.toYear))
 
 const { data: filters } = await useApiFetch<{ years: number[] }>('/v1/units/filters')
 const years = computed(() => filters.value?.years || [])
@@ -61,7 +62,9 @@ function notFound(error: unknown): boolean {
 async function load(codeValue: string, year: number): Promise<UnitSnapshot | null> {
   try {
     // Compare the original Handbook wording, not potentially staggered translated snapshots.
-    return await apiFetch<UnitSnapshot>(`/v1/units/${encodeURIComponent(codeValue)}?year=${year}&locale=en`)
+    const snapshot = await apiFetch<UnitSnapshot>(`/v1/units/${encodeURIComponent(codeValue)}?year=${year}&locale=en`)
+    if (snapshot.unit_code !== codeValue || snapshot.academic_year !== year) throw new Error('Handbook identity mismatch')
+    return snapshot
   } catch (error) {
     if (notFound(error)) return null
     throw error
@@ -69,6 +72,7 @@ async function load(codeValue: string, year: number): Promise<UnitSnapshot | nul
 }
 
 async function compare() {
+  if (busy.value) return
   const wanted = code.value.trim().toUpperCase()
   result.value = null
   message.value = ''
@@ -76,12 +80,14 @@ async function compare() {
     message.value = zh.value ? '请填写正确的课程代码，并选择两个不同的已收录年份' : 'Enter a valid unit code and choose two different loaded Handbook years.'
     return
   }
+  const requestFrom = from.value
+  const requestTo = to.value
   busy.value = true
   try {
-    const [before, after] = await Promise.all([load(wanted, from.value), load(wanted, to.value)])
-    result.value = { before, after }
+    const [before, after] = await Promise.all([load(wanted, requestFrom), load(wanted, requestTo)])
+    result.value = { code: wanted, fromYear: requestFrom, toYear: requestTo, before, after }
     code.value = wanted
-    await router.replace({ query: { code: wanted, from: String(from.value), to: String(to.value) } })
+    await router.replace({ query: { code: wanted, from: String(requestFrom), to: String(requestTo) } })
   } catch {
     message.value = zh.value ? '暂时无法读取Handbook，请稍后重试' : 'Could not read the Handbook right now. Please try again.'
   } finally {
@@ -110,15 +116,15 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
 
     <form class="compare-form card" @submit.prevent="compare">
       <label>{{ zh ? '课程代码' : 'Unit code' }}
-        <input v-model="code" class="compare-input" type="text" placeholder="FIT2102" maxlength="16" required autocomplete="off">
+        <input v-model="code" class="compare-input" type="text" placeholder="FIT2102" maxlength="16" required autocomplete="off" :disabled="busy">
       </label>
       <label>{{ zh ? '原年份' : 'From year' }}
-        <select v-model.number="from" class="compare-input" required>
+        <select v-model.number="from" class="compare-input" required :disabled="busy">
           <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
         </select>
       </label>
       <label>{{ zh ? '新年份' : 'To year' }}
-        <select v-model.number="to" class="compare-input" required>
+        <select v-model.number="to" class="compare-input" required :disabled="busy">
           <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
         </select>
       </label>
@@ -131,14 +137,16 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
     </p>
 
     <template v-if="result">
+      <p v-if="changedInputs" class="compare-warning" role="status">{{ zh ? '选择已改变。下方仍为上次比较结果，请点击“比较变化”更新。' : 'Selection changed. The results below still show the last comparison; press Compare to update.' }}</p>
+      <p class="small muted comparison-context">{{ result.code }} · {{ result.fromYear }} → {{ result.toYear }}</p>
       <div v-if="!result.before || !result.after" class="card compare-warning" role="status">
         <h2>{{ zh ? '有年份未收录这门课' : 'A selected edition does not list this unit' }}</h2>
         <p>{{ zh ? '这不等于课程已经取消或要求被移除。只有两个年份都有对应记录时，才会显示正式差异' : 'Missing data is not proof the unit was discontinued or its rules were removed. Comparison requires records in both years.' }}</p>
-        <p>{{ from }}：{{ result.before ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }} · {{ to }}：{{ result.after ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }}</p>
+        <p>{{ result.fromYear }}：{{ result.before ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }} · {{ result.toYear }}：{{ result.after ? (zh ? '有记录' : 'Available') : (zh ? '未找到记录' : 'Not found') }}</p>
       </div>
       <template v-else>
         <p class="compare-summary">{{ changes.length
-          ? (zh ? `${from}年和${to}年之间有${changes.length}项不同` : `${changes.length} ${changes.length === 1 ? 'field differs' : 'fields differ'} between ${from} and ${to}`)
+          ? (zh ? `${result.fromYear}年和${result.toYear}年之间有${changes.length}项不同` : `${changes.length} ${changes.length === 1 ? 'field differs' : 'fields differ'} between ${result.fromYear} and ${result.toYear}`)
           : (zh ? `两年可核实的字段没有发现差异` : `No differences in the verifiable fields`) }}</p>
         <p v-if="unavailable.length" class="compare-warning" role="status">
           {{ zh ? `以下字段资料不足，不能判断相同或变化：${unavailable.map(row => names[row.field]).join('、')}` : `Insufficient source data to compare: ${unavailable.map(row => names[row.field]).join(', ')}` }}
@@ -150,8 +158,8 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
               <span class="compare-tag">{{ zh ? statusZh[row.status] : statusEn[row.status] }}</span>
             </div>
             <div class="compare-two">
-              <div><strong>{{ from }}</strong><pre>{{ row.from ? shown(row, row.from) : (zh ? '未列出' : 'Not listed') }}</pre></div>
-              <div><strong>{{ to }}</strong><pre>{{ row.to ? shown(row, row.to) : (zh ? '未列出' : 'Not listed') }}</pre></div>
+              <div><strong>{{ result.fromYear }}</strong><pre>{{ row.from ? shown(row, row.from) : (zh ? '未列出' : 'Not listed') }}</pre></div>
+              <div><strong>{{ result.toYear }}</strong><pre>{{ row.to ? shown(row, row.to) : (zh ? '未列出' : 'Not listed') }}</pre></div>
             </div>
           </section>
         </div>
@@ -167,9 +175,10 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
       </template>
       <div class="compare-sources card">
         <h2>{{ zh ? '原始资料' : 'Original sources' }}</h2>
-        <p v-if="result.before?.source_url"><a :href="result.before.source_url" target="_blank" rel="noopener external">{{ from }} Monash Handbook ↗</a><template v-if="result.before.last_checked"> · <LastChecked :value="result.before.last_checked" /></template></p>
-        <p v-if="result.after?.source_url"><a :href="result.after.source_url" target="_blank" rel="noopener external">{{ to }} Monash Handbook ↗</a><template v-if="result.after.last_checked"> · <LastChecked :value="result.after.last_checked" /></template></p>
-        <p class="small muted">{{ zh ? '这里只比较当前抓取的数据，不代表学校已批准选课、先修豁免、交换学分或毕业资格。考核和开课信息可能继续变化，请以原始页面为准' : 'These are snapshots, not enrolment, prerequisite-waiver, credit-transfer or graduation approvals. Confirm current details on Monash’s original pages.' }}</p>
+        <p v-if="result.before?.source_url"><a :href="result.before.source_url" target="_blank" rel="noopener external">{{ result.fromYear }} Monash Handbook ↗</a><template v-if="result.before.last_checked"> · <LastChecked :value="result.before.last_checked" /></template></p>
+        <p v-if="result.after?.source_url"><a :href="result.after.source_url" target="_blank" rel="noopener external">{{ result.toYear }} Monash Handbook ↗</a><template v-if="result.after.last_checked"> · <LastChecked :value="result.after.last_checked" /></template></p>
+        <p class="small muted">{{ zh ? '这里只比较当前抓取的数据，不代表学校已批准选课、先修豁免、交换学分或毕业资格。考核和开课信息可能继续变化，请以原始页面为准。课程单元的Handbook年份不代替你入学年份对应的学位规则' : 'These are snapshots, not enrolment, prerequisite-waiver, credit-transfer or graduation approvals. Confirm current details on Monash’s original pages. The unit Handbook year does not replace the commencement-year course rules that apply to your degree.' }}</p>
+        <p><NuxtLink to="/plan">{{ zh ? '查看按入学年份读取学位规则的课程图' : 'Open the course map with degree rules for your commencement year' }} →</NuxtLink></p>
       </div>
     </template>
   </div>

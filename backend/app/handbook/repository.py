@@ -68,6 +68,15 @@ def upsert_unit(db: Session, record: dict[str, Any]) -> tuple[Unit, str]:
     unit = get_unit(db, record["unit_code"], record["academic_year"])
 
     if unit is not None and unit.content_hash == record["content_hash"]:
+        coverage = record.get("comparison_coverage")
+        if isinstance(coverage, dict):
+            version = db.scalar(select(UnitVersion).where(
+                UnitVersion.unit_id == unit.id, UnitVersion.content_hash == unit.content_hash,
+            ))
+            if version is not None and version.raw_payload.get("comparison_coverage") != coverage:
+                # New extraction metadata does not change the semantic content
+                # hash, translations, child records or source-change events.
+                version.raw_payload = {**version.raw_payload, "comparison_coverage": coverage}
         unit.last_seen = now
         unit.last_crawled = now
         unit.is_active = True
