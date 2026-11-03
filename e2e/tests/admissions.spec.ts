@@ -5,6 +5,7 @@ test('fees and future intake dates do not override a current programme notice', 
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
   await page.goto('/fees')
+  await expect(page.locator('.source-coverage')).toContainText(/来源索引|source/);
   const filter = page.getByLabel(/筛选当前申请通知|Filter current application notices/)
   await expect(filter).toBeVisible()
   await filter.selectOption('closed')

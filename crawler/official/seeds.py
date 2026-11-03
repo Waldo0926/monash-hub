@@ -5,8 +5,10 @@ look up - special consideration, WAM and GPA, census dates, visas, enrolment
 changes, fees, graduation - and stops there. Blanket-crawling monash.edu would
 cost more, index worse and give us thousands of pages nobody searches for.
 
-Every URL here returned HTTP 200 when the list was compiled. Growing it is
-driven by real search queries after public beta, per Stage 5 of the roadmap.
+The original hand-picked pages returned HTTP 200 when compiled. The bounded
+programme-link catalogue records destinations published by the Malaysia fee
+indexes; registration alone is not proof they have been fetched successfully.
+Further coverage is driven by verified source gaps, not an unbounded crawl.
 
 ``tier`` controls how often we re-check the page (see crawler/sync/refresh.py):
 dates move constantly, policy text barely moves at all.
@@ -14,6 +16,9 @@ dates move constantly, policy text barely moves at all.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
+
+from app.knowledge.malaysia_programmes import PROGRAMME_LINKS
 
 from crawler.official.seeds_coverage import COVERAGE
 
@@ -571,6 +576,19 @@ SEEDS: tuple[Seed, ...] = (
 SEEDS = SEEDS + tuple(
     Seed(slug, url, title, category, tags, tier=tier, applies_to=applies_to, curated=False)
     for slug, url, title, category, tags, tier, applies_to in COVERAGE
+)
+
+# These bounded programme destinations are published by the two fee indexes.
+# Registered is not fetched: unavailable and stale rows remain unverified.
+_existing_urls = {seed.url for seed in SEEDS}
+_programme_urls: dict[str, str] = {}
+for _title, _school, _url in PROGRAMME_LINKS:
+    _programme_urls.setdefault(_url, _title)
+SEEDS += tuple(
+    Seed("malaysia-programme-" + sha256(url.encode()).hexdigest()[:12], url, title,
+         "malaysia", ("malaysia", "programme", "admissions", "课程", "申请"),
+         tier="dynamic", applies_to="malaysia")
+    for url, title in sorted(_programme_urls.items()) if url not in _existing_urls
 )
 
 SEEDS_BY_SLUG = {seed.slug: seed for seed in SEEDS}

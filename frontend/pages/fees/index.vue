@@ -12,6 +12,7 @@ import { INTAKES_2027, intake2027Status, APPLICATION_STATUS_2027, type IntakePer
 
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
+  admissions_coverage?: { rows: number; linked_programme_rows: number; verified_programme_rows: number; explicit_notice_rows: number; conflict_rows: number }
   year: number | null
   sections: { source: string; year?: number | null; level: string; schools: { school: string; rows: FeeRow[] }[] }[]
   general: string[]
@@ -124,6 +125,13 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 
       <EmptyState v-if="empty" :title="$t('fees.emptyTitle')" :hint="$t('fees.emptyBody')" />
       <template v-else>
+        <p v-if="data?.admissions_coverage" class="source-coverage" role="status">
+          {{ locale === 'zh' ? '课程来源覆盖（全部收费行）' : 'Programme-source coverage (all fee rows)' }}：
+          {{ data.admissions_coverage.linked_programme_rows }}/{{ data.admissions_coverage.rows }}
+          {{ locale === 'zh' ? '有课程链接；' : 'linked; ' }}
+          {{ data.admissions_coverage.verified_programme_rows }}
+          {{ locale === 'zh' ? '来源索引有效。有效来源不等于已开放申请；未匹配、未抓取或过期的来源仍显示未核实。' : 'have a current matching source indexed. A current source does not mean applications are open; unmatched, unindexed or stale sources remain unverified.' }}
+        </p>
         <input
           v-model="query"
           class="field filter"
@@ -293,4 +301,8 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 .intake-picker select { min-height: 44px; }
 .intake-facts { display: flex; flex-wrap: wrap; gap: 4px var(--s5); margin: var(--s3) 0; }
 .intake-facts p { margin: 0; }
+</style>
+
+<style scoped>
+.source-coverage { padding: var(--s3); border: 1px solid var(--border); border-radius: 8px; overflow-wrap: anywhere; }
 </style>
