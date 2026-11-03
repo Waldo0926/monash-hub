@@ -115,11 +115,19 @@ export function comparable(unit: UnitSnapshot, field: ComparisonField): string {
   }
 }
 
+/** Missing fields cannot prove a policy was unchanged, added or removed. */
+function available(unit: UnitSnapshot, field: ComparisonField): boolean {
+  const value = unit[field]
+  if (value == null) return false
+  if (['offerings', 'assessments', 'requisites'].includes(field)) return Array.isArray(value)
+  return typeof value !== 'string' || value.trim().length > 0
+}
+
 export function compareUnitSnapshots(from: UnitSnapshot | null, to: UnitSnapshot | null): DiffRow[] {
   return fields.map(field => {
     const left = from ? comparable(from, field) : ''
     const right = to ? comparable(to, field) : ''
-    const status: DiffStatus = !from || !to ? 'unavailable'
+    const status: DiffStatus = !from || !to || !available(from, field) || !available(to, field) ? 'unavailable'
       : left === right ? 'unchanged'
       : !left ? 'added'
       : !right ? 'removed'

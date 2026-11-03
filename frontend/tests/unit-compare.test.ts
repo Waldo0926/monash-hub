@@ -31,11 +31,11 @@ describe('Handbook year comparison', () => {
     const rows = compareUnitSnapshots(unit, next)
     expect(rows.find(x => x.field === 'assessments')?.status).toBe('changed')
     expect(rows.find(x => x.field === 'requisites')?.status).toBe('changed')
-    expect(rows.find(x => x.field === 'has_exam')?.status).toBe('unchanged')
+    expect(rows.find(x => x.field === 'has_exam')?.status).toBe('unavailable')
   })
   it('does not confuse unknown with an explicit no-exam entry', () => {
     expect(compareUnitSnapshots(unit, { ...unit, has_exam: false })
-      .find(x => x.field === 'has_exam')?.status).toBe('added')
+      .find(x => x.field === 'has_exam')?.status).toBe('unavailable')
   })
 })
 
@@ -68,5 +68,23 @@ describe('equivalent requisite ordering', () => {
     expect(compareUnitSnapshots(before, after).find(r => r.field === 'requisites')?.status).toBe('unchanged')
     after.requisites[0]!.connector = 'OR'
     expect(compareUnitSnapshots(before, after).find(r => r.field === 'requisites')?.status).toBe('changed')
+  })
+})
+
+
+describe('partial field availability', () => {
+  it('does not label two missing source fields as unchanged', () => {
+    expect(compareUnitSnapshots(unit, { ...unit, academic_year: 2027 })
+      .find(row => row.field === 'workload_requirements')?.status).toBe('unavailable')
+  })
+  it('does not call a newly populated source field an added rule', () => {
+    const next = { ...unit, workload_requirements: 'Twelve hours per week' }
+    expect(compareUnitSnapshots(unit, next).find(row => row.field === 'workload_requirements')?.status).toBe('unavailable')
+  })
+  it('distinguishes missing arrays from explicitly empty lists', () => {
+    const before = { ...unit, requisites: [] }
+    const after = { ...unit, requisites: undefined }
+    expect(compareUnitSnapshots(before, after).find(row => row.field === 'requisites')?.status).toBe('unavailable')
+    expect(compareUnitSnapshots(before, { ...unit, requisites: [] }).find(row => row.field === 'requisites')?.status).toBe('unchanged')
   })
 })

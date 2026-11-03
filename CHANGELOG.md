@@ -2,6 +2,13 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-03 — explicit admissions evidence and partial-year comparisons
+
+- Separate current programme-page application notices from tuition rows and future intake dates. Curated Malaysia sources retain provenance and expire to unverified after 30 days or a fetch failure; unreviewed programmes stay unverified. Fee tables can filter notice status.
+- Missing/null Handbook fields now remain unavailable instead of being described as unchanged or as a policy addition/removal. The comparison summary names insufficient fields separately.
+- 当前课程申请通知与学费、未来批次日期分开；只使用已审核的课程来源，保留出处，过期或抓取失败时退回未核实，支持状态筛选。
+- Handbook 缺失字段不再显示为相同或政策增删，单独列出无法核对的字段。
+
 ## 2026-11-03 — source-year and rule-comparison accuracy
 
 - Fee tables with mixed or undated source years no longer inherit the first page's year. Each fee section retains its own year, and degree cards use only the matched fee source. No intake/application status is inferred from a published fee.

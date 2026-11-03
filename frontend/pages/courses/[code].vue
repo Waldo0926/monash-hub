@@ -126,6 +126,7 @@ useSeoMeta({
 
       <!-- The fees are Malaysia campus fees, so the card goes away when the page
            is read as another campus. -->
+      <AdmissionsNotice v-if="course.admissions && course.campuses?.includes('Malaysia') && (!campus || campus === 'Malaysia')" :evidence="course.admissions" />
       <TuitionCard v-if="course.tuition && (!campus || campus === 'Malaysia')" :fee="course.tuition" />
 
       <p v-if="course.overview" class="overview">{{ course.overview }}</p>

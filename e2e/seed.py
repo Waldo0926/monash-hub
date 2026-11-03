@@ -10,7 +10,7 @@ fixtures in backend/tests: real-looking codes and periods, no Handbook text.
 from __future__ import annotations
 
 import sys
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
@@ -19,7 +19,7 @@ from app.core.db import SessionLocal
 from app.handbook.course_repository import upsert_course
 from app.handbook.parser import compute_content_hash
 from app.handbook.repository import upsert_unit
-from app.knowledge import teach_out
+from app.knowledge import admissions, teach_out
 from app.knowledge.repository import get_or_create_source, upsert_seed_page
 from app.models.search_terms import SearchTerm
 from sqlalchemy import text
@@ -215,6 +215,79 @@ def seed_searches(db) -> None:
             db.add(SearchTerm(term=term, label=label, day=day, hits=hits))
 
 
+def seed_admissions(db) -> None:
+    """Invented fees/notices, isolated to the disposable e2e database."""
+    source = get_or_create_source(
+        db, "e2e-malaysia", "Synthetic Malaysia source", "https://www.monash.edu.my"
+    )
+    def p(text):
+        return {"type": "paragraph", "spans": [{"text": text}]}
+    for slug, rows, columns in (
+        (
+            "malaysia-ugfees",
+            [
+                ["", "", "Malaysian", "International"],
+                ["Bachelor of Psychology", "3", "1,000", "2,000"],
+            ],
+            ["Course", "Duration (years)", "Tuition fees per year (RM)", ""],
+        ),
+        (
+            "malaysia-pgfees",
+            [
+                ["", "", "", "Malaysian", "International"],
+                [
+                    "Master of Professional Counselling",
+                    "Coursework",
+                    "2",
+                    "3,000 (full course)",
+                    "4,000 (full course)",
+                ],
+            ],
+            ["Course", "Type", "Duration", "Tuition fees (RM)", ""],
+        ),
+    ):
+        page = upsert_seed_page(
+            db,
+            source=source,
+            slug=slug,
+            url=f"https://www.monash.edu.my/e2e/{slug}",
+            title="Synthetic fee table",
+            category="malaysia",
+            tags=[],
+            refresh_tier="dynamic",
+            applies_to="malaysia",
+        )
+        page.blocks = [
+            p("2027 tuition fees"),
+            {"type": "heading", "level": 2, "text": "School of Information Technology"},
+            {"type": "table", "columns": columns, "rows": rows},
+        ]
+        page.last_checked = datetime.now(UTC) - timedelta(minutes=1)
+        page.status, page.content_hash = "ok", f"e2e-{slug}"
+    for title, body in (
+        (
+            "Master of Professional Counselling",
+            "Applications for the Master of Professional Counselling are currently closed.",
+        ),
+        ("Bachelor of Psychology", "Apply now! A future deadline is listed."),
+    ):
+        slug, url = admissions.PROGRAMMES[admissions.normalise(title)]
+        page = upsert_seed_page(
+            db,
+            source=source,
+            slug=slug,
+            url=url,
+            title=title,
+            category="malaysia",
+            tags=[],
+            refresh_tier="dynamic",
+            applies_to="malaysia",
+        )
+        page.clean_text = body
+        page.last_checked = datetime.now(UTC) - timedelta(minutes=1)
+        page.status, page.content_hash = "ok", f"e2e-{slug}"
+
+
 def main() -> None:
     with SessionLocal() as db:
         db.execute(text(
@@ -226,6 +299,7 @@ def main() -> None:
         upsert_course(db, COURSE)
         seed_teach_out(db)
         seed_searches(db)
+        seed_admissions(db)
         db.commit()
     print(f"seeded {len(UNITS)} units and 1 course for {YEAR}")
 
