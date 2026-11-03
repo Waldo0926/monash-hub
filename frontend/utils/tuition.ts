@@ -1,3 +1,5 @@
+import type { AdmissionsEvidence } from './admissions'
+
 /**
  * Small helpers for showing the Monash Malaysia fee rows the API reads out of
  * /ugfees and /pgfees. Kept apart from the components so they can be tested.
@@ -6,6 +8,7 @@
 export type FeeAmount = { value: number | null; written: string; label: string | null }
 
 export type FeeRow = {
+  admissions?: AdmissionsEvidence
   title: string
   title_zh: string | null
   covers: string[]

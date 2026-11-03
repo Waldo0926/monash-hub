@@ -19,7 +19,7 @@ from app.api.serializers import (
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.handbook.years import available_years, loaded_years, resolve_year
-from app.knowledge import teach_out, translations, tuition
+from app.knowledge import admissions, teach_out, translations, tuition
 from app.knowledge.translations import Translation
 from app.models.curriculum import AreaOfStudy, Course, CurriculumContainer
 from app.models.handbook import Unit
@@ -394,6 +394,7 @@ def get_course(
     # title. None when Malaysia does not teach the degree or the pages do not
     # price it.
     payload["tuition"] = tuition.for_course(db, course.title, course.faculty, course.campuses)
+    payload["admissions"] = admissions.for_titles(db, [course.title])[course.title]
     payload["containers"] = containers
     payload["units"] = units
     _name_units(containers, units)

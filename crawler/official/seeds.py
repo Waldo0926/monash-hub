@@ -547,6 +547,24 @@ SEEDS: tuple[Seed, ...] = (
          ("malaysia", "transport", "campus map", "shuttle bus", "brt", "lrt", "ktm",
           "parking", "grab", "airport", "交通", "校车", "公交", "地图", "停车", "机场"),
          applies_to="malaysia"),
+    # Programme-specific notices, reviewed 2026-11-03. Fees/deadline tables do
+    # not establish application status; no binary materials are ingested.
+    Seed("malaysia-programme-professional-counselling",
+         "https://www.monash.edu.my/study/postgraduate-and-research/medicine-health-sciences/master-of-professional-counselling",
+         "Master of Professional Counselling", "malaysia",
+         ("malaysia", "admissions", "counselling", "申请", "心理咨询"),
+         tier="dynamic", applies_to="malaysia"),
+    Seed("malaysia-programme-psychology",
+         "https://www.monash.edu.my/study/undergraduate/jeffrey-cheah-school-medicine-health-sciences/bachelor-of-psychology",
+         "Bachelor of Psychology", "malaysia",
+         ("malaysia", "admissions", "psychology", "申请", "心理学"),
+         tier="dynamic", applies_to="malaysia"),
+    Seed("malaysia-programme-psychology-business",
+         "https://www.monash.edu.my/study/undergraduate/jeffrey-cheah-school-medicine-health-sciences/bachelor-psychology-and-business",
+         "Bachelor of Psychology and Business", "malaysia",
+         ("malaysia", "admissions", "psychology", "business", "申请", "心理学"),
+         tier="dynamic", applies_to="malaysia"),
+
 )
 
 # The long tail: every other content page on the student sites, Malaysia first.

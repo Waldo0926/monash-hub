@@ -106,8 +106,8 @@ NOTES: dict[str, dict[str, str]] = {
 # instead of staying blank. Last year's fee is never shown in their place.
 NOT_LISTED: dict[str, dict[str, str]] = {
     "master of professional counselling": {
-        "en": "Not on the fee table, and the course page says applications are closed.",
-        "zh": "官方收费表没有列出这门课程，课程页显示目前关闭申请。",
+        "en": "Not on the indexed fee table. Check the programme page for current admissions information.",
+        "zh": "已收录的收费表没有列出这门课程；当前申请状态请另查课程页面。",
         "url": "https://www.monash.edu.my/study/postgraduate-and-research/medicine-health-sciences/master-of-professional-counselling",
     },
 }

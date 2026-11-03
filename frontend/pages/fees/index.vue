@@ -28,8 +28,10 @@ const { data, error } = await useApiFetch<Table>('/v1/fees')
 useErrorStatus(error)
 
 const query = ref(String(route.query.q || ''))
-watch(query, (q) => {
-  router.replace({ query: q.trim() ? { q: q.trim() } : {} })
+const statuses = ['open', 'closed', 'suspended', 'conflict', 'not_verified']
+const admissionsFilter = ref(statuses.includes(String(route.query.admissions)) ? String(route.query.admissions) : '')
+watch([query, admissionsFilter], ([q, admissions]) => {
+  router.replace({ query: { ...route.query, q: q.trim() || undefined, admissions: admissions || undefined } })
 })
 
 const sections = computed(() =>
@@ -37,7 +39,7 @@ const sections = computed(() =>
     .map(section => ({
       ...section,
       schools: section.schools
-        .map(group => ({ ...group, rows: filterFees(group.rows, query.value) }))
+        .map(group => ({ ...group, rows: filterFees(group.rows, query.value).filter(row => !admissionsFilter.value || (row.admissions?.status || 'not_verified') === admissionsFilter.value) }))
         .filter(group => group.rows.length)
     }))
     .filter(section => section.schools.length)
@@ -131,6 +133,18 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
           autocomplete="off"
         />
 
+        <label class="admissions-filter">
+          {{ locale === 'zh' ? '筛选当前申请通知（与未来批次分开）' : 'Filter current application notices (separate from future intake)' }}
+          <select v-model="admissionsFilter" class="field">
+            <option value="">{{ locale === 'zh' ? '全部状态' : 'All statuses' }}</option>
+            <option value="open">{{ locale === 'zh' ? '明确开放' : 'Explicitly open' }}</option>
+            <option value="closed">{{ locale === 'zh' ? '明确关闭' : 'Explicitly closed' }}</option>
+            <option value="suspended">{{ locale === 'zh' ? '明确暂停' : 'Explicitly suspended' }}</option>
+            <option value="conflict">{{ locale === 'zh' ? '来源冲突' : 'Conflicting sources' }}</option>
+            <option value="not_verified">{{ locale === 'zh' ? '未核实' : 'Not verified' }}</option>
+          </select>
+        </label>
+
         <ul class="keys small">
           <li>{{ $t('fees.keyBasis') }}</li>
           <li>{{ $t('fees.excludes') }}</li>
@@ -177,6 +191,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
                     <template v-if="row.duration && !row.variant">{{ duration(row.duration) }}</template>
                     <template v-if="row.mode"> · {{ modeName(row.mode) }}</template>
                   </span>
+                  <AdmissionsNotice v-if="row.admissions" :evidence="row.admissions" compact />
                   <span v-if="row.covers.length" class="tiny muted covers">
                     {{ $t('fees.covers') }}{{ locale === 'zh' ? '：' : ': ' }}{{ row.covers.join(', ') }}
                   </span>
@@ -215,6 +230,8 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 </template>
 
 <style scoped>
+.admissions-filter { display: grid; gap: 6px; max-width: 520px; margin-block: var(--s3); }
+.admissions-filter select { min-height: 44px; }
 .page { max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
 .crumb { margin: 0 0 var(--s2); font-size: 0.85rem; }
 .intro h1 { margin: 0 0 var(--s2); }

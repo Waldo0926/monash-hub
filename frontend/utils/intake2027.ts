@@ -5,11 +5,11 @@
  * official intake's AVAILABLE COURSES section; it does NOT mean applications
  * are currently open or that other programmes have been discontinued.
  *
- * Reviewed against Monash Malaysia's October intake page on 2026-11-01.
+ * Reviewed against Monash Malaysia's October intake page on 2026-11-03.
  * Any new intake/degree must be verified against its own official listing.
  */
 export const OCTOBER_2027_SOURCE = 'https://www.monash.edu.my/study/apply/intake-periods/october-intake'
-export const OCTOBER_2027_CHECKED = '2026-11-01'
+export const OCTOBER_2027_CHECKED = '2026-11-03'
 const listed = new Set([
   'Bachelor of Arts and Social Sciences',
   'Bachelor of Digital Media and Communication',
@@ -53,7 +53,7 @@ export const INTAKES_2027: readonly IntakeEvidence[] = [
   {
     id: 'february', year: 2027,
     source: 'https://www.monash.edu.my/study/apply/intake-periods/february-intake',
-    checkedOn: '2026-11-01',
+    checkedOn: '2026-11-03',
     generalDeadlineMalaysia: '2027-02-19',
     generalDeadlineInternational: '2026-12-18',
     hasVerifiedDegreeList: false, exceptionsApply: true
@@ -61,7 +61,7 @@ export const INTAKES_2027: readonly IntakeEvidence[] = [
   {
     id: 'july', year: 2027,
     source: 'https://www.monash.edu.my/study/apply/intake-periods',
-    checkedOn: '2026-11-01',
+    checkedOn: '2026-11-03',
     generalDeadlineMalaysia: '2027-07-16',
     generalDeadlineInternational: '2027-05-14',
     hasVerifiedDegreeList: false, exceptionsApply: true

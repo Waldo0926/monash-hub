@@ -41,7 +41,8 @@ const names = computed(() => zh.value ? namesZh : namesEn)
 const statusZh = { added: '新增', removed: '移除', changed: '变化', unchanged: '相同', unavailable: '无法比较' }
 const statusEn = { added: 'Added', removed: 'Removed', changed: 'Changed', unchanged: 'Unchanged', unavailable: 'Unavailable' }
 const rows = computed(() => result.value ? compareUnitSnapshots(result.value.before, result.value.after) : [])
-const changes = computed(() => rows.value.filter(row => row.status !== 'unchanged'))
+const changes = computed(() => rows.value.filter(row => ['added', 'removed', 'changed'].includes(row.status)))
+const unavailable = computed(() => rows.value.filter(row => row.status === 'unavailable'))
 const same = computed(() => rows.value.filter(row => row.status === 'unchanged'))
 
 /** Requisite rules stay in the Handbook's words; only the joining words are put into Chinese. */
@@ -138,7 +139,10 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
       <template v-else>
         <p class="compare-summary">{{ changes.length
           ? (zh ? `${from}年和${to}年之间有${changes.length}项不同` : `${changes.length} ${changes.length === 1 ? 'field differs' : 'fields differ'} between ${from} and ${to}`)
-          : (zh ? `${from}年和${to}年的Handbook内容相同` : `Nothing differs between ${from} and ${to}`) }}</p>
+          : (zh ? `两年可核实的字段没有发现差异` : `No differences in the verifiable fields`) }}</p>
+        <p v-if="unavailable.length" class="compare-warning" role="status">
+          {{ zh ? `以下字段资料不足，不能判断相同或变化：${unavailable.map(row => names[row.field]).join('、')}` : `Insufficient source data to compare: ${unavailable.map(row => names[row.field]).join(', ')}` }}
+        </p>
         <div class="compare-grid">
           <section v-for="row in changes" :key="row.field" class="card compare-row">
             <div class="compare-row-head">
