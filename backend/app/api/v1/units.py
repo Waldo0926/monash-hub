@@ -10,7 +10,7 @@ from app.api.serializers import tree_node, unit_brief, unit_detail
 from app.community import ratings
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.handbook import tree
+from app.handbook import comparison, tree
 from app.handbook.years import available_years, resolve_year
 from app.knowledge import teach_out, translations
 from app.knowledge.glossary import whole_value
@@ -280,6 +280,7 @@ def get_unit(
     tr = translations.load(db, locale, UNIT, unit.unit_code, source_hash=unit.content_hash)
     return {
         **unit_detail(unit, tr),
+        "comparison_coverage": comparison.for_unit(db, unit),
         "not_in_year": not_in_year,
         "available_years": available_years(db, Unit.unit_code, Unit.academic_year, code),
         "teach_out": teach_out.lookup(db, [unit.unit_code]).get(unit.unit_code),

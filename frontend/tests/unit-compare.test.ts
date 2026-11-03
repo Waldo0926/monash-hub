@@ -85,6 +85,20 @@ describe('partial field availability', () => {
     const before = { ...unit, requisites: [] }
     const after = { ...unit, requisites: undefined }
     expect(compareUnitSnapshots(before, after).find(row => row.field === 'requisites')?.status).toBe('unavailable')
-    expect(compareUnitSnapshots(before, { ...unit, requisites: [] }).find(row => row.field === 'requisites')?.status).toBe('unchanged')
+    expect(compareUnitSnapshots(before, { ...unit, requisites: [] }).find(row => row.field === 'requisites')?.status).toBe('unavailable')
+  })
+})
+
+
+describe('collection source coverage', () => {
+  it('requires explicit source coverage before treating an empty list as unchanged', () => {
+    const explicit = { ...unit, requisites: [], comparison_coverage: { requisites: true } }
+    expect(compareUnitSnapshots(explicit, { ...explicit, academic_year: 2027 }).find(x => x.field === 'requisites')?.status).toBe('unchanged')
+    expect(compareUnitSnapshots(explicit, { ...explicit, comparison_coverage: undefined }).find(x => x.field === 'requisites')?.status).toBe('unavailable')
+  })
+  it('reports a removed entry only when the newer source explicitly has an empty collection', () => {
+    const explicit = { ...unit, requisites: [], comparison_coverage: { requisites: true } }
+    expect(compareUnitSnapshots(unit, explicit).find(x => x.field === 'requisites')?.status).toBe('removed')
+    expect(compareUnitSnapshots(explicit, unit).find(x => x.field === 'requisites')?.status).toBe('added')
   })
 })

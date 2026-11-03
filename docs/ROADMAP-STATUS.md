@@ -47,9 +47,12 @@ have working first versions.**
    the next official seed pages.
 3. **Seed the community.** An empty forum stays empty. A handful of genuinely
    useful threads is what makes the first visitors post.
-4. **Change tracking across Handbook years.** Earlier Handbook years are crawled
-   and translated too now, and the unit, degree and graph pages have a year picker;
-   what is still missing is showing a reader what changed between two years.
+4. **Complete change-tracking acceptance (#262).** Unit year comparison exists at
+   `/units/compare`, with explicit year requests, source links and check dates.
+   The follow-up records collection availability and keeps completed-result years
+   fixed while inputs change; see [comparison evidence](HANDBOOK-COMPARISON.md).
+   Degree/AOS-wide comparison is not implemented by this unit page. Final live
+   acceptance and commencement-year applicability remain separate checks.
 
 ## Explicitly not now
 

@@ -118,6 +118,18 @@ UNITS = [
 ]
 
 
+# Three deliberately sparse editions for source-aware year comparison tests.
+# They are unrelated to the four units used by the planner/browser fixtures.
+for comparison_year in (2025, 2026, 2027):
+    comparison_record = unit("TST1001", "Synthetic comparison unit", [])
+    comparison_record.update(academic_year=comparison_year,
+        source_url=f"https://handbook.monash.edu/{comparison_year}/units/TST1001",
+        assessments=[], has_exam=None)
+    comparison_record.pop("content_hash", None)
+    comparison_record["content_hash"] = compute_content_hash(comparison_record)
+    UNITS.append(comparison_record)
+
+
 def course_item(code: str, title: str) -> dict:
     return {
         "item_code": code, "item_name": title, "item_type": "unit",

@@ -4,6 +4,7 @@
  * Keep nesting of requisite groups: flattening AND/OR trees changes meaning.
  */
 export type UnitSnapshot = {
+  comparison_coverage?: Partial<Record<'offerings' | 'assessments' | 'requisites', boolean>>
   unit_code: string
   academic_year: number
   title?: string | null
@@ -119,7 +120,9 @@ export function comparable(unit: UnitSnapshot, field: ComparisonField): string {
 function available(unit: UnitSnapshot, field: ComparisonField): boolean {
   const value = unit[field]
   if (value == null) return false
-  if (['offerings', 'assessments', 'requisites'].includes(field)) return Array.isArray(value)
+  if (field === 'offerings' || field === 'assessments' || field === 'requisites') {
+    return Array.isArray(value) && (value.length > 0 ? comparable(unit, field).trim().length > 0 : unit.comparison_coverage?.[field] === true)
+  }
   return typeof value !== 'string' || value.trim().length > 0
 }
 

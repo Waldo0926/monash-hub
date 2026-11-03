@@ -110,6 +110,11 @@ A plan is stored only in your own browser and is never saved to an account. Each
 
 <p align="center"><img src="./docs/images/marks-en.webp" alt="WAM / GPA calculator: three units with marks, grouped by level, WAM and CGPA on the right" width="900" /></p>
 
+
+### Compare Handbook years
+
+`/units/compare` compares two explicit indexed unit editions, links each source and check date, and keeps result years fixed until you run another comparison. Missing fields and legacy empty collections remain unavailable; a collection is explicitly empty only when the parser retained source proof. These unit editions do not replace the degree rules for your commencement year in the [course map](https://monashhub.secureview.tech/plan). See [comparison evidence](docs/HANDBOOK-COMPARISON.md).
+
 ### Check Malaysia tuition fees
 
 - `/fees` lists every row of Monash Malaysia's undergraduate and postgraduate fee pages, grouped by level and school, with a filter by course name
