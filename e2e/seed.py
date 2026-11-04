@@ -20,7 +20,7 @@ from app.handbook.course_repository import upsert_course
 from app.handbook.parser import compute_content_hash
 from app.handbook.repository import upsert_unit
 from app.knowledge import admissions, teach_out
-from app.knowledge.repository import get_or_create_source, upsert_seed_page
+from app.knowledge.repository import get_or_create_source, record_fetch, upsert_seed_page
 from app.models.search_terms import SearchTerm
 from sqlalchemy import text
 
@@ -275,6 +275,13 @@ def seed_admissions(db) -> None:
             {"type": "heading", "level": 2, "text": "School of Information Technology"},
             {"type": "table", "columns": columns, "rows": rows},
         ]
+        if slug == "malaysia-pgfees":
+            # A publisher's wrong degree link is retained but warned about.
+            page.blocks[-1]["cell_links"] = [{
+                "section": "body", "row": 1, "column": 0,
+                "text": "Master of Professional Counselling",
+                "url": "https://www.monash.edu.my/study/undergraduate/information-technology/bachelor-computer-science",
+            }]
         page.last_checked = datetime.now(UTC) - timedelta(minutes=1)
         page.status, page.content_hash = "ok", f"e2e-{slug}"
     for title, body in (
@@ -296,9 +303,11 @@ def seed_admissions(db) -> None:
             refresh_tier="dynamic",
             applies_to="malaysia",
         )
-        page.clean_text = body
+        record_fetch(db, page, {
+            "title": title, "clean_text": body, "summary": body, "blocks": [],
+            "headings": [], "content_hash": f"e2e-{slug}",
+        }, title=title)
         page.last_checked = datetime.now(UTC) - timedelta(minutes=1)
-        page.status, page.content_hash = "ok", f"e2e-{slug}"
 
 
 def main() -> None:

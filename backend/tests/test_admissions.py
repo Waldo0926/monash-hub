@@ -13,6 +13,7 @@ NOW = datetime(2026, 11, 3, tzinfo=UTC)
 
 def page(text=None, **kwargs):
     values = {
+        "source_title": TITLE,
         "canonical_url": a.PROGRAMMES[a.normalise(TITLE)][1],
         "clean_text": text or f"Applications for the {TITLE} are currently closed.",
         "status": "ok",
@@ -24,8 +25,12 @@ def page(text=None, **kwargs):
     return SimpleNamespace(**(values | kwargs))
 
 
+def evaluate(title, record, **kwargs):
+    return a.evidence(title, record, source_title=getattr(record, "source_title", None), **kwargs)
+
+
 def test_explicit_scoped_notice_is_separate_from_future_intake():
-    result = a.evidence(TITLE, page(), now=NOW)
+    result = evaluate(TITLE, page(), now=NOW)
     assert result["status"] == "closed" and result["intake_status"] == "not_verified"
     assert result["course_code"] == "D6006"
     assert result["source_url"] and result["source_hash"] == "synthetic"
@@ -58,25 +63,25 @@ def test_buttons_dates_unrelated_negated_or_qualified_notices_do_not_prove_open(
     ],
 )
 def test_stale_failed_and_unavailable_sources_fall_back(changes, reason):
-    result = a.evidence(TITLE, page(**changes), now=NOW)
+    result = evaluate(TITLE, page(**changes), now=NOW)
     assert result["status"] == "not_verified" and result["reason"] == reason
     assert result["observed_status"] == "closed"
 
 
 def test_conflicting_notices_require_review():
     p = page(f"Applications for the {TITLE} are open. Applications for the {TITLE} are closed.")
-    result = a.evidence(TITLE, p, now=NOW)
+    result = evaluate(TITLE, p, now=NOW)
     assert result["status"] == "conflict" and result["reason"] == "conflict"
 
 
 def test_missing_and_wrong_degree_sources_stay_unverified():
-    assert a.evidence(TITLE, None, now=NOW)["status"] == "not_verified"
+    assert evaluate(TITLE, None, now=NOW)["status"] == "not_verified"
     assert (
-        a.evidence(TITLE, page(canonical_url="https://example.invalid/"), now=NOW)["status"]
+        evaluate(TITLE, page(canonical_url="https://example.invalid/"), now=NOW)["status"]
         == "not_verified"
     )
     assert (
-        a.evidence("Bachelor of Psychology (Honours)", None, now=NOW)["reason"]
+        evaluate("Bachelor of Psychology (Honours)", None, now=NOW)["reason"]
         == "no_reviewed_source"
     )
 
@@ -103,6 +108,11 @@ def test_indexed_programme_notice_and_fee_api_stay_independent(client, db):
             last_checked=datetime.now(UTC) - timedelta(hours=1),
         )
     )
+    db.flush()
+    from app.models.knowledge import OfficialPageVersion
+    stored_page = db.scalar(select(OfficialPage).where(OfficialPage.canonical_url == a.PROGRAMMES[a.normalise(TITLE)][1]))
+    db.add(OfficialPageVersion(page_id=stored_page.id, content_hash="synthetic", title=TITLE,
+                             clean_text="Synthetic notice", blocks=[], headings=[]))
     db.commit()
     assert a.for_titles(db, [TITLE])[TITLE]["status"] == "closed"
     # Unrelated fee rows cannot inherit this application's state.

@@ -10,12 +10,12 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
 from app.knowledge.malaysia_programmes import source_for
 from app.knowledge.programme_sources import programme_url, title_key
-from app.models.knowledge import OfficialPage
+from app.models.knowledge import OfficialPage, OfficialPageVersion
 
 BASE = "https://www.monash.edu.my/study/"
 # Curated identity matches only. Similar titles/honours degrees never inherit
@@ -72,6 +72,7 @@ def evidence(
     *,
     now: datetime | None = None,
     source_url: str | None = None,
+    source_title: str | None = None,
 ) -> dict:
     now = now or datetime.now(UTC)
     identity = PROGRAMMES.get(normalise(title))
@@ -87,7 +88,8 @@ def evidence(
         expected_url is not None
         and page is not None
         and page.canonical_url == expected_url
-        and (source_url is None or title_key(page.title) == title_key(title))
+        and bool(source_title)
+        and title_key(source_title) == title_key(title)
     )
     observed = notice(page.clean_text or "", title) if valid_identity else "not_verified"
     reason = "not_indexed" if expected_url else "no_reviewed_source"
@@ -108,9 +110,7 @@ def evidence(
     return {
         "course_code": course_code,
         "programme_page_verified": fresh,
-        "identity_basis": "fee_cell_link_and_programme_title"
-        if source_url is not None
-        else "curated_programme",
+        "identity_basis": "programme_version_title_and_source_url",
         "status": observed if fresh else "not_verified",
         "observed_status": observed,
         "reason": reason,
@@ -123,6 +123,27 @@ def evidence(
         # A current notice cannot establish a future intake's application state.
         "intake_status": "not_verified",
     }
+
+
+def _source_titles(db: Session, pages: list[OfficialPage]) -> dict[int, str | None]:
+    """Read fetched titles for current hashes in one query, never seed labels."""
+    pairs = [(p.id, p.content_hash) for p in pages if p.content_hash]
+    if not pairs:
+        return {}
+    rows = db.execute(
+        select(OfficialPageVersion.page_id, OfficialPageVersion.title).where(
+            tuple_(OfficialPageVersion.page_id, OfficialPageVersion.content_hash).in_(pairs)
+        ).order_by(OfficialPageVersion.id)
+    ).all()
+    return dict(rows)
+
+
+def _row_source(row: dict) -> tuple[str | None, bool]:
+    reviewed = source_for(row["title"], row.get("school", ""))
+    published = programme_url(row.get("programme_url"))
+    curated = PROGRAMMES.get(normalise(row["title"]), (None, None))[1]
+    approved = reviewed or curated
+    return approved or published, bool(approved and published and approved != published)
 
 
 def _course_code(page: OfficialPage | None) -> str | None:
@@ -153,25 +174,22 @@ def _course_code(page: OfficialPage | None) -> str | None:
 
 def for_rows(db: Session, rows: list[dict]) -> dict:
     """Enrich each fee row independently: title alone is not a programme key."""
-    urls = {
-        programme_url(row.get("programme_url") or source_for(row["title"], row.get("school", "")))
-        or PROGRAMMES.get(normalise(row["title"]), (None, None))[1]
-        for row in rows
-    } - {None}
+    urls = {_row_source(row)[0] for row in rows} - {None}
     pages = (
         db.scalars(select(OfficialPage).where(OfficialPage.canonical_url.in_(urls))).all()
         if urls
         else []
     )
     by_url = {p.canonical_url: p for p in pages}
+    titles = _source_titles(db, pages)
     for row in rows:
-        url = row.get("programme_url") or source_for(row["title"], row.get("school", ""))
-        expected = (
-            programme_url(url)
-            if url is not None
-            else PROGRAMMES.get(normalise(row["title"]), (None, None))[1]
+        url, link_conflict = _row_source(row)
+        page = by_url.get(url)
+        row["admissions"] = evidence(
+            row["title"], page, source_url=url,
+            source_title=titles.get(page.id) if page else None,
         )
-        row["admissions"] = evidence(row["title"], by_url.get(expected), source_url=url)
+        row["admissions"]["fee_link_conflict"] = link_conflict
     return {
         "rows": len(rows),
         "linked_programme_rows": sum(bool(row["admissions"]["source_url"]) for row in rows),
@@ -193,10 +211,7 @@ def for_course(db: Session, title: str, fees: dict | None, campuses: list[str] |
         )
         return result
     rows = (fees or {}).get("rows", [])
-    urls = {
-        (row.get("programme_url") or source_for(row["title"], row.get("school", "")))
-        for row in rows
-    } - {None}
+    urls = {_row_source(row)[0] for row in rows} - {None}
     if len(urls) > 1:
         result = evidence(title, None)
         result.update(
@@ -212,7 +227,11 @@ def for_course(db: Session, title: str, fees: dict | None, campuses: list[str] |
         if expected
         else None
     )
-    return evidence(title, page, source_url=source_url)
+    titles = _source_titles(db, [page] if page else [])
+    result = evidence(title, page, source_url=source_url,
+                      source_title=titles.get(page.id) if page else None)
+    result["fee_link_conflict"] = any(_row_source(row)[1] for row in rows)
+    return result
 
 
 def for_titles(db: Session, titles: list[str]) -> dict[str, dict]:
@@ -223,7 +242,12 @@ def for_titles(db: Session, titles: list[str]) -> dict[str, dict]:
         else []
     )
     by_url = {p.canonical_url: p for p in pages}
+    titles_by_id = _source_titles(db, pages)
     return {
-        title: evidence(title, by_url.get(PROGRAMMES.get(normalise(title), (None, None))[1]))
+        title: evidence(
+            title, page,
+            source_title=titles_by_id.get(page.id) if page else None,
+        )
         for title in titles
+        for page in [by_url.get(PROGRAMMES.get(normalise(title), (None, None))[1])]
     }

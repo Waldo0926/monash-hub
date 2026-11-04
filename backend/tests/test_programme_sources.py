@@ -19,6 +19,8 @@ def page(url, text, **changes):
     return SimpleNamespace(
         **(
             {
+                "id": 1 if url == ARTS else 2,
+                "source_title": TITLE,
                 "canonical_url": url,
                 "title": TITLE,
                 "clean_text": text,
@@ -41,6 +43,17 @@ def page(url, text, **changes):
             }
             | changes
         )
+    )
+
+
+def evaluate(title, record, **kwargs):
+    return a.evidence(title, record, source_title=getattr(record, "source_title", None), **kwargs)
+
+
+def database(pages):
+    return SimpleNamespace(
+        scalars=lambda _: SimpleNamespace(all=lambda: pages),
+        execute=lambda _: SimpleNamespace(all=lambda: [(p.id, p.source_title) for p in pages]),
     )
 
 
@@ -86,7 +99,7 @@ def test_same_title_in_two_schools_cannot_share_an_application_notice():
         page(ARTS, f"Applications for the {TITLE} are closed."),
         page(BUSINESS, "Apply now. February 2027 deadline."),
     ]
-    db = SimpleNamespace(scalars=lambda _: SimpleNamespace(all=lambda: pages))
+    db = database(pages)
     coverage = a.for_rows(db, rows)
     assert [row["admissions"]["status"] for row in rows] == ["closed", "not_verified"]
     assert coverage == {
@@ -100,14 +113,14 @@ def test_same_title_in_two_schools_cannot_share_an_application_notice():
 
 
 def test_wrong_page_title_and_unindexed_links_cannot_be_verified():
-    mismatch = a.evidence(
+    mismatch = evaluate(
         TITLE,
-        page(ARTS, f"Applications for the {TITLE} are open.", title="Doctor of Other Studies"),
+        page(ARTS, f"Applications for the {TITLE} are open.", title="Doctor of Other Studies", source_title="Doctor of Other Studies"),
         source_url=ARTS,
     )
     assert mismatch["status"] == "not_verified" and mismatch["reason"] == "source_identity_mismatch"
     assert not mismatch["programme_page_verified"]
-    missing = a.evidence(TITLE, None, source_url=ARTS)
+    missing = evaluate(TITLE, None, source_url=ARTS)
     assert missing["source_url"] == ARTS and missing["reason"] == "not_indexed"
 
 
@@ -130,7 +143,7 @@ def test_non_programme_or_untrusted_links_are_rejected(url):
 def test_ambiguous_course_links_do_not_guess_a_handbook_code():
     p = page(ARTS, "No application notice")
     p.blocks[0]["spans"].append({"url": "https://handbook.monash.edu/2027/courses/B6001"})
-    assert a.evidence(TITLE, p, source_url=ARTS)["course_code"] is None
+    assert evaluate(TITLE, p, source_url=ARTS)["course_code"] is None
 
 
 def test_non_malaysia_handbook_course_never_inherits_a_malaysia_notice():
@@ -178,3 +191,51 @@ def test_fee_source_catalogue_is_not_proof_a_programme_has_been_fetched():
     assert result["linked_programme_rows"] == 1 and result["verified_programme_rows"] == 0
     assert rows[0]["admissions"]["status"] == "not_verified"
     assert rows[0]["admissions"]["reason"] == "not_indexed"
+
+
+def test_seed_title_cannot_substitute_for_fetched_title():
+    record = page(ARTS, f"Applications for the {TITLE} are open.")
+    assert not a.evidence(TITLE, record, source_url=ARTS)["programme_page_verified"]
+    result = a.evidence(TITLE, record, source_url=ARTS, source_title="Doctor of Other Studies")
+    assert result["reason"] == "source_identity_mismatch"
+    assert result["status"] == "not_verified"
+
+
+def test_double_degree_sources_are_distinct_and_wrong_fee_anchor_is_flagged():
+    from app.knowledge.malaysia_programmes import source_for
+
+    title = "Bachelor of Business and Commerce and Bachelor of Computer Science"
+    correct = "https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce-bachelor-computer-science"
+    media = correct.replace("bachelor-computer-science", "bachelor-communication")
+    assert source_for(title, "business") == correct
+    record = page(correct, "No application notice", source_title=title)
+    rows = [{"title": title, "school": "business", "programme_url": media}]
+    coverage = a.for_rows(database([record]), rows)
+    assert coverage["verified_programme_rows"] == 1
+    assert rows[0]["programme_url"] == media  # Preserve the fee publisher's original link.
+    evidence = rows[0]["admissions"]
+    assert evidence["source_url"] == correct and evidence["fee_link_conflict"]
+    assert evidence["status"] == "not_verified"
+
+
+def test_current_version_title_survives_seed_rename_and_rejects_unmatched_hash(db):
+    from app.knowledge.repository import get_or_create_source, record_fetch, upsert_seed_page
+
+    source = get_or_create_source(db, "synthetic-programmes", "Synthetic", "https://www.monash.edu.my")
+    record = upsert_seed_page(db, source=source, slug="synthetic-programme", url=ARTS,
+        title=TITLE, category="malaysia", tags=[], refresh_tier="dynamic")
+    wrong = cleaner.clean_page("<main><h1>Doctor of Other Studies</h1><p>Synthetic programme content.</p></main>", url=ARTS)
+    record_fetch(db, record, wrong, title=TITLE)
+    db.commit()
+    rows = [{"title": TITLE, "school": "arts", "programme_url": ARTS}]
+    assert a.for_rows(db, rows)["verified_programme_rows"] == 0
+
+    correct = cleaner.clean_page(f"<main><h1>{TITLE}</h1><p>Synthetic programme content.</p></main>", url=ARTS)
+    record_fetch(db, record, correct, title="Curated display label")
+    db.commit()
+    assert a.for_rows(db, rows)["verified_programme_rows"] == 1
+    assert record.title == "Curated display label"
+
+    record.content_hash = "unmatched-current-hash"
+    db.commit()
+    assert a.for_rows(db, rows)["verified_programme_rows"] == 0
