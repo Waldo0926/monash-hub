@@ -14,6 +14,7 @@ const cn = { open: '课程页明确显示开放申请', closed: '课程页明确
     <span class="notice-line" v-if="evidence.reason === 'stale_source' || evidence.reason === 'source_unavailable'">
       {{ zh ? '来源已过期或暂不可用，不能继续确认旧状态' : 'The source is stale or unavailable; its earlier status cannot be confirmed.' }}
     </span>
+    <span v-if="evidence.fee_link_conflict" class="notice-line">{{ zh ? '收费表的课程链接与已核对的课程页面不一致，请分别核对两个来源。' : 'The fee-table link differs from the reviewed programme page. Check both sources.' }}</span>
     <span class="notice-line" v-if="!compact">{{ zh ? '这是课程页面的当前通知，不代表所选未来批次已开放，也不代表个人申请资格。收费表和截止日期不能代替课程通知' : 'This is a current programme-page notice, not confirmation that a future intake is open or that you are eligible. Fees and deadlines do not establish application status.' }}</span>
     <span v-if="evidence.programme_page_verified" class="small notice-line">
       {{ zh ? '课程来源索引有效；申请状态仍以明确通知为准' : 'Current matching programme source indexed; application status still requires an explicit notice.' }}

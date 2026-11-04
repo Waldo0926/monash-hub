@@ -1,4 +1,5 @@
 export type AdmissionsEvidence = {
+  fee_link_conflict?: boolean
   programme_page_verified?: boolean
   identity_basis?: string
   course_code: string | null

@@ -20,23 +20,25 @@ their broader requirements.
 
 ## Runtime behavior
 
-`app/knowledge/admissions.py` reads indexed `OfficialPage` rows only. The bounded
-programme-link catalogue now includes **60 unique programme destinations**: 52
-from the official undergraduate/postgraduate fee indexes and eight individual
-Engineering destinations linked by its directory. The existing counselling
+`app/knowledge/admissions.py` reads indexed `OfficialPage` rows and their matching
+`OfficialPageVersion` fetched titles. The bounded
+programme-link catalogue now includes **61 unique programme destinations**: the 52 distinct published fee-table destinations,
+one corrected independently reviewed Business/Computer Science destination,
+and eight individual Engineering destinations linked by its directory. The existing counselling
 notice remains separate from the fee catalogue. New destinations use the
 existing dynamic refresh tier; no automatic link following is introduced. No request-time
 network access, binary mirroring, model-generated decisions or private data is
 introduced. Unreviewed programmes remain unverified.
 
-Programme identity is matched by the published fee-cell link plus the indexed
+Programme identity is matched by a reviewed catalogue destination (or the published
+fee-cell link when no reviewed mapping exists), plus the current version’s fetched
 programme title, retaining school-specific destinations for repeated titles
 such as PhD and MPhil. School-scoped catalogue lookup supports older indexed
 pages; legacy whole-row links are accepted only for single-title rows with an
 exact complete row label and one unambiguous destination. Multi-degree covers
 never inherit a notice from an ambiguous group link. Handbook course codes are
 read only from a unique explicit Handbook course link; unknown codes stay null.
-The three earlier manually reviewed identities retain their compatibility path. Only complete, explicit application
+The three earlier manually reviewed identities also require fetched-title proof. Only complete, explicit application
 sentences scoped to that title can yield open/closed/suspended. Buttons, generic
 application deadlines, negated/qualified notices and unrelated titles cannot.
 Opposing explicit notices are marked conflict for review. Missing, failed,
@@ -79,7 +81,7 @@ HTML/text records left intact.
 
 ## #264 acceptance still requiring production evidence
 
-- The linked destinations are not a claim that all 60 pages have been fetched.
+- The linked destinations are not a claim that all 61 pages have been fetched.
   New sources must complete the normal reviewed harvest and freshness checks.
 - The current official fee indexes identify 2027 fees; annual/full-course units
   remain separate. The public indexed copy inspected during development was
@@ -90,3 +92,14 @@ HTML/text records left intact.
   that a course has been discontinued or is not offered on the campus.
 - Exact-year eligibility, full-source reconciliation and live affected-flow
   evidence must be reviewed before closing #264. This PR alone does not close it.
+
+
+## 2026-11-04 identity correction
+
+Programme identity must use the fetched title from `OfficialPageVersion` whose page ID and content hash match the current page. `OfficialPage.title` is a curated search label and can be overwritten during seed registration; it cannot independently verify programme identity. Missing or mismatching version titles remain unverified, including the earlier curated programmes. Titles are read in one batched query, without a migration, backfill or request-time source fetch.
+
+The Business/Computer Science double degree has its own reviewed programme URL, distinct from the Business/Digital Media double degree. Where the fee-table anchor disagrees with the school-scoped reviewed catalogue, admissions uses the reviewed destination and exposes `fee_link_conflict`; the original fee link is retained and the UI warns in both languages. Neither the catalogue nor a valid page establishes a current or future application opening.
+
+Reviewed programme: https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce-bachelor-computer-science
+
+These are source-code corrections awaiting review and deployment. Previously reported coverage based on curated labels must not be treated as independent-source proof. No manual production refresh or service restart was performed.

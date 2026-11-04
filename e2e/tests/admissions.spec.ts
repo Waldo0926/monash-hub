@@ -13,6 +13,7 @@ test('fees and future intake dates do not override a current programme notice', 
   await expect(page.locator('.tr .name')).toHaveCount(1)
   await expect(page.locator('.tr .name')).toContainText('Master of Professional Counselling')
   await expect(page.locator('.admissions-notice')).toContainText(/关闭申请|closed notice/)
+  await expect(page.locator('.admissions-notice')).toContainText(/收费表的课程链接|fee-table link differs/)
   await page.reload()
   await expect(filter).toHaveValue('closed')
   await expect(page.locator('.tr .name')).toHaveCount(1)

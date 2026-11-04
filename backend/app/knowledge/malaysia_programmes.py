@@ -48,7 +48,7 @@ PROGRAMME_LINKS = (
     (
         "Bachelor of Business and Commerce and Bachelor of Computer Science",
         "business",
-        "https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce-bachelor-communication",
+        "https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce-bachelor-computer-science",
     ),
     (
         "Bachelor of Business and Commerce and Bachelor of Digital Media and Communication",
