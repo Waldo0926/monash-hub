@@ -103,7 +103,9 @@ class Slot:
         if self.is_full_year():
             return False
         if other.is_full_year():
-            return True
+            # A same-year semester has not finished when the full-year unit
+            # starts. Only earlier calendar years passed the check above.
+            return False
         return period_index(self.period) < period_index(other.period)
 
     def finishes_by(self, other: Slot) -> bool:
@@ -192,8 +194,18 @@ class Unmet:
         return list(dict.fromkeys(found))
 
 
-def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unmet | None:
-    """None when the rule is satisfied; otherwise what is still missing.
+@dataclass
+class Evaluation:
+    unmet: Unmet | None = None
+    unverified: bool = False
+
+    @property
+    def satisfied(self) -> bool:
+        return self.unmet is None and not self.unverified
+
+
+def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Evaluation:
+    """Keep proven gaps separate from rules that cannot be checked.
 
     The nesting is the rule. FIT2099 asks for one of six programming units
     *or* an engineering pair, and read as a flat list of groups that becomes
@@ -208,8 +220,8 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unm
     """
     corequisite = "corequisite" in (group.requisite_type or "").lower()
     connector = (group.connector or "AND").upper()
-    if connector == "TEXT":
-        return None
+    if connector not in {"AND", "OR"}:
+        return Evaluation(unverified=True)
 
     met_codes: list[str] = []
     missing_codes: list[str] = []
@@ -225,24 +237,30 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Unm
 
     satisfied_children = 0
     unmet_children: list[Unmet] = []
+    unverified = False
     for child in group.children:
         result = _evaluate(child, done, at)
-        if result is None:
+        unverified = unverified or result.unverified
+        if result.satisfied:
             satisfied_children += 1
-        else:
-            unmet_children.append(result)
+        if result.unmet is not None:
+            unmet_children.append(result.unmet)
 
     if connector == "OR":
         # One operand is enough, and an empty group asks for nothing.
         if met_codes or satisfied_children:
-            return None
+            return Evaluation()
+        # An unknown alternative could satisfy the OR. Do not declare either
+        # success or a definite missing prerequisite on that evidence.
+        if unverified:
+            return Evaluation(unverified=True)
         if not missing_codes and not unmet_children:
-            return None
-        return Unmet("OR", missing_codes, unmet_children)
+            return Evaluation()
+        return Evaluation(Unmet("OR", missing_codes, unmet_children))
 
     if not missing_codes and not unmet_children:
-        return None
-    return Unmet("AND", missing_codes, unmet_children)
+        return Evaluation(unverified=unverified)
+    return Evaluation(Unmet("AND", missing_codes, unmet_children), unverified)
 
 
 def _as_rule(unmet: Unmet) -> dict:
@@ -342,7 +360,15 @@ def check(db: Session, raw_entries: Iterable[dict], *, academic_year: int,
                 continue
             if not ("prerequisite" in kind or "corequisite" in kind):
                 continue
-            unmet = _evaluate(group, seen, entry.slot)
+            evaluation = _evaluate(group, seen, entry.slot)
+            if evaluation.unverified:
+                issues.append(Issue(
+                    entry.unit_code, entry.slot.year, entry.slot.period,
+                    "warning", "unverified_requisite",
+                    {"requisite_type": kind, "source_url": unit.source_url,
+                     "source_text": group.raw_text or group.description},
+                ))
+            unmet = evaluation.unmet
             if unmet:
                 issues.append(Issue(
                     entry.unit_code, entry.slot.year, entry.slot.period, "error",

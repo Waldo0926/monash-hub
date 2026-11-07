@@ -58,43 +58,50 @@ const report = ref<any>(null)
 const checking = ref(false)
 const checkError = ref('')
 let checkTimer: ReturnType<typeof setTimeout> | undefined
+let checkVersion = 0
 
-async function check() {
-  if (!plan.value.entries.length) {
-    report.value = null
-    return
-  }
-  checking.value = true
-  checkError.value = ''
+async function check(version: number, body: { campus: string; entries: PlanEntry[] }) {
   try {
-    report.value = await apiFetch<any>('/v1/plan/check', {
+    const result = await apiFetch<any>('/v1/plan/check', {
       method: 'POST',
       // No Handbook year: the API checks each unit against the Handbook of
       // the calendar year it is placed in, or the nearest loaded one when that
       // year's is not (a plan starting in 2025 reads 2026). Sending a start
       // year here used to force one Handbook onto the whole plan.
-      body: {
-        campus: plan.value.campus,
-        entries: plan.value.entries
-      }
+      body
     })
+    if (version === checkVersion) report.value = result
   } catch (caught) {
-    // The report on screen is from before this change; say so rather than
-    // let it pass for a verdict on the plan as it is now.
-    checkError.value = apiErrorMessage(caught, $t)
+    if (version === checkVersion) checkError.value = apiErrorMessage(caught, $t)
   } finally {
-    checking.value = false
+    if (version === checkVersion) checking.value = false
   }
 }
 
 watch(
   () => JSON.stringify([plan.value.entries, plan.value.campus]),
   () => {
+    // Invalidate on the edit, including the debounce window. Older responses
+    // and errors must never describe the new plan or clear its loading state.
+    const version = ++checkVersion
     clearTimeout(checkTimer)
-    checkTimer = setTimeout(check, 350)
+    report.value = null
+    checkError.value = ''
+    checking.value = plan.value.entries.length > 0
+    if (!checking.value || import.meta.server) return
+    const body = {
+      campus: plan.value.campus,
+      entries: plan.value.entries.map(entry => ({ ...entry }))
+    }
+    checkTimer = setTimeout(() => check(version, body), 350)
   },
-  { immediate: true }
+  { immediate: true, flush: 'sync' }
 )
+
+onBeforeUnmount(() => {
+  ++checkVersion
+  clearTimeout(checkTimer)
+})
 
 /** Issues keyed by the unit and slot they belong to, for the card to read. */
 const issuesFor = computed(() => {
@@ -174,6 +181,8 @@ function issueText(issue: any): string {
       return $t('plan.issue.prohibited', { units: (d.units || []).join('、') })
     case 'duplicate':
       return $t('plan.issue.duplicate')
+    case 'unverified_requisite':
+      return $t('plan.issue.unverified')
     default:
       return issue.kind
   }
@@ -797,7 +806,7 @@ const savedLabel = computed(() => {
 
 const status = computed<'empty' | 'checking' | 'failed' | 'error' | 'warn' | 'ok'>(() => {
   if (!plan.value.entries.length) return 'empty'
-  if (checking.value && !report.value) return 'checking'
+  if (checking.value) return 'checking'
   if (checkError.value) return 'failed'
   if (errorCount.value) return 'error'
   if (warningCount.value) return 'warn'
@@ -1100,6 +1109,12 @@ useSeoMeta({ title: () => $t('plan.title') })
                 <ul v-if="entryIssues(entry).length" class="ucard-issues">
                   <li v-for="(issue, i) in entryIssues(entry)" :key="i">
                     <PlanIcon name="alert" :size="12" />{{ issueText(issue) }}
+                    <a
+                      v-if="issue.kind === 'unverified_requisite' && issue.detail?.source_url"
+                      :href="issue.detail.source_url"
+                      target="_blank"
+                      rel="noopener external"
+                    >{{ $t('plan.issue.verifySource') }} ↗</a>
                   </li>
                 </ul>
                 <div class="ucard-foot">

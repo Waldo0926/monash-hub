@@ -169,7 +169,6 @@ export interface ParsedRow {
 
 export function parsePastedResults(text: string): ParsedRow[] {
   const rows: ParsedRow[] = []
-  const seen = new Set<string>()
 
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim()
@@ -177,8 +176,8 @@ export function parsePastedResults(text: string): ParsedRow[] {
     const codeMatch = UNIT_CODE.exec(line.toUpperCase())
     if (!codeMatch) continue
     const unitCode = codeMatch[1]!
-    if (seen.has(unitCode)) continue
-    seen.add(unitCode)
+    // Each transcript row is a separate attempt, including a retaken unit.
+    // A code alone cannot distinguish a retake from an accidental duplicate.
 
     // Numbers after the code, so the digits inside the code itself are not
     // read as a mark.
