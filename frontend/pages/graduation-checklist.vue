@@ -36,7 +36,8 @@ const labels = {
   missing_prerequisite: { en: 'Prerequisite needs checking', zh: '先修要求有待核对' },
   missing_corequisite: { en: 'Corequisite needs checking', zh: '同修要求有待核对' },
   prohibited_with: { en: 'Prohibition conflict', zh: '和计划里的另一门课禁修冲突' },
-  duplicate: { en: 'Duplicated unit', zh: '同一门课重复安排' }
+  duplicate: { en: 'Duplicated unit', zh: '同一门课重复安排' },
+  unverified_requisite: { en: 'Prerequisite or corequisite needs manual verification', zh: '先修或同修要求需要人工核对' }
 } as const
 function severityText(severity: string): string {
   if (!zh.value) return severity

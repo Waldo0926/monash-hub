@@ -74,3 +74,24 @@ def test_text_rule_references_are_drawn_but_not_enforced_as_fake_logic(client, d
         },
     ).json()
     assert "missing_prerequisite" not in {issue["kind"] for issue in plan["issues"]}
+    warning = next(issue for issue in plan["issues"] if issue["kind"] == "unverified_requisite")
+    assert warning["severity"] == "warning"
+    assert warning["detail"]["source_url"] == target.source_url
+
+
+def test_unverified_corequisite_retains_its_source_wording(client, db):
+    target = _unit(db, "BBB2001")
+    group = UnitRequisiteGroup(
+        unit_id=target.id, requisite_type="corequisite", connector="TEXT",
+        raw_text="Permission from the faculty is required.",
+    )
+    db.add(group)
+    db.commit()
+    result = client.post("/api/v1/plan/check", json={
+        "campus": "Malaysia",
+        "entries": [{"unit_code": "BBB2001", "year": 2026, "teaching_period": S1}],
+    }).json()
+    assert len(result["issues"]) == 1
+    warning = result["issues"][0]
+    assert warning["kind"] == "unverified_requisite" and warning["severity"] == "warning"
+    assert warning["detail"]["source_text"] == group.raw_text

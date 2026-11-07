@@ -226,9 +226,7 @@ function applyPaste() {
     lookupNote.value = $t('marks.pasteNothing')
     return
   }
-  const existing = new Set(entries.value.map(e => e.unitCode.trim().toUpperCase()).filter(Boolean))
   for (const row of rows) {
-    if (existing.has(row.unitCode)) continue
     entries.value.push({
       id: nextId++,
       unitCode: row.unitCode,

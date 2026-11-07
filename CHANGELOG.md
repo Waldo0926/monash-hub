@@ -18,6 +18,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Fixed (transcript attempts and plan verification)
+
+- Results imports retain every attempt at a unit, including retakes and rows
+  matching an existing unit code. The import help explains that records append.
+- A full-year unit no longer accepts a same-year semester as a completed prerequisite.
+- Plan edits invalidate earlier checks immediately; late responses and errors cannot
+  replace the current verdict or finish its loading state.
+- Textual or unsupported requisite rules stay unverified, with a manual-review
+  warning and official Handbook link. Nested AND/OR rules preserve uncertainty.
+- 成绩导入保留重修记录；全年课程不再误用同年课程作为已完成先修。
+  规划检查忽略过期响应，无法自动核实的规则显示人工核对提示和官方来源。
+
 ### Changed (course map: extra semesters and adding several units at once)
 
 - Summer A, Summer B, winter, full year and the October intake are now added

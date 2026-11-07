@@ -197,6 +197,19 @@ def test_a_full_year_unit_does_not_finish_before_its_own_second_semester(client,
     assert kinds(later, "BBB2001") == {"not_in_year"} or kinds(later, "BBB2001") == set()
 
 
+@pytest.mark.parametrize("period", [S1, S2])
+def test_a_full_year_target_cannot_use_a_same_year_prerequisite(client, db, period):
+    _unit(db, "AAA1001")
+    target = _unit(db, "BBB2001", campuses=(("Malaysia", "Full year"),))
+    _requires(db, target, "AAA1001")
+    db.commit()
+    body = _post(client, [
+        {"unit_code": "AAA1001", "year": 2026, "teaching_period": period},
+        {"unit_code": "BBB2001", "year": 2026, "teaching_period": "Full year"},
+    ])
+    assert kinds(body, "BBB2001") == {"missing_prerequisite"}
+
+
 def test_a_unit_not_published_this_year_is_reported(client, chain):
     body = _post(client, [{"unit_code": "QQQ9999", "year": 2026, "teaching_period": S1}])
     assert kinds(body) == {"not_in_year"}
