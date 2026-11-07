@@ -238,9 +238,11 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Eva
     satisfied_children = 0
     unmet_children: list[Unmet] = []
     unverified = False
+    uncertain_child = False
     for child in group.children:
         result = _evaluate(child, done, at)
         unverified = unverified or result.unverified
+        uncertain_child = uncertain_child or (result.unverified and result.unmet is None)
         if result.satisfied:
             satisfied_children += 1
         if result.unmet is not None:
@@ -252,11 +254,11 @@ def _evaluate(group: UnitRequisiteGroup, done: dict[str, Slot], at: Slot) -> Eva
             return Evaluation()
         # An unknown alternative could satisfy the OR. Do not declare either
         # success or a definite missing prerequisite on that evidence.
-        if unverified:
+        if uncertain_child:
             return Evaluation(unverified=True)
         if not missing_codes and not unmet_children:
             return Evaluation()
-        return Evaluation(Unmet("OR", missing_codes, unmet_children))
+        return Evaluation(Unmet("OR", missing_codes, unmet_children), unverified)
 
     if not missing_codes and not unmet_children:
         return Evaluation(unverified=unverified)

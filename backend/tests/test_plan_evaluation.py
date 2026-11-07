@@ -53,3 +53,13 @@ def test_known_nested_rules_still_report_their_missing_branch():
     )
     assert not result.unverified
     assert result.unmet.flatten() == ["BBB1001"]
+
+
+def test_unknown_condition_does_not_rescue_an_or_branch_with_a_proven_gap():
+    result = _evaluate(
+        rule("OR", "CCC1001", children=[rule("AND", "BBB1001", children=[rule("TEXT")])]),
+        {}, Slot(2026, S2),
+    )
+    assert not result.satisfied and result.unverified
+    assert result.unmet.connector == "OR"
+    assert set(result.unmet.flatten()) == {"BBB1001", "CCC1001"}
