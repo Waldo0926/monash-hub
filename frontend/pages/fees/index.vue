@@ -8,10 +8,11 @@
  * (Monash English, a PhD in each school, the two DHES streams).
  */
 import { deltaAt, feeNote, feeTitle, filterFees, formatAmount, type FeeRow } from '~/utils/tuition'
-import { INTAKES_2027, intake2027Status, APPLICATION_STATUS_2027, type IntakePeriod } from '~/utils/intake2027'
+import { INTAKES_2027, intake2027Status, currentIntakeReview, type IntakePeriod } from '~/utils/intake2027'
 
 type Source = { title: string; url: string; level: string; last_checked: string | null }
 type Table = {
+  selection?: { year: number | null; intake: string | null; campus: string }
   admissions_coverage?: { rows: number; linked_programme_rows: number; verified_programme_rows: number; explicit_notice_rows: number; conflict_rows: number }
   year: number | null
   sections: { source: string; year?: number | null; level: string; schools: { school: string; rows: FeeRow[] }[] }[]
@@ -25,30 +26,44 @@ const { locale } = useLocale()
 const route = useRoute()
 const router = useRouter()
 
-const { data, error } = await useApiFetch<Table>('/v1/fees')
+const requestedYear = Number(route.query.year)
+const selectedYear = ref(Number.isInteger(requestedYear) && requestedYear >= 1990 && requestedYear <= 2100 ? requestedYear : 2027)
+const selectedIntake = ref<IntakePeriod>(['february', 'july', 'october'].includes(String(route.query.intake)) ? route.query.intake as IntakePeriod : 'october')
+const { data, error, status } = await useApiFetch<Table>(
+  () => `/v1/fees?year=${selectedYear.value}&intake=${selectedIntake.value}&campus=Malaysia`,
+  { watch: [selectedYear, selectedIntake] }
+)
+const selectionMatches = computed(() => data.value?.selection?.year === selectedYear.value && data.value?.selection?.intake === selectedIntake.value)
+const feeYears = computed(() => [...new Set([2027, 2028, selectedYear.value, ...(data.value?.sections.map(s => s.year).filter((y): y is number => y != null) || [])])].sort())
 useErrorStatus(error)
 
 const query = ref(String(route.query.q || ''))
 const statuses = ['open', 'closed', 'suspended', 'conflict', 'not_verified']
 const admissionsFilter = ref(statuses.includes(String(route.query.admissions)) ? String(route.query.admissions) : '')
-watch([query, admissionsFilter], ([q, admissions]) => {
-  router.replace({ query: { ...route.query, q: q.trim() || undefined, admissions: admissions || undefined } })
+const intakeStatuses = [...statuses, 'not_offered_on_campus']
+const intakeLabels: Record<string, string> = {open:'明确开放', closed:'明确关闭', suspended:'明确暂停', conflict:'来源冲突', not_verified:'未核实', not_offered_on_campus:'明确未在该校区开设'}
+const intakeFilter = ref(intakeStatuses.includes(String(route.query.intake_status)) ? String(route.query.intake_status) : '')
+watch([query, admissionsFilter, selectedYear, selectedIntake, intakeFilter], ([q, admissions, year, intake, intakeStatus]) => {
+  router.replace({ query: { ...route.query, q: q.trim() || undefined, admissions: admissions || undefined, year, intake, intake_status: intakeStatus || undefined } })
 })
 
 const sections = computed(() =>
-  (data.value?.sections || [])
+  (selectionMatches.value ? data.value?.sections || [] : [])
     .map(section => ({
       ...section,
       schools: section.schools
-        .map(group => ({ ...group, rows: filterFees(group.rows, query.value).filter(row => !admissionsFilter.value || (row.admissions?.status || 'not_verified') === admissionsFilter.value) }))
+        .map(group => ({ ...group, rows: filterFees(group.rows, query.value).filter(row =>
+          (!admissionsFilter.value || (row.admissions?.status || 'not_verified') === admissionsFilter.value) &&
+          (!intakeFilter.value || (row.admissions?.intake_status || 'not_verified') === intakeFilter.value)
+        ) }))
         .filter(group => group.rows.length)
     }))
     .filter(section => section.schools.length)
 )
 
 const empty = computed(() => !data.value?.sections?.length)
-const selectedIntake = ref<IntakePeriod>('october')
 const intakeEvidence = computed(() => INTAKES_2027.find(item => item.id === selectedIntake.value)!)
+const reviewedIntake = computed(() => currentIntakeReview(intakeEvidence.value, selectedYear.value))
 /** "2027-10-15" as 2027年10月15日 in Chinese; English keeps the ISO date. */
 const day = (iso: string) => {
   const [y, m, d] = iso.split('-').map(Number)
@@ -96,17 +111,25 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
         <p class="crumb"><NuxtLink to="/courses">{{ $t('courses.title') }}</NuxtLink></p>
         <h1>{{ title }}</h1>
         <p class="lede">{{ $t('fees.lede') }}</p>
-        <section v-if="data?.year === 2027" class="intake-evidence" aria-labelledby="intake-evidence-title">
+        <div class="intake-selection">
+          <p>{{ locale === 'zh' ? '适用校区：马来西亚' : 'Campus: Malaysia' }}</p>
+          <label>{{ locale === 'zh' ? '入学年份' : 'Intake year' }}
+            <select v-model.number="selectedYear" class="field" aria-label="Intake year">
+              <option v-for="year in feeYears" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </label>
+          <label>{{ locale === 'zh' ? '入学批次' : 'Intake period' }}
+            <select v-model="selectedIntake" class="field" aria-label="Intake period">
+              <option v-for="item in INTAKES_2027" :key="item.id" :value="item.id">{{ locale === 'zh' ? ({february: '2月', july: '7月', october: '10月'})[item.id] : item.id }}</option>
+            </select>
+          </label>
+          <p v-if="!reviewedIntake" class="small muted">{{ locale === 'zh' ? '所选年份或批次的名单与一般截止日期尚未核实。旧年份资料不自动适用于此选择。' : 'The selected year or intake list and general deadlines are unverified. Earlier-year information does not establish applicability.' }}</p>
+        </div>
+        <section v-if="reviewedIntake" class="intake-evidence" aria-labelledby="intake-evidence-title">
           <h2 id="intake-evidence-title">{{ locale === 'zh' ? '2027年各批次招生信息' : '2027 intake evidence' }}</h2>
           <p class="small muted">{{ locale === 'zh'
             ? '学费已经公布，不代表该学位在每个批次都开放申请。请选择入学批次查看学校公布的资料'
             : 'A published fee does not mean applications for that degree or intake are open. Select the intake to see what Monash has actually published.' }}</p>
-          <label class="intake-picker">
-            {{ locale === 'zh' ? '入学批次' : 'Intake period' }}
-            <select v-model="selectedIntake" class="field" aria-label="2027 intake">
-              <option v-for="item in INTAKES_2027" :key="item.id" :value="item.id">{{ intakeLabel(item.id) }}</option>
-            </select>
-          </label>
           <div class="intake-facts small">
             <p>{{ locale === 'zh' ? '马来西亚学生申请截止' : 'Malaysian students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ day(intakeEvidence.generalDeadlineMalaysia) }}</strong></p>
             <p>{{ locale === 'zh' ? '国际学生申请截止' : 'International students apply by' }}{{ locale === 'zh' ? '：' : ' ' }}<strong>{{ day(intakeEvidence.generalDeadlineInternational) }}</strong></p>
@@ -115,7 +138,7 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
             ? (locale === 'zh' ? '学校已公布10月可选课程名单，下方按课程原名精确标注。未列入名单的学位统一显示“未核实”，不能推断停招' : 'An explicit October available-courses list exists. Exact title matches are marked below; other degrees remain unverified, not discontinued.')
             : (locale === 'zh' ? '目前只有该批次的申请截止日期资料，未找到逐学位可选课程名单，因此下方招生状态全部显示“未核实”' : 'Published deadlines are available, but no intake-specific degree-by-degree list was verified. All degree statuses therefore remain unverified.') }}</p>
           <p class="small muted" v-if="intakeEvidence.exceptionsApply">{{ locale === 'zh' ? '部分专业有特别截止日期，例如医学、临床心理学或专业心理咨询，请以官网对应类别为准' : 'Special deadlines apply to some programmes, including medicine and certain psychology/counselling degrees. Check the matching official category.' }}</p>
-          <p class="small muted">{{ locale === 'zh' ? '是否现在开放申请' : 'Applications open now' }}：{{ APPLICATION_STATUS_2027 === 'not_verified' ? (locale === 'zh' ? '未核实' : 'Not verified') : '' }} ·
+          <p class="small muted">{{ locale === 'zh' ? '一般截止日期不能证明某个学位当前开放申请' : 'General deadlines do not establish that a programme is accepting applications.' }} ·
             <a :href="intakeEvidence.source" target="_blank" rel="noopener external">{{ locale === 'zh' ? '查看官方招生页面' : 'Official intake page' }} ↗</a>
             · {{ locale === 'zh' ? '资料核对日期' : 'Reviewed' }}：{{ day(intakeEvidence.checkedOn) }}
           </p>
@@ -141,6 +164,14 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
           autocomplete="off"
         />
 
+        <label class="intake-status-filter">
+          {{ locale === 'zh' ? '筛选所选批次的申请状态' : 'Filter selected-intake application status' }}
+          <select v-model="intakeFilter" class="field">
+            <option value="">{{ locale === 'zh' ? '全部状态' : 'All statuses' }}</option>
+            <option v-for="state in intakeStatuses" :key="state" :value="state">{{ locale === 'zh' ? intakeLabels[state] || state : state }}</option>
+          </select>
+        </label>
+        <p v-if="status === 'pending' || !selectionMatches" role="status">{{ locale === 'zh' ? '正在核对所选年份和批次…' : 'Checking the selected year and intake…' }}</p>
         <label class="admissions-filter">
           {{ locale === 'zh' ? '筛选当前申请通知（与未来批次分开）' : 'Filter current application notices (separate from future intake)' }}
           <select v-model="admissionsFilter" class="field">
@@ -189,9 +220,14 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
               <div v-for="(row, i) in group.rows" :key="i" class="tr" role="row">
                 <span class="name" role="cell">
                   <b>{{ label(row) }}</b>
+                  <span class="tiny fee-publication" v-if="row.fee_publication">
+                    {{ locale === 'zh' ? '所选年份学费' : 'Fees for selected year' }}：{{ row.fee_publication.status === 'published' ? (locale === 'zh' ? '已公布' : 'Published') : (locale === 'zh' ? '未核实' : 'Not verified') }}
+                    <template v-if="row.fee_publication.reason === 'different_fee_year'"> · {{ locale === 'zh' ? '当前收费来源年份' : 'Fee source year' }} {{ row.fee_publication.published_year }}</template>
+                    <template v-if="row.fee_publication.reason === 'stale_source' || row.fee_publication.reason === 'refresh_failed'"> · {{ locale === 'zh' ? '来源过期或刷新失败，显示的是已存档金额' : 'Stale or failed refresh; amounts are retained snapshots' }}</template>
+                  </span>
                   <span v-if="locale === 'zh' && row.title_zh" class="tiny muted en">{{ row.title }}</span>
-                  <span v-if="data?.year === 2027" class="tiny" :class="intake2027Status(row.title, selectedIntake) === 'listed' ? 'intake-listed' : 'intake-unverified'">
-                    {{ intake2027Status(row.title, selectedIntake) === 'listed'
+                  <span v-if="selectedYear === 2027" class="tiny" :class="intake2027Status(row.title, selectedIntake, selectedYear) === 'listed' ? 'intake-listed' : 'intake-unverified'">
+                    {{ intake2027Status(row.title, selectedIntake, selectedYear) === 'listed'
                       ? (locale === 'zh' ? '该批次官方名单列出' : 'Listed for this intake')
                       : (locale === 'zh' ? '该批次招生状态未核实' : 'Intake status unverified') }}
                   </span>
@@ -238,6 +274,10 @@ useSeoMeta({ title, description: () => $t('fees.lede') })
 </template>
 
 <style scoped>
+.intake-selection { display: flex; flex-wrap: wrap; gap: var(--s3); align-items: end; margin-block: var(--s4); }
+.intake-selection label { display: grid; gap: var(--s2); max-width: 100%; }
+.intake-selection p { flex-basis: 100%; }
+
 .admissions-filter { display: grid; gap: 6px; max-width: 520px; margin-block: var(--s3); }
 .admissions-filter select { min-height: 44px; }
 .page { max-width: 960px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }

@@ -9,7 +9,7 @@
  * Any new intake/degree must be verified against its own official listing.
  */
 export const OCTOBER_2027_SOURCE = 'https://www.monash.edu.my/study/apply/intake-periods/october-intake'
-export const OCTOBER_2027_CHECKED = '2026-11-03'
+export const OCTOBER_2027_CHECKED = '2026-11-08'
 const listed = new Set([
   'Bachelor of Arts and Social Sciences',
   'Bachelor of Digital Media and Communication',
@@ -53,7 +53,7 @@ export const INTAKES_2027: readonly IntakeEvidence[] = [
   {
     id: 'february', year: 2027,
     source: 'https://www.monash.edu.my/study/apply/intake-periods/february-intake',
-    checkedOn: '2026-11-03',
+    checkedOn: '2026-11-08',
     generalDeadlineMalaysia: '2027-02-19',
     generalDeadlineInternational: '2026-12-18',
     hasVerifiedDegreeList: false, exceptionsApply: true
@@ -61,7 +61,7 @@ export const INTAKES_2027: readonly IntakeEvidence[] = [
   {
     id: 'july', year: 2027,
     source: 'https://www.monash.edu.my/study/apply/intake-periods',
-    checkedOn: '2026-11-03',
+    checkedOn: '2026-11-08',
     generalDeadlineMalaysia: '2027-07-16',
     generalDeadlineInternational: '2027-05-14',
     hasVerifiedDegreeList: false, exceptionsApply: true
@@ -77,8 +77,14 @@ export const INTAKES_2027: readonly IntakeEvidence[] = [
 ]
 
 /** Only exact titles in the explicitly dated October 2027 list qualify. */
-export function intake2027Status(title: string, period: IntakePeriod): IntakeStatus {
-  if (period !== 'october') return 'not_verified'
+export function currentIntakeReview(evidence: IntakeEvidence, year: number, now = new Date()): boolean {
+  const age = now.getTime() - Date.parse(evidence.checkedOn + 'T00:00:00Z')
+  return year === evidence.year && age >= 0 && age <= 30 * 24 * 60 * 60 * 1000
+}
+
+export function intake2027Status(title: string, period: IntakePeriod, year = 2027, now = new Date()): IntakeStatus {
+  const evidence = INTAKES_2027.find(item => item.id === period)
+  if (period !== 'october' || !evidence || !currentIntakeReview(evidence, year, now)) return 'not_verified'
   return listed.has(title.replace(/\s+/g, ' ').trim()) ? 'listed' : 'not_verified'
 }
 
