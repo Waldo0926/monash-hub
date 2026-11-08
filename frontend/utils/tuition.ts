@@ -8,6 +8,12 @@ import type { AdmissionsEvidence } from './admissions'
 export type FeeAmount = { value: number | null; written: string; label: string | null }
 
 export type FeeRow = {
+  fee_publication?: {
+    status: 'published' | 'not_verified'; reason: string | null
+    published_year: number | null; selected_year: number | null; campus: 'Malaysia'
+    basis: string | null; source_url: string | null; source_hash: string | null
+    last_checked: string | null
+  }
   admissions?: AdmissionsEvidence
   programme_url?: string | null
   title: string

@@ -18,6 +18,18 @@ All notable changes to Monash Hub are documented here.
 
 ## Unreleased
 
+### Added (selected-intake and fee-year evidence, #264)
+
+- Fee rows distinguish current notices, exact programme/year/intake notices and
+  fee publication for the selected year; absence and conflicting notices need
+  explicit source proof. Stale, failed and mismatching sources remain unverified.
+- Fees expose Malaysia campus, source year, basis, hash and check date. Year,
+  intake and selected-intake status filters persist in shareable URLs.
+- Reconciled 68 bounded official sources on 2026-11-08, retaining one qualification
+  title mismatch for manual review and leaving unknown course codes unknown.
+- 学费年份、当前通知和所选批次的申请状态分别核验；资料不足继续显示未核实。
+
+
 ### Fixed (transcript attempts and plan verification)
 
 - Results imports retain every attempt at a unit, including retakes and rows

@@ -9,5 +9,9 @@ export type AdmissionsEvidence = {
   source_url: string | null
   last_checked: string | null
   valid_until: string | null
-  intake_status: 'not_verified'
+  intake_status: 'open' | 'closed' | 'suspended' | 'conflict' | 'not_offered_on_campus' | 'not_verified'
+  intake_year?: number | null
+  intake_period?: string | null
+  intake_reason?: string
+  effective_year?: number | null
 }
