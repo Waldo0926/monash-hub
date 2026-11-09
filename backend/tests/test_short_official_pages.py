@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from app.knowledge.cleaner import clean_page
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
-
-from app.knowledge.cleaner import clean_page
 
 from crawler.official import run
 from crawler.official.fetch import PageResult
