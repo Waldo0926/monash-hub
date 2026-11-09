@@ -1,8 +1,12 @@
 """Pages that are short on Monash's site too, and pages sent off it."""
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
+
+from app.knowledge.cleaner import clean_page
 
 from crawler.official import run
 from crawler.official.fetch import PageResult
@@ -23,6 +27,17 @@ LONG = ("<html><head><title>Special consideration</title></head><body><main><h1>
         + "</p></main></body></html>")
 EMPTIED = ("<html><head><title>Special consideration</title></head><body><main>"
            "<h1>Special consideration</h1></main></body></html>")
+
+
+def test_short_answer_does_not_subtract_the_question_twice():
+    html = ('<main><h1>A deliberately long question about changing a study discipline?</h1>'
+            '<p>Students can apply to another discipline when they meet its entry requirements.</p>'
+            '</main>')
+    cleaned = clean_page(html, url=f'{MY}/faq')
+    assert run._short_on_monash(cleaned, SimpleNamespace(clean_text=''))
+    assert not run._short_on_monash(cleaned, SimpleNamespace(clean_text='x' * 300))
+    assert not run._short_on_monash({'clean_text': 'Only a title'},
+                                    SimpleNamespace(clean_text=''))
 
 
 class Pages:

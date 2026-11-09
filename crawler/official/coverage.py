@@ -118,6 +118,12 @@ COOKIE_ONLY = re.compile(r"^\s*(?:this (?:web)?site |we )uses? cookies\b", re.IG
 #: real short answers (printing, opening hours); the crawl itself stops at 200.
 MIN_LENGTH = 250
 LEAVE_OUT = re.compile(
+    # Reviewed 2026-11-10: an application form on forms.monash.edu, a
+    # newsletter signup, a removed faculty mirror, and an external calendar.
+    # Guidance remains on the parent pages and the central assessment page.
+    r"/spec-con-extension-form$|/student-newsletter-subscription-form$|"
+    r"^/it/current-students/resources/supplementary-assessment$|"
+    r"^/students/admin/dates/calendar/cultural-calendar$|"
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
     r"monash-malaysia-agents|student-barometer|httpsisphelpdesk|/staff(?:[-/]|$)|"
