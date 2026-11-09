@@ -15,6 +15,22 @@ def urls(rows):
     return [row["url"] for row in rows]
 
 
+def test_retired_forms_and_external_destinations_do_not_return_from_previous_coverage():
+    paths = [
+        '/students/admin/assessments/extensions-special-consideration/spec-con-extension-form',
+        '/business/current-students/orientation/student-newsletter-subscription-form',
+        '/it/current-students/resources/supplementary-assessment',
+        '/students/admin/dates/calendar/cultural-calendar',
+        '/student-services/financial-assistance/'
+        'postgraduate-scholarships-bursaries-and-fee-waivers/equity-scholarships',
+    ]
+    previous = tuple((f'old-{i}', 'https://www.monash.edu' + path, 'Old page',
+                      'assessment', (), 'stable', 'australia') for i, path in enumerate(paths))
+    stored = {row[1]: {'text': 'x' * 600} for row in previous}
+    assert build([], stored, [], previous=previous) == []
+    assert build([page(row[1], row[0]) for row in previous], {}, []) == []
+
+
 def test_one_address_however_it_is_capitalised():
     rows = build([page(f"{MY}/study-abroad/outbound/Semester-in-Australia", "a"),
                   page(f"{MY}/study-abroad/outbound/semester-in-australia/", "b")], {}, [])

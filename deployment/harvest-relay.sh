@@ -38,6 +38,9 @@ fi
 # The seed list has to be the server's, or slugs it asks for are unknown here.
 git -C "$REPO_DIR" pull -q --ff-only
 cd "$REPO_DIR"
+# The bounded programme catalogue is imported from backend/app by seeds.py.
+# Harvest has no database dependency, but still needs both package roots.
+export PYTHONPATH="$REPO_DIR/backend:$REPO_DIR${PYTHONPATH:+:$PYTHONPATH}"
 
 # Only what the harvest imports, at the versions the server pins. The
 # translation model in crawler/requirements.txt is not needed to read pages.

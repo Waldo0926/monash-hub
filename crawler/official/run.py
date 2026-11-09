@@ -100,8 +100,9 @@ def _short_on_monash(cleaned: dict, page) -> bool:
     no longer: a long page that suddenly reads short means the template
     changed, and the last good copy stays."""
     text = cleaned["clean_text"] or ""
-    title = cleaned.get("title") or ""
-    return len(text) >= 60 and len(text) - len(title) >= 40 and len(page.clean_text or "") < 200
+    # The cleaner excludes h1 from clean_text. Subtracting the separately
+    # stored title again rejected real short FAQ answers with long questions.
+    return len(text) >= 60 and len(page.clean_text or "") < 200
 
 
 def crawl(seeds: tuple[Seed, ...], *, min_interval: float, transport: str,
