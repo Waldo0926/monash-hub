@@ -21,6 +21,8 @@ def test_retired_forms_and_external_destinations_do_not_return_from_previous_cov
         '/business/current-students/orientation/student-newsletter-subscription-form',
         '/it/current-students/resources/supplementary-assessment',
         '/students/admin/dates/calendar/cultural-calendar',
+        '/student-services/financial-assistance/'
+        'postgraduate-scholarships-bursaries-and-fee-waivers/equity-scholarships',
     ]
     previous = tuple((f'old-{i}', 'https://www.monash.edu' + path, 'Old page',
                       'assessment', (), 'stable', 'australia') for i, path in enumerate(paths))

@@ -124,6 +124,10 @@ LEAVE_OUT = re.compile(
     r"/spec-con-extension-form$|/student-newsletter-subscription-form$|"
     r"^/it/current-students/resources/supplementary-assessment$|"
     r"^/students/admin/dates/calendar/cultural-calendar$|"
+    # This former coursework overview now contains only a legal disclaimer,
+    # in both HTTP and browser reads. The bursary/fee-waiver detail pages stay.
+    r"^/student-services/financial-assistance/"
+    r"postgraduate-scholarships-bursaries-and-fee-waivers/equity-scholarships$|"
     r"staff-resources|intranet|login|/contact|contact-us|/archive|/accordion|"
     r"first-semester/week|/media/|/publications/|faculty-contacts|m-pass/account|"
     r"monash-malaysia-agents|student-barometer|httpsisphelpdesk|/staff(?:[-/]|$)|"
