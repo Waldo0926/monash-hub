@@ -43,6 +43,37 @@ PROGRAMME_CODES = {
     "bachelor of psychology and business": "M2015",
 }
 MAX_AGE = timedelta(days=30)
+INTAKES = {"february", "july", "october"}
+
+
+def intake_notice(text: str, title: str, year: int, period: str) -> str:
+    """Only a complete notice naming this programme, year and intake is proof.
+
+    A general deadline, undated closure, future cessation or another degree's
+    notice cannot answer this question. Keep contradictory statements visible.
+    """
+    if period not in INTAKES:
+        return "not_verified"
+    subject = re.escape(" ".join(title.split()))
+    scope = rf"(?:the\s+)?{period}\s+{year}\s+intake"
+    content = "\n".join(" ".join(line.split()) for line in text.splitlines())
+    states = set()
+    for state in ("open", "closed", "suspended"):
+        pattern = (
+            rf"(?:^|[.!?\n]\s*)Applications\s+for\s+(?:the\s+)?{subject}"
+            rf"\s+for\s+{scope}\s+are\s+(?:currently\s+)?{state}"
+            rf"\s*(?:[.!?](?=\s|$)|$)"
+        )
+        if re.search(pattern, content, re.I):
+            states.add(state)
+    absence = (
+        rf"(?:^|[.!?\n]\s*)(?:The\s+)?{subject}\s+is\s+not\s+offered"
+        rf"\s+at\s+the\s+Malaysia\s+campus\s+for\s+{scope}"
+        rf"\s*(?:[.!?](?=\s|$)|$)"
+    )
+    if re.search(absence, content, re.I):
+        states.add("not_offered_on_campus")
+    return next(iter(states)) if len(states) == 1 else "conflict" if states else "not_verified"
 
 
 def normalise(title: str) -> str:
@@ -73,6 +104,8 @@ def evidence(
     now: datetime | None = None,
     source_url: str | None = None,
     source_title: str | None = None,
+    intake_year: int | None = None,
+    intake_period: str | None = None,
 ) -> dict:
     now = now or datetime.now(UTC)
     identity = PROGRAMMES.get(normalise(title))
@@ -107,6 +140,11 @@ def evidence(
     course_code = _course_code(page) if valid_identity else None
     if course_code is None and source_url is None:
         course_code = PROGRAMME_CODES.get(normalise(title))
+    selected = (
+        intake_notice(page.clean_text or "", title, intake_year, intake_period)
+        if fresh and intake_year is not None and intake_period in INTAKES
+        else "not_verified"
+    )
     return {
         "course_code": course_code,
         "programme_page_verified": fresh,
@@ -121,7 +159,14 @@ def evidence(
         "scope": "current_programme_notice",
         "campus": "Malaysia",
         # A current notice cannot establish a future intake's application state.
-        "intake_status": "not_verified",
+        "intake_status": selected,
+        "intake_year": intake_year,
+        "intake_period": intake_period,
+        "intake_reason": (
+            "explicit_scoped_notice" if selected != "not_verified"
+            else "no_scoped_notice" if fresh else reason
+        ),
+        "effective_year": intake_year if selected != "not_verified" else None,
     }
 
 
@@ -172,7 +217,8 @@ def _course_code(page: OfficialPage | None) -> str | None:
     return next(iter(codes)) if len(codes) == 1 else None
 
 
-def for_rows(db: Session, rows: list[dict]) -> dict:
+def for_rows(db: Session, rows: list[dict], *, intake_year: int | None = None,
+             intake_period: str | None = None) -> dict:
     """Enrich each fee row independently: title alone is not a programme key."""
     urls = {_row_source(row)[0] for row in rows} - {None}
     pages = (
@@ -188,6 +234,7 @@ def for_rows(db: Session, rows: list[dict]) -> dict:
         row["admissions"] = evidence(
             row["title"], page, source_url=url,
             source_title=titles.get(page.id) if page else None,
+            intake_year=intake_year, intake_period=intake_period,
         )
         row["admissions"]["fee_link_conflict"] = link_conflict
     return {

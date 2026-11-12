@@ -103,3 +103,12 @@ The Business/Computer Science double degree has its own reviewed programme URL, 
 Reviewed programme: https://www.monash.edu.my/study/undergraduate/business/bachelor-business-commerce-bachelor-computer-science
 
 These are source-code corrections awaiting review and deployment. Previously reported coverage based on curated labels must not be treated as independent-source proof. No manual production refresh or service restart was performed.
+
+
+## 2026-11-08 — selected-intake applicability
+
+The fees API accepts bounded `year`, `intake` and `campus=Malaysia` selection and returns the selection with independent fee-publication and selected-intake evidence. An intake state needs a complete notice naming the exact programme, year, intake and (for absence) Malaysia campus, plus the existing fresh fetched-title identity proof. Undated notices, generic deadlines, future cessation, missing fees and qualified/negated sentences do not transfer to that selection. Conflicting explicit statements stay conflicting. Unknown states never imply discontinuation.
+
+Fee publication retains its own source year, basis, hash and check date. A different/unknown fee year, unreadable basis/amount, failed refresh or stale source remains unverified for the selection while retaining the archived amounts. Browser filters keep current notices separate from selected-intake states and retain year/intake choices in the URL. The dated October list and general deadline references were rechecked on 2026-11-08 and expire to unverified after 30 days; they never prove open applications.
+
+See [the bounded source reconciliation](ADMISSIONS-RECONCILIATION-2026-11-08.md): 68 valid HTML sources, 62/63 programme-title matches, one qualification mismatch for manual review, no guessed Handbook codes. This is read-only source review, not a production refresh. Deployment, normal index refresh and affected-flow production acceptance remain required before closing #264.

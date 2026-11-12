@@ -289,7 +289,8 @@ def seed_admissions(db) -> None:
             "Master of Professional Counselling",
             "Applications for the Master of Professional Counselling are currently closed.",
         ),
-        ("Bachelor of Psychology", "Apply now! A future deadline is listed."),
+        ("Bachelor of Psychology", "Apply now! A future deadline is listed. "
+         "Applications for the Bachelor of Psychology for the October 2027 intake are open."),
     ):
         slug, url = admissions.PROGRAMMES[admissions.normalise(title)]
         page = upsert_seed_page(
