@@ -18,6 +18,7 @@ import { degreeCandidates, firstOpenSlot } from '~/utils/planCandidates'
 import { handbookYearFor } from '~/composables/useHandbookYear'
 import { DEFAULT_PERIODS, MAX_YEARS, OPTIONAL_PERIODS, type PlanEntry } from '~/composables/usePlan'
 import { encodePlan, findPlanCode } from '~/utils/planCode'
+import { loadCommencementRules, type CommencementRules } from '~/utils/commencementRules'
 
 const { $t } = useNuxtApp()
 const campusName = useCampusName()
@@ -206,6 +207,9 @@ const chosenCampus = computed(() => plan.value.campus)
  */
 const { locale } = useLocale()
 const course = ref<any>(null)
+const courseEvidence = ref<CommencementRules | null>(null)
+const courseLoading = ref(false)
+let courseVersion = 0
 
 // Which Handbooks are loaded, for units and for degrees. A plan reads each year
 // from that year's Handbook, and the degree's rules from the year the student
@@ -213,39 +217,39 @@ const course = ref<any>(null)
 // the API's default both came from the site's current Handbook, 2027 from
 // October 2026, which drops units like FIT1058 that are still taught in 2026.
 const { data: unitYears } = await useApiFetch<any>('/v1/units/filters')
-const { data: courseYears } = await useApiFetch<any>('/v1/courses/filters')
 const unitHandbook = (year: number) => handbookYearFor(year, unitYears.value?.years)
-const courseHandbook = computed(() => handbookYearFor(plan.value.startYear, courseYears.value?.years))
+// Degree requirements belong to the commencement year, even when that edition
+// is missing. The nearest-year fallback is only for unit planning, never degrees.
+const courseHandbook = computed(() => Number.isInteger(plan.value.startYear) ? plan.value.startYear : undefined)
 
 async function loadCourse() {
+  const version = ++courseVersion
+  course.value = null
+  courseEvidence.value = null
+  courseLoading.value = false
   if (!chosenCourse.value) {
-    course.value = null
     return
   }
-  const query = new URLSearchParams({
+  courseLoading.value = true
+  const evidence = await loadCommencementRules(apiFetch, chosenCourse.value, courseHandbook.value ?? 0, {
     campus: chosenCampus.value || '',
     locale: locale.value
   })
-  if (courseHandbook.value) query.set('year', String(courseHandbook.value))
-  try {
-    course.value = await apiFetch<any>(
-      `/v1/courses/${encodeURIComponent(chosenCourse.value)}?${query}`
-    )
-  } catch {
-    // A degree that has since been withdrawn, or the API being down. The
-    // planner still checks units; it just cannot draw the bars.
-    course.value = null
+  if (version === courseVersion) {
+    courseEvidence.value = evidence
+    course.value = evidence.snapshot
+    courseLoading.value = false
   }
 }
 
-onMounted(loadCourse)
-watch([chosenCourse, chosenCampus, locale, courseHandbook], loadCourse)
+watch([chosenCourse, chosenCampus, locale, courseHandbook], loadCourse, { flush: 'sync', immediate: import.meta.client })
+onBeforeUnmount(() => { ++courseVersion })
 
 const { data: courseList } = await useLocalisedApiFetch<any>(
   () => {
     const params = new URLSearchParams({ limit: '200' })
     if (chosenCampus.value) params.set('campus', chosenCampus.value)
-    if (courseHandbook.value) params.set('year', String(courseHandbook.value))
+    params.set('year', String(courseHandbook.value ?? -1))
     return `/v1/courses?${params}`
   },
   { watch: [chosenCampus, courseHandbook] }
@@ -929,6 +933,7 @@ useSeoMeta({ title: () => $t('plan.title') })
               <span class="ctl-label">{{ $t('plan.course') }}</span>
               <select ref="degreeSelect" v-model="plan.courseCode" class="ctl-input">
                 <option value="">{{ $t('plan.noCourse') }}</option>
+                <option v-if="plan.courseCode && !courseList?.results?.some((c: any) => c.course_code === plan.courseCode)" :value="plan.courseCode">{{ plan.courseCode }}</option>
                 <option v-for="c in courseList?.results || []" :key="c.course_code" :value="c.course_code">
                   {{ c.course_code }} {{ c.title }}
                 </option>
@@ -940,7 +945,7 @@ useSeoMeta({ title: () => $t('plan.title') })
 
             <label class="ctl ctl--narrow">
               <span class="ctl-label">{{ $t('plan.startYear') }}</span>
-              <input v-model.number="plan.startYear" class="ctl-input" type="number" min="2020" max="2040" />
+              <input v-model.number="plan.startYear" class="ctl-input" type="number" min="1990" max="2100" />
             </label>
             <!-- The verdict on the whole plan, where the eye already is, in the
                  same row as the inputs so it lines up with them. The side panel
@@ -970,6 +975,9 @@ useSeoMeta({ title: () => $t('plan.title') })
             </div>
           </div>
         </div>
+
+        <p v-if="courseLoading" class="small muted" role="status">{{ locale === 'zh' ? '正在核对入学年份的学位资料…' : 'Checking commencement-year degree information…' }}</p>
+        <CommencementRulesNotice v-if="courseEvidence" :evidence="courseEvidence" :show-structure="false" />
 
         <!-- An empty plan opens with what to do first, in order. It goes as
              soon as the first unit is on the map. -->
@@ -1178,7 +1186,8 @@ useSeoMeta({ title: () => $t('plan.title') })
               <span class="ring-small">{{ $t('courses.creditPoints') }}</span>
             </template>
           </PlanRing>
-          <p v-if="!requiredPoints" class="panel-note">{{ $t('plan.pickDegree') }}</p>
+          <p v-if="!requiredPoints && !plan.courseCode" class="panel-note">{{ $t('plan.pickDegree') }}</p>
+          <p v-else-if="!requiredPoints" class="panel-note">{{ locale === 'zh' ? '入学年份学位要求尚未核实，暂不计算学位完成比例。' : 'Commencement-year degree requirements are unverified; degree completion is not calculated.' }}</p>
           <p v-else-if="course?.title" class="panel-note">{{ course.course_code }} {{ course.title }}</p>
 
           <dl class="stats">
