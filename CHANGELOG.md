@@ -7,9 +7,11 @@ All notable changes to Monash Hub are documented here.
 - New `/electives` page: shortcuts into the unit list for the three things people ask about an elective (no final exam listed, no prerequisite listed, taught at my campus), with the number of units behind each link and the same list by faculty. It follows the campus chosen on the home page. Everything on it is a Handbook filter and the page says so: "not listed" is what the Handbook says, and whether a unit counts as a free elective is the course's own rule.
 - The unit list has a new filter, `no_prereq=true`: units the Handbook lists no prerequisite for. A prerequisite kept only as text still counts as one; a prohibition or corequisite does not. `/units` and `/units/facets` both accept it, and it shows as a chip like the other filters.
 - The home page links to the page beside "All units", and the sitemap lists it.
+- The exchange answer (`exchange-eligibility`) now labels its Malaysia sentence "Malaysia:" like the other two-campus answers, so it is shown first as well. Same content in both languages.
 - 新增 `/electives` 页面：选选修课最常问的三件事（没列出期末考试、没列出先修课、自己校区开不开）各有一个直接进课程列表的入口，旁边是符合条件的课程数量，下面按学院再列一遍。校区跟首页选的一致。页面上都是按Handbook做的筛选，并且写明：“没列出”只是Handbook没有写，一门课算不算自由选修要看自己学位的要求。
 - 课程列表新增筛选 `no_prereq=true`：Handbook没有列出先修课的课。只保留成文字的先修要求也算先修课，prohibition和corequisite不算。`/units` 和 `/units/facets` 都支持，选中后和其他筛选一样显示成标签。
 - 首页“全部课程”旁边加了入口，站点地图也收录了这个页面。
+- 交换那条回答（`exchange-eligibility`）里马来西亚的一句改成和其他回答一样以“马来西亚：”开头，这样也会排到前面，中英文内容不变。
 
 ## 2026-11-16 — Malaysia first in two-campus answers, units by name in Ask
 

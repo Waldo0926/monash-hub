@@ -480,8 +480,7 @@ FAQ_SEEDS: tuple[FaqSeed, ...] = (
         "WAM, how much of your course you have completed, and having units that can be "
         "credited back. "
         "Applications open well before the semester you want to travel in, so check the round "
-        "dates early. At the Malaysia campus, start from Monash Malaysia's outbound exchange "
-        "page.",
+        "dates early. Malaysia: start from Monash Malaysia's outbound exchange page.",
         "exchange",
         ("go", "eligible", "eligibility", "requirement", "requirements", "apply",
          "条件", "要求", "申请", "去", "出国"),
