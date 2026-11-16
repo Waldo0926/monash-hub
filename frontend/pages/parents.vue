@@ -157,7 +157,7 @@ async function copyId() {
 }
 
 const title = 'Monash马来西亚校区：给家长的介绍'
-const description = '莫纳什大学马来西亚校区的学校概况、世界排名、学位证书、高考和国际课程录取要求、奖学金、转澳大利亚校区、海外交换、每年费用和校园生活，内容来自学校官网'
+const description = '莫纳什大学（蒙纳士大学，Monash University）马来西亚校区的学校概况、世界排名、学位证书、高考和国际课程录取要求、奖学金、转澳大利亚校区、海外交换、每年费用和校园生活，内容来自学校官网'
 useSeoMeta({
   title,
   description,
@@ -182,7 +182,7 @@ useHead({
     <header class="intro">
       <h1>莫纳什大学马来西亚校区</h1>
       <p class="lead">
-        莫纳什大学（Monash University）是澳大利亚八校联盟成员，总部在墨尔本，马来西亚校区位于吉隆坡附近的双威城
+        莫纳什大学（Monash University，国内也译作蒙纳士大学）是澳大利亚八校联盟成员，总部在墨尔本，马来西亚校区位于吉隆坡附近的双威城
       </p>
       <p class="lead">
         以下内容整理自学校官网，每一项下面都附有英文原文链接

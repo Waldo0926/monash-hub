@@ -269,6 +269,17 @@ def test_ask_unknown_question_falls_back_to_community(client, loaded):
     assert body["fallback"]["ask_community"] is True
 
 
+def test_ask_with_a_subject_instead_of_a_code_lists_the_units(client, loaded):
+    # "数据结构" on the live site said "nothing answers this" while the search
+    # page listed the units. A subject is a request for the units about it.
+    body = client.post("/api/v1/ask", json={"query": "finance"}).json()
+    assert body["answer_type"] == "name_matches"
+    items = next(b for b in body["blocks"] if b["type"] == "match_list")["items"]
+    assert {"kind": "unit", "code": "BFF2140", "to": "/units/BFF2140"}.items() <= next(
+        i for i in items if i["code"] == "BFF2140").items()
+    assert body["fallback"]["ask_community"] is True
+
+
 PASSWORD = "Correct-Horse-9"
 
 
