@@ -152,7 +152,10 @@ def test_the_faq_answer_is_in_the_readers_language(client, seeded):
     body = ask(client, "我想退课", "zh")
     assert body["answer_type"] == "official_faq"
     assert body["title"] == "怎么退选一门课？"
-    assert "WES" in body["blocks"][0]["text"] and "退选" in body["blocks"][0]["text"]
+    texts = [block["text"] for block in body["blocks"] if block["type"] == "text"]
+    assert "WES" in "".join(texts) and "退选" in "".join(texts)
+    # Written for both campuses: the Malaysia paragraph is the first one shown.
+    assert texts[0].startswith("马来西亚：") and texts[1].startswith("澳大利亚：")
     assert body["translation"]["unofficial"] is True
     assert body["caveat_key"] == "answer.caveat.official"
 
@@ -224,8 +227,10 @@ def test_an_faq_answer_names_its_official_page(client, seeded):
 def test_an_answer_for_both_campuses_cites_both(client, seeded):
     body = ask(client, "休学会影响学生签证吗", "zh")
     assert body["faq_slug"] == "apply-for-intermission"
-    text = body["blocks"][0]["text"]
+    texts = [block["text"] for block in body["blocks"] if block["type"] == "text"]
+    text = "".join(texts)
     assert "澳大利亚" in text and "马来西亚" in text and "eVAL" in text
+    assert text.index("马来西亚：") < text.index("澳大利亚：")
     # Not one campus's chip on an answer for both.
     assert body["applies_to"] is None
     urls = [source["url"] for source in body["sources"]]
