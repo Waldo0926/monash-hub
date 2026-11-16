@@ -120,6 +120,13 @@ function ask(question: string) {
         </div>
       </div>
 
+      <ul v-else-if="block.type === 'match_list'" class="block req-items">
+        <li v-for="item in block.items" :key="item.to">
+          <NuxtLink :to="item.to" class="mono">{{ item.code }}</NuxtLink>
+          <span v-if="item.title" class="muted"> — {{ item.title }}</span>
+        </li>
+      </ul>
+
       <div v-else-if="block.type === 'list'" class="block">
         <h3 v-if="block.title">{{ say(block.title_key, block.title) }}</h3>
         <ul class="outcomes">

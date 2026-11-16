@@ -2,6 +2,17 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-16 — Malaysia first in two-campus answers, units by name in Ask
+
+- A curated answer written for both campuses ("Australia: ... Malaysia: ...") now shows the Malaysia paragraph first, each campus in its own paragraph. On a phone the Malaysia half used to sit below a paragraph about CoE and student visas that does not apply at Monash Malaysia. The stored text and its translations are unchanged; only the order shown changes.
+- `/ask` no longer answers "nothing answers this" when the question is the name of a subject (数据结构, "machine learning"). When no official page is about the question, it lists up to three degrees and five units whose title or overview matches, each linking to its Handbook page (`answer_type: name_matches`). Questions nothing matches still get the community fallback.
+- The parents page names the university as 莫纳什大学 and mentions 蒙纳士大学, the name most families in China search for.
+- Five Chinese unit titles corrected (word order in 公共关系导论 and Java 编程基础, a missing 导论, and the A/B suffix of the two TESOL practice units).
+- 同时适用两个校区的回答（“澳大利亚：……马来西亚：……”）现在先显示马来西亚，两个校区各占一段。以前在手机上，马来西亚那半段排在一段只跟澳洲有关的CoE和学生签证说明下面。存储的原文和译文不变，只改显示顺序。
+- 问题本身是一个学科名字时（数据结构、machine learning），`/ask` 不再回答“没有收录”，而是在没有官方页面对得上时列出最多三个学位和五门课，各自链接到Handbook页面（`answer_type: name_matches`）。完全对不上的问题仍然转到社区。
+- 家长页在“莫纳什大学”后面补上国内更常用的译名“蒙纳士大学”。
+- 修正五门课的中文标题（公共关系导论、Java 编程基础的词序，一处漏掉的“导论”，两门TESOL实践课的A/B位置）。
+
 ## 2026-11-03 — explicit admissions evidence and partial-year comparisons
 
 - Separate current programme-page application notices from tuition rows and future intake dates. Curated Malaysia sources retain provenance and expire to unverified after 30 days or a fetch failure; unreviewed programmes stay unverified. Fee tables can filter notice status.

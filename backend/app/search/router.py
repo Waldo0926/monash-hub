@@ -18,6 +18,7 @@ labelled machine translation of it is stored.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from sqlalchemy import exists, func, select
@@ -387,6 +388,29 @@ def _known_prefix(db: Session, code: str, year: int) -> bool:
     ))))
 
 
+# Answers written for both campuses read "Australia: ... Malaysia: ...". Most
+# readers here study at Monash Malaysia, and on a phone the Malaysia half was
+# below the fold, under a paragraph about CoE and student visas that does not
+# apply to them. Malaysia goes first, each campus in its own paragraph.
+_BOTH_CAMPUSES = re.compile(
+    r"^(.*?)(Australia:|澳大利亚：)\s*(.+?)\s*(Malaysia:|马来西亚：)\s*(.+)$", re.S)
+
+
+def malaysia_first(text: str) -> list[str]:
+    """The paragraphs of a FAQ answer, the Malaysia one ahead of the Australia one.
+
+    A sentence before the two ("Only with approval, and the rules depend on the
+    campus.") stays first.
+    """
+    found = _BOTH_CAMPUSES.match(text.strip())
+    if not found:
+        return [text]
+    lead, au_label, au, my_label, my = found.groups()
+    gap = " " if au_label.endswith(":") else ""
+    parts = [lead.strip(), f"{my_label}{gap}{my}", f"{au_label}{gap}{au}"]
+    return [part for part in parts if part]
+
+
 def _faq_answer(db: Session, entry, locale: str | None) -> dict[str, Any]:
     """A curated FAQ as the answer, in the reader's language where one is stored."""
     tr = translations.load(db, locale, FAQ_ENTRY, entry.slug, global_key=None)
@@ -416,8 +440,8 @@ def _faq_answer(db: Session, entry, locale: str | None) -> dict[str, Any]:
         # with the full page, so a client outside the site can link the reader there.
         "page_slug": page.slug if page else None,
         "title": tr.field("question", entry.question) or entry.question,
-        "blocks": [{"type": "text", "title": None,
-                    "text": tr.field("answer", entry.answer) or entry.answer}],
+        "blocks": [{"type": "text", "title": None, "text": part}
+                   for part in malaysia_first(tr.field("answer", entry.answer) or entry.answer)],
         # Marked like every other translated source: unofficial, and whether a
         # person or a machine wrote it.
         "translation": tr.meta(),
@@ -693,6 +717,30 @@ def answer(
         base["fallback"] = {"total_official": total, "ask_community": True}
         return base
 
+    # No page answers it, but the words may be a subject: 数据结构, "machine
+    # learning", 会计. The search page lists units and degrees for those; this
+    # endpoint used to say "nothing answers this" to a student who had typed
+    # the name of a unit instead of its code.
+    matches = _handbook_matches(db, query, year, locale)
+    if matches:
+        base.update(
+            {
+                "answer_type": "name_matches",
+                **_title("matches.title", "Units and courses that match"),
+                "blocks": [
+                    _verdict(
+                        "matches.verdict",
+                        "No official page answers this directly. "
+                        "These Handbook entries match your words."),
+                    {"type": "match_list", "items": matches},
+                ],
+                "caveat": None,
+            }
+        )
+        base["suggestions"] = _faq_questions(db, related[:3], locale)
+        base["fallback"] = {"ask_community": True}
+        return base
+
     posts, _ = service.search_community(db, query, limit=5)
     base.update(
         {
@@ -709,6 +757,39 @@ def answer(
     base["suggestions"] = _faq_questions(db, related[:3], locale)
     base["fallback"] = {"ask_community": True}
     return base
+
+
+MATCH_UNITS = 5
+MATCH_COURSES = 3
+
+
+def _handbook_matches(
+    db: Session, query: str, year: int, locale: str | None
+) -> list[dict[str, Any]]:
+    """Degrees and units whose title or overview is about ``query``, as links.
+
+    Titles are in the reader's language when a translation is stored, and stay
+    in English otherwise. Nothing here is a claim about the unit: each item is
+    a way in to its Handbook page.
+    """
+    from app.knowledge import translations
+    from app.models.translation import COURSE
+
+    items: list[dict[str, Any]] = []
+    courses, _ = service.search_courses(db, query, year=year, limit=MATCH_COURSES)
+    for course in courses:
+        title = course.title
+        if locale and locale != "en":
+            tr = translations.load(
+                db, locale, COURSE, course.course_code, source_hash=course.content_hash)
+            title = tr.field("title", course.title) or course.title
+        items.append({"kind": "course", "code": course.course_code, "title": title,
+                      "to": f"/courses/{course.course_code}"})
+    units, _ = service.search_units(db, query, year=year, limit=MATCH_UNITS)
+    for unit in units:
+        items.append({"kind": "unit", "code": unit.unit_code,
+                      "title": _unit_title(db, unit, locale), "to": f"/units/{unit.unit_code}"})
+    return items
 
 
 def _post_brief(post) -> dict[str, Any]:
