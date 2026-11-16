@@ -8,10 +8,12 @@ All notable changes to Monash Hub are documented here.
 - `/ask` no longer answers "nothing answers this" when the question is the name of a subject (数据结构, "machine learning"). When no official page is about the question, it lists up to three degrees and five units whose title or overview matches, each linking to its Handbook page (`answer_type: name_matches`). Questions nothing matches still get the community fallback.
 - The parents page names the university as 莫纳什大学 and mentions 蒙纳士大学, the name most families in China search for.
 - Five Chinese unit titles corrected (word order in 公共关系导论 and Java 编程基础, a missing 导论, and the A/B suffix of the two TESOL practice units).
+- 2026-11-17: the parents page now shows the English requirement, where it only said "see the English original". An "英语要求" part under entry requirements gives the IELTS (Academic) overall and per-skill minimums for most undergraduate degrees, for Human Nutrition and for Medicine, the three-year validity, the Malaysian Government's own two-year rule, and which other tests are and are not accepted. Typed in from Monash Malaysia's English Proficiency Tests page, with the link and the date under it.
 - 同时适用两个校区的回答（“澳大利亚：……马来西亚：……”）现在先显示马来西亚，两个校区各占一段。以前在手机上，马来西亚那半段排在一段只跟澳洲有关的CoE和学生签证说明下面。存储的原文和译文不变，只改显示顺序。
 - 问题本身是一个学科名字时（数据结构、machine learning），`/ask` 不再回答“没有收录”，而是在没有官方页面对得上时列出最多三个学位和五门课，各自链接到Handbook页面（`answer_type: name_matches`）。完全对不上的问题仍然转到社区。
 - 家长页在“莫纳什大学”后面补上国内更常用的译名“蒙纳士大学”。
 - 修正五门课的中文标题（公共关系导论、Java 编程基础的词序，一处漏掉的“导论”，两门TESOL实践课的A/B位置）。
+- 2026-11-17：家长页的英语要求以前只写“见英文原文”，现在在录取要求下面加了“英语要求”一段：大部分本科专业、人类营养学和医学各自的雅思（学术类）总分和单项最低分，成绩3年有效，马来西亚政府另按2年计算的规定，以及学校接受和不接受哪些其他考试。数字按Monash Malaysia的English Proficiency Tests页面录入，下面附原文链接和核对日期。
 
 ## 2026-11-03 — explicit admissions evidence and partial-year comparisons
 
