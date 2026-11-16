@@ -30,7 +30,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
 from app.models.curriculum import Course
-from app.models.handbook import Unit, UnitOffering
+from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.models.translation import (
     COURSE,
@@ -479,6 +479,7 @@ def _unit_filters(
     faculty: Choice = None,
     school: Choice = None,
     has_exam: bool | None = None,
+    no_prereq: bool | None = None,
 ) -> list:
     """WHERE clauses for the side filters. Several values in one filter mean any of them."""
     filters = []
@@ -495,6 +496,11 @@ def _unit_filters(
         filters.append(Unit.school.in_(schools))
     if has_exam is not None:
         filters.append(Unit.has_exam.is_(has_exam))
+    if no_prereq is not None:
+        # Any prerequisite block counts, including one the parser could only keep
+        # as text: "the Handbook lists none" is the claim, never "there is none".
+        listed = Unit.requisite_groups.any(UnitRequisiteGroup.requisite_type == "prerequisite")
+        filters.append(~listed if no_prereq else listed)
     return filters
 
 

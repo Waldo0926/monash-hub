@@ -60,3 +60,16 @@ test('a single-year unit still gives a route to the comparison page', async ({ p
   await expect(page).toHaveURL(/\/units\/compare\?/)
   await expect(page.getByPlaceholder('FIT2102')).toHaveValue('FIT2004')
 })
+
+test('the electives page opens the unit list with its filters set', async ({ page }) => {
+  await page.goto('/electives')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('找选修课')
+  const cards = page.locator('.presets a')
+  await expect(cards).toHaveCount(4)
+  // The second card: no prerequisite listed, at the campus chosen on the home page.
+  await cards.nth(1).click()
+  await expect(page).toHaveURL(/\/units\?/)
+  await expect(page).toHaveURL(/no_prereq=true/)
+  await expect(page).toHaveURL(/campus=Malaysia/)
+  await expect(page.getByText('未列出先修课').first()).toBeVisible()
+})
