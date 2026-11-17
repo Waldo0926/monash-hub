@@ -56,7 +56,7 @@ const COPY = {
     switcher: '校区',
     campus: { malaysia: '马来西亚', australia: '澳大利亚' },
     statusGroup: '考试',
-    noPrereq: '无前置要求',
+    noPrereq: '无需先修课',
     level1: '只看一年级',
     found: '{n} 门',
     scope: { malaysia: '马来西亚校区的本科课', australia: '澳大利亚校区的本科课' },

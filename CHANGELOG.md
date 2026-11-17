@@ -8,12 +8,12 @@ All notable changes to Monash Hub are documented here.
 - Unit cards show the status in its colour (green, amber, red, grey) and a line with each assessment item and its weight, such as "Written 20% · Presentation 40%".
 - The electives page is built around the four colours, with counts, plus "no prerequisite listed" and "first year only" switches. The sample and its counts are undergraduate units at the chosen campus. Its intro is one short line now.
 - The unit list's exam filter offers the same four. Old `has_exam` links still work.
-- Chinese: "没列出先修课" is now "无前置要求", and the exam filter no longer says "有期末考试" for any exam listed.
+- Chinese: "没列出先修课" is now "无需先修课", and the exam filter no longer says "有期末考试" for any exam listed.
 - 每门课都有了按Handbook考核项目算出的考试状态：**没列考试**（没有考试、quiz或test）、**有小测**（没列考试，但有quiz或test）、**有考试**、**待核实**（Handbook没列考核）。考核名称写明final的，卡片上标“期末考”。接口返回 `exam_status`，也能按它筛选和计数
 - 课程卡片用颜色显示考试状态（绿、黄、红、灰），并列出每项考核和比例
-- 找选修课页面改成四种颜色加数量，另有“无前置要求”“只看一年级”两个开关，只列所选校区的本科课。页面开头改成一句短话
+- 找选修课页面改成四种颜色加数量，另有“无需先修课”“只看一年级”两个开关，只列所选校区的本科课。页面开头改成一句短话
 - 课程列表的考试筛选也改成这四种，旧的 `has_exam` 链接照常能用
-- 中文“没列出先修课”改成“无前置要求”。考试筛选里原来把“列出了考试”写成“有期末考试”，已改正
+- 中文“没列出先修课”改成“无需先修课”。考试筛选里原来把“列出了考试”写成“有期末考试”，已改正
 
 ## 2026-11-17 — a cleaner electives page and footer
 
