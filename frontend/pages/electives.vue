@@ -31,7 +31,7 @@ if (campus.value !== 'malaysia' && campus.value !== 'australia') campus.value = 
 const COPY = {
   en: {
     title: 'Find an elective',
-    lead: 'What people want to know about an elective: does it have an exam, does it need a prerequisite, does it run at my campus. Pick a condition to see units that fit.',
+    lead: 'Filter units at your campus by exam and prerequisite.',
     switcher: 'Campus',
     campus: { malaysia: 'Malaysia', australia: 'Australia' },
     conditions: 'Conditions',
@@ -58,7 +58,7 @@ const COPY = {
   },
   zh: {
     title: '找选修课',
-    lead: '选选修课大家最关心有没有考试、要不要先修课、自己校区开不开，选一个条件就能看到符合的课',
+    lead: '按有没有考试、要不要先修课，筛出你校区开的课',
     switcher: '校区',
     campus: { malaysia: '马来西亚', australia: '澳大利亚' },
     conditions: '条件',
@@ -239,7 +239,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/electives` 
 }
 .intro { min-width: 0; }
 .head h1 { margin: 0 0 var(--s2); }
-.lead { max-width: 36em; margin: 0; color: var(--muted); }
+.lead { margin: 0; color: var(--muted); }
 
 .seg {
   flex: none;
