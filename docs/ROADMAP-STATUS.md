@@ -51,8 +51,7 @@ have working first versions.**
    `/units/compare`, with explicit year requests, source links and check dates.
    The follow-up records collection availability and keeps completed-result years
    fixed while inputs change; see [comparison evidence](HANDBOOK-COMPARISON.md).
-   Degree/AOS-wide comparison is not implemented by this unit page. Final live
-   acceptance and commencement-year applicability remain separate checks.
+   The comparison now carries optional exact commencement-degree context; the planner no longer substitutes a neighbouring degree edition. Degree/AOS-wide comparison is not implemented by this unit page. Final live acceptance remains pending after reviewed deployment.
 
 ## Explicitly not now
 

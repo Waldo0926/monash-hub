@@ -4,6 +4,7 @@
  * is missing: the difference between a 404 and a changed rule matters.
  */
 import { compareUnitSnapshots, type UnitSnapshot } from '~/utils/unitCompare'
+import { loadCommencementRules, type CommencementRules } from '~/utils/commencementRules'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,9 +15,12 @@ const code = ref(String(route.query.code || '').toUpperCase())
 const from = ref(Number(route.query.from) || 0)
 const to = ref(Number(route.query.to) || 0)
 const busy = ref(false)
+const courseCode = ref(String(route.query.course || '').toUpperCase())
+const commencementYear = ref<number | null>(Number(route.query.commenced) || null)
+const { plan } = usePlan()
 const message = ref('')
-const result = shallowRef<{ code: string; fromYear: number; toYear: number; before: UnitSnapshot | null; after: UnitSnapshot | null } | null>(null)
-const changedInputs = computed(() => result.value && (code.value.trim().toUpperCase() !== result.value.code || from.value !== result.value.fromYear || to.value !== result.value.toYear))
+const result = shallowRef<{ code: string; fromYear: number; toYear: number; before: UnitSnapshot | null; after: UnitSnapshot | null; commencement: CommencementRules | null } | null>(null)
+const changedInputs = computed(() => result.value && (code.value.trim().toUpperCase() !== result.value.code || from.value !== result.value.fromYear || to.value !== result.value.toYear || courseCode.value.trim().toUpperCase() !== (result.value.commencement?.code || '') || (courseCode.value.trim() && commencementYear.value !== result.value.commencement?.year)))
 
 const { data: filters } = await useApiFetch<{ years: number[] }>('/v1/units/filters')
 const years = computed(() => filters.value?.years || [])
@@ -82,12 +86,21 @@ async function compare() {
   }
   const requestFrom = from.value
   const requestTo = to.value
+  const degreeCode = courseCode.value.trim().toUpperCase()
+  const commenced = commencementYear.value
+  if (degreeCode && (!Number.isInteger(commenced) || !commenced || commenced < 1990 || commenced > 2100)) {
+    message.value = zh.value ? '请填写对应学位的入学年份' : 'Enter the commencement year for the selected degree.'
+    return
+  }
   busy.value = true
   try {
-    const [before, after] = await Promise.all([load(wanted, requestFrom), load(wanted, requestTo)])
-    result.value = { code: wanted, fromYear: requestFrom, toYear: requestTo, before, after }
+    const [before, after, commencement] = await Promise.all([
+      load(wanted, requestFrom), load(wanted, requestTo),
+      degreeCode && commenced ? loadCommencementRules(apiFetch, degreeCode, commenced) : Promise.resolve(null)
+    ])
+    result.value = { code: wanted, fromYear: requestFrom, toYear: requestTo, before, after, commencement }
     code.value = wanted
-    await router.replace({ query: { code: wanted, from: String(requestFrom), to: String(requestTo) } })
+    await router.replace({ query: { code: wanted, from: String(requestFrom), to: String(requestTo), course: degreeCode || undefined, commenced: degreeCode && commenced ? String(commenced) : undefined } })
   } catch {
     message.value = zh.value ? '暂时无法读取Handbook，请稍后重试' : 'Could not read the Handbook right now. Please try again.'
   } finally {
@@ -97,6 +110,10 @@ async function compare() {
 
 // A link from a unit page or the search box carries the code; compare at once.
 onMounted(() => {
+  if (!route.query.course && plan.value.courseCode) {
+    courseCode.value = plan.value.courseCode
+    commencementYear.value = plan.value.startYear
+  }
   if (route.query.code) void compare()
 })
 useSeoMeta({
@@ -115,6 +132,12 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
     </header>
 
     <form class="compare-form card" @submit.prevent="compare">
+      <label>{{ zh ? '学位代码（可选）' : 'Degree code (optional)' }}
+        <input v-model="courseCode" class="compare-input" maxlength="16" placeholder="C2001" :disabled="busy">
+      </label>
+      <label>{{ zh ? '学位入学年份' : 'Degree commencement year' }}
+        <input v-model.number="commencementYear" class="compare-input" type="number" min="1990" max="2100" :required="!!courseCode.trim()" :disabled="busy">
+      </label>
       <label>{{ zh ? '课程代码' : 'Unit code' }}
         <input v-model="code" class="compare-input" type="text" placeholder="FIT2102" maxlength="16" required autocomplete="off" :disabled="busy">
       </label>
@@ -137,6 +160,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/units/compa
     </p>
 
     <template v-if="result">
+      <CommencementRulesNotice v-if="result.commencement" :evidence="result.commencement" :show-structure="true" />
       <p v-if="changedInputs" class="compare-warning" role="status">{{ zh ? '选择已改变。下方仍为上次比较结果，请点击“比较变化”更新。' : 'Selection changed. The results below still show the last comparison; press Compare to update.' }}</p>
       <p class="small muted comparison-context">{{ result.code }} · {{ result.fromYear }} → {{ result.toYear }}</p>
       <div v-if="!result.before || !result.after" class="card compare-warning" role="status">
