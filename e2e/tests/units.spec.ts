@@ -64,16 +64,18 @@ test('a single-year unit still gives a route to the comparison page', async ({ p
 test('the electives page opens the unit list with its filters set', async ({ page }) => {
   await page.goto('/electives')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('找选修课')
-  const conditions = page.locator('.conditions button')
-  await expect(conditions).toHaveCount(4)
-  // The second condition: no prerequisite listed. The page keeps it in the
-  // address and shows a few units before the link to all of them.
-  await conditions.nth(1).click()
-  await expect(conditions.nth(1)).toHaveAttribute('aria-pressed', 'true')
-  await expect(page).toHaveURL(/show=noPrereq/)
-  await page.locator('.sample-head a').click()
+  const statuses = page.locator('.statuses button')
+  await expect(statuses).toHaveCount(4)
+  // Quiz or test, with no prerequisite listed: both go into the address and
+  // on to the full unit list.
+  await statuses.nth(1).click()
+  await expect(statuses.nth(1)).toHaveAttribute('aria-pressed', 'true')
+  await expect(page).toHaveURL(/status=quiz/)
+  await page.locator('.switches button').first().click()
+  await expect(page).toHaveURL(/prereq=1/)
+  await page.locator('.more a').click()
   await expect(page).toHaveURL(/\/units\?/)
+  await expect(page).toHaveURL(/exam_status=quiz/)
   await expect(page).toHaveURL(/no_prereq=true/)
   await expect(page).toHaveURL(/campus=Malaysia/)
-  await expect(page.getByText('未列出先修课').first()).toBeVisible()
 })

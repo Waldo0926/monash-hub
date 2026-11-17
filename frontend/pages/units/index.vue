@@ -44,7 +44,9 @@ const filters = reactive({
   school: many(route.query.school),
   prefix: many(route.query.prefix),
   level: many(route.query.level),
+  // Old links (and the bot) still say has_exam; the filter now offers exam_status.
   has_exam: (route.query.has_exam as string) || '',
+  exam_status: many(route.query.exam_status).filter(s => (EXAM_STATUSES as readonly string[]).includes(s)),
   no_prereq: route.query.no_prereq === 'true' ? 'true' : '',
   sort: (route.query.sort as string) || 'relevance'
 })
@@ -71,6 +73,7 @@ const filterParams = computed(() => {
   if (filters.year) params.set('year', filters.year)
   for (const key of MULTI) for (const value of filters[key]) params.append(key, value)
   if (filters.has_exam) params.set('has_exam', filters.has_exam)
+  for (const value of filters.exam_status) params.append('exam_status', value)
   if (filters.no_prereq) params.set('no_prereq', filters.no_prereq)
   return params
 })
@@ -106,6 +109,7 @@ function syncUrl() {
   if (filters.year) q.year = filters.year
   for (const key of MULTI) if (filters[key].length) q[key] = [...filters[key]]
   if (filters.has_exam) q.has_exam = filters.has_exam
+  if (filters.exam_status.length) q.exam_status = [...filters.exam_status]
   if (filters.no_prereq) q.no_prereq = filters.no_prereq
   if (filters.sort !== 'relevance') q.sort = filters.sort
   if (page.value > 1) q.page = String(page.value)
@@ -147,25 +151,18 @@ function optionsFor(key: MultiKey) {
   return ((facets.value?.[FACET_LIST[key]] || []) as string[]).map(value => ({ value, label: LABEL[key](value) }))
 }
 
-const examOptions = computed(() => [
-  { value: 'true', label: $t('units.hasExamShort') },
-  { value: 'false', label: $t('units.noExamShort') }
-])
+// The four colours of the unit cards, in the same order as the electives page.
+const examOptions = computed(() => EXAM_STATUSES.map(value => ({ value, label: $t(`units.status.${value}`) })))
 // One box: the opposite ("has a prerequisite") is not something anyone filters for.
 const prereqOptions = computed(() => [{ value: 'true', label: $t('units.noPrereqShort') }])
 const prereqValue = computed({
   get: () => (filters.no_prereq ? ['true'] : []),
   set: (next: string[]) => { filters.no_prereq = next.length ? 'true' : '' }
 })
-const examValue = computed({
-  get: () => (filters.has_exam ? [filters.has_exam] : []),
-  // Two boxes for one yes or no: ticking one unticks the other.
-  set: (next: string[]) => { filters.has_exam = next.find(v => v !== filters.has_exam) || '' }
-})
 
 // --- filters as chips ---------------------------------------------------------------
 
-type FilterKey = MultiKey | 'has_exam' | 'no_prereq'
+type FilterKey = MultiKey | 'has_exam' | 'exam_status' | 'no_prereq'
 
 const active = computed(() => {
   const chips: { key: FilterKey; value: string; label: string }[] = []
@@ -177,12 +174,14 @@ const active = computed(() => {
       label: filters.has_exam === 'true' ? $t('units.hasExam') : $t('units.noExam')
     })
   }
+  for (const value of filters.exam_status) chips.push({ key: 'exam_status', value, label: $t(`units.status.${value}`) })
   if (filters.no_prereq) chips.push({ key: 'no_prereq', value: 'true', label: $t('units.noPrereq') })
   return chips
 })
 
 function clear(key: FilterKey, value: string) {
   if (key === 'has_exam') filters.has_exam = ''
+  else if (key === 'exam_status') filters.exam_status = filters.exam_status.filter(v => v !== value)
   else if (key === 'no_prereq') filters.no_prereq = ''
   else filters[key] = filters[key].filter(v => v !== value)
 }
@@ -190,6 +189,7 @@ function clear(key: FilterKey, value: string) {
 function reset() {
   for (const key of MULTI) filters[key] = []
   filters.has_exam = ''
+  filters.exam_status = []
   filters.no_prereq = ''
 }
 
@@ -370,8 +370,12 @@ useSeoMeta({
             <FilterOptions v-model="filters.level" :options="optionsFor('level')" :counts="counts?.level" :limit="0" />
           </FilterGroup>
 
-          <FilterGroup :title="$t('units.examination')" :selected="filters.has_exam ? 1 : 0" :open="!!filters.has_exam">
-            <FilterOptions v-model="examValue" :options="examOptions" :counts="counts?.has_exam" :limit="0" />
+          <FilterGroup
+            :title="$t('units.examination')"
+            :selected="filters.exam_status.length"
+            :open="!!filters.exam_status.length"
+          >
+            <FilterOptions v-model="filters.exam_status" :options="examOptions" :counts="counts?.exam_status" :limit="0" />
             <p class="tiny muted note">{{ $t('units.examNote') }}</p>
           </FilterGroup>
 
