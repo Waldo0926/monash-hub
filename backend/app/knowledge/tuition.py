@@ -460,6 +460,8 @@ def _meta(page: OfficialPage) -> dict:
         "url": page.canonical_url,
         "level": LEVEL[page.slug],
         "last_checked": page.last_checked.isoformat() if page.last_checked else None,
+        "source_hash": page.content_hash,
+        "refresh_failed": bool(page.fetch_error),
     }
 
 

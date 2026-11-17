@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { october2027Status, intake2027Status, INTAKES_2027, APPLICATION_STATUS_2027, OCTOBER_2027_SOURCE } from '../utils/intake2027'
 
 describe('verified 2027 October intake evidence', () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-08T12:00:00Z')) })
+  afterEach(() => { vi.useRealTimers() })
+  it('does not reuse a dated list for another year or after its review expires', () => {
+    expect(intake2027Status('Bachelor of Psychology', 'october', 2028)).toBe('not_verified')
+    vi.setSystemTime(new Date('2027-01-01T00:00:00Z'))
+    expect(intake2027Status('Bachelor of Psychology', 'october', 2027)).toBe('not_verified')
+  })
   it('recognises only exact titles publicly listed on the university site', () => {
     expect(october2027Status('Bachelor of Psychology and Business')).toBe('listed')
     expect(october2027Status('Bachelor of Psychology')).toBe('listed')
