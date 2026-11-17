@@ -64,10 +64,14 @@ test('a single-year unit still gives a route to the comparison page', async ({ p
 test('the electives page opens the unit list with its filters set', async ({ page }) => {
   await page.goto('/electives')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('找选修课')
-  const cards = page.locator('.presets a')
-  await expect(cards).toHaveCount(4)
-  // The second card: no prerequisite listed, at the campus chosen on the home page.
-  await cards.nth(1).click()
+  const conditions = page.locator('.conditions button')
+  await expect(conditions).toHaveCount(4)
+  // The second condition: no prerequisite listed. The page keeps it in the
+  // address and shows a few units before the link to all of them.
+  await conditions.nth(1).click()
+  await expect(conditions.nth(1)).toHaveAttribute('aria-pressed', 'true')
+  await expect(page).toHaveURL(/show=noPrereq/)
+  await page.locator('.sample-head a').click()
   await expect(page).toHaveURL(/\/units\?/)
   await expect(page).toHaveURL(/no_prereq=true/)
   await expect(page).toHaveURL(/campus=Malaysia/)

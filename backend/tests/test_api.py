@@ -665,6 +665,24 @@ def test_units_filter_by_no_prerequisite_listed(client, faculties):
         "Faculty of Engineering": 1, "Faculty of Information Technology": 1}
 
 
+def test_mixed_sort_takes_turns_between_faculties(client, faculties):
+    # The electives page shows a dozen units. In code order they would all come
+    # from the first prefix; mixed gives every faculty a turn, lowest level first.
+    db = faculties
+    db.add_all([
+        _plain_unit("BUS2001", faculty="Faculty of Business", school="Business School",
+                    offerings=[("Malaysia", "First semester")], level="Level 2"),
+        _plain_unit("FIT0003", faculty="Faculty of Information Technology",
+                    school="School of Information Technology",
+                    offerings=[("Malaysia", "First semester")]),
+    ])
+    db.commit()
+    body = client.get("/api/v1/units", params={"sort": "mixed"}).json()
+    assert [r["unit_code"] for r in body["results"]] == [
+        "ENG1001", "FIT1001", "BUS2001", "FIT1002", "FIT0003"]
+    assert body["total"] == 5
+
+
 def test_several_values_in_one_filter_mean_any_of_them(client, faculties):
     body = client.get(
         "/api/v1/units",

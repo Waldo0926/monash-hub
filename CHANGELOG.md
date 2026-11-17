@@ -2,6 +2,15 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-17 — a cleaner electives page and footer
+
+- The electives page is laid out again. The four conditions are one row of equal tiles with their counts, and the chosen one shows a dozen undergraduate units that fit, taking turns between faculties, with a button to the full list. The list by faculty is gone: the Handbook's "faculty" mixes faculties with departments, so it read as a jumble. The chosen condition is kept in the address (`?show=noPrereq`).
+- `GET /api/v1/units` takes `sort=mixed`: the lowest-level unit of each faculty first, then the next of each, so a short sample is not all one subject.
+- The footer uses the page's width, so its left edge lines up with the content above. The logo sits on one line with the name, the column headings use the body font, the features are one column, and the WeChat line and credits each have their own row.
+- 找选修课页面重新排版：四个条件排成一行等宽的卡片并显示数量，选中的条件下面先列 12 门符合的本科课（轮流取各学院的课），再给一个查看全部的按钮。去掉了按学院分组：Handbook 里的“学院”混着学院和系，看起来很乱。选中的条件会写进网址（`?show=noPrereq`）
+- `GET /api/v1/units` 新增 `sort=mixed`：先取每个学院等级最低的一门，再取每个学院的下一门，短列表不会全是同一个科目
+- 页脚改用和页面相同的宽度，左边和上面的内容对齐。logo 和名字放在一行，栏目标题改用正文字体，功能导航改成一列，公众号和署名各占一行
+
 ## 2026-11-17 — the electives page says "exam", as the filter does
 
 - The electives page called its first card "No final exam listed". The filter behind it is the unit list's "No exam listed": no assessment item in the Handbook is called an exam or examination, which covers final and mid-semester exams alike and does not cover quizzes or tests. The page now uses the same word and says what counts.

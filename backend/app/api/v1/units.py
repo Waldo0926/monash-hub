@@ -40,7 +40,7 @@ def list_units(
     no_prereq: bool | None = Query(
         None, description="true: units the Handbook lists no prerequisite for"
     ),
-    sort: str = Query("relevance", pattern="^(relevance|code|title)$"),
+    sort: str = Query("relevance", pattern="^(relevance|code|title|mixed)$"),
     codes: str | None = Query(
         None, max_length=300, description="Comma-separated unit codes, returned in that order"
     ),

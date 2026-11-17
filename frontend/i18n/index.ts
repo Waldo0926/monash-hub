@@ -1696,7 +1696,7 @@ const zh: Messages = {
   'privacy.title': '隐私政策',
   'privacy.updated': '最近更新：{date}',
   'footer.conceptBy': '创意：',
-  'footer.copyright': '© 2026 Waldo。保留所有权利',
+  'footer.copyright': '© 2026 Waldo 保留所有权利',
 
   // --- installed app (PWA) ---------------------------------------------
   'pwa.description': 'Monash课程、学位、官方指南和学生社区',

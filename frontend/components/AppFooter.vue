@@ -28,110 +28,100 @@ const featuresHeading = computed(() => {
 
 <template>
   <footer class="footer">
-    <div class="container inner">
-      <div class="about">
-        <p class="brand">
-          <AppLogo :size="32" tone="onLight" />
-          <span>
+    <div class="container">
+      <div class="top">
+        <div class="about">
+          <NuxtLink to="/" class="brand">
+            <AppLogo :size="28" tone="onLight" />
             <strong>Monash Hub</strong>
-            <span class="tiny muted block">{{ $t('footer.about') }}</span>
-            <span class="tiny muted block credit">
-              {{ $t('footer.conceptBy') }}
-              <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a>
-            </span>
-            <span class="tiny muted block credit">
-              {{ $t('footer.builtMaintainedBy') }}
-              <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a>
-            </span>
-            <span class="tiny muted block credit">
-              <NuxtLink to="/privacy">{{ $t('footer.privacy') }}</NuxtLink>
-            </span>
-          </span>
-        </p>
-        <p v-if="showDisclaimer" class="small disclaimer">{{ $t('footer.disclaimer') }}</p>
-        <!-- Always here, for anyone who closed the hint at the top of the page.
-             Not shown inside the installed app, where it has nothing to do. -->
-        <ClientOnly>
-          <details v-if="!standalone" class="install">
-            <summary class="small">{{ $t('pwa.footerTitle') }}</summary>
-            <InstallSteps />
-          </details>
-        </ClientOnly>
+          </NuxtLink>
+          <p class="tagline small">{{ $t('footer.about') }}</p>
+          <p v-if="showDisclaimer" class="disclaimer small">{{ $t('footer.disclaimer') }}</p>
+          <!-- Always here, for anyone who closed the hint at the top of the page.
+               Not shown inside the installed app, where it has nothing to do. -->
+          <ClientOnly>
+            <details v-if="!standalone" class="install">
+              <summary class="small">{{ $t('pwa.footerTitle') }}</summary>
+              <InstallSteps />
+            </details>
+          </ClientOnly>
+        </div>
+
+        <div class="cols">
+          <nav class="col" :aria-label="featuresHeading">
+            <h2 class="heading">{{ featuresHeading }}</h2>
+            <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">{{ link.label }}</NuxtLink>
+          </nav>
+
+          <nav class="col" :aria-label="$t('footer.official')">
+            <h2 class="heading">{{ $t('footer.official') }}</h2>
+            <a href="https://handbook.monash.edu" rel="noopener external" target="_blank">
+              {{ $t('footer.handbookLink') }} <span class="ext" aria-hidden="true">↗</span>
+            </a>
+            <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
+              {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
+            </a>
+            <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+              {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
+            </a>
+          </nav>
+
+          <!-- The systems a student logs into, apart from the reference sites
+               because these are things you do, not things you read. Which campus
+               a system belongs to is what a reader checks, so each campus has its
+               own column rather than a label on every row. -->
+          <nav class="col" :aria-label="$t('footer.systems')">
+            <h2 class="heading">{{ $t('footer.systems') }}</h2>
+            <a
+              v-for="system in EVERY_CAMPUS_SYSTEMS"
+              :key="system.url"
+              :href="system.url"
+              rel="noopener external"
+              target="_blank"
+            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+          </nav>
+
+          <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+            <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
+            <a
+              v-for="system in MALAYSIA_SYSTEMS"
+              :key="system.url"
+              :href="system.url"
+              rel="noopener external"
+              target="_blank"
+            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+          </nav>
+        </div>
       </div>
 
-      <nav class="col explore-col" :aria-label="featuresHeading">
-        <h2 class="tiny muted heading">{{ featuresHeading }}</h2>
-        <div class="explore-links">
-          <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">
-            {{ link.label }}
-          </NuxtLink>
-        </div>
-      </nav>
+      <!-- Points at the 马莫百科 page rather than only naming the account, so
+           someone can see what it posts and scan the QR codes there. A filled
+           button, because as plain bold text nobody saw it could be clicked. -->
+      <div class="wechat">
+        <p class="wechat-text small">
+          {{ wechatParts[0] }}<NuxtLink to="/mamo" class="wechat-name">马莫百科</NuxtLink>{{ wechatParts[1] }}
+        </p>
+        <NuxtLink to="/mamo#follow" class="btn btn--small wechat-cta">
+          <svg class="qr-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path
+              d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>{{ $t('footer.wechatCta') }}</span>
+        </NuxtLink>
+      </div>
 
-      <nav class="col" :aria-label="$t('footer.official')">
-        <h2 class="tiny muted heading">{{ $t('footer.official') }}</h2>
-        <a href="https://handbook.monash.edu" rel="noopener external" target="_blank">
-          {{ $t('footer.handbookLink') }} ↗
-        </a>
-        <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
-          {{ $t('footer.monashStudents') }} ↗
-        </a>
-        <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
-          {{ $t('footer.monashMalaysia') }} ↗
-        </a>
-      </nav>
-
-      <!-- The systems a student logs into. Kept apart from the reference sites
-           above because these are things you do, not things you read, and in two
-           columns rather than one list: which campus a system belongs to is the
-           thing a reader is checking, and side by side that is one glance rather
-           than a label to read on every row. -->
-      <nav class="col" :aria-label="$t('footer.systems')">
-        <h2 class="tiny muted heading">{{ $t('footer.systems') }}</h2>
-        <a
-          v-for="system in EVERY_CAMPUS_SYSTEMS"
-          :key="system.url"
-          :href="system.url"
-          rel="noopener external"
-          target="_blank"
-        >{{ system.name }} ↗</a>
-      </nav>
-
-      <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
-        <h2 class="tiny muted heading">{{ $t('footer.systemsMalaysia') }}</h2>
-        <a
-          v-for="system in MALAYSIA_SYSTEMS"
-          :key="system.url"
-          :href="system.url"
-          rel="noopener external"
-          target="_blank"
-        >{{ system.name }} ↗</a>
-      </nav>
-
-      <div class="footer-bottom">
-        <!-- Points at the 马莫百科 page rather than only naming the account,
-             so someone can see what it posts and scan the QR codes there. -->
-        <div class="wechat">
-          <p class="small wechat-text">
-            {{ wechatParts[0] }}<NuxtLink to="/mamo" class="wechat-name">马莫百科</NuxtLink>{{ wechatParts[1] }}
-          </p>
-          <!-- A filled button rather than another text link: as plain bold text
-               at the end of the sentence nobody saw that it could be clicked. -->
-          <NuxtLink to="/mamo#follow" class="btn btn--small wechat-cta">
-            <svg class="qr-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path
-                d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span>{{ $t('footer.wechatCta') }}</span>
-            <span aria-hidden="true">→</span>
-          </NuxtLink>
-        </div>
-        <p class="tiny copyright">{{ $t('footer.copyright') }}</p>
+      <div class="bottom tiny">
+        <p class="copyright">{{ $t('footer.copyright') }}</p>
+        <p class="credits">
+          <span>{{ $t('footer.conceptBy') }} <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a></span>
+          <span>{{ $t('footer.builtMaintainedBy') }} <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a></span>
+          <NuxtLink to="/privacy">{{ $t('footer.privacy') }}</NuxtLink>
+        </p>
       </div>
     </div>
   </footer>
@@ -140,122 +130,103 @@ const featuresHeading = computed(() => {
 <style scoped>
 .footer {
   margin-top: var(--s8);
-  padding: var(--s6) 0 var(--s7);
+  padding: var(--s7) 0 var(--s5);
   background: var(--footer-bg);
   border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
 }
-.inner {
+
+.top {
   display: grid;
-  width: 100%;
-  max-width: 1540px;
-  padding-inline: clamp(24px, 3vw, 56px);
-  /* The feature navigation gets enough room for two balanced columns while the
-     product description and external-resource groups keep comfortable widths. */
-  grid-template-columns:
-    minmax(280px, 1.45fr) minmax(320px, 1.35fr) minmax(190px, 1.05fr)
-    minmax(150px, 0.8fr) minmax(165px, 0.85fr);
-  column-gap: clamp(28px, 2.8vw, 52px);
-  row-gap: var(--s5);
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2.4fr);
+  gap: var(--s6) var(--s7);
   align-items: start;
 }
 
-.brand { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
-.block { display: block; }
-.credit { line-height: 1.45; }
-.credit :deep(a) { font-weight: 600; }
-.disclaimer { margin: 0; color: var(--muted); }
-.install { margin-top: var(--s4); color: var(--footer-heading); }
-.install summary {
-  cursor: pointer;
-  font-weight: 600;
-  min-height: 32px;
-  display: flex;
+.brand {
+  display: inline-flex;
   align-items: center;
+  gap: var(--s2);
+  font-size: 1.05rem;
+}
+.footer .brand { color: var(--footer-heading); }
+.footer .brand:hover { text-decoration: none; }
+.tagline { margin: var(--s2) 0 var(--s3); color: var(--footer-heading); }
+.disclaimer { margin: 0; max-width: 32em; line-height: 1.6; }
+.install { margin-top: var(--s3); color: var(--footer-heading); }
+.install summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-weight: 600;
+  cursor: pointer;
 }
 .install :deep(.install-steps) { margin-top: var(--s2); }
-.footer-bottom {
-  grid-column: 1 / -1;
+
+.cols {
   display: grid;
-  gap: var(--s3);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: var(--s5);
 }
+.col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.heading {
+  margin: 0 0 var(--s1);
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+}
+.col a { font-size: 0.9rem; line-height: 1.4; }
+.ext { color: var(--muted-2); font-size: 0.8em; }
+
 .wechat {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--s3) var(--s4);
-  padding-left: var(--s3);
-  border-left: 2px solid var(--footer-accent);
+  margin-top: var(--s6);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--footer-border);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
-.wechat-text {
-  margin: 0;
-  color: var(--footer-heading);
-}
-.footer .wechat-name {
-  color: var(--brand);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.footer .wechat-cta {
-  background: var(--brand);
-  color: #fff;
-  font-weight: 600;
-}
-.footer .wechat-cta:hover {
-  background: var(--brand-700);
-  color: #fff;
-}
+.wechat-text { margin: 0; color: var(--footer-heading); }
+.footer .wechat-name { color: var(--brand); font-weight: 600; }
+.footer .wechat-cta { background: var(--brand); color: #fff; font-weight: 600; }
+.footer .wechat-cta:hover { background: var(--brand-700); color: #fff; }
 .qr-icon { flex: none; }
-.copyright {
-  margin: 0;
-  color: var(--footer-text);
-}
 
-.col { display: grid; align-content: start; gap: var(--s2); }
-.explore-col { grid-template-rows: auto 1fr; }
-.explore-links {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: var(--s5);
-  row-gap: var(--s2);
-  align-content: start;
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2) var(--s4);
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--footer-border);
 }
-.explore-links a { white-space: nowrap; }
+.bottom p { margin: 0; }
+.credits { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
+.credits a { font-weight: 600; }
 
-.heading {
-  margin: 0 0 var(--s1);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-.col a { font-size: 0.9rem; }
-
-@media (max-width: 1280px) {
-  .inner {
-    max-width: var(--container);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s5);
-  }
-  .about { grid-column: 1 / -1; }
+@media (max-width: 1000px) {
+  .top { grid-template-columns: 1fr; }
+  .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--s5); }
 }
 @media (max-width: 640px) {
-  .inner { grid-template-columns: 1fr; }
-  .about { grid-column: auto; }
-  .explore-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .explore-links a { white-space: normal; }
-}
-@media (max-width: 420px) {
-  .explore-links { grid-template-columns: 1fr; }
+  .footer { padding-top: var(--s6); }
+  .wechat { align-items: flex-start; }
+  .wechat .btn { width: 100%; }
+  .bottom { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 1180px) {
-  .footer { padding-bottom: calc(var(--s7) + 56px); }
+  .footer { padding-bottom: calc(var(--s5) + 72px); }
 }
-.footer :deep(h2),
-.footer :deep(.foot-heading) { color: var(--footer-heading); }
 .footer :deep(a) { color: var(--footer-link); }
 .footer :deep(a:hover) { color: var(--footer-link-hover); }
 .footer :deep(.muted),
 .disclaimer { color: var(--footer-text); }
-.footer :deep(.brand-name) { color: var(--footer-heading); }
 </style>
