@@ -62,6 +62,46 @@ def requisite_group(group, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     }
 
 
+# Same words as app.search.service.QUIZ_PATTERN.
+QUIZ = re.compile(r"\b(quiz|quizzes|test|tests)\b", re.IGNORECASE)
+_FINAL_EXAM = re.compile(r"\bfinal\b.*\bexam", re.IGNORECASE)
+_NUMBER_PREFIX = re.compile(r"^\d+\s*[-–.]\s*")
+CARD_ASSESSMENTS = 6
+
+
+def exam_status(unit: Unit) -> str:
+    """The card's exam label: final, exam, quiz, none or unknown.
+
+    Matches app.search.service.exam_status_column, plus "final", which only
+    the item's own name can tell: most exam items are just "Examination".
+    """
+    if unit.has_exam is True:
+        final = any(_FINAL_EXAM.search(a.name or "") for a in unit.assessments)
+        return "final" if final else "exam"
+    if unit.has_exam is False:
+        quiz = any(QUIZ.search(" ".join(filter(None, (a.name, a.assessment_type))))
+                   for a in unit.assessments)
+        return "quiz" if quiz else "none"
+    return "unknown"
+
+
+def assessment_items(unit: Unit) -> list[dict[str, str | None]]:
+    """Name and weight of each assessment item, for one line on a card.
+
+    "1 - Written" becomes "Written". An item listed once per offering would
+    repeat, so each name and weight appears once.
+    """
+    seen: set[tuple[str, str | None]] = set()
+    items = []
+    for a in sorted(unit.assessments, key=lambda a: (a.number is None, a.number or 0)):
+        name = _NUMBER_PREFIX.sub("", (a.name or a.assessment_type or "").strip())
+        if not name or (name, a.weight) in seen:
+            continue
+        seen.add((name, a.weight))
+        items.append({"name": name, "weight": a.weight})
+    return items[:CARD_ASSESSMENTS]
+
+
 def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
     """The card shown in search results, on the home page and in a unit header.
 
@@ -79,7 +119,9 @@ def unit_brief(unit: Unit, tr: Translation = NO_TRANSLATION) -> dict[str, Any]:
         # Untranslated, for links that filter the unit list by faculty.
         "faculty_raw": unit.faculty,
         "has_exam": unit.has_exam,
+        "exam_status": exam_status(unit),
         "assessment_count": len(unit.assessments),
+        "assessment_items": assessment_items(unit),
         "offerings": [
             {
                 "campus": tr.value(o.campus),

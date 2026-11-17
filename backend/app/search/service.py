@@ -19,6 +19,7 @@ from sqlalchemy import (
     case,
     cast,
     distinct,
+    exists,
     func,
     literal,
     literal_column,
@@ -30,7 +31,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.community import CommunityPost, PostTag
 from app.models.curriculum import Course
-from app.models.handbook import Unit, UnitOffering, UnitRequisiteGroup
+from app.models.handbook import Unit, UnitAssessment, UnitOffering, UnitRequisiteGroup
 from app.models.knowledge import FaqEntry, OfficialPage
 from app.models.translation import (
     COURSE,
@@ -393,7 +394,38 @@ Choice = str | list[str] | tuple[str, ...] | None
 
 # The filters a unit list can be narrowed by, and the column each one reads.
 # Campus and teaching period live on the offering; see _unit_filters.
-UNIT_FACETS = ("campus", "teaching_period", "level", "prefix", "faculty", "school", "has_exam")
+UNIT_FACETS = (
+    "campus", "teaching_period", "level", "prefix", "faculty", "school", "has_exam", "exam_status",
+)
+
+# A quiz or test in an assessment item's name or type. Same words as
+# app.api.serializers.QUIZ, written for PostgreSQL's word boundaries.
+QUIZ_PATTERN = r"\m(quiz|quizzes|test|tests)\M"
+EXAM_STATUSES = ("none", "quiz", "exam", "unknown")
+
+
+def exam_status_column():
+    """What the Handbook's assessment table says about exams, as one value.
+
+    exam: an item is an exam (``has_exam``). quiz: no exam, but an item is a
+    quiz or test. none: neither. unknown: the Handbook lists no assessment, so
+    nothing can be said. Whether an exam is the final one is not here: most
+    items are just called "Examination", so the card says "final" only when
+    the name does.
+    """
+    quiz = exists().where(
+        UnitAssessment.unit_id == Unit.id,
+        or_(
+            UnitAssessment.name.op("~*")(QUIZ_PATTERN),
+            UnitAssessment.assessment_type.op("~*")(QUIZ_PATTERN),
+        ),
+    )
+    return case(
+        (Unit.has_exam.is_(True), "exam"),
+        (and_(Unit.has_exam.is_(False), quiz), "quiz"),
+        (Unit.has_exam.is_(False), "none"),
+        else_="unknown",
+    )
 
 
 def _many(value: Choice) -> list[str]:
@@ -480,6 +512,7 @@ def _unit_filters(
     school: Choice = None,
     has_exam: bool | None = None,
     no_prereq: bool | None = None,
+    exam_status: Choice = None,
 ) -> list:
     """WHERE clauses for the side filters. Several values in one filter mean any of them."""
     filters = []
@@ -496,6 +529,8 @@ def _unit_filters(
         filters.append(Unit.school.in_(schools))
     if has_exam is not None:
         filters.append(Unit.has_exam.is_(has_exam))
+    if statuses := [s for s in _many(exam_status) if s in EXAM_STATUSES]:
+        filters.append(exam_status_column().in_(statuses))
     if no_prereq is not None:
         # Any prerequisite block counts, including one the parser could only keep
         # as text: "the Handbook lists none" is the claim, never "there is none".
@@ -660,6 +695,13 @@ def unit_facets(
                 select(column, func.count(distinct(Unit.id)))
                 .join(UnitOffering, UnitOffering.unit_id == Unit.id)
                 .where(*conditions)
+                .group_by(column)
+            )
+        elif facet == "exam_status":
+            column = exam_status_column().label("exam_status")
+            stmt = (
+                select(column, func.count(Unit.id))
+                .where(*base, *_unit_filters(**others))
                 .group_by(column)
             )
         else:

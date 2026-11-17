@@ -683,6 +683,53 @@ def test_mixed_sort_takes_turns_between_faculties(client, faculties):
     assert body["total"] == 5
 
 
+def test_exam_status_on_cards_filters_and_counts(client, faculties):
+    from app.models.handbook import UnitAssessment
+    from sqlalchemy import select
+
+    db = faculties
+    by_code = {u.unit_code: u for u in db.scalars(select(Unit))}
+    db.add_all([
+        # has_exam=True, and the name says final.
+        UnitAssessment(unit_id=by_code["FIT1001"].id, number=1, name="1 - Assignment", weight="40"),
+        UnitAssessment(unit_id=by_code["FIT1001"].id, number=2, name="Final examination", weight="60"),
+        # has_exam=False with a quiz.
+        UnitAssessment(unit_id=by_code["FIT1002"].id, number=1, name="Weekly quizzes", weight="20"),
+        UnitAssessment(unit_id=by_code["FIT1002"].id, number=2, name="2 - Project", weight="80"),
+        # has_exam=True, "Examination" only: not called final.
+        UnitAssessment(unit_id=by_code["ENG1001"].id, number=1, name="3 - Examination", weight="50"),
+    ])
+    db.add_all([
+        _plain_unit("BUS1001", faculty="Faculty of Business", school="Business School",
+                    offerings=[("Malaysia", "First semester")], has_exam=False),
+        _plain_unit("BUS1002", faculty="Faculty of Business", school="Business School",
+                    offerings=[("Malaysia", "First semester")], has_exam=None),
+    ])
+    db.commit()
+    bus = db.scalar(select(Unit).where(Unit.unit_code == "BUS1001"))
+    db.add(UnitAssessment(unit_id=bus.id, number=1, name="1 - Written", weight="100"))
+    db.commit()
+
+    cards = {r["unit_code"]: r for r in client.get(
+        "/api/v1/units", params={"sort": "code", "limit": 10}).json()["results"]}
+    assert {code: c["exam_status"] for code, c in cards.items()} == {
+        "BUS1001": "none", "BUS1002": "unknown", "ENG1001": "exam",
+        "FIT1001": "final", "FIT1002": "quiz"}
+    assert cards["FIT1001"]["assessment_items"] == [
+        {"name": "Assignment", "weight": "40"}, {"name": "Final examination", "weight": "60"}]
+
+    def codes(**params):
+        return [r["unit_code"] for r in client.get(
+            "/api/v1/units", params={"sort": "code", **params}).json()["results"]]
+
+    assert codes(exam_status="none") == ["BUS1001"]
+    assert codes(exam_status="quiz") == ["FIT1002"]
+    assert codes(exam_status="exam") == ["ENG1001", "FIT1001"]
+    assert codes(exam_status=["none", "unknown"]) == ["BUS1001", "BUS1002"]
+    counts = client.get("/api/v1/units/facets").json()["counts"]["exam_status"]
+    assert counts == {"none": 1, "quiz": 1, "exam": 2, "unknown": 1}
+
+
 def test_several_values_in_one_filter_mean_any_of_them(client, faculties):
     body = client.get(
         "/api/v1/units",

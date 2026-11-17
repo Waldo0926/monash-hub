@@ -40,6 +40,9 @@ def list_units(
     no_prereq: bool | None = Query(
         None, description="true: units the Handbook lists no prerequisite for"
     ),
+    exam_status: list[str] | None = Query(
+        None, description="none, quiz, exam or unknown; several mean any of them"
+    ),
     sort: str = Query("relevance", pattern="^(relevance|code|title|mixed)$"),
     codes: str | None = Query(
         None, max_length=300, description="Comma-separated unit codes, returned in that order"
@@ -71,6 +74,7 @@ def list_units(
             school=school,
             has_exam=has_exam,
             no_prereq=no_prereq,
+            exam_status=exam_status,
             sort=sort,
         )
     # One query for the whole page of results, not one per card.
@@ -165,6 +169,7 @@ def unit_facet_counts(
     school: list[str] | None = Query(None),
     has_exam: bool | None = None,
     no_prereq: bool | None = None,
+    exam_status: list[str] | None = Query(None),
     db: Session = Depends(get_db),
 ) -> dict:
     """How many units each filter value would leave, for the numbers beside the checkboxes.
@@ -187,6 +192,7 @@ def unit_facet_counts(
             school=school,
             has_exam=has_exam,
             no_prereq=no_prereq,
+            exam_status=exam_status,
         ),
     }
 
