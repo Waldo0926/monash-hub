@@ -534,6 +534,15 @@ def _search_units(
 
     if sort == "code":
         stmt = stmt.order_by(Unit.unit_code)
+    elif sort == "mixed":
+        # A short sample for the electives page. In code order the first dozen
+        # all start with ACB, so this takes the lowest-level unit of every
+        # faculty first, then the next of every faculty, and so on. Research
+        # units (0xxx) count as the highest level.
+        level_digit = func.coalesce(func.nullif(func.substring(Unit.unit_code, "[0-9]"), "0"), "9")
+        turn = func.row_number().over(
+            partition_by=Unit.faculty, order_by=(level_digit, Unit.unit_code))
+        stmt = stmt.order_by(turn, level_digit, Unit.unit_code)
     elif sort == "title":
         stmt = stmt.order_by(Unit.title)
     elif term:
