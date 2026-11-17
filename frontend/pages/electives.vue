@@ -197,9 +197,10 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/electives` 
         <UnitCard v-for="unit in units" :key="unit.unit_code" :unit="unit" />
       </div>
 
-      <div v-if="units.length" class="more">
-        <NuxtLink class="btn" :to="listLink">
-          {{ total !== undefined ? c.seeAll.replace('{n}', String(total)) : c.openList }} <span aria-hidden="true">→</span>
+      <!-- Also when nothing fits: the unit list has more filters to loosen. -->
+      <div v-if="!error && !(pending && !units.length)" class="more">
+        <NuxtLink class="btn" :class="{ 'btn--ghost': !units.length }" :to="listLink">
+          {{ total ? c.seeAll.replace('{n}', String(total)) : c.openList }} <span aria-hidden="true">→</span>
         </NuxtLink>
       </div>
     </section>
