@@ -637,6 +637,34 @@ def test_units_filter_by_faculty_and_school(client, faculties):
     assert [r["unit_code"] for r in by_school["results"]] == ["FIT1002"]
 
 
+def test_units_filter_by_no_prerequisite_listed(client, faculties):
+    from app.models.handbook import UnitRequisiteGroup
+    from sqlalchemy import select
+
+    db = faculties
+    by_code = {u.unit_code: u for u in db.scalars(select(Unit))}
+    # A parsed prerequisite, a prerequisite kept only as text, and a prohibition.
+    db.add_all([
+        UnitRequisiteGroup(unit_id=by_code["FIT1001"].id, requisite_type="prerequisite"),
+        UnitRequisiteGroup(unit_id=by_code["ENG1001"].id, requisite_type="prohibition"),
+    ])
+    db.commit()
+
+    none_listed = client.get("/api/v1/units", params={"no_prereq": "true", "sort": "code"}).json()
+    # A prohibition is not a prerequisite: ENG1001 still has none listed.
+    assert [r["unit_code"] for r in none_listed["results"]] == ["ENG1001", "FIT1002"]
+
+    listed = client.get("/api/v1/units", params={"no_prereq": "false"}).json()
+    assert [r["unit_code"] for r in listed["results"]] == ["FIT1001"]
+
+    # It combines with the other filters, and the counts beside them follow it.
+    both = client.get("/api/v1/units", params={"no_prereq": "true", "has_exam": "false"}).json()
+    assert [r["unit_code"] for r in both["results"]] == ["FIT1002"]
+    counts = client.get("/api/v1/units/facets", params={"no_prereq": "true"}).json()["counts"]
+    assert counts["faculty"] == {
+        "Faculty of Engineering": 1, "Faculty of Information Technology": 1}
+
+
 def test_several_values_in_one_filter_mean_any_of_them(client, faculties):
     body = client.get(
         "/api/v1/units",

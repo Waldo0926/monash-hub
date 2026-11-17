@@ -737,7 +737,7 @@ FAQ_ZH: dict[str, tuple[str, str]] = {
         "在 Monash 怎么去交换？",
         "澳大利亚：交换项目由 Monash Abroad 负责。是否符合条件通常取决于你的 WAM、课程完成的进度，"
         "以及有没有可以转回学分的课程。申请轮次远早于你想出去的那个学期，所以要尽早查申请日期。"
-        "马来西亚校区的同学先看 Monash Malaysia 的出境交换（outbound exchange）页面。",
+        "马来西亚：先看 Monash Malaysia 的出境交换（outbound exchange）页面。",
     ),
     "how-to-get-a-transcript": (
         "怎么申请正式成绩单？",

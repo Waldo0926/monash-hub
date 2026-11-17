@@ -124,6 +124,7 @@ const COPY = {
     placeholder: 'FIT2004, special consideration, census date…',
     popular: 'Try',
     unitsTitle: 'Units across the faculties',
+    electives: 'Find an elective →',
     exam: 'exam',
     noExam: 'no exam',
     cp: 'cp',
@@ -135,6 +136,7 @@ const COPY = {
     placeholder: 'FIT2004、特殊考虑、census date…',
     popular: '试试搜',
     unitsTitle: '各学院的课程',
+    electives: '找选修课 →',
     exam: '有考试',
     noExam: '无考试',
     cp: '学分',
@@ -272,7 +274,10 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
     <section class="sec" aria-labelledby="units-title">
       <div class="sec-head">
         <h2 id="units-title">{{ c.unitsTitle }}</h2>
-        <NuxtLink to="/units" class="more small">{{ $t('home.allUnits') }}</NuxtLink>
+        <span class="more-links">
+          <NuxtLink to="/electives" class="more small">{{ c.electives }}</NuxtLink>
+          <NuxtLink to="/units" class="more small">{{ $t('home.allUnits') }}</NuxtLink>
+        </span>
       </div>
       <ul v-if="unitRows.length" class="units">
         <li v-for="{ unit, area } in unitRows" :key="unit.unit_code" class="unit">
@@ -345,6 +350,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; margin-bottom: var(--s4); }
 .sec-head h2 { margin: 0; }
 .more { color: var(--brand); white-space: nowrap; }
+.more-links { display: inline-flex; flex-wrap: wrap; gap: var(--s4); }
 
 .tools {
   flex: 1 1 auto;
