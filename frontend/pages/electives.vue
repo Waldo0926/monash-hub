@@ -2,7 +2,7 @@
 /**
  * Ways in to the unit list for someone choosing a free elective.
  *
- * Students ask the same three things about an elective: is there a final exam,
+ * Students ask the same three things about an elective: is there an exam,
  * does it need a prerequisite, and is it taught at my campus. The unit list
  * already filters on all three; this page is the shortcut, with the number of
  * units behind each link so nobody opens an empty list.
@@ -28,14 +28,14 @@ if (campus.value !== 'malaysia' && campus.value !== 'australia') campus.value = 
 const COPY = {
   en: {
     title: 'Find an elective',
-    lead: 'Shortcuts into the unit list for the questions people ask about electives: is there a final exam, does it need a prerequisite, is it taught at my campus.',
+    lead: 'Shortcuts into the unit list for the questions people ask about electives: is there an exam, does it need a prerequisite, is it taught at my campus.',
     switcher: 'Campus',
     campus: { malaysia: 'Malaysia', australia: 'Australia' },
     byNeed: 'By what you need',
     byFaculty: 'No exam listed, by faculty',
     units: '{n} units',
     presets: {
-      noExam: ['No final exam listed', 'The Handbook lists no examination among the assessment items'],
+      noExam: ['No exam listed', 'No assessment item in the Handbook is called an exam or examination. Final and mid-semester exams both count as exams; quizzes and tests do not'],
       noPrereq: ['No prerequisite listed', 'The Handbook lists no prerequisite, so no earlier unit is asked for'],
       both: ['No exam and no prerequisite listed', 'Both of the above'],
       level1: ['Level 1, no prerequisite listed', 'First-year units anyone can start with']
@@ -52,14 +52,14 @@ const COPY = {
   },
   zh: {
     title: '找选修课',
-    lead: '选选修课最常问的几件事：有没有期末考试、要不要先修课、自己校区开不开，这里是直接进课程列表的快捷入口',
+    lead: '选选修课最常问的几件事：有没有考试、要不要先修课、自己校区开不开，这里是直接进课程列表的快捷入口',
     switcher: '校区',
     campus: { malaysia: '马来西亚', australia: '澳大利亚' },
     byNeed: '按需要找',
-    byFaculty: '按学院看没列出期末考试的课',
+    byFaculty: '按学院看没列出考试的课',
     units: '{n} 门',
     presets: {
-      noExam: ['没列出期末考试', 'Handbook的考核项目里没有列出考试'],
+      noExam: ['没列出考试', 'Handbook的考核项目里没有叫exam或examination的，期末考和期中考都算考试，quiz和test不算'],
       noPrereq: ['没列出先修课', 'Handbook没有列出先修课，不要求先读别的课'],
       both: ['没列出考试，也没列出先修课', '同时满足上面两条'],
       level1: ['Level 1，没列出先修课', '一年级的课，谁都可以从这里开始']
