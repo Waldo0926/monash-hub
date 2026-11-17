@@ -63,7 +63,7 @@ const COPY = {
     campus: { malaysia: '马来西亚', australia: '澳大利亚' },
     conditions: '条件',
     presets: {
-      noExam: ['没列出考试', '期末、期中都算考试，quiz 和 test 不算'],
+      noExam: ['没列出考试', '期末、期中都算考试，quiz和test不算'],
       noPrereq: ['没列出先修课', '不要求先读过别的课'],
       both: ['两样都没列出', '没列出考试，也没列出先修课'],
       level1: ['一年级入门', 'Level 1，没列出先修课']
@@ -76,8 +76,8 @@ const COPY = {
     failed: '课程暂时加载不出来，可以直接进课程列表看',
     notesTitle: '选课之前',
     notes: [
-      '“没列出”只表示 Handbook 没写，学期中可能还有测验，课程页面别处也可能写了其他修读要求',
-      '一门课能不能算自由选修学分，要看你自己的学位要求，先查学位页面或 course progression map，拿不准就问学院',
+      '“没列出”只表示Handbook没写，学期中可能还有测验，课程页面别处也可能写了其他修读要求',
+      '一门课能不能算自由选修学分，要看你自己的学位要求，先查学位页面或course progression map，拿不准就问学院',
       '点进课程可以看它在你的校区哪个学期开、考核怎么算、同学打了多少分'
     ],
     course: '查我的学位',
