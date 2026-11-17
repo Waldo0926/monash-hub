@@ -2,6 +2,11 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-17 — postgraduate units on the electives page
+
+- The electives page has an undergraduate / postgraduate switch. Undergraduate is Handbook levels 1 to 4 (4 is honours and the fourth year of engineering), postgraduate is levels 5 and 6. "First year only" shows for undergraduate. The choice is in the address (`?stage=pg`).
+- 找选修课页面加了本科和研究生的切换。本科是Handbook的Level 1到4（Level 4是荣誉学士和工程本科第四年），研究生是Level 5和6。“只看一年级”只在本科下显示。选择会写进网址（`?stage=pg`）
+
 ## 2026-11-17 — four exam colours, and the assessment on every unit card
 
 - Every unit now has an exam status worked out from the Handbook's assessment items: **no exam listed** (no exam, quiz or test), **quiz or test** (no exam, but a quiz or test), **exam listed**, and **to check** (the Handbook lists no assessment). The API returns it as `exam_status` and filters and counts on it (`exam_status=none|quiz|exam|unknown`). A card says **final exam** only when the item's own name says final: most exam items are just called "Examination".

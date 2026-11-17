@@ -5,7 +5,7 @@
  *
  * The four exam colours are the unit cards' own (utils/examStatus.ts), worked
  * out from the Handbook's assessment table. Below them, two switches for "no
- * prerequisite listed" and first-year units, then a dozen undergraduate units
+ * prerequisite listed" and first-year units, then a dozen units of the chosen study level (undergraduate or postgraduate)
  * that fit, taking turns between faculties, and a link to all of them.
  *
  * Everything here is a Handbook filter, never a recommendation, and whether a
@@ -35,8 +35,13 @@ const COPY = {
     statusGroup: 'Exam',
     noPrereq: 'No prerequisite listed',
     level1: 'First year only',
+    stage: { ug: 'Undergraduate', pg: 'Postgraduate' },
+    stageGroup: 'Study level',
     found: '{n} units',
-    scope: { malaysia: 'Undergraduate units at the Malaysia campus', australia: 'Undergraduate units at the Australian campuses' },
+    scope: {
+      ug: { malaysia: 'Undergraduate units at the Malaysia campus', australia: 'Undergraduate units at the Australian campuses' },
+      pg: { malaysia: 'Postgraduate units at the Malaysia campus', australia: 'Postgraduate units at the Australian campuses' }
+    },
     seeAll: 'See all {n}',
     openList: 'Open the unit list',
     empty: 'No unit at this campus fits all of this.',
@@ -58,8 +63,13 @@ const COPY = {
     statusGroup: '考试',
     noPrereq: '无需先修课',
     level1: '只看一年级',
+    stage: { ug: '本科', pg: '研究生' },
+    stageGroup: '课程层级',
     found: '{n} 门',
-    scope: { malaysia: '马来西亚校区的本科课', australia: '澳大利亚校区的本科课' },
+    scope: {
+      ug: { malaysia: '马来西亚校区的本科课', australia: '澳大利亚校区的本科课' },
+      pg: { malaysia: '马来西亚校区的研究生课', australia: '澳大利亚校区的研究生课' }
+    },
     seeAll: '查看全部 {n} 门',
     openList: '进课程列表',
     empty: '这个校区没有同时符合这些条件的课',
@@ -77,16 +87,19 @@ const COPY = {
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 
 const AUSTRALIA = ['Clayton', 'Caulfield', 'Peninsula', 'Parkville']
-const UNDERGRAD = ['Level 1', 'Level 2', 'Level 3']
+// Handbook levels: 1 to 4 are bachelor's units (4 is honours and the fourth year of engineering),
+// 5 and 6 are coursework postgraduate. Level 0 (enabling) and 9 (research) are nobody's elective.
+const LEVELS = { ug: ['Level 1', 'Level 2', 'Level 3', 'Level 4'], pg: ['Level 5', 'Level 6'] }
 const SAMPLE = 12
 
 const status = computed<ExamStatus>(() =>
   (EXAM_STATUSES as readonly string[]).includes(route.query.status as string) ? (route.query.status as ExamStatus) : 'none'
 )
 const noPrereq = computed(() => route.query.prereq === '1')
-const level1 = computed(() => route.query.level1 === '1')
+const stage = computed<'ug' | 'pg'>(() => (route.query.stage === 'pg' ? 'pg' : 'ug'))
+const level1 = computed(() => stage.value === 'ug' && route.query.level1 === '1')
 
-function set(key: 'status' | 'prereq' | 'level1', value: string | undefined) {
+function set(key: 'status' | 'prereq' | 'level1' | 'stage', value: string | undefined) {
   router.replace({ query: { ...route.query, show: undefined, [key]: value } })
 }
 const pick = (value: ExamStatus) => set('status', value === 'none' ? undefined : value)
@@ -96,7 +109,7 @@ type Query = Record<string, string | string[]>
 // Everything except the exam colour: the counts beside the colours use this.
 const base = computed<Query>(() => ({
   campus: campus.value === 'malaysia' ? ['Malaysia'] : AUSTRALIA,
-  level: level1.value ? ['Level 1'] : UNDERGRAD,
+  level: level1.value ? ['Level 1'] : LEVELS[stage.value],
   ...(noPrereq.value ? { no_prereq: 'true' } : {})
 }))
 const chosen = computed<Query>(() => ({ ...base.value, exam_status: status.value }))
@@ -173,9 +186,20 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/electives` 
         <button type="button" class="switch" :aria-pressed="noPrereq" @click="toggle('prereq', noPrereq)">
           <span class="box" aria-hidden="true" />{{ c.noPrereq }}
         </button>
-        <button type="button" class="switch" :aria-pressed="level1" @click="toggle('level1', level1)">
+        <button v-if="stage === 'ug'" type="button" class="switch" :aria-pressed="level1" @click="toggle('level1', level1)">
           <span class="box" aria-hidden="true" />{{ c.level1 }}
         </button>
+        <div class="stage" role="group" :aria-label="c.stageGroup">
+          <button
+            v-for="option in (['ug', 'pg'] as const)"
+            :key="option"
+            type="button"
+            :aria-pressed="stage === option"
+            @click="router.replace({ query: { ...route.query, stage: option === 'ug' ? undefined : option, level1: undefined } })"
+          >
+            {{ c.stage[option] }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -185,7 +209,7 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/electives` 
           {{ $t(`units.status.${status}`) }}
           <span v-if="total !== undefined" class="total">{{ c.found.replace('{n}', String(total)) }}</span>
         </h2>
-        <p class="small muted">{{ c.scope[campus] }}</p>
+        <p class="small muted">{{ c.scope[stage][campus] }}</p>
       </div>
 
       <div v-if="pending && !units.length" class="grid" aria-busy="true">
@@ -296,11 +320,32 @@ useHead({ link: [{ rel: 'canonical', href: `${config.public.siteUrl}/electives` 
 .switches {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--s2) var(--s5);
   margin-top: var(--s3);
   padding-top: var(--s3);
   border-top: 1px solid var(--border);
 }
+.stage {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.stage button {
+  min-height: 32px;
+  padding: 0 var(--s4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.stage button[aria-pressed='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-sm); }
 .switch {
   display: inline-flex;
   align-items: center;
