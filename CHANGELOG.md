@@ -2,6 +2,11 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-17 — the electives page says "exam", as the filter does
+
+- The electives page called its first card "No final exam listed". The filter behind it is the unit list's "No exam listed": no assessment item in the Handbook is called an exam or examination, which covers final and mid-semester exams alike and does not cover quizzes or tests. The page now uses the same word and says what counts.
+- 找选修课页面的第一个入口原来写“没列出期末考试”，而它背后的筛选就是课程列表的“未列出考试”：Handbook的考核项目里没有叫exam或examination的，期末考和期中考都算，quiz和test不算。页面现在用同一个说法，并写明算哪些。
+
 ## 2026-11-17 — electives page and a "no prerequisite listed" filter
 
 - New `/electives` page: shortcuts into the unit list for the three things people ask about an elective (no final exam listed, no prerequisite listed, taught at my campus), with the number of units behind each link and the same list by faculty. It follows the campus chosen on the home page. Everything on it is a Handbook filter and the page says so: "not listed" is what the Handbook says, and whether a unit counts as a free elective is the course's own rule.
