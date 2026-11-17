@@ -72,6 +72,23 @@ export const ENGLISH_SOURCE: ParentSource = {
 }
 
 /**
+ * IELTS (Academic) scores for undergraduate entry, typed in from the English
+ * Proficiency Tests page. Only IELTS is listed: it is the test families in
+ * China ask about, and the page links the original for TOEFL, PTE and Cambridge.
+ * `each` is the lowest band allowed in the skills named; the page gives one
+ * number per skill, and they are grouped here where they are equal.
+ */
+export const ENGLISH_TESTS = {
+  url: 'https://www.monash.edu.my/study/entry-requirements/english/tests',
+  checked: '2026-11-17',
+  ielts: [
+    { who: '大部分本科专业', overall: '6.5', each: '听力、阅读、写作、口语每项不低于 6.0' },
+    { who: '人类营养学士', overall: '6.5', each: '听力、阅读不低于 6.5，写作、口语不低于 6.0' },
+    { who: '医学学士和医学博士', overall: '7.0', each: '听力、阅读、写作、口语每项不低于 6.5' }
+  ]
+}
+
+/**
  * Entry scores for every undergraduate degree at the Malaysia campus, typed in
  * from the owner's own summary table. Fees are the 2027 international rate:
  * read live from /v1/fees by `match` (an English title or a degree a fee row

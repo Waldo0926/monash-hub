@@ -9,7 +9,7 @@
  */
 import { MAMO_ACCOUNT, MAMO_POSTS } from '~/data/mamo'
 import {
-  ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENTRY_COLUMNS, ENTRY_SCHOOLS,
+  ABOUT, CAMPUS, CSCSE_URL, DEGREE_FAQ_URL, DEGREE_SOURCE, DIPLOMA, ENGLISH_SOURCE, ENGLISH_TESTS, ENTRY_COLUMNS, ENTRY_SCHOOLS,
   ENTRY_SOURCE, EXCHANGE, FEE_EXAMPLES, FEE_LABELS, FEE_SCHOOLS, LIVING, MUFY, MYR_TO_CNY, PARENTS_INFO, RANKINGS, RANKINGS_SOURCE,
   SCHOLARSHIP, SCORE_METHOD_URL, SETARA_SOURCE, SST, SUBJECT_RANKINGS, TRANSFER, VISA
 } from '~/data/parents'
@@ -372,12 +372,34 @@ useHead({
         <NuxtLink to="/courses">看各专业的课程介绍 →</NuxtLink>
         <a href="#cost">看各专业学费和人民币折算 ↓</a>
       </p>
-      <p>此外，所有申请人都需要达到英语要求，雅思等考试的具体分数见英文原文</p>
       <p class="src">
         <a :href="ENTRY_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（本科学术要求）</a>
         <a :href="SCORE_METHOD_URL" target="_blank" rel="noopener external">查看英文原文（计分说明）</a>
-        <a :href="ENGLISH_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（英语要求）</a>
         <span>核对于 {{ ENTRY_SOURCE.checked }}</span>
+      </p>
+
+      <h3 id="english">英语要求</h3>
+      <p>除了上面的成绩，所有申请人还要达到英语要求，用雅思（学术类）成绩申请时的最低分数如下</p>
+      <table class="table compare">
+        <thead>
+          <tr><th scope="col">专业</th><th scope="col">雅思总分</th><th scope="col">单项要求</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in ENGLISH_TESTS.ielts" :key="row.who">
+            <th scope="row">{{ row.who }}</th><td>{{ row.overall }}</td><td>{{ row.each }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <ul class="note-list">
+        <li>成绩从考试那天算起，到开课时不能超过3年</li>
+        <li>马来西亚政府对每个学位另有最低英语要求，成绩有效期按2年计算，是否符合由学校在申请时告知</li>
+        <li>学校也接受托福iBT、PTE Academic、剑桥C1 Advanced和C2 Proficiency，各自的分数见英文原文，托福家庭版和PTE Academic Online不接受</li>
+        <li>12年级修过英语科目、在英语授课的院校读过书，或者读完学校的Monash English课程，也可以用来证明英语水平，具体条件见英文原文</li>
+      </ul>
+      <p class="src">
+        <a :href="ENGLISH_TESTS.url" target="_blank" rel="noopener external">查看英文原文（英语考试分数）</a>
+        <a :href="ENGLISH_SOURCE.url" target="_blank" rel="noopener external">查看英文原文（英语要求）</a>
+        <span>核对于 {{ ENGLISH_TESTS.checked }}</span>
       </p>
 
       <h3>没有高考成绩或分数不够时</h3>
