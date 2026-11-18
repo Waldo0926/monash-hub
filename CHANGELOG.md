@@ -2,6 +2,13 @@
 
 All notable changes to Monash Hub are documented here.
 
+## 2026-11-19 — two dead official pages leave the seed list
+
+- The official refresh alert of 2026-11-18 listed pages Monash answers with 403 or has moved. Read on a home machine, two of them are gone: `jcsmhs/study-with-us/current-students` now redirects to `jcsmhs/study-with-us` (already a seed), and the engineering `graduate-research/coursework-units` page returns 404. Both rows are removed from `seeds_coverage.py`, as a coverage build would do. The last good copy of each stays on the site until the next full registration.
+- The Malaysia psychology General Studies page still answers 403 in a browser, so it stays: a 403 says nothing about whether the page exists.
+- 2026年11月18日的官网刷新告警里，有些页面被Monash返回403或已经搬走。在家用电脑上读取后确认有两个已经不在了：`jcsmhs/study-with-us/current-students` 现在跳转到 `jcsmhs/study-with-us`（这个地址已经是seed），工程学院的 `graduate-research/coursework-units` 返回404。两行已从 `seeds_coverage.py` 删除，和重新生成覆盖列表的结果一致，网站上的旧内容保留到下次完整登记
+- 马来西亚心理学系的 General Studies 页面在浏览器里仍然是403，所以保留，403不能说明页面是否还在
+
 ## 2026-11-17 — postgraduate units on the electives page
 
 - The electives page has an undergraduate / postgraduate switch. Undergraduate is Handbook levels 1 to 4 (4 is honours and the fourth year of engineering), postgraduate is levels 5 and 6. "First year only" shows for undergraduate. The choice is in the address (`?stage=pg`).
