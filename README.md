@@ -72,10 +72,17 @@ Sources: the [changelog](CHANGELOG.md) and the test files in `backend/tests`, `f
 
 - Search by unit code or title
 - Check campuses, teaching periods, assessments, exams, requisites, learning outcomes and workload
+- See at a glance whether a unit lists an exam: each card has a colour (green no exam listed, amber quiz or test only, red exam listed, grey to check) and every assessment item with its weight
 - Verify details through the Handbook link and last-checked date
 
 <p align="center"><img src="./docs/images/unit-en.webp" alt="Unit page for FIT2004: faculty notice, credit points, campus, assessment, offerings and the Handbook source link" width="900" /></p>
 <p align="center"><sub>The home page screenshot comes from the live site. The other screenshots come from the browser-test stack, which runs the real site on three invented units (FIT1008, FIT2004, FIT2102) and an invented degree. Names, marks and plans are made up; the live site shows the Handbook.</sub></p>
+
+### Find an elective
+
+`/electives` starts from what people ask about an elective. Pick one of the four exam colours to see how many units fit and a short mixed sample, then open the full list. Switches narrow it to units with no prerequisite listed or first year only, and a toggle swaps undergraduate (levels 1 to 4) for postgraduate (levels 5 and 6). It follows the campus chosen on the home page and every choice stays in the address, so a link opens the same list.
+
+It is a Handbook filter and the page says so. "Not listed" is what the Handbook says, and whether a unit counts as a free elective is your own course's rule. The unit list has the same filters (`exam_status`, `no_prereq`).
 
 ### Find official Monash information
 
