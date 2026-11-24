@@ -17,6 +17,10 @@ class Settings(BaseSettings):
 
     app_name: str = "Monash Hub API"
     environment: str = "development"
+    # Read-only deployment mode (e.g. China mainland mirror): disables auth,
+    # community, unit reviews, AI/ask assistant, profile/avatar uploads and
+    # notifications while keeping Handbook/course/guide lookup intact.
+    cn_readonly_mode: bool = False
     # The git commit this build came from, baked in by backend/Dockerfile at
     # build time (deploy.sh passes the SHA it checked out). Reported by
     # /api/health so a deploy can check that the commit it meant to ship is the

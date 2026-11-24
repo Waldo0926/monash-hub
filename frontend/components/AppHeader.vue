@@ -3,12 +3,14 @@
 // A missing avatar file must not leave a broken-image icon in the header. It
 // falls back to the name alone, which is what was there before pictures.
 const avatarBroken = ref(false)
+const { cnReadonly } = useSiteMode()
 const { user, restore, signOut } = useAuth()
 const { unread, start, stop } = useNotifications()
 const route = useRoute()
 const { $t } = useNuxtApp()
 
 onMounted(async () => {
+  if (cnReadonly.value) return
   await restore()
   start()
 })
@@ -91,25 +93,27 @@ function search(value: string) {
            group instead of a row of separate boxes. -->
       <div class="account">
         <LanguageSwitcher />
-        <template v-if="user">
-          <NuxtLink to="/notifications" class="icon-btn bell" :aria-label="$t('nav.notifications')">
-            <PlanIcon name="bell" :size="18" />
-            <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
-          </NuxtLink>
-          <!-- Your own name goes to your own page. It used to go to the
-               community, which answered a question nobody was asking. -->
-          <NuxtLink to="/profile" class="chip nickname" :aria-label="user.nickname">
-            <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
-                 class="avatar" alt="" @error="avatarBroken = true">
-            <span v-else class="avatar avatar--initial" aria-hidden="true">{{ initial }}</span>
-            <span class="nickname-text">{{ user.nickname }}</span>
-          </NuxtLink>
-          <button type="button" class="icon-btn sign-out" :aria-label="$t('nav.signOut')"
-                  :title="$t('nav.signOut')" @click="signOut">
-            <PlanIcon name="logout" :size="18" />
-          </button>
+        <template v-if="!cnReadonly">
+          <template v-if="user">
+            <NuxtLink to="/notifications" class="icon-btn bell" :aria-label="$t('nav.notifications')">
+              <PlanIcon name="bell" :size="18" />
+              <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
+            </NuxtLink>
+            <!-- Your own name goes to your own page. It used to go to the
+                 community, which answered a question nobody was asking. -->
+            <NuxtLink to="/profile" class="chip nickname" :aria-label="user.nickname">
+              <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
+                   class="avatar" alt="" @error="avatarBroken = true">
+              <span v-else class="avatar avatar--initial" aria-hidden="true">{{ initial }}</span>
+              <span class="nickname-text">{{ user.nickname }}</span>
+            </NuxtLink>
+            <button type="button" class="icon-btn sign-out" :aria-label="$t('nav.signOut')"
+                    :title="$t('nav.signOut')" @click="signOut">
+              <PlanIcon name="logout" :size="18" />
+            </button>
+          </template>
+          <NuxtLink v-else to="/login" class="chip">{{ $t('nav.signIn') }}</NuxtLink>
         </template>
-        <NuxtLink v-else to="/login" class="chip">{{ $t('nav.signIn') }}</NuxtLink>
       </div>
     </div>
   </header>

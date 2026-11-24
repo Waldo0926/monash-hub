@@ -9,6 +9,7 @@
  */
 const route = useRoute()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const query = ref((route.query.q as string) || '')
 const { locale } = useLocale()
 
@@ -26,6 +27,7 @@ const { data, pending, error, refresh } = await useLocalisedApiFetch<any>(
 const { data: answer } = await useAsyncData<any>(
   'ask-answer',
   () => {
+    if (cnReadonly.value) return Promise.resolve(null)
     const q = ((route.query.q as string) || '').trim()
     if (!q) return Promise.resolve(null)
     // The answer carries the unit's name, so it needs the reader's language
@@ -113,9 +115,9 @@ useSeoMeta({
 
       <div v-else-if="query && !hasResults" class="mt">
         <EmptyState :title="$t('search.nothing')" :hint="$t('search.nothingHint')">
-          <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+          <NuxtLink v-if="!cnReadonly" to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
         </EmptyState>
-        <div class="missing-feedback card">
+        <div v-if="!cnReadonly" class="missing-feedback card">
           <p><strong>{{ locale === 'zh' ? '找不到需要的资料？' : 'Missing something?' }}</strong></p>
           <p class="small muted">{{ locale === 'zh' ? '可以匿名反馈缺少哪类资料。我们只记录分类和有效课程代码，不保存你的完整搜索内容或账号信息' : 'Optionally flag the missing topic. Only a category or a valid unit code is counted, never your full search, account or identifying details.' }}</p>
           <label class="missing-label">
@@ -177,7 +179,7 @@ useSeoMeta({
               <LastChecked :value="faq.last_checked" />
             </article>
           </div>
-          <div v-else-if="group.kind === 'community' && group.results.length" class="grid">
+          <div v-else-if="!cnReadonly && group.kind === 'community' && group.results.length" class="grid">
             <PostCard v-for="post in group.results" :key="post.id" :post="post" />
           </div>
         </section>

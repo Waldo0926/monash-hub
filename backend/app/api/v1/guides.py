@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import requested_locale
 from app.api.serializers import faq_brief, official_brief, official_detail
+from app.core.config import get_settings
 from app.core.db import get_db
 from app.knowledge import translations
 from app.models.knowledge import FaqEntry, OfficialPage
@@ -97,7 +98,11 @@ def get_guide(
             for entry in db.scalars(select(FaqEntry).order_by(FaqEntry.priority.desc()))
             if page_tags & {word.lower() for word in (*entry.tags, *entry.keywords)}
         ][:3]
-    posts, _ = service.search_community(db, page.title, limit=4)
+    posts = (
+        []
+        if get_settings().cn_readonly_mode
+        else service.search_community(db, page.title, limit=4)[0]
+    )
 
     tr = translations.load(db, locale, OFFICIAL_PAGE, page.slug, source_hash=page.content_hash)
     faq_tr = translations.load_many(

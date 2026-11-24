@@ -14,6 +14,7 @@ import { joinList, joinSentences } from '~/utils/prose'
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t, $term } = useNuxtApp() as any
+const { cnReadonly } = useSiteMode()
 const { locale } = useLocale()
 const campusName = useCampusName()
 const code = computed(() => String(route.params.code).toUpperCase())
@@ -30,14 +31,16 @@ function pickYear(y: number) {
   setYear(y === unit.value?.available_years?.[0] ? null : y)
 }
 const { data: discussions } = await useApiFetch<any>(
-  () => `/v1/community/posts?unit_code=${code.value}&limit=5`
+  () => `/v1/community/posts?unit_code=${code.value}&limit=5`,
+  { immediate: !cnReadonly.value, watch: cnReadonly.value ? false : undefined }
 )
 // Student ratings, averages only. The ratings section fetches its own list
 // and says when it changed, so the header and the questions below follow.
 const { data: ratings, refresh: refreshRatings } = await useApiFetch<any>(
-  () => `/v1/reviews/units/${code.value}?limit=0`
+  () => `/v1/reviews/units/${code.value}?limit=0`,
+  { immediate: !cnReadonly.value, watch: cnReadonly.value ? false : undefined }
 )
-const rating = computed(() => (ratings.value?.summary?.count ? ratings.value.summary : null))
+const rating = computed(() => (!cnReadonly.value && ratings.value?.summary?.count ? ratings.value.summary : null))
 
 // The campus the reader planned for, so "not taught at Malaysia" means their
 // campus. A reader with no plan gets the default, Malaysia.
@@ -252,7 +255,7 @@ const faq = computed(() => {
         : $t('faq.examUnknown', { code: c, year: y })
   })
 
-  const said = discussions.value?.total ?? discussions.value?.results?.length ?? 0
+  const said = cnReadonly.value ? 0 : (discussions.value?.total ?? discussions.value?.results?.length ?? 0)
   const difficulty = rating.value?.dimensions?.difficulty
   items.push({
     q: $t('faq.hardQ', { code: c }),
@@ -264,7 +267,7 @@ const faq = computed(() => {
         })
         : '',
       totalHours.value ? $t('faq.hardHours', { hours: totalHours.value }) : '',
-      said ? $t('faq.hardCommunity', { count: said }) : $t('faq.hardNoCommunity')
+      cnReadonly.value ? '' : (said ? $t('faq.hardCommunity', { count: said }) : $t('faq.hardNoCommunity'))
     ], locale.value)
   })
 
@@ -291,11 +294,11 @@ const sections = computed(() => {
     { id: 'workload', label: $t('unit.workload') },
     u.learning_resources?.length && { id: 'resources', label: $t('unit.resources') },
     u.areas?.length && { id: 'fits', label: $t('unit.whereItFits') },
-    { id: 'reviews', label: $t('reviews.title') },
+    !cnReadonly.value && { id: 'reviews', label: $t('reviews.title') },
     { id: 'faq', label: $t('unit.commonQuestions') },
     { id: 'details', label: $t('unit.moreDetails') },
-    { id: 'ask', label: $t('unit.askAbout', { code: u.unit_code }) },
-    { id: 'community', label: $t('nav.community') }
+    !cnReadonly.value && { id: 'ask', label: $t('unit.askAbout', { code: u.unit_code }) },
+    !cnReadonly.value && { id: 'community', label: $t('nav.community') }
   ].filter(Boolean) as { id: string; label: string }[]
 })
 
@@ -599,7 +602,7 @@ useHead(() => ({
             </div>
           </section>
 
-          <UnitReviews :code="unit.unit_code" :campus="campus" @changed="refreshRatings" />
+          <UnitReviews v-if="!cnReadonly" :code="unit.unit_code" :campus="campus" @changed="refreshRatings" />
 
           <section id="faq" class="card section">
             <SectionHead icon="faq" :title="$t('unit.commonQuestions')" />
@@ -638,7 +641,7 @@ useHead(() => ({
             </dl>
           </section>
 
-          <section id="ask" class="card section ask">
+          <section v-if="!cnReadonly" id="ask" class="card section ask">
             <SectionHead icon="ask" :title="$t('unit.askAbout', { code: unit.unit_code })" />
             <p class="tiny muted">{{ $t('unit.askHint') }}</p>
             <SearchInput
@@ -660,7 +663,7 @@ useHead(() => ({
             />
           </section>
 
-          <section id="community" class="card section">
+          <section v-if="!cnReadonly" id="community" class="card section">
             <SectionHead icon="community" :title="$t('unit.discussionsAbout', { code: unit.unit_code })">
               <SourceBadge kind="community" />
             </SectionHead>

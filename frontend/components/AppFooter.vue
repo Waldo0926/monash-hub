@@ -4,6 +4,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 const sectionLinks = useSectionNavigation()
+const { cnReadonly } = useSiteMode()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
 const route = useRoute()
@@ -58,39 +59,74 @@ const featuresHeading = computed(() => {
             <a href="https://handbook.monash.edu" rel="noopener external" target="_blank">
               {{ $t('footer.handbookLink') }} <span class="ext" aria-hidden="true">↗</span>
             </a>
-            <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
-              {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
-            </a>
-            <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
-              {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
-            </a>
+            <template v-if="cnReadonly">
+              <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+                {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+              <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
+                {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+            </template>
+            <template v-else>
+              <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
+                {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+              <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+                {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+            </template>
           </nav>
 
           <!-- The systems a student logs into, apart from the reference sites
                because these are things you do, not things you read. Which campus
                a system belongs to is what a reader checks, so each campus has its
                own column rather than a label on every row. -->
-          <nav class="col" :aria-label="$t('footer.systems')">
-            <h2 class="heading">{{ $t('footer.systems') }}</h2>
-            <a
-              v-for="system in EVERY_CAMPUS_SYSTEMS"
-              :key="system.url"
-              :href="system.url"
-              rel="noopener external"
-              target="_blank"
-            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
-          </nav>
+          <template v-if="cnReadonly">
+            <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+              <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
+              <a
+                v-for="system in MALAYSIA_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
 
-          <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
-            <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
-            <a
-              v-for="system in MALAYSIA_SYSTEMS"
-              :key="system.url"
-              :href="system.url"
-              rel="noopener external"
-              target="_blank"
-            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
-          </nav>
+            <nav class="col" :aria-label="$t('footer.systems')">
+              <h2 class="heading">{{ $t('footer.systems') }}</h2>
+              <a
+                v-for="system in EVERY_CAMPUS_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+          </template>
+          <template v-else>
+            <nav class="col" :aria-label="$t('footer.systems')">
+              <h2 class="heading">{{ $t('footer.systems') }}</h2>
+              <a
+                v-for="system in EVERY_CAMPUS_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+
+            <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+              <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
+              <a
+                v-for="system in MALAYSIA_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+          </template>
         </div>
       </div>
 

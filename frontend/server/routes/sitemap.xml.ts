@@ -21,9 +21,11 @@ export default defineCachedEventHandler(async event => {
   const config = useRuntimeConfig()
   const site = config.public.siteUrl.replace(/\/$/, '')
   const api = config.apiBase.replace(/\/$/, '')
+  const rawMode: unknown = config.public.cnReadonlyMode
+  const cnReadonly = rawMode === true || rawMode === 'true' || rawMode === '1'
 
   const urls: string[] = [
-    '/', '/units', '/courses', '/guides', '/community', '/exchange',
+    '/', '/units', '/courses', '/guides', ...(cnReadonly ? [] : ['/community']), '/exchange',
     '/plan', '/tree', '/marks', '/mamo', '/dates', '/fees', '/parents', '/electives', '/privacy'
   ]
 
@@ -49,10 +51,12 @@ export default defineCachedEventHandler(async event => {
       for (const course of courses.results || []) urls.push(`/courses/${course.course_code}`)
       if (offset + PAGE >= (courses.total || 0)) break
     }
-    for (let offset = 0; ; offset += PAGE) {
-      const posts = await $fetch<any>(`${api}/v1/community/posts?limit=${PAGE}&offset=${offset}`)
-      for (const post of posts.results || []) urls.push(`/community/post/${post.id}`)
-      if (offset + PAGE >= (posts.total || 0)) break
+    if (!cnReadonly) {
+      for (let offset = 0; ; offset += PAGE) {
+        const posts = await $fetch<any>(`${api}/v1/community/posts?limit=${PAGE}&offset=${offset}`)
+        for (const post of posts.results || []) urls.push(`/community/post/${post.id}`)
+        if (offset + PAGE >= (posts.total || 0)) break
+      }
     }
   } catch (caught) {
     // Not cached, and not served either: a half-walked list cached for an

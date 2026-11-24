@@ -28,9 +28,19 @@ useHead({
  * for. Every URL here is absolute: a crawler does not resolve relative ones.
  */
 const config = useRuntimeConfig()
+const { cnReadonly } = useSiteMode()
 const route = useRoute()
 const site = config.public.siteUrl.replace(/\/$/, '')
 const image = `${site}/og-image.png`
+const defaultDescription = cnReadonly.value
+  ? 'Units, degrees, WAM/GPA tools and official guides for Monash students. ' +
+    'An independent student platform, not affiliated with Monash University.'
+  : 'Units, degrees, WAM/GPA tools, official guides and a student community for Monash students. ' +
+    'An independent student platform, not affiliated with Monash University.'
+const defaultImageAlt = cnReadonly.value
+  ? 'Monash Hub - units, degrees and official guides'
+  : 'Monash Hub - units, degrees, official guides and a student community'
+
 useSeoMeta({
   ogType: 'website',
   ogSiteName: 'Monash Hub',
@@ -39,20 +49,33 @@ useSeoMeta({
   // page's own <title> and description, which is what a shared unit or guide
   // should show. Written here, they would name every page "Monash Hub". The
   // description below is only the default for a page that sets none.
-  description:
-    'Units, degrees, WAM/GPA tools, official guides and a student community for Monash students. ' +
-    'An independent student platform, not affiliated with Monash University.',
+  description: defaultDescription,
   ogImage: image,
   ogImageSecureUrl: image,
   ogImageType: 'image/png',
   ogImageWidth: 1200,
   ogImageHeight: 630,
-  ogImageAlt: 'Monash Hub - units, degrees, official guides and a student community',
+  ogImageAlt: defaultImageAlt,
   twitterCard: 'summary_large_image',
   twitterImage: image,
-  twitterImageAlt: 'Monash Hub - units, degrees, official guides and a student community'
+  twitterImageAlt: defaultImageAlt
 })
-useHead({ link: [{ rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }] })
+
+// Load Google Fonts only outside China read-only mode; CN visitors fall back
+// immediately to local system CJK/Latin fonts with zero blocked third-party calls.
+useHead({
+  link: cnReadonly.value
+    ? [{ rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }]
+    : [
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap'
+        }
+      ]
+})
 </script>
 
 <template>

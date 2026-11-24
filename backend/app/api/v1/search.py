@@ -37,7 +37,8 @@ def unified_search(
     pages, page_total = service.search_official(db, q, limit=limit, strong_only=True)
     if not pages and len(q.split()) > 1:
         pages, page_total = service.search_official(db, q, limit=limit)
-    posts, post_total = service.search_community(db, q, limit=limit)
+    readonly = get_settings().cn_readonly_mode
+    posts, post_total = ([], 0) if readonly else service.search_community(db, q, limit=limit)
     faqs = service.search_faq(db, q, limit=3)
 
     # A search that found something is counted, by term and day only; see
@@ -61,46 +62,50 @@ def unified_search(
     )
     faq_tr = translations.load_many(db, locale, FAQ_ENTRY, [f.slug for f in faqs], global_key=None)
 
-    return {
-        "query": q,
-        "academic_year": resolved_year,
-        "groups": [
-            {
-                "kind": "handbook",
-                "label": "Official Handbook",
-                "badge": "official-handbook",
-                "total": unit_total,
-                "results": [unit_brief(u, unit_tr[u.unit_code]) for u in units],
-            },
-            {
-                "kind": "degrees",
-                "label": "Handbook degrees",
-                "badge": "official-handbook",
-                "total": course_total,
-                "results": [course_brief(c, course_tr[c.course_code]) for c in courses],
-            },
-            {
-                "kind": "official",
-                "label": "Official Monash guides",
-                "badge": "official-source",
-                "total": page_total,
-                "results": [official_brief(p, page_tr[p.slug]) for p in pages],
-            },
-            {
-                "kind": "faq",
-                "label": "Curated answers",
-                "badge": "official-source",
-                "total": len(faqs),
-                "results": [faq_brief(f, faq_tr[f.slug]) for f in faqs],
-            },
+    groups = [
+        {
+            "kind": "handbook",
+            "label": "Official Handbook",
+            "badge": "official-handbook",
+            "total": unit_total,
+            "results": [unit_brief(u, unit_tr[u.unit_code]) for u in units],
+        },
+        {
+            "kind": "degrees",
+            "label": "Handbook degrees",
+            "badge": "official-handbook",
+            "total": course_total,
+            "results": [course_brief(c, course_tr[c.course_code]) for c in courses],
+        },
+        {
+            "kind": "official",
+            "label": "Official Monash guides",
+            "badge": "official-source",
+            "total": page_total,
+            "results": [official_brief(p, page_tr[p.slug]) for p in pages],
+        },
+        {
+            "kind": "faq",
+            "label": "Curated answers",
+            "badge": "official-source",
+            "total": len(faqs),
+            "results": [faq_brief(f, faq_tr[f.slug]) for f in faqs],
+        },
+    ]
+    if not readonly:
+        groups.append(
             {
                 "kind": "community",
                 "label": "Community",
                 "badge": "community",
                 "total": post_total,
                 "results": [post_brief(p) for p in posts],
-            },
-        ],
+            }
+        )
+    return {
+        "query": q,
+        "academic_year": resolved_year,
+        "groups": groups,
     }
 
 
@@ -112,8 +117,11 @@ class MissingSearchFeedback(BaseModel):
 @router.post("/search/missing", status_code=202)
 def missing_search_feedback(body: MissingSearchFeedback, db: Session = Depends(get_db)) -> dict:
     """Explicitly opted-in category/code aggregate. Never store raw search text."""
+    from fastapi import HTTPException
+
+    if get_settings().cn_readonly_mode:
+        raise HTTPException(status_code=403, detail="This endpoint is disabled in read-only mode.")
     if body.category not in popular.MISSING_CATEGORIES:
-        from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="Invalid feedback category")
     popular.record_missing(db, body.category, body.code)
     return {"accepted": True}

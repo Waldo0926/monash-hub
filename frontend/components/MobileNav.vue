@@ -3,6 +3,7 @@
 // the desktop header is also available from the fifth "More" destination, so
 // shrinking the header never makes a section disappear.
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const { user } = useAuth()
 const { unread } = useNotifications()
 const route = useRoute()
@@ -16,9 +17,11 @@ const primaryItems = computed(() => [
   { to: '/', label: $t('nav.home'), icon: '⌂', badge: 0 },
   { to: '/search', label: $t('nav.search'), icon: '⌕', badge: 0 },
   { to: '/mamo', label: $t('nav.mamo'), icon: 'M', badge: 0 },
-  user.value
-    ? { to: '/notifications', label: $t('nav.notifications'), icon: '🔔', badge: unread.value }
-    : { to: '/login', label: $t('nav.account'), icon: '◍', badge: 0 }
+  cnReadonly.value
+    ? { to: '/units', label: $t('nav.units'), icon: '▤', badge: 0 }
+    : user.value
+      ? { to: '/notifications', label: $t('nav.notifications'), icon: '🔔', badge: unread.value }
+      : { to: '/login', label: $t('nav.account'), icon: '◍', badge: 0 }
 ])
 
 const sectionNavigation = useSectionNavigation()

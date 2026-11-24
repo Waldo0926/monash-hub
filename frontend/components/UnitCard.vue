@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{ unit: any }>()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const { withYear } = useHandbookYear()
 
 // Older API responses have no exam_status; work it out from has_exam then.
@@ -28,7 +29,7 @@ const moreItems = computed(() => Math.max(0, (props.unit.assessment_count || 0) 
     </div>
     <h3 class="title">{{ unit.title }}</h3>
     <p
-      v-if="unit.rating?.count"
+      v-if="!cnReadonly && unit.rating?.count"
       class="rating tiny"
       :title="$t('reviews.cardTitle')"
     >

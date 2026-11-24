@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const { cnReadonly } = useSiteMode()
+</script>
+
 <template>
   <div class="shell">
     <a href="#main" class="skip">{{ $t('nav.skipToContent') }}</a>
@@ -11,7 +15,7 @@
     </main>
     <AppFooter />
     <MobileNav />
-    <ClientOnly><SiteAssistant /></ClientOnly>
+    <ClientOnly v-if="!cnReadonly"><SiteAssistant /></ClientOnly>
   </div>
 </template>
 

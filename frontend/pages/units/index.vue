@@ -13,6 +13,7 @@ import type { TermKind } from '~/i18n/handbook-terms'
 const route = useRoute()
 const router = useRouter()
 const { $t, $term } = useNuxtApp() as any
+const { cnReadonly } = useSiteMode()
 
 const PAGE = 24
 
@@ -475,7 +476,7 @@ useSeoMeta({
                   <span class="row-code mono">{{ unit.unit_code }}</span>
                   <span class="row-title">{{ unit.title }}</span>
                   <span class="row-meta tiny muted">
-                    <span v-if="unit.rating?.count" class="row-rating" :title="$t('reviews.cardTitle')">
+                    <span v-if="!cnReadonly && unit.rating?.count" class="row-rating" :title="$t('reviews.cardTitle')">
                       <StarRating :value="unit.rating.average" size="sm" />
                       {{ Number(unit.rating.average).toFixed(1) }}
                     </span>
@@ -492,7 +493,7 @@ useSeoMeta({
               <NuxtLink :to="`/search?q=${encodeURIComponent(query)}`" class="btn btn--ghost">
                 {{ $t('units.searchEverything') }}
               </NuxtLink>
-              <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+              <NuxtLink v-if="!cnReadonly" to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
             </EmptyState>
           </div>
 

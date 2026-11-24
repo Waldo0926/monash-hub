@@ -12,6 +12,7 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const slug = computed(() => String(route.params.slug))
 
 const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
@@ -108,7 +109,7 @@ useHead(() => ({
           </div>
         </div>
 
-        <div class="card section">
+        <div v-if="!cnReadonly" class="card section">
           <div class="section-head">
             <h2 class="small">{{ $t('nav.community') }}</h2>
             <SourceBadge kind="community" />

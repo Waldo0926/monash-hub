@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const { data } = await useApiFetch<{ topics: { key: string }[] }>('/v1/exchange')
 
 useSeoMeta({
@@ -21,8 +22,8 @@ useSeoMeta({
         {{ $t('exchange.note') }}
       </p>
       <p class="small">
-        <NuxtLink to="/guides?category=exchange">{{ $t('nav.guides') }}</NuxtLink> ·
-        <NuxtLink to="/community?category=exchange">{{ $t('nav.community') }}</NuxtLink>
+        <NuxtLink to="/guides?category=exchange">{{ $t('nav.guides') }}</NuxtLink><template v-if="!cnReadonly"> ·
+        <NuxtLink to="/community?category=exchange">{{ $t('nav.community') }}</NuxtLink></template>
       </p>
     </div>
   </div>

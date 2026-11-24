@@ -17,7 +17,10 @@ export default defineNuxtConfig({
       // The browser always uses the same origin, so there is no CORS to
       // configure and no second hostname to keep a certificate for.
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://monashhub.secureview.tech'
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://monashhub.secureview.tech',
+      // Read-only China mirror switch. Overridden at runtime by
+      // NUXT_PUBLIC_CN_READONLY_MODE so one build serves both deployments.
+      cnReadonlyMode: process.env.NUXT_PUBLIC_CN_READONLY_MODE === 'true'
     }
   },
 
@@ -38,13 +41,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        { rel: 'manifest', href: '/manifest.webmanifest' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap'
-        }
+        { rel: 'manifest', href: '/manifest.webmanifest' }
       ]
     }
   },

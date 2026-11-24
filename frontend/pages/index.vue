@@ -19,6 +19,7 @@ import { SEASON_GUIDES, SEASON_LIMIT, pickSeason } from '~/utils/season'
 
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const { locale } = useLocale()
 const { withYear } = useHandbookYear()
 const query = ref('')
@@ -145,7 +146,7 @@ const COPY = {
 }
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 
-const ENTRIES = [
+const entries = computed(() => [
   { to: '/units', key: 'units', icon: 'book' },
   { to: '/courses', key: 'courses', icon: 'degree' },
   { to: '/plan', key: 'plan', icon: 'columns' },
@@ -153,8 +154,10 @@ const ENTRIES = [
   { to: '/marks', key: 'marks', icon: 'percent' },
   { to: '/guides', key: 'guides', icon: 'page' },
   { to: '/fees', key: 'fees', icon: 'calendar' },
-  { to: '/community', key: 'community', icon: 'chat' }
-]
+  cnReadonly.value
+    ? { to: '/mamo', key: 'mamo', icon: 'pin' }
+    : { to: '/community', key: 'community', icon: 'chat' }
+])
 
 // One phrase per line under each entry title.
 /** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
@@ -162,7 +165,13 @@ const shortLabel = (key: string) => {
   const text = $t(`nav.short.${key}`)
   return text === `nav.short.${key}` ? null : text
 }
-const hintLines = (key: string) => $t(`home.toolHint.${key}`).split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
+const hintLines = (key: string) => {
+  if (cnReadonly.value && key === 'marks') {
+    const fallback = locale.value === 'zh' ? '输成绩、粘贴WES算分' : 'Type marks or paste from WES'
+    return fallback.split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
+  }
+  return $t(`home.toolHint.${key}`).split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
+}
 
 const systems = computed(() =>
   campus.value === 'malaysia' ? MONASH_SYSTEMS : MONASH_SYSTEMS.filter(s => s.appliesTo === 'all')
@@ -222,7 +231,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
           </button>
         </p>
         <nav class="tools" :aria-label="$t('nav.tools')">
-          <NuxtLink v-for="item in ENTRIES" :key="item.to" :to="item.to" class="tool">
+          <NuxtLink v-for="item in entries" :key="item.to" :to="item.to" class="tool">
             <span class="tool-icon"><PlanIcon :name="item.icon" :size="26" /></span>
             <span class="tool-text">
               <b v-if="shortLabel(item.key)">
@@ -252,7 +261,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
       </div>
     </section>
 
-    <NotificationPanel class="notifications" />
+    <NotificationPanel v-if="!cnReadonly" class="notifications" />
 
     <section v-if="seasonGuides.length" class="sec sec--season" aria-labelledby="season-title">
       <div class="sec-head">
