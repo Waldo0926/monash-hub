@@ -37,6 +37,7 @@ services:
       dockerfile: backend/Dockerfile
       args:
         APP_COMMIT: ${APP_COMMIT:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.cloud.tencent.com/pypi/simple}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -67,6 +68,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://mirrors.cloud.tencent.com/npm/}
     restart: unless-stopped
     depends_on:
       api:
@@ -90,6 +93,7 @@ services:
       dockerfile: backend/Dockerfile
       args:
         APP_COMMIT: ${APP_COMMIT:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.cloud.tencent.com/pypi/simple}
     profiles: [tools]
     depends_on:
       postgres:
