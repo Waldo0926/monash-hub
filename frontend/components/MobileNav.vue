@@ -4,6 +4,7 @@
 // shrinking the header never makes a section disappear.
 const { $t } = useNuxtApp()
 const { cnReadonly } = useSiteMode()
+const { locale } = useLocale()
 const { user } = useAuth()
 const { unread } = useNotifications()
 const route = useRoute()
@@ -18,7 +19,7 @@ const primaryItems = computed(() => [
   { to: '/search', label: $t('nav.search'), icon: '⌕', badge: 0 },
   { to: '/mamo', label: $t('nav.mamo'), icon: 'M', badge: 0 },
   cnReadonly.value
-    ? { to: '/units', label: $t('nav.units'), icon: '▤', badge: 0 }
+    ? { to: '/units', label: locale.value === 'zh' ? '课程查询' : $t('nav.units'), icon: '▤', badge: 0 }
     : user.value
       ? { to: '/notifications', label: $t('nav.notifications'), icon: '🔔', badge: unread.value }
       : { to: '/login', label: $t('nav.account'), icon: '◍', badge: 0 }
@@ -27,8 +28,8 @@ const primaryItems = computed(() => [
 const sectionNavigation = useSectionNavigation()
 const sectionItems = computed(() => [
   ...sectionNavigation.value,
-  { to: '/fees', label: $t('nav.fees'), icon: '¤' },
-  { to: '/parents', label: $t('nav.parents'), icon: '♡' }
+  { to: '/fees', label: cnReadonly.value && locale.value === 'zh' ? '学费查询' : $t('nav.fees'), icon: '¤' },
+  { to: '/parents', label: cnReadonly.value && locale.value === 'zh' ? '家长入口' : $t('nav.parents'), icon: '♡' }
 ])
 
 const sectionActive = computed(() => sectionItems.value.some(item =>
@@ -61,7 +62,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <nav class="mobile-nav" :aria-label="$t('nav.mainLabel')">
+  <nav class="mobile-nav" :class="{ 'mobile-nav--readonly': cnReadonly }" :aria-label="$t('nav.mainLabel')">
     <NuxtLink v-for="item in primaryItems" :key="item.to" :to="item.to" class="item">
       <span class="icon" aria-hidden="true">
         {{ item.icon }}

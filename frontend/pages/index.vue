@@ -178,6 +178,10 @@ const entries = computed(() => {
 /** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
 const entryLabel = (key: string) => {
   if (key === 'electives') return locale.value === 'zh' ? '找选修课' : 'Electives'
+  if (cnReadonly.value && locale.value === 'zh') {
+    if (key === 'units') return '课程查询'
+    if (key === 'fees') return '学费查询'
+  }
   return $t(`nav.${key}`)
 }
 const shortLabel = (key: string) => {

@@ -53,7 +53,7 @@ function search(value: string) {
 </script>
 
 <template>
-  <header class="header">
+  <header class="header" :class="{ 'header--readonly': cnReadonly }">
     <div class="inner">
       <NuxtLink to="/" class="brand">
         <AppLogo :size="30" tone="onLight" />
@@ -62,7 +62,12 @@ function search(value: string) {
 
       <nav ref="menuRoot" class="nav" :class="{ 'nav--readonly': cnReadonly }" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
         <template v-for="link in links" :key="link.label">
-          <NuxtLink v-if="link.to" :to="link.to" class="nav-link">
+          <NuxtLink
+            v-if="link.to"
+            :to="link.to"
+            class="nav-link"
+            :class="{ 'nav-link--accent': link.accent }"
+          >
             {{ link.label }}
           </NuxtLink>
           <div v-else class="nav-group">
@@ -92,7 +97,7 @@ function search(value: string) {
         />
       </div>
 
-      <NuxtLink to="/parents" class="parents-link">{{ $t('nav.parents') }}</NuxtLink>
+      <NuxtLink v-if="!cnReadonly" to="/parents" class="parents-link">{{ $t('nav.parents') }}</NuxtLink>
 
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
@@ -182,6 +187,25 @@ function search(value: string) {
 }
 .nav-link:hover { color: var(--text); text-decoration: none; }
 .nav .router-link-active { color: var(--text); border-bottom-color: var(--text); }
+.nav-link--accent {
+  align-self: center;
+  padding: 5px 12px;
+  border-bottom: 0;
+  border-radius: var(--radius-pill);
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font-weight: 600;
+  transition: background-color 0.15s, color 0.15s;
+}
+.nav-link--accent:hover {
+  background: #dcebf7;
+  color: var(--navy);
+}
+.nav .nav-link--accent.router-link-active {
+  background: var(--brand);
+  color: #fff;
+  border-bottom-color: transparent;
+}
 .nav-group { position: relative; display: flex; }
 .nav-button {
   gap: 2px;
@@ -214,12 +238,13 @@ function search(value: string) {
    destinations such as WAM/GPA calculator visually separate from Community. */
 .nav--readonly {
   flex: 0 0 auto;
+  max-width: none;
   justify-content: flex-start;
-  gap: clamp(16px, 1.6vw, 28px);
-  margin-left: var(--s4);
+  gap: clamp(12px, 1.15vw, 20px);
+  margin-left: var(--s3);
 }
 .header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
-.header-search--readonly { margin-left: auto; max-width: 440px; }
+.header-search--readonly { margin-left: auto; flex: 1 1 200px; min-width: 170px; max-width: 300px; }
 .account {
   display: flex;
   align-items: center;
