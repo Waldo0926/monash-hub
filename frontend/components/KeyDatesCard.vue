@@ -24,19 +24,21 @@ import {
 
 const campus = defineModel<'malaysia' | 'australia'>('campus', { required: true })
 // The home page leaves the source list to /dates, where there is room for it.
-const props = withDefaults(defineProps<{ showSources?: boolean }>(), { showSources: true })
+const props = withDefaults(defineProps<{ showSources?: boolean; listed?: number }>(), {
+  showSources: true,
+  listed: 4
+})
 
 // Enough rows that a run of holidays cannot leave the headline without an
-// academic date, but only LISTED of them are shown under it.
-const FETCHED = 8
-const LISTED = 4
+// academic date, but only `props.listed` of them are shown under it.
+const fetchedLimit = computed(() => Math.max(8, props.listed + 4))
 const { locale } = useLocale()
 const lang = computed(() => (['zh', 'ja', 'ko'].includes(locale.value) ? locale.value : 'en') as KeyDateLang)
 
 // The source titles come back in the page's language, so the fetch carries it.
 const { data, error } = await useLocalisedApiFetch<KeyDates>(
-  () => `/v1/key-dates?campus=${campus.value}&limit=${FETCHED}`,
-  { watch: [campus] }
+  () => `/v1/key-dates?campus=${campus.value}&limit=${fetchedLimit.value}`,
+  { watch: [campus, fetchedLimit] }
 )
 
 const t = computed(() => KEY_DATE_TEXT[lang.value])
@@ -57,7 +59,7 @@ const headline = computed(() => {
 const rows = computed(() =>
   (data.value?.items ?? [])
     .filter(item => item !== headline.value)
-    .slice(0, LISTED)
+    .slice(0, props.listed)
     .map(item => ({ item, ...label(item), range: range(item), when: when(item) }))
 )
 const next = computed(() => {

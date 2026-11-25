@@ -62,9 +62,11 @@ const atCampus = (campusRaw: string | null | undefined) =>
   campus.value === 'malaysia' ? campusRaw === 'Malaysia' : AUSTRALIA.has(campusRaw ?? '')
 
 // The dates use the same path as KeyDatesCard, so both read one fetch.
+const datesListed = computed(() => (cnReadonly.value ? 6 : 4))
+const datesFetchLimit = computed(() => Math.max(8, datesListed.value + 4))
 const datesFetch = useLocalisedApiFetch<KeyDates>(
-  () => `/v1/key-dates?campus=${campus.value}&limit=8`,
-  { watch: [campus] }
+  () => `/v1/key-dates?campus=${campus.value}&limit=${datesFetchLimit.value}`,
+  { watch: [campus, datesFetchLimit] }
 )
 const popularFetch = useApiFetch<any>('/v1/search/popular?limit=20')
 const [{ data: dates }, { data: searched }] = await Promise.all([datesFetch, popularFetch])
@@ -198,6 +200,11 @@ const hintLines = (key: string) => {
 const systems = computed(() =>
   campus.value === 'malaysia' ? MONASH_SYSTEMS : MONASH_SYSTEMS.filter(s => s.appliesTo === 'all')
 )
+const systemsHeading = computed(() => (
+  cnReadonly.value && locale.value === 'zh' ? '常用系统入口' : $t('home.systems')
+))
+const systemHint = (hint?: { zh: string; en: string }) =>
+  hint ? (locale.value === 'zh' ? hint.zh : hint.en) : ''
 
 const exampleTerms = computed(() => [
   { query: 'C2001', text: 'C2001', code: true },
@@ -274,14 +281,20 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
           </NuxtLink>
         </nav>
       </div>
-      <div class="hero-side">
-        <KeyDatesCard v-model:campus="campus" :show-sources="false" />
+      <div class="hero-side" :class="{ 'hero-side--cn': cnReadonly }">
+        <KeyDatesCard v-model:campus="campus" :show-sources="false" :listed="datesListed" />
         <section class="systems-box" aria-labelledby="systems-title">
-          <h2 id="systems-title">{{ $t('home.systems') }}</h2>
-          <ul class="systems">
+          <h2 id="systems-title">{{ systemsHeading }}</h2>
+          <ul class="systems" :class="{ 'systems--cn': cnReadonly }">
             <li v-for="s in systems" :key="s.url">
               <a :href="s.url" target="_blank" rel="noopener external">
-                {{ s.name }}<PlanIcon name="external" :size="13" />
+                <span class="sys-head">
+                  <span class="sys-name">{{ s.name }}</span>
+                  <PlanIcon name="external" :size="13" />
+                </span>
+                <span v-if="cnReadonly && systemHint(s.hint)" class="sys-hint tiny muted">
+                  {{ systemHint(s.hint) }}
+                </span>
               </a>
             </li>
           </ul>
@@ -382,6 +395,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .notifications { margin-bottom: var(--s6); }
 
 .sec { padding-block: var(--s6) var(--s7); border-top: 1px solid var(--border); }
+.sec:last-child { padding-bottom: 0; }
 .sec--season { padding-top: var(--s4); border-top: 0; }
 .sec h2 { margin: 0 0 var(--s4); }
 .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; margin-bottom: var(--s4); }
@@ -441,6 +455,9 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .gm { white-space: nowrap; }
 
 .hero-side { display: grid; grid-template-rows: auto 1fr; gap: var(--s4); }
+.hero-side--cn { grid-template-rows: 1fr auto; }
+.hero-side--cn :deep(.dates) { display: flex; flex-direction: column; }
+.hero-side--cn :deep(.dates .all) { margin-top: auto; padding-top: var(--s3); }
 .systems-box {
   padding: var(--s4) var(--s5);
   border: 1px solid var(--border);
@@ -462,6 +479,37 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 .systems a:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
 .systems a .icon { color: var(--muted-2); }
+.sys-head { display: inline-flex; align-items: center; gap: 6px; }
+.systems--cn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+}
+.systems--cn a {
+  display: grid;
+  gap: 2px;
+  min-height: 0;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.systems--cn a:hover {
+  background: var(--blue-50);
+  border-color: var(--brand);
+}
+.systems--cn .sys-head {
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.systems--cn .sys-hint {
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .mamo-block { margin-bottom: var(--s7); }
 

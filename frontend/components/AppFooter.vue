@@ -28,7 +28,7 @@ const featuresHeading = computed(() => {
 </script>
 
 <template>
-  <footer class="footer">
+  <footer class="footer" :class="{ 'footer--readonly': cnReadonly }">
     <div class="container">
       <div class="top">
         <div class="about">
@@ -179,6 +179,9 @@ const featuresHeading = computed(() => {
   background: var(--footer-bg);
   border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
+}
+.footer--readonly {
+  margin-top: var(--s4);
 }
 
 .top {

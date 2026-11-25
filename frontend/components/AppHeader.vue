@@ -83,7 +83,7 @@ function search(value: string) {
         </template>
       </nav>
 
-      <div class="header-search">
+      <div class="header-search" :class="{ 'header-search--readonly': cnReadonly }">
         <SearchInput
           v-model="query"
           inset
@@ -213,12 +213,13 @@ function search(value: string) {
 /* Search can give up a little width before the navigation does. This keeps long
    destinations such as WAM/GPA calculator visually separate from Community. */
 .nav--readonly {
-  flex: 0 1 540px;
+  flex: 0 0 auto;
   justify-content: flex-start;
-  gap: clamp(14px, 1.5vw, 28px);
-  margin-left: var(--s3);
+  gap: clamp(16px, 1.6vw, 28px);
+  margin-left: var(--s4);
 }
 .header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
+.header-search--readonly { margin-left: auto; max-width: 440px; }
 .account {
   display: flex;
   align-items: center;
