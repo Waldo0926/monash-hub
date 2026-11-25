@@ -192,7 +192,7 @@ def main() -> None:
     parser.add_argument("--harvest", metavar="PATH",
                         help="store the pages in this harvest file instead of fetching")
     parser.add_argument("--transport", default="auto", choices=["auto", "httpx", "playwright"])
-    parser.add_argument("--min-interval", type=float, default=4.0)
+    parser.add_argument("--min-interval", type=float, default=10.0)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 

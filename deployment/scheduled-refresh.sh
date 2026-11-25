@@ -9,7 +9,7 @@
 # meant to be watched, and by late September every official page had last been
 # checked on 30 August - census and fee dates included - while the site told
 # readers when each was "last checked". The refresh tiers in
-# crawler/sync/refresh.py (12 hours for dates, 2 days, 14 days) only mean
+# crawler/sync/refresh.py (7 days for dates and admin pages, 14 days) only mean
 # something if something asks what is due.
 #
 # One lock for both crawls: they share the crawler container's CPU budget and
@@ -100,7 +100,7 @@ case "${1:-}" in
 esac
 
 # Mail a person when the run failed or too many targets did - at most once a
-# day for each kind, since the official refresh runs four times a day and
+# day for each kind, including manual invocations, since
 # Cloudflare refusing the VPS tends to last. crawler.sync.alert prints nothing
 # when the last runs look fine.
 alert_args=()
@@ -110,7 +110,7 @@ case "$1" in
     # The last official run is now the last harvest stored, and a harvest that
     # stopped coming would otherwise look like a clean run forever.
     if [[ "$official_fetch" == harvest ]]; then
-      alert_args=(--max-age-hours "${harvest_max_hours:-72}")
+      alert_args=(--max-age-hours "${harvest_max_hours:-240}")
     fi
     ;;
   handbook) job_types=(handbook handbook_course handbook_aos) ;;
@@ -161,7 +161,7 @@ exec 9>&-
 
 exec 8>"$STATE_DIR/translate.lock"
 if [[ "$1" == official ]]; then
-  # Every six hours, so a refresh that finds a pass running leaves its pages
+  # Weekly: a refresh that finds a pass running leaves its pages
   # to the next one rather than queueing behind it.
   if ! flock -n 8; then
     echo "a translation pass is running; changed pages wait for the next refresh"

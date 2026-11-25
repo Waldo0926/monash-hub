@@ -11,8 +11,8 @@ from datetime import UTC, datetime, timedelta
 from app.models.knowledge import OfficialPage
 
 REFRESH_INTERVALS = {
-    "dynamic": timedelta(hours=12),   # census dates, deadlines, important dates
-    "medium": timedelta(days=2),      # admin how-tos, application steps
+    "dynamic": timedelta(days=7),   # census dates, deadlines, important dates
+    "medium": timedelta(days=7),      # admin how-tos, application steps
     "stable": timedelta(days=14),     # long-lived policy and explainer text
 }
 DEFAULT_INTERVAL = REFRESH_INTERVALS["medium"]

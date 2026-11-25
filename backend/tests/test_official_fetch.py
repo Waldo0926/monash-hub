@@ -121,3 +121,19 @@ def test_an_explicit_transport_is_kept_whatever_the_server_says():
     result = fetcher.fetch("https://www.monash.edu/students/page")
     assert result.status == 403
     assert {mode for mode, _ in fetcher.asked} == {HTTP_TRANSPORT}
+
+
+def test_final_refusal_stops_other_pages_on_same_host_but_not_other_hosts():
+    fetcher = Scripted([(403, None), (403, None), (200, None)])
+    assert fetcher.fetch("https://www.monash.edu/one").status == 403
+    stopped = fetcher.fetch("https://www.monash.edu/two")
+    assert not stopped.ok and "host paused" in stopped.error
+    assert len(fetcher.asked) == 2
+    assert fetcher.fetch("https://www.monash.edu.my/one").ok
+
+
+def test_exhausted_rate_limit_closes_host_for_remaining_pages():
+    fetcher = Scripted([(429, None)] * 3)
+    assert fetcher.fetch("https://www.monash.edu/one").status == 429
+    assert "host paused" in fetcher.fetch("https://www.monash.edu/two").error
+    assert len(fetcher.asked) == 3
