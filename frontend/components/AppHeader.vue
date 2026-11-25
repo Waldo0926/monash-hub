@@ -8,6 +8,12 @@ const { user, restore, signOut } = useAuth()
 const { unread, start, stop } = useNotifications()
 const route = useRoute()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
+const searchPlaceholder = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh' ? '搜课程、学位或指南…' : 'Search units, degrees or guides…')
+    : $t('search.placeholderShort')
+))
 
 onMounted(async () => {
   if (cnReadonly.value) return
@@ -81,7 +87,7 @@ function search(value: string) {
         <SearchInput
           v-model="query"
           inset
-          :placeholder="$t('search.placeholderShort')"
+          :placeholder="searchPlaceholder"
           @submit="search"
         />
       </div>

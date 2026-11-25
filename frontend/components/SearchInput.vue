@@ -12,7 +12,15 @@ const props = withDefaults(
   { modelValue: '', placeholder: '', big: false, inset: false }
 )
 const { $t } = useNuxtApp()
-const resolvedPlaceholder = computed(() => props.placeholder || $t('search.placeholder'))
+const { cnReadonly } = useSiteMode()
+const { locale } = useLocale()
+const resolvedPlaceholder = computed(() => {
+  if (props.placeholder) return props.placeholder
+  if (cnReadonly.value) {
+    return locale.value === 'zh' ? '搜索课程代码、学位或官方政策…' : 'Search units, degrees or official guides…'
+  }
+  return $t('search.placeholder')
+})
 const emit = defineEmits<{ (e: 'update:modelValue', value: string): void; (e: 'submit', value: string): void }>()
 
 // The header and the page can both render a search box, so the id has to be
