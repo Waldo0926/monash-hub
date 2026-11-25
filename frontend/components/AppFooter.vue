@@ -4,7 +4,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 const sectionLinks = useSectionNavigation()
-const { cnReadonly } = useSiteMode()
+const { cnReadonly, icpNumber } = useSiteMode()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
 const route = useRoute()
@@ -152,7 +152,16 @@ const featuresHeading = computed(() => {
       </div>
 
       <div class="bottom tiny">
-        <p class="copyright">{{ $t('footer.copyright') }}</p>
+        <p class="copyright">
+          <span>{{ $t('footer.copyright') }}</span>
+          <a
+            v-if="icpNumber"
+            href="https://beian.miit.gov.cn/"
+            rel="noopener external"
+            target="_blank"
+            class="icp"
+          >{{ icpNumber }}</a>
+        </p>
         <p class="credits">
           <span>{{ $t('footer.conceptBy') }} <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a></span>
           <span>{{ $t('footer.builtMaintainedBy') }} <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a></span>
@@ -245,6 +254,8 @@ const featuresHeading = computed(() => {
   border-top: 1px solid var(--footer-border);
 }
 .bottom p { margin: 0; }
+.copyright { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
+.icp { color: var(--muted); }
 .credits { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
 .credits a { font-weight: 600; }
 

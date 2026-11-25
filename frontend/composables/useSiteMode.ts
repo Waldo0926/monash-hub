@@ -12,5 +12,6 @@ export function isCnReadonlyFlag(value: unknown): boolean {
 export function useSiteMode() {
   const config = useRuntimeConfig()
   const cnReadonly = computed(() => isCnReadonlyFlag(config.public.cnReadonlyMode))
-  return { cnReadonly }
+  const icpNumber = computed(() => String(config.public.icpNumber || '').trim())
+  return { cnReadonly, icpNumber }
 }

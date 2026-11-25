@@ -54,7 +54,7 @@ function search(value: string) {
         <span class="brand-text">Monash Hub</span>
       </NuxtLink>
 
-      <nav ref="menuRoot" class="nav" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
+      <nav ref="menuRoot" class="nav" :class="{ 'nav--readonly': cnReadonly }" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
         <template v-for="link in links" :key="link.label">
           <NuxtLink v-if="link.to" :to="link.to" class="nav-link">
             {{ link.label }}
@@ -91,7 +91,7 @@ function search(value: string) {
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
            group instead of a row of separate boxes. -->
-      <div class="account">
+      <div class="account" :class="{ 'account--readonly': cnReadonly }">
         <LanguageSwitcher />
         <template v-if="!cnReadonly">
           <template v-if="user">
@@ -206,6 +206,12 @@ function search(value: string) {
 
 /* Search can give up a little width before the navigation does. This keeps long
    destinations such as WAM/GPA calculator visually separate from Community. */
+.nav--readonly {
+  flex: 0 1 540px;
+  justify-content: flex-start;
+  gap: clamp(14px, 1.5vw, 28px);
+  margin-left: var(--s3);
+}
 .header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
 .account {
   display: flex;
@@ -216,6 +222,11 @@ function search(value: string) {
   padding: 4px;
   border-radius: var(--radius-pill);
   background: var(--surface-2);
+}
+.account--readonly {
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .parents-link {

@@ -14,6 +14,14 @@ const route = useRoute()
 const router = useRouter()
 const { $t, $term } = useNuxtApp() as any
 const { cnReadonly } = useSiteMode()
+const { locale } = useLocale()
+const emptyHint = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh'
+      ? '检查课程代码拼写、去掉一个筛选条件，或者去全站搜索官方指南与学位'
+      : 'Check the unit code spelling, clear a filter, or search official guides and degrees instead.')
+    : $t('units.emptyHint')
+))
 
 const PAGE = 24
 
@@ -486,7 +494,7 @@ useSeoMeta({
                 </NuxtLink>
               </li>
             </ul>
-            <EmptyState v-else :title="$t('units.empty')" :hint="$t('units.emptyHint')">
+            <EmptyState v-else :title="$t('units.empty')" :hint="emptyHint">
               <button v-if="active.length" type="button" class="btn btn--ghost" @click="reset">
                 {{ $t('units.clearFilters') }}
               </button>

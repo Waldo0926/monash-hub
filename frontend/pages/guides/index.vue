@@ -105,7 +105,20 @@ useSeoMeta({
         </button>
       </div>
       <EmptyState v-else :title="$t('guides.empty')" :hint="$t('guides.emptyHint')">
-        <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+        <template v-if="cnReadonly">
+          <button
+            v-if="query || category || campus"
+            type="button"
+            class="btn btn--ghost"
+            @click="query = ''; category = ''; campus = ''"
+          >
+            {{ $t('units.clearFilters') }}
+          </button>
+          <NuxtLink :to="query ? `/search?q=${encodeURIComponent(query)}` : '/search'" class="btn">
+            {{ $t('units.searchEverything') }}
+          </NuxtLink>
+        </template>
+        <NuxtLink v-else to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
       </EmptyState>
     </template>
   </div>

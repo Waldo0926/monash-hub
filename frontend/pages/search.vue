@@ -91,8 +91,22 @@ async function sendMissingFeedback() {
  * state below says so once, with somewhere to go next.
  */
 const showAnswer = computed(
-  () => !!answer.value && !!query.value && answer.value.answer_type !== 'community_fallback'
+  () => !cnReadonly.value && !!answer.value && !!query.value && answer.value.answer_type !== 'community_fallback'
 )
+const emptyQueryHint = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh'
+      ? '可输入课程代码、中文或英文学位名称、政策关键词查资料'
+      : 'Enter a unit code, degree name, or policy keyword to search.')
+    : $t('search.hint')
+))
+const nothingFoundHint = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh'
+      ? '检查课程代码拼写或减少关键词，也可以按分类浏览课程与官方指南'
+      : 'Check the code spelling, try fewer keywords, or browse units and official guides by category.')
+    : $t('search.nothingHint')
+))
 
 useSeoMeta({
   title: () => (query.value ? query.value : $t('search.title')),
@@ -114,8 +128,12 @@ useSeoMeta({
       <Skeleton v-if="pending" :lines="6" class="mt" />
 
       <div v-else-if="query && !hasResults" class="mt">
-        <EmptyState :title="$t('search.nothing')" :hint="$t('search.nothingHint')">
-          <NuxtLink v-if="!cnReadonly" to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+        <EmptyState :title="$t('search.nothing')" :hint="nothingFoundHint">
+          <template v-if="cnReadonly">
+            <NuxtLink to="/units" class="btn btn--ghost">{{ $t('nav.units') }}</NuxtLink>
+            <NuxtLink to="/guides" class="btn btn--ghost">{{ $t('nav.guides') }}</NuxtLink>
+          </template>
+          <NuxtLink v-else to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
         </EmptyState>
         <div v-if="!cnReadonly" class="missing-feedback card">
           <p><strong>{{ locale === 'zh' ? '找不到需要的资料？' : 'Missing something?' }}</strong></p>
@@ -185,7 +203,7 @@ useSeoMeta({
         </section>
       </div>
 
-      <EmptyState v-else class="mt" :title="$t('search.title')" :hint="$t('search.hint')" />
+      <EmptyState v-else class="mt" :title="$t('search.title')" :hint="emptyQueryHint" />
     </template>
   </div>
 </template>

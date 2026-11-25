@@ -9,10 +9,11 @@
  * get the English text rather than an unreviewed translation.
  */
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const { locale } = useLocale()
 const zh = computed(() => locale.value === 'zh')
 
-const UPDATED = '2026-10-31'
+const UPDATED = computed(() => (cnReadonly.value ? '2026-11-25' : '2026-10-31'))
 const CONTACT = 'wensx0926@gmail.com'
 
 useSeoMeta({ title: () => $t('privacy.title') })
@@ -24,7 +25,65 @@ useSeoMeta({ title: () => $t('privacy.title') })
       <h1>{{ $t('privacy.title') }}</h1>
       <p class="tiny muted">{{ $t('privacy.updated', { date: UPDATED }) }}</p>
 
-      <template v-if="zh">
+      <template v-if="cnReadonly && zh">
+        <p>Monash Hub 是学生自建的非官方学习资料与选课查询工具，不隶属于 Monash University。国内只读版仅提供公开课程、学位、官方指南与本地计算功能，以下说明网站的数据处理方式。</p>
+
+        <h2>不收集账号与个人发布内容</h2>
+        <ul>
+          <li>本站点为纯只读信息查询站，不开放注册登录、社区发帖、课程评价、头像或文件上传，也不提供在线 AI 对话</li>
+          <li>不收集你的邮箱、密码、昵称、真实姓名、学号或手机号</li>
+        </ul>
+
+        <h2>仅保存在你浏览器本地的数据</h2>
+        <ul>
+          <li>选课计划保存在你的浏览器 <code>localStorage</code> 中；点击“检查计划”时会临时发送到服务器核对先修规则，但服务器不保存任何记录</li>
+          <li>WAM/GPA 计算器输入的成绩仅在你的浏览器本地计算，不会上传至服务器</li>
+          <li>界面语言偏好（<code>mh_locale</code>）和首页默认校区（<code>mh_home_campus</code>）保存在浏览器 Cookie 中，仅用于记住你的展示偏好</li>
+        </ul>
+
+        <h2>服务器访问日志与第三方资源</h2>
+        <ul>
+          <li>服务器仅保留常规 Web 访问日志（包含访问时间、请求路径、状态码及 IP 地址），仅用于故障排查与基本安全防护</li>
+          <li>本站点不投放广告，不接入第三方统计追踪脚本，也不加载海外字体外链</li>
+        </ul>
+
+        <h2>联系我们</h2>
+        <p>
+          如对资料准确性、版权或隐私说明有任何疑问，请发邮件至
+          <a :href="`mailto:${CONTACT}`">{{ CONTACT }}</a>。
+        </p>
+      </template>
+
+      <template v-else-if="cnReadonly">
+        <p>Monash Hub is an independent, unofficial student information and planning tool, not affiliated with Monash University. This read-only edition provides public Handbook, degree, official guide lookup and local calculators.</p>
+
+        <h2>No accounts or user uploads</h2>
+        <ul>
+          <li>This edition is strictly read-only: account registration, sign-in, community posting, unit reviews, file/avatar uploads and interactive chat are disabled.</li>
+          <li>We do not collect your email address, password, nickname, real name, student ID or phone number.</li>
+        </ul>
+
+        <h2>Data stored only in your browser</h2>
+        <ul>
+          <li>Study plans stay in your browser's <code>localStorage</code>. Checking a plan sends unit codes to the server to validate Handbook rules without storing them.</li>
+          <li>WAM/GPA marks are calculated entirely in your browser and are never uploaded.</li>
+          <li>Your language choice (<code>mh_locale</code>) and preferred campus (<code>mh_home_campus</code>) are stored in browser cookies purely to remember your display settings.</li>
+        </ul>
+
+        <h2>Server logs and third-party requests</h2>
+        <ul>
+          <li>The web server keeps standard access logs (timestamp, path, status code and IP address) solely for troubleshooting and abuse protection.</li>
+          <li>This edition uses no advertising, no third-party analytics trackers and no external webfont CDNs.</li>
+        </ul>
+
+        <h2>Contact</h2>
+        <p>
+          For questions about data accuracy, copyright or this notice, email
+          <a :href="`mailto:${CONTACT}`">{{ CONTACT }}</a>.
+        </p>
+      </template>
+
+      <template v-else-if="zh">
         <p>Monash Hub是学生做的非官方网站，不隶属于Monash University。这里说明网站保存了你的哪些信息、用来做什么</p>
 
         <h2>账号</h2>

@@ -18,6 +18,9 @@ const slug = computed(() => String(route.params.slug))
 const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
 useErrorStatus(error)
 
+const hasOutline = computed(() => !!(guide.value?.headings?.length && !guide.value?.requires_sign_in))
+const hasSidebar = computed(() => !cnReadonly.value || hasOutline.value || !!guide.value?.related_faq?.length)
+
 useSeoMeta({
   title: () => (guide.value ? guide.value.title : 'Guide'),
   // A guide with no summary still gets a sentence of its own: an empty
@@ -35,7 +38,7 @@ useHead(() => ({
   <div class="container">
     <ErrorState v-if="error" :error="error" />
 
-    <div v-else-if="guide" class="layout">
+    <div v-else-if="guide" class="layout" :class="{ 'layout--single': !hasSidebar }">
       <article class="content">
         <header class="card section">
           <div class="head-top">
@@ -58,7 +61,7 @@ useHead(() => ({
           </p>
         </header>
 
-        <section v-if="guide.headings?.length && !guide.requires_sign_in" class="card section">
+        <section v-if="hasOutline && !cnReadonly" class="card section">
           <h2>{{ $t('guides.covers') }}</h2>
           <ul class="outline">
             <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
@@ -95,7 +98,17 @@ useHead(() => ({
         </section>
       </article>
 
-      <aside class="side stack">
+      <aside v-if="hasSidebar" class="side stack">
+        <nav v-if="cnReadonly && hasOutline" class="card section toc-card" :aria-label="$t('guides.covers')">
+          <h2 class="small">{{ $t('guides.covers') }}</h2>
+          <ul class="outline outline--toc">
+            <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
+              <a v-if="heading.id" :href="`#${heading.id}`">{{ heading.text }}</a>
+              <template v-else>{{ heading.text }}</template>
+            </li>
+          </ul>
+        </nav>
+
         <div v-if="guide.related_faq?.length" class="card section">
           <h2 class="small">{{ $t('guides.relatedQuestions') }}</h2>
           <div v-for="faq in guide.related_faq" :key="faq.slug" class="faq">
@@ -132,6 +145,7 @@ useHead(() => ({
 
 <style scoped>
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s5); align-items: start; }
+.layout--single { grid-template-columns: minmax(0, 1fr); max-width: 860px; margin: 0 auto; }
 /* See units/[code].vue: without this a wide table widens its own grid column
    and the page scrolls sideways instead of the table. */
 .layout > * { min-width: 0; }
@@ -146,6 +160,9 @@ useHead(() => ({
 .mb { margin-bottom: var(--s5); }
 .outline { margin: 0; padding-left: var(--s5); }
 .outline .lvl-3 { margin-left: var(--s4); color: var(--muted); }
+.outline--toc { list-style: none; padding-left: 0; display: grid; gap: 6px; font-size: 0.88rem; }
+.outline--toc .lvl-3 { margin-left: var(--s3); font-size: 0.82rem; }
+.toc-card { max-height: calc(100vh - var(--header-h) - var(--s7)); overflow-y: auto; }
 .side { position: sticky; top: calc(var(--header-h) + var(--s4)); }
 .faq + .faq { margin-top: var(--s4); }
 .faq h3 { font-size: 0.95rem; }

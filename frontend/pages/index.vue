@@ -146,26 +146,48 @@ const COPY = {
 }
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 
-const entries = computed(() => [
-  { to: '/units', key: 'units', icon: 'book' },
-  { to: '/courses', key: 'courses', icon: 'degree' },
-  { to: '/plan', key: 'plan', icon: 'columns' },
-  { to: '/tree', key: 'tree', icon: 'tree' },
-  { to: '/marks', key: 'marks', icon: 'percent' },
-  { to: '/guides', key: 'guides', icon: 'page' },
-  { to: '/fees', key: 'fees', icon: 'calendar' },
-  cnReadonly.value
-    ? { to: '/mamo', key: 'mamo', icon: 'pin' }
-    : { to: '/community', key: 'community', icon: 'chat' }
-])
+const entries = computed(() => {
+  if (cnReadonly.value) {
+    return [
+      { to: '/units', key: 'units', icon: 'book' },
+      { to: '/courses', key: 'courses', icon: 'degree' },
+      { to: '/plan', key: 'plan', icon: 'columns' },
+      { to: '/tree', key: 'tree', icon: 'tree' },
+      { to: '/electives', key: 'electives', icon: 'search' },
+      { to: '/marks', key: 'marks', icon: 'percent' },
+      { to: '/guides', key: 'guides', icon: 'page' },
+      { to: '/fees', key: 'fees', icon: 'calendar' },
+      { to: '/mamo', key: 'mamo', icon: 'pin' }
+    ]
+  }
+  return [
+    { to: '/units', key: 'units', icon: 'book' },
+    { to: '/courses', key: 'courses', icon: 'degree' },
+    { to: '/plan', key: 'plan', icon: 'columns' },
+    { to: '/tree', key: 'tree', icon: 'tree' },
+    { to: '/marks', key: 'marks', icon: 'percent' },
+    { to: '/guides', key: 'guides', icon: 'page' },
+    { to: '/fees', key: 'fees', icon: 'calendar' },
+    { to: '/community', key: 'community', icon: 'chat' }
+  ]
+})
 
 // One phrase per line under each entry title.
 /** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
+const entryLabel = (key: string) => {
+  if (key === 'electives') return locale.value === 'zh' ? '找选修课' : 'Electives'
+  return $t(`nav.${key}`)
+}
 const shortLabel = (key: string) => {
+  if (key === 'electives') return locale.value === 'zh' ? '选修课' : 'Electives'
   const text = $t(`nav.short.${key}`)
   return text === `nav.short.${key}` ? null : text
 }
 const hintLines = (key: string) => {
+  if (key === 'electives') {
+    const text = locale.value === 'zh' ? '无考试、无先修条件筛选' : 'Filter by no exam or no prereqs'
+    return text.split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
+  }
   if (cnReadonly.value && key === 'marks') {
     const fallback = locale.value === 'zh' ? '输成绩、粘贴WES算分' : 'Type marks or paste from WES'
     return fallback.split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
@@ -199,7 +221,13 @@ function search(value: string) {
 }
 
 useSeoMeta({
-  title: () => $t('home.title'),
+  title: () => (
+    cnReadonly.value
+      ? (locale.value === 'zh'
+        ? 'Monash Hub | Handbook、官方指南与实用工具'
+        : 'Monash Hub | Handbook, official guides and planning tools')
+      : $t('home.title')
+  ),
   description: () => c.value.description,
   ogTitle: 'Monash Hub',
   ogDescription: () => c.value.description,
@@ -230,15 +258,15 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
             {{ term.text }}
           </button>
         </p>
-        <nav class="tools" :aria-label="$t('nav.tools')">
+        <nav class="tools" :class="{ 'tools--cn': cnReadonly }" :aria-label="$t('nav.tools')">
           <NuxtLink v-for="item in entries" :key="item.to" :to="item.to" class="tool">
             <span class="tool-icon"><PlanIcon :name="item.icon" :size="26" /></span>
             <span class="tool-text">
               <b v-if="shortLabel(item.key)">
-                <span class="label-full">{{ $t(`nav.${item.key}`) }}</span>
+                <span class="label-full">{{ entryLabel(item.key) }}</span>
                 <span class="label-short">{{ shortLabel(item.key) }}</span>
               </b>
-              <b v-else>{{ $t(`nav.${item.key}`) }}</b>
+              <b v-else>{{ entryLabel(item.key) }}</b>
               <span class="tool-hint">
                 <span v-for="line in hintLines(item.key)" :key="line">{{ line }}</span>
               </span>
@@ -369,6 +397,12 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   gap: var(--s2);
   margin-top: var(--s6);
 }
+.tools--cn {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tools--cn .tool {
+  padding: var(--s5) var(--s3) var(--s4);
+}
 .tool {
   display: grid;
   justify-items: center;
@@ -467,6 +501,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 @media (max-width: 560px) {
   .tools { gap: var(--s4) var(--s2); margin-top: var(--s5); }
+  .tools--cn .tool { padding: 0; }
   .tool {
     align-content: start;
     row-gap: 6px;

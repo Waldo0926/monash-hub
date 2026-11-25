@@ -20,7 +20,9 @@ export default defineNuxtConfig({
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://monashhub.secureview.tech',
       // Read-only China mirror switch. Overridden at runtime by
       // NUXT_PUBLIC_CN_READONLY_MODE so one build serves both deployments.
-      cnReadonlyMode: process.env.NUXT_PUBLIC_CN_READONLY_MODE === 'true'
+      cnReadonlyMode: process.env.NUXT_PUBLIC_CN_READONLY_MODE === 'true',
+      // Optional ICP filing number rendered in the footer once approved.
+      icpNumber: process.env.NUXT_PUBLIC_ICP_NUMBER || ''
     }
   },
 

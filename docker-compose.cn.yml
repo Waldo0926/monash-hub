@@ -79,6 +79,7 @@ services:
       NUXT_PUBLIC_API_BASE: /api
       NUXT_PUBLIC_SITE_URL: ${SITE_URL:-https://mumguide.cn}
       NUXT_PUBLIC_CN_READONLY_MODE: "true"
+      NUXT_PUBLIC_ICP_NUMBER: ${ICP_NUMBER:-}
     ports:
       - "127.0.0.1:${CN_WEB_PORT:-18101}:3000"
     networks: [internal]
