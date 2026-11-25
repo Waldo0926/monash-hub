@@ -146,6 +146,7 @@ class OfficialFetcher:
         self._page = None
         self._restarts = 0
         self._refusals = 0
+        self._closed_hosts: dict[str, str] = {}
 
     # -- transports ---------------------------------------------------------
 
@@ -213,11 +214,22 @@ class OfficialFetcher:
     # -- fetching -----------------------------------------------------------
 
     def fetch(self, url: str) -> PageResult:
+        host = urlsplit(url).netloc
+        if host in self._closed_hosts:
+            return PageResult(url, None, None, self._mode, self._closed_hosts[host])
         if not self.robots.allowed(url):
             reason = self.robots.denial_reason(url)
             log.info("%s: %s, not fetched", url, reason)
             return PageResult(url, None, None, self._mode, reason)
-        return self._attempts(url)
+        result = self._attempts(url)
+        # A final refusal (including the browser fallback) closes this host for
+        # the rest of the run. Keep other hosts independent and retain good data.
+        if result.status in (403, 429):
+            self._closed_hosts[host] = (
+                f"host paused after HTTP {result.status}; no further requests this run"
+            )
+            log.warning("%s: %s", host, self._closed_hosts[host])
+        return result
 
     def _attempts(self, url: str) -> PageResult:
         last: PageResult | None = None
