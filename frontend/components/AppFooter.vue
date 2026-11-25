@@ -48,10 +48,15 @@ const featuresHeading = computed(() => {
           </ClientOnly>
         </div>
 
-        <div class="cols">
+        <div class="cols" :class="{ 'cols--readonly': cnReadonly }">
           <nav class="col" :aria-label="featuresHeading">
             <h2 class="heading">{{ featuresHeading }}</h2>
-            <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">{{ link.label }}</NuxtLink>
+            <div v-if="cnReadonly" class="col-links--two">
+              <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">{{ link.label }}</NuxtLink>
+            </div>
+            <template v-else>
+              <NuxtLink v-for="link in sectionLinks" :key="link.to" :to="link.to">{{ link.label }}</NuxtLink>
+            </template>
           </nav>
 
           <nav class="col" :aria-label="$t('footer.official')">
@@ -216,7 +221,15 @@ const featuresHeading = computed(() => {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 0.9fr) minmax(0, 1fr);
   gap: var(--s5);
 }
+.cols--readonly {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.25fr) minmax(0, 0.85fr) minmax(0, 0.85fr);
+}
 .col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.col-links--two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 10px var(--s5);
+}
 .heading {
   margin: 0 0 var(--s1);
   font-family: var(--font);
@@ -264,7 +277,10 @@ const featuresHeading = computed(() => {
 
 @media (max-width: 1000px) {
   .top { grid-template-columns: 1fr; }
-  .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--s5); }
+  .cols, .cols--readonly { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--s5); }
+}
+@media (max-width: 480px) {
+  .col-links--two { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .footer { padding-top: var(--s6); }
