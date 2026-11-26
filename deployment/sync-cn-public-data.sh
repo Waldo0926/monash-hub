@@ -131,9 +131,9 @@ ssh -o BatchMode=yes "$DST_HOST" "rm -rf '${REMOTE_CHUNKS}' && mkdir -p '${REMOT
 
 START_TS="$(date +%s)"
 find "$LOCAL_CHUNKS" -maxdepth 1 -name 'part-*' | sort | xargs -n 1 -P "$PARALLEL_CHUNKS" bash -c '
-  f="$1"
-  dst_host="$2"
-  remote_dir="$3"
+  dst_host="$1"
+  remote_dir="$2"
+  f="$3"
   base="$(basename "$f")"
   for attempt in 1 2 3 4; do
     if scp -q -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$f" "${dst_host}:${remote_dir}/${base}"; then
