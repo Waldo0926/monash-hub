@@ -5,7 +5,7 @@
 #
 #   SERVER=my-vps deployment/harvest-relay.sh
 #
-# Run daily by deployment/systemd/monash-hub-harvest.timer, settings in
+# Run weekly by deployment/systemd/monash-hub-harvest.timer, settings in
 # /etc/monash-hub-harvest.env (see the service file). For each host:
 #
 #   1. ask the server which pages are due (crawl.sh official-due)
@@ -14,7 +14,7 @@
 #
 # The server keeps the refresh tiers, so this asks Monash for what a crawl on
 # the server would have asked for, not every page every day. A host whose read
-# or store fails is retried the next day; the server mails once nothing has
+# or store fails is retried the next week; the server mails once nothing has
 # been stored for OFFICIAL_HARVEST_MAX_HOURS.
 set -euo pipefail
 
@@ -34,6 +34,15 @@ if ! flock -n 9; then
   echo "a harvest is already running; skipping this one"
   exit 0
 fi
+
+# Failed attempts cool down too. Reloading the timer or restarting this
+# service must not cause a second batch of upstream requests the same week.
+marker="$WORK_DIR/last-attempt"
+if [[ -f "$marker" ]] && (( $(date +%s) - $(stat -c %Y "$marker") < 518400 )); then
+  echo "weekly cooldown: no upstream requests"
+  exit 0
+fi
+touch "$marker"
 
 # The seed list has to be the server's, or slugs it asks for are unknown here.
 git -C "$REPO_DIR" pull -q --ff-only
@@ -62,7 +71,7 @@ relay() {
   echo "$host: $(tr ',' '\n' <<<"$slugs" | wc -l) pages due"
   file="$WORK_DIR/out/$host-$stamp.jsonl.gz"
   # Resumes the file if today's run was stopped part way.
-  "$VENV/bin/python" -m crawler.official.harvest --host "$host" --out "$file" --slugs "$slugs"
+  "$VENV/bin/python" -m crawler.official.harvest --host "$host" --out "$file" --slugs "$slugs" --min-interval 10
   ssh "$SERVER" "mkdir -p $SERVER_DIR"
   scp -q "$file" "$SERVER:$SERVER_DIR/"
   ssh "$SERVER" "$SERVER_REPO/deployment/crawl.sh official-harvest $SERVER_DIR/$(basename "$file")"

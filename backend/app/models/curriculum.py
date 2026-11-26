@@ -29,7 +29,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
@@ -66,6 +66,7 @@ class Course(Base):
     campuses: Mapped[list[str]] = mapped_column(ARRAY(String(64)), default=list)
     duration_years: Mapped[int | None] = mapped_column(Integer)
 
+    reference_links: Mapped[list[dict] | None] = mapped_column(JSONB)
     overview: Mapped[str | None] = mapped_column(Text)
     structure_text: Mapped[str | None] = mapped_column(Text)
     requirements_text: Mapped[str | None] = mapped_column(Text)
@@ -109,6 +110,7 @@ class AreaOfStudy(Base):
     credit_points: Mapped[int | None] = mapped_column(Integer)
     faculty: Mapped[str | None] = mapped_column(String(200), index=True)
     school: Mapped[str | None] = mapped_column(String(200))
+    reference_links: Mapped[list[dict] | None] = mapped_column(JSONB)
     overview: Mapped[str | None] = mapped_column(Text)
 
     handbook_version: Mapped[str | None] = mapped_column(String(32))
@@ -160,6 +162,7 @@ class CurriculumContainer(Base):
     title: Mapped[str | None] = mapped_column(String(300))
     description: Mapped[str | None] = mapped_column(Text)
     footnote: Mapped[str | None] = mapped_column(Text)
+    reference_links: Mapped[list[dict] | None] = mapped_column(JSONB)
     credit_points: Mapped[int | None] = mapped_column(Integer)
     credit_points_max: Mapped[int | None] = mapped_column(Integer)
     connector: Mapped[str | None] = mapped_column(String(8))

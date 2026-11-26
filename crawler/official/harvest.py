@@ -218,7 +218,7 @@ def main() -> None:
     parser.add_argument("--host", required=True, help="e.g. www.monash.edu.my")
     parser.add_argument("--out", required=True, help=".jsonl or .jsonl.gz; resumed if it exists")
     parser.add_argument("--transport", default="auto", choices=["auto", "httpx", "playwright"])
-    parser.add_argument("--min-interval", type=float, default=3.0)
+    parser.add_argument("--min-interval", type=float, default=10.0)
     parser.add_argument("--slugs",
                         help="comma separated seed slugs; default every page on the host")
     args = parser.parse_args()

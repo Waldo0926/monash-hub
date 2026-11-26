@@ -83,16 +83,16 @@ and reindex Chinese search afterwards.
 
 | Timer | When | What |
 | --- | --- | --- |
-| `monash-hub-refresh-official.timer` | every six hours | official pages whose refresh tier is due |
+| `monash-hub-refresh-official.timer` | Wednesday 12:20 (host local time) | official pages whose refresh tier is due |
 | `monash-hub-refresh-handbook.timer` | Sunday overnight | every unit, then every degree and area of study |
 
 When Monash refuses the server's address, set `OFFICIAL_FETCH=harvest` in
 `.env`. The official refresh then stops fetching pages itself, and they are
 read on a machine Monash answers (`python -m crawler.official.harvest`) and
 stored with `deployment/crawl.sh official-harvest FILE`. Translation, the
-search reindex and the next-Handbook check still run every six hours, and the
+search reindex and the next-Handbook check still run weekly, and the
 alert mails once the last stored harvest is older than
-`OFFICIAL_HARVEST_MAX_HOURS` (72 by default). Remove the line to fetch on the
+`OFFICIAL_HARVEST_MAX_HOURS` (240 by default). Remove the line to fetch on the
 server again.
 
 ### The harvest machine
@@ -116,7 +116,7 @@ sudo systemctl start monash-hub-harvest.service        # the first run, now
 journalctl -u monash-hub-harvest -f
 ```
 
-It runs daily at about 01:20. The script pulls the repository and installs
+It runs weekly on Wednesday at about 03:00 (host local time). The script pulls the repository and installs
 the pinned packages itself, so the seed list stays the server's.
 
 Install or update them:
@@ -247,3 +247,23 @@ Before and after a production deploy:
 - API/web containers are reachable only through the intended reverse-proxy path.
 - Only Monash Hub containers, volumes and nginx configuration are modified.
 - Secrets, dumps and raw production crawl output remain outside version control.
+
+### Weekly official refresh and refusal handling
+
+Official page tiers have a seven-day minimum (stable pages: fourteen days).
+A final HTTP 403 or exhausted HTTP 429 closes that host for the remainder of
+that run; robots failures already close the host without requesting its pages.
+The last valid page and its original last-checked timestamp remain intact.
+Weekly timers do not catch up immediately on reboot. Use only one harvest
+relay, and disable older six-hour launchd/systemd schedules. On macOS use
+StartCalendarInterval (Weekday 3, Hour 3, Minute 0), remove StartInterval, and
+set RunAtLoad to false. Keep a persistent attempt marker so restarting the
+relay cannot immediately retry a failed batch (six-day minimum cooldown).
+Pass --min-interval 10 to the relay harvest command.
+
+Set OFFICIAL_FETCH=harvest on the receiving server and
+OFFICIAL_HARVEST_MAX_HOURS=240 to allow a weekly relay plus three days of
+slack. This threshold concerns delivery age; a partial harvest still reports
+failed pages. A refused request does not by itself prove an IP ban. Ask Monash
+ITS to review the source IP, UTC timestamp, URL, User-Agent and any request ID;
+do not rotate addresses to get around a refusal.

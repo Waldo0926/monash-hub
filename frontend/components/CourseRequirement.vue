@@ -98,7 +98,7 @@ function away(code: string) {
             {{ $t('courses.openIn') }}
             <NuxtLink v-for="y in fact(item.code).years" :key="y" :to="`/units/${item.code}?year=${y}`">{{ y }}</NuxtLink>
           </span>
-          <NuxtLink v-if="item.type !== 'unit'" class="item item--aos" :to="withYear(`/courses/aos/${item.code}`)">
+          <NuxtLink v-if="item.type !== 'unit'" class="item item--aos" :to="withYear(item.type === 'course' ? `/courses/${item.code}` : `/courses/aos/${item.code}`)">
             <span class="code">{{ item.code }}</span>
             <span class="name">{{ item.name }}</span>
             <span class="meta">
@@ -124,6 +124,9 @@ function away(code: string) {
         :depth="depth + 1"
         :year="year"
       />
+
+      <CurriculumReferences :links="node.reference_links" />
+      <CurriculumElectives v-if="node.elective_browse" :scope="node.elective_browse" :campus="campus" :year="year" />
 
       <p v-if="node.footnote" class="note note--foot">{{ node.footnote }}</p>
     </div>

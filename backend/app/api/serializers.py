@@ -521,6 +521,7 @@ def course_detail(course: Course, tr: Translation = NO_TRANSLATION) -> dict[str,
         "cricos_code": course.cricos_code,
         "school": tr.value(course.school),
         "overview": tr.field("overview", course.overview),
+        "reference_links": course.reference_links or [],
         # structure_text and requirements_text stay in the database and out of
         # this payload. They are five thousand characters that nothing renders,
         # and shipping them untranslated on a Chinese page would be worse than
@@ -540,6 +541,7 @@ def area_of_study_detail(aos: AreaOfStudy, tr: Translation = NO_TRANSLATION) -> 
         "credit_points": aos.credit_points,
         "faculty": tr.value(aos.faculty),
         "overview": tr.field("overview", aos.overview),
+        "reference_links": aos.reference_links or [],
         "academic_year": aos.academic_year,
         "source_url": aos.source_url,
         "last_checked": _iso(aos.last_crawled),

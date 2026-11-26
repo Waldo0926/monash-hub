@@ -33,7 +33,7 @@ def test_only_due_pages_on_the_host_are_asked_for():
     pages = {
         "https://www.monash.edu.my/fresh": _page(),
         "https://www.monash.edu.my/old": _page(refresh_tier="dynamic",
-                                               last_checked=NOW - timedelta(hours=13)),
+                                               last_checked=NOW - timedelta(days=8)),
         "https://www.monash.edu.my/refused": _page(fetch_error="robots.txt unavailable"),
         "https://www.monash.edu/other-site": _page(fetch_error="HTTP 403"),
     }
@@ -46,3 +46,11 @@ def test_nothing_due_is_an_empty_list():
     seeds = [_seed("fresh")]
     pages = {"https://www.monash.edu.my/fresh": _page()}
     assert due_slugs(seeds, pages, "www.monash.edu.my", now=NOW) == []
+
+
+def test_dynamic_and_medium_pages_wait_a_week():
+    from crawler.sync.refresh import is_due
+
+    for tier in ("dynamic", "medium"):
+        assert not is_due(_page(refresh_tier=tier, last_checked=NOW - timedelta(days=6)), now=NOW)
+        assert is_due(_page(refresh_tier=tier, last_checked=NOW - timedelta(days=7)), now=NOW)
