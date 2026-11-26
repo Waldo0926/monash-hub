@@ -48,6 +48,15 @@ def test_unsafe_links_are_discarded_and_references_deduplicate():
     assert links == [{"url": 'https://www.monash.edu/list', "label": 'List & rules'}]
 
 
+@pytest.mark.parametrize('href', ['http://[http//example.com/list', 'https://example.com：443/list'])
+def test_malformed_reference_urls_do_not_discard_valid_references(href):
+    links = reference_links(
+        f'<a href="{href}">Malformed upstream link</a>'
+        '<a href="https://www.monash.edu/approved">Approved electives</a>'
+    )
+    assert links == [{'url': 'https://www.monash.edu/approved', 'label': 'Approved electives'}]
+
+
 def test_reference_links_survive_storage_and_api_serialization(db):
     from app.api.v1.courses import get_course
     from app.handbook.course_repository import upsert_course
