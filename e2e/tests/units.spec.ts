@@ -54,7 +54,7 @@ test('unit search always links to the Handbook year comparison, without requirin
 
 test('a single-year unit still gives a route to the comparison page', async ({ page }) => {
   await page.goto('/units/FIT2004')
-  const link = page.getByRole('link', { name: /比较年份|Compare years/ })
+  const link = page.getByRole('link', { name: /比较年份|Compare years/ }).first()
   await expect(link).toBeVisible()
   await link.click()
   await expect(page).toHaveURL(/\/units\/compare\?/)

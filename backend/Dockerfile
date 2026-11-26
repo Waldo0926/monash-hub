@@ -8,8 +8,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /srv
 
+ARG PIP_INDEX_URL=""
 COPY backend/requirements.txt /srv/backend/requirements.txt
-RUN pip install --no-cache-dir -r /srv/backend/requirements.txt
+RUN pip install --no-cache-dir ${PIP_INDEX_URL:+-i "$PIP_INDEX_URL"} -r /srv/backend/requirements.txt
 
 COPY backend /srv/backend
 COPY crawler /srv/crawler

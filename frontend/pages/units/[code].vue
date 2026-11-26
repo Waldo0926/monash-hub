@@ -294,6 +294,7 @@ const sections = computed(() => {
     { id: 'reviews', label: $t('reviews.title') },
     { id: 'faq', label: $t('unit.commonQuestions') },
     { id: 'details', label: $t('unit.moreDetails') },
+    { id: 'next-tools', label: locale.value === 'zh' ? '继续规划' : 'Plan next' },
     { id: 'ask', label: $t('unit.askAbout', { code: u.unit_code }) },
     { id: 'community', label: $t('nav.community') }
   ].filter(Boolean) as { id: string; label: string }[]
@@ -638,6 +639,37 @@ useHead(() => ({
             </dl>
           </section>
 
+          <section id="next-tools" class="card section next-tools">
+            <SectionHead icon="plan" :title="locale === 'zh' ? `用 ${unit.unit_code} 继续规划` : `Plan with ${unit.unit_code}`" />
+            <p class="small muted">
+              {{ locale === 'zh'
+                ? '在先修关系图里查看前后置链路，把这门课放进学期计划，或对照不同年份的 Handbook 变化'
+                : 'Inspect prerequisites and unlocks on the graph, add this unit to your semester plan, or compare Handbook editions.' }}
+            </p>
+            <div class="tool-actions">
+              <NuxtLink
+                class="btn"
+                :to="{ path: '/tree', query: { unit: unit.unit_code, campus } }"
+              >
+                {{ locale === 'zh' ? '查看先修图' : 'Open prerequisite tree' }} →
+              </NuxtLink>
+              <NuxtLink class="btn btn--ghost" to="/plan">
+                {{ $t('nav.plan') }}
+              </NuxtLink>
+              <NuxtLink
+                class="btn btn--ghost"
+                :to="{
+                  path: '/units/compare',
+                  query: (unit.available_years || []).length > 1
+                    ? { code: unit.unit_code, from: unit.available_years[1], to: unit.available_years[0] }
+                    : { code: unit.unit_code }
+                }"
+              >
+                {{ locale === 'zh' ? '比较年份变化' : 'Compare years' }}
+              </NuxtLink>
+            </div>
+          </section>
+
           <section id="ask" class="card section ask">
             <SectionHead icon="ask" :title="$t('unit.askAbout', { code: unit.unit_code })" />
             <p class="tiny muted">{{ $t('unit.askHint') }}</p>
@@ -847,6 +879,8 @@ useHead(() => ({
 .years { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: flex-end; }
 
 /* Ask, community ------------------------------------------------------------------- */
+.next-tools p { margin: 0 0 var(--s4); max-width: var(--measure); }
+.tool-actions { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .suggestions { display: flex; flex-wrap: wrap; gap: var(--s2); margin: var(--s3) 0; }
 .chip-btn {
   padding: 4px 12px;

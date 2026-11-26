@@ -3,8 +3,9 @@ FROM node:26-slim AS build
 
 WORKDIR /app
 
+ARG NPM_REGISTRY=""
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --no-audit --no-fund ${NPM_REGISTRY:+--registry="$NPM_REGISTRY"}
 
 COPY frontend .
 RUN npm run build

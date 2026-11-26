@@ -54,7 +54,12 @@ function search(value: string) {
 
       <nav ref="menuRoot" class="nav" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
         <template v-for="link in links" :key="link.label">
-          <NuxtLink v-if="link.to" :to="link.to" class="nav-link">
+          <NuxtLink
+            v-if="link.to"
+            :to="link.to"
+            class="nav-link"
+            :class="{ 'nav-link--accent': link.accent }"
+          >
             {{ link.label }}
           </NuxtLink>
           <div v-else class="nav-group">
@@ -83,8 +88,6 @@ function search(value: string) {
           @submit="search"
         />
       </div>
-
-      <NuxtLink to="/parents" class="parents-link">{{ $t('nav.parents') }}</NuxtLink>
 
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
@@ -150,11 +153,11 @@ function search(value: string) {
 .nav {
   display: flex;
   align-items: stretch;
-  justify-content: space-evenly;
-  flex: 1 1 560px;
-  max-width: 680px;
+  justify-content: flex-start;
+  flex: 0 0 auto;
   min-width: 0;
-  gap: clamp(10px, 1vw, 24px);
+  gap: clamp(10px, 1vw, 18px);
+  margin-left: var(--s2);
   padding-inline: clamp(2px, 0.35vw, 8px);
 }
 .nav-link {
@@ -172,6 +175,25 @@ function search(value: string) {
 }
 .nav-link:hover { color: var(--text); text-decoration: none; }
 .nav .router-link-active { color: var(--text); border-bottom-color: var(--text); }
+.nav-link--accent {
+  align-self: center;
+  padding: 5px 12px;
+  border-bottom: 0;
+  border-radius: var(--radius-pill);
+  background: var(--blue-50);
+  color: var(--brand-700);
+  font-weight: 600;
+  transition: background-color 0.15s, color 0.15s;
+}
+.nav-link--accent:hover {
+  background: #dcebf7;
+  color: var(--navy);
+}
+.nav .nav-link--accent.router-link-active {
+  background: var(--brand);
+  color: #fff;
+  border-bottom-color: transparent;
+}
 .nav-group { position: relative; display: flex; }
 .nav-button {
   gap: 2px;
@@ -200,9 +222,8 @@ function search(value: string) {
 .nav-menu a:hover { background: var(--surface-2); text-decoration: none; }
 .nav-menu .router-link-active { color: var(--brand); }
 
-/* Search can give up a little width before the navigation does. This keeps long
-   destinations such as WAM/GPA calculator visually separate from Community. */
-.header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
+/* Search can give up a little width before the navigation does. */
+.header-search { margin-left: auto; flex: 1 1 200px; min-width: 150px; max-width: 300px; }
 .account {
   display: flex;
   align-items: center;

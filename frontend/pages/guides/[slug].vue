@@ -17,6 +17,8 @@ const slug = computed(() => String(route.params.slug))
 const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
 useErrorStatus(error)
 
+const hasOutline = computed(() => !!(guide.value?.headings?.length && !guide.value?.requires_sign_in))
+
 useSeoMeta({
   title: () => (guide.value ? guide.value.title : 'Guide'),
   // A guide with no summary still gets a sentence of its own: an empty
@@ -57,16 +59,6 @@ useHead(() => ({
           </p>
         </header>
 
-        <section v-if="guide.headings?.length && !guide.requires_sign_in" class="card section">
-          <h2>{{ $t('guides.covers') }}</h2>
-          <ul class="outline">
-            <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
-              <a v-if="heading.id" :href="`#${heading.id}`">{{ heading.text }}</a>
-              <template v-else>{{ heading.text }}</template>
-            </li>
-          </ul>
-        </section>
-
         <!-- A page behind Monash sign-in is listed, never copied: the words
              here are ours, and the page itself needs a Monash login. -->
         <section v-if="guide.requires_sign_in" class="card section signin" role="note">
@@ -95,6 +87,16 @@ useHead(() => ({
       </article>
 
       <aside class="side stack">
+        <nav v-if="hasOutline" class="card section toc-card" :aria-label="$t('guides.covers')">
+          <h2 class="small">{{ $t('guides.covers') }}</h2>
+          <ul class="outline outline--toc">
+            <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
+              <a v-if="heading.id" :href="`#${heading.id}`">{{ heading.text }}</a>
+              <template v-else>{{ heading.text }}</template>
+            </li>
+          </ul>
+        </nav>
+
         <div v-if="guide.related_faq?.length" class="card section">
           <h2 class="small">{{ $t('guides.relatedQuestions') }}</h2>
           <div v-for="faq in guide.related_faq" :key="faq.slug" class="faq">
@@ -145,6 +147,9 @@ useHead(() => ({
 .mb { margin-bottom: var(--s5); }
 .outline { margin: 0; padding-left: var(--s5); }
 .outline .lvl-3 { margin-left: var(--s4); color: var(--muted); }
+.outline--toc { list-style: none; padding-left: 0; display: grid; gap: 6px; font-size: 0.88rem; }
+.outline--toc .lvl-3 { margin-left: var(--s3); font-size: 0.82rem; }
+.toc-card { max-height: calc(100vh - var(--header-h) - var(--s7)); overflow-y: auto; }
 .side { position: sticky; top: calc(var(--header-h) + var(--s4)); }
 .faq + .faq { margin-top: var(--s4); }
 .faq h3 { font-size: 0.95rem; }
