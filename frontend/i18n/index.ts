@@ -1772,7 +1772,7 @@ const zh: Messages = {
   'home.mamoJoin': '进群提问',
   'home.facultyUnits': '{faculty}的全部课程',
   'home.mamo.eyebrow': '马莫百科 · 微信公众号',
-  'home.mamo.title': '马莫同学写的公众号',
+  'home.mamo.title': '马莫学生运营的公众号',
   'home.mamo.body': '入境报到、签证续签、国际交换、学校新规，都是马莫在读同学结合亲身经历和官网整理的。有问题直接在公众号里发消息，机器人马上回复，它答不上来的会转给作者本人',
   'home.mamo.bodyParents': '选专业、申请材料、学生签证、入学报到，都是马莫在读同学结合亲身经历和官网整理的。有问题直接在公众号里发消息，机器人马上回复，它答不上来的会转给作者本人',
   'home.mamo.recent': '最近的文章',
