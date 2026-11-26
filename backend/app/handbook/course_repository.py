@@ -26,12 +26,12 @@ COURSE_FIELDS = (
     "title", "abbreviated_name", "credit_points", "cricos_code", "aqf_level",
     "course_type", "faculty", "school", "campuses", "duration_years", "overview",
     "structure_text", "requirements_text", "handbook_version", "source_url",
-    "content_hash",
+    "content_hash", "reference_links",
 )
 
 AOS_FIELDS = (
     "title", "aos_type", "study_level", "credit_points", "faculty", "school",
-    "overview", "handbook_version", "source_url", "content_hash",
+    "overview", "handbook_version", "source_url", "content_hash", "reference_links",
 )
 
 
@@ -70,6 +70,7 @@ def _write_containers(
             title=node.get("title"),
             description=node.get("description"),
             footnote=node.get("footnote"),
+            reference_links=node.get("reference_links"),
             credit_points=node.get("credit_points"),
             credit_points_max=node.get("credit_points_max"),
             connector=node.get("connector"),

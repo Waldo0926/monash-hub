@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import unquote, urljoin, urlsplit
+
+from bs4 import BeautifulSoup
 
 from app.handbook.parser import (
     ParseError,
@@ -48,6 +50,35 @@ ITEM_TYPES = {
 # done this, but an unbounded recursion over upstream data is a hang, not a bug
 # report, and eight levels is far deeper than any published course.
 MAX_CONTAINER_DEPTH = 8
+
+
+def reference_links(value: Any) -> list[dict[str, str]]:
+    """Keep rich-text references separate from translated prose and unit rules.
+
+    The upstream special-notes field varies by course, so walk the published
+    content, not a closed list of field names. No network requests here.
+    """
+    found: dict[str, str] = {}
+
+    def visit(node: Any) -> None:
+        if isinstance(node, dict):
+            for child in node.values():
+                visit(child)
+        elif isinstance(node, list):
+            for child in node:
+                visit(child)
+        elif isinstance(node, str) and "<a" in node.lower():
+            for anchor in BeautifulSoup(node, "lxml").find_all("a", href=True):
+                url = urljoin("https://handbook.monash.edu/", anchor["href"].strip())
+                parts = urlsplit(url)
+                if (parts.scheme not in {"http", "https"} or not parts.hostname
+                        or parts.username or parts.password):
+                    continue
+                label = anchor.get_text(" ", strip=True) or url
+                found.setdefault(url, label)
+
+    visit(value)
+    return [{"url": url, "label": label} for url, label in found.items()]
 
 
 def _campuses(content: dict[str, Any]) -> list[str]:
@@ -117,6 +148,7 @@ def _parse_containers(raw: list[dict] | None, depth: int = 0) -> list[dict[str, 
                 "title": (node.get("title") or "").strip() or None,
                 "description": html_to_text(node.get("description")),
                 "footnote": html_to_text(node.get("footnote")),
+                "reference_links": reference_links([node.get("description"), node.get("footnote")]),
                 "credit_points": _as_int(node.get("credit_points")),
                 "credit_points_max": _as_int(node.get("credit_points_max")),
                 "connector": _plain(node.get("parent_connector"), "value", "label"),
@@ -181,6 +213,7 @@ def parse_course_page(html: str, source_url: str) -> dict[str, Any]:
         "handbook_version": content.get("version_name") or None,
         "source_url": source_url,
         "containers": _structure(content),
+        "reference_links": reference_links(content),
     }
     record["content_hash"] = compute_content_hash(record)
     return record
@@ -211,6 +244,7 @@ def parse_aos_page(html: str, source_url: str) -> dict[str, Any]:
         "handbook_version": content.get("version_name") or None,
         "source_url": source_url,
         "containers": _structure(content),
+        "reference_links": reference_links(content),
     }
     record["content_hash"] = compute_content_hash(record)
     return record

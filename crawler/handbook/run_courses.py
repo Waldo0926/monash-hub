@@ -218,6 +218,8 @@ def main() -> None:
         default=None,
         help="404s each kind may mark inactive (default: 25, or 2%% of the pages if more)",
     )
+    parser.add_argument("--fail-on-errors", action="store_true",
+                        help="exit nonzero if any target failed")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -260,6 +262,9 @@ def main() -> None:
 
     for kind, summary in totals.items():
         log.info("%s: %s", kind, summary)
+
+    if args.fail_on_errors and any(summary["failed"] for summary in totals.values()):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
