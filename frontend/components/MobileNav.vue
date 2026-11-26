@@ -24,7 +24,6 @@ const primaryItems = computed(() => [
 const sectionNavigation = useSectionNavigation()
 const sectionItems = computed(() => [
   ...sectionNavigation.value,
-  { to: '/fees', label: $t('nav.fees'), icon: '¤' },
   { to: '/parents', label: $t('nav.parents'), icon: '♡' }
 ])
 

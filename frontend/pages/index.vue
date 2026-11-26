@@ -61,8 +61,10 @@ const atCampus = (campusRaw: string | null | undefined) =>
   campus.value === 'malaysia' ? campusRaw === 'Malaysia' : AUSTRALIA.has(campusRaw ?? '')
 
 // The dates use the same path as KeyDatesCard, so both read one fetch.
+const DATES_LISTED = 6
+const DATES_FETCH_LIMIT = Math.max(8, DATES_LISTED + 4)
 const datesFetch = useLocalisedApiFetch<KeyDates>(
-  () => `/v1/key-dates?campus=${campus.value}&limit=8`,
+  () => `/v1/key-dates?campus=${campus.value}&limit=${DATES_FETCH_LIMIT}`,
   { watch: [campus] }
 )
 const popularFetch = useApiFetch<any>('/v1/search/popular?limit=20')
@@ -238,13 +240,14 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         </nav>
       </div>
       <div class="hero-side">
-        <KeyDatesCard v-model:campus="campus" :show-sources="false" />
+        <KeyDatesCard v-model:campus="campus" :show-sources="false" :listed="DATES_LISTED" />
         <section class="systems-box" aria-labelledby="systems-title">
           <h2 id="systems-title">{{ $t('home.systems') }}</h2>
           <ul class="systems">
             <li v-for="s in systems" :key="s.url">
               <a :href="s.url" target="_blank" rel="noopener external">
-                {{ s.name }}<PlanIcon name="external" :size="13" />
+                <span class="sys-head">{{ s.name }}<PlanIcon name="external" :size="13" /></span>
+                <span v-if="s.hint" class="sys-hint tiny muted">{{ locale === 'zh' ? s.hint.zh : s.hint.en }}</span>
               </a>
             </li>
           </ul>
@@ -345,6 +348,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .notifications { margin-bottom: var(--s6); }
 
 .sec { padding-block: var(--s6) var(--s7); border-top: 1px solid var(--border); }
+.sec:last-child { padding-bottom: 0; }
 .sec--season { padding-top: var(--s4); border-top: 0; }
 .sec h2 { margin: 0 0 var(--s4); }
 .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; margin-bottom: var(--s4); }
@@ -405,20 +409,48 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   background: var(--surface);
 }
 .systems-box h2 { margin: 0 0 var(--s3); font-family: var(--font); font-size: 0.95rem; font-weight: 600; }
-.systems { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
+.systems {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .systems a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 var(--s3);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-height: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
   color: var(--text);
   font-size: 0.875rem;
+  transition: background-color 0.15s, border-color 0.15s;
 }
-.systems a:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
-.systems a .icon { color: var(--muted-2); }
+.systems a:hover {
+  background: var(--blue-50);
+  border-color: var(--brand);
+  color: var(--brand);
+  text-decoration: none;
+}
+.sys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-weight: 600;
+}
+.sys-hint {
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.systems a .icon { color: var(--muted-2); flex: none; }
 
 .mamo-block { margin-bottom: var(--s7); }
 

@@ -128,7 +128,7 @@
      CJK, so a mixed Chinese-English heading stays one voice. Unit codes and
      dates use the mono, where digits line up. */
   --font-display: 'Source Serif 4', 'Noto Serif SC', 'Songti SC', Georgia, serif;
-  --font: 'IBM Plex Sans', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
   /* Reading measure.

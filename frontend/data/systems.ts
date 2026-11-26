@@ -12,31 +12,36 @@ export interface MonashSystem {
   url: string
   /** Matches OfficialPage.applies_to - 'all' or 'malaysia'. */
   appliesTo: 'all' | 'malaysia'
+  hint?: { zh: string; en: string }
 }
 
 export const MONASH_SYSTEMS: MonashSystem[] = [
-  { name: 'Moodle', url: 'https://learning.monash.edu/my/', appliesTo: 'all' },
+  { name: 'Moodle', url: 'https://learning.monash.edu/my/', appliesTo: 'all', hint: { zh: '课件与作业', en: 'Units & assignments' } },
   {
     name: 'WES',
     url: 'https://my.monash.edu/wes/student_services/',
-    appliesTo: 'all'
+    appliesTo: 'all',
+    hint: { zh: '选课与成绩', en: 'Enrolment & results' }
   },
-  { name: 'Allocate+', url: 'https://my-timetable.monash.edu/', appliesTo: 'all' },
-  { name: 'eExam', url: 'https://eassessment.monash.edu/my/', appliesTo: 'all' },
-  { name: 'SORS', url: 'https://sors.monash.edu.my/', appliesTo: 'malaysia' },
+  { name: 'Allocate+', url: 'https://my-timetable.monash.edu/', appliesTo: 'all', hint: { zh: '排课表选班', en: 'Class timetable' } },
+  { name: 'eExam', url: 'https://eassessment.monash.edu/my/', appliesTo: 'all', hint: { zh: '在线考试', en: 'Online exams' } },
+  { name: 'SORS', url: 'https://sors.monash.edu.my/', appliesTo: 'malaysia', hint: { zh: '请假与证明', en: 'Requests & letters' } },
   {
     name: 'Attendance',
     url: 'https://attendance.monash.edu.my/student/',
-    appliesTo: 'malaysia'
+    appliesTo: 'malaysia',
+    hint: { zh: '课堂考勤', en: 'Class attendance' }
   },
   {
     name: 'MoVA',
     url: 'https://www.monash.edu.my/student-services/connect?chatbot=open',
-    appliesTo: 'malaysia'
+    appliesTo: 'malaysia',
+    hint: { zh: '马莫在线咨询', en: 'Student support' }
   },
   {
     name: 'MUM Helpdesk',
     url: 'https://helpdesk.monash.edu.my/',
-    appliesTo: 'malaysia'
+    appliesTo: 'malaysia',
+    hint: { zh: 'IT 与校园支持', en: 'IT & campus help' }
   }
 ]
