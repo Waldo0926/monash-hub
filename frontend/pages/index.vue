@@ -148,31 +148,19 @@ const COPY = {
 }
 const c = computed(() => (locale.value === 'zh' ? COPY.zh : COPY.en))
 
-const entries = computed(() => {
-  if (cnReadonly.value) {
-    return [
-      { to: '/units', key: 'units', icon: 'book' },
-      { to: '/courses', key: 'courses', icon: 'degree' },
-      { to: '/plan', key: 'plan', icon: 'columns' },
-      { to: '/tree', key: 'tree', icon: 'tree' },
-      { to: '/electives', key: 'electives', icon: 'search' },
-      { to: '/marks', key: 'marks', icon: 'percent' },
-      { to: '/guides', key: 'guides', icon: 'page' },
-      { to: '/fees', key: 'fees', icon: 'calendar' },
-      { to: '/mamo', key: 'mamo', icon: 'pin' }
-    ]
-  }
-  return [
-    { to: '/units', key: 'units', icon: 'book' },
-    { to: '/courses', key: 'courses', icon: 'degree' },
-    { to: '/plan', key: 'plan', icon: 'columns' },
-    { to: '/tree', key: 'tree', icon: 'tree' },
-    { to: '/marks', key: 'marks', icon: 'percent' },
-    { to: '/guides', key: 'guides', icon: 'page' },
-    { to: '/fees', key: 'fees', icon: 'calendar' },
-    { to: '/community', key: 'community', icon: 'chat' }
-  ]
-})
+const entries = computed(() => [
+  { to: '/units', key: 'units', icon: 'book' },
+  { to: '/courses', key: 'courses', icon: 'degree' },
+  { to: '/plan', key: 'plan', icon: 'columns' },
+  { to: '/tree', key: 'tree', icon: 'tree' },
+  { to: '/electives', key: 'electives', icon: 'search' },
+  { to: '/marks', key: 'marks', icon: 'percent' },
+  { to: '/guides', key: 'guides', icon: 'page' },
+  { to: '/fees', key: 'fees', icon: 'calendar' },
+  cnReadonly.value
+    ? { to: '/mamo', key: 'mamo', icon: 'pin' }
+    : { to: '/community', key: 'community', icon: 'chat' }
+])
 
 // One phrase per line under each entry title.
 /** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
@@ -253,7 +241,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
             {{ term.text }}
           </button>
         </p>
-        <nav class="tools" :class="{ 'tools--cn': cnReadonly }" :aria-label="$t('nav.tools')">
+        <nav class="tools" :aria-label="$t('nav.tools')">
           <NuxtLink v-for="item in entries" :key="item.to" :to="item.to" class="tool">
             <span class="tool-icon"><PlanIcon :name="item.icon" :size="26" /></span>
             <span class="tool-text">
@@ -269,7 +257,7 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
           </NuxtLink>
         </nav>
       </div>
-      <div class="hero-side" :class="{ 'hero-side--cn': cnReadonly }">
+      <div class="hero-side">
         <KeyDatesCard v-model:campus="campus" :show-sources="false" :listed="DATES_LISTED" />
         <section class="systems-box" aria-labelledby="systems-title">
           <h2 id="systems-title">{{ $t('home.systems') }}</h2>
@@ -389,23 +377,17 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .tools {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-auto-rows: 1fr;
   gap: var(--s2);
   margin-top: var(--s6);
 }
-.tools--cn {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.tools--cn .tool {
-  padding: var(--s5) var(--s3) var(--s4);
-}
 .tool {
   display: grid;
   justify-items: center;
-  align-content: start;
+  align-content: center;
   row-gap: var(--s3);
-  padding: var(--s6) var(--s3) var(--s5);
+  padding: var(--s5) var(--s3);
   text-align: center;
   border-radius: 12px;
   background: var(--surface-2);
@@ -437,10 +419,9 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 .gt { font-weight: 500; }
 .gm { white-space: nowrap; }
 
-.hero-side { display: grid; grid-template-rows: auto 1fr; gap: var(--s4); }
-.hero-side--cn { grid-template-rows: 1fr auto; }
-.hero-side--cn :deep(.dates) { display: flex; flex-direction: column; }
-.hero-side--cn :deep(.dates .all) { margin-top: auto; padding-top: var(--s3); }
+.hero-side { display: grid; grid-template-rows: 1fr auto; gap: var(--s4); }
+.hero-side :deep(.dates) { display: flex; flex-direction: column; }
+.hero-side :deep(.dates .all) { margin-top: auto; padding-top: var(--s3); }
 .systems-box {
   padding: var(--s4) var(--s5);
   border: 1px solid var(--border);
@@ -529,7 +510,6 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
 }
 @media (max-width: 560px) {
   .tools { gap: var(--s4) var(--s2); margin-top: var(--s5); }
-  .tools--cn .tool { padding: 0; }
   .tool {
     align-content: start;
     row-gap: 6px;
