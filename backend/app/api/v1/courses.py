@@ -18,6 +18,7 @@ from app.api.serializers import (
 )
 from app.core.config import get_settings
 from app.core.db import get_db
+from app.handbook.electives import elective_browse
 from app.handbook.years import available_years, loaded_years, resolve_year
 from app.knowledge import admissions, teach_out, translations, tuition
 from app.knowledge.translations import Translation
@@ -166,6 +167,8 @@ def _tree(
             "title": tr.string(row.title),
             "description": tr.field("description", row.description),
             "footnote": tr.field("footnote", row.footnote),
+            "reference_links": row.reference_links or [],
+            "elective_browse": elective_browse(row.title, row.description),
             "credit_points": row.credit_points,
             "credit_points_max": row.credit_points_max,
             "connector": row.connector,

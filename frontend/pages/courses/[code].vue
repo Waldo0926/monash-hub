@@ -159,6 +159,8 @@ useSeoMeta({
         </ul>
       </section>
 
+      <CurriculumReferences :links="course.reference_links" />
+
       <LastChecked v-if="course.last_checked" :at="course.last_checked" :url="course.source_url" />
     </template>
   </div>

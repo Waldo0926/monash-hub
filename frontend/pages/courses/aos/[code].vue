@@ -97,6 +97,8 @@ useHead(() => ({ title: aos.value ? `${code.value} ${aos.value.title}` : code.va
         />
       </section>
 
+      <CurriculumReferences :links="aos.reference_links" />
+
       <LastChecked v-if="aos.last_checked" :at="aos.last_checked" :url="aos.source_url" />
     </template>
   </div>
