@@ -69,8 +69,12 @@ def reference_links(value: Any) -> list[dict[str, str]]:
                 visit(child)
         elif isinstance(node, str) and "<a" in node.lower():
             for anchor in BeautifulSoup(node, "lxml").find_all("a", href=True):
-                url = urljoin("https://handbook.monash.edu/", anchor["href"].strip())
-                parts = urlsplit(url)
+                try:
+                    url = urljoin("https://handbook.monash.edu/", anchor["href"].strip())
+                    parts = urlsplit(url)
+                except ValueError:
+                    # One malformed upstream link must not discard the course.
+                    continue
                 if (parts.scheme not in {"http", "https"} or not parts.hostname
                         or parts.username or parts.password):
                     continue
