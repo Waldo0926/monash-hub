@@ -114,10 +114,13 @@ def course_filters(year: int | None = None, db: Session = Depends(get_db)) -> di
     campuses = distinct(func.unnest(Course.campuses))
     types = distinct(Course.course_type)
     faculties = distinct(Course.faculty)
+    campus_list = sorted(c for c in campuses if c)
+    if get_settings().cn_readonly_mode and "Malaysia" in campus_list:
+        campus_list = ["Malaysia", *[c for c in campus_list if c != "Malaysia"]]
     return {
         "academic_year": academic_year,
         "years": loaded_years(db, Course.academic_year),
-        "campuses": sorted(c for c in campuses if c),
+        "campuses": campus_list,
         "course_types": sorted(t for t in types if t),
         "faculties": sorted(f for f in faculties if f),
     }

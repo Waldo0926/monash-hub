@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.v1 import (
     ask,
@@ -64,11 +65,40 @@ app.add_middleware(
 # script probe it, and neither should have to know about /v1.
 app.include_router(health.router, prefix="/api")
 
-for module in (
-    units, courses, plan, search, ask, guides, community, auth, exchange, notifications,
-    marks, profile, dates, reviews, fees,
-):
+_READONLY_MODULES = (units, courses, plan, search, guides, exchange, marks, dates, fees)
+_INTERACTIVE_MODULES = (ask, community, auth, notifications, profile, reviews)
+
+for module in _READONLY_MODULES:
     app.include_router(module.router, prefix=settings.api_prefix)
+
+if not settings.cn_readonly_mode:
+    for module in _INTERACTIVE_MODULES:
+        app.include_router(module.router, prefix=settings.api_prefix)
+else:
+    _DISABLED_PREFIXES = tuple(
+        f"{settings.api_prefix}/{segment}"
+        for segment in (
+            "community",
+            "reviews",
+            "ask",
+            "assistant",
+            "auth",
+            "profile",
+            "notifications",
+            "search/missing",
+            "upload",
+        )
+    )
+
+    @app.middleware("http")
+    async def block_disabled_readonly_routes(request: Request, call_next):
+        path = request.url.path.rstrip("/")
+        if any(path == p or path.startswith(f"{p}/") for p in _DISABLED_PREFIXES):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "This endpoint is disabled in read-only mode."},
+            )
+        return await call_next(request)
 
 
 @app.get("/api")

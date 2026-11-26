@@ -12,12 +12,14 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const slug = computed(() => String(route.params.slug))
 
 const { data: guide, error } = await useLocalisedApiFetch<any>(() => `/v1/guides/${slug.value}`)
 useErrorStatus(error)
 
 const hasOutline = computed(() => !!(guide.value?.headings?.length && !guide.value?.requires_sign_in))
+const hasSidebar = computed(() => !cnReadonly.value || hasOutline.value || !!guide.value?.related_faq?.length)
 
 useSeoMeta({
   title: () => (guide.value ? guide.value.title : 'Guide'),
@@ -36,7 +38,7 @@ useHead(() => ({
   <div class="container">
     <ErrorState v-if="error" :error="error" />
 
-    <div v-else-if="guide" class="layout">
+    <div v-else-if="guide" class="layout" :class="{ 'layout--single': !hasSidebar }">
       <article class="content">
         <header class="card section">
           <div class="head-top">
@@ -86,7 +88,7 @@ useHead(() => ({
         </section>
       </article>
 
-      <aside class="side stack">
+      <aside v-if="hasSidebar" class="side stack">
         <nav v-if="hasOutline" class="card section toc-card" :aria-label="$t('guides.covers')">
           <h2 class="small">{{ $t('guides.covers') }}</h2>
           <ul class="outline outline--toc">
@@ -110,7 +112,7 @@ useHead(() => ({
           </div>
         </div>
 
-        <div class="card section">
+        <div v-if="!cnReadonly" class="card section">
           <div class="section-head">
             <h2 class="small">{{ $t('nav.community') }}</h2>
             <SourceBadge kind="community" />
@@ -133,6 +135,7 @@ useHead(() => ({
 
 <style scoped>
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s5); align-items: start; }
+.layout--single { grid-template-columns: minmax(0, 1fr); max-width: 860px; margin: 0 auto; }
 /* See units/[code].vue: without this a wide table widens its own grid column
    and the page scrolls sideways instead of the table. */
 .layout > * { min-width: 0; }

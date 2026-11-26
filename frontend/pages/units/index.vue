@@ -13,6 +13,15 @@ import type { TermKind } from '~/i18n/handbook-terms'
 const route = useRoute()
 const router = useRouter()
 const { $t, $term } = useNuxtApp() as any
+const { cnReadonly } = useSiteMode()
+const { locale } = useLocale()
+const emptyHint = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh'
+      ? '检查课程代码拼写、去掉一个筛选条件，或者去全站搜索官方指南与学位'
+      : 'Check the unit code spelling, clear a filter, or search official guides and degrees instead.')
+    : $t('units.emptyHint')
+))
 
 const PAGE = 24
 
@@ -475,7 +484,7 @@ useSeoMeta({
                   <span class="row-code mono">{{ unit.unit_code }}</span>
                   <span class="row-title">{{ unit.title }}</span>
                   <span class="row-meta tiny muted">
-                    <span v-if="unit.rating?.count" class="row-rating" :title="$t('reviews.cardTitle')">
+                    <span v-if="!cnReadonly && unit.rating?.count" class="row-rating" :title="$t('reviews.cardTitle')">
                       <StarRating :value="unit.rating.average" size="sm" />
                       {{ Number(unit.rating.average).toFixed(1) }}
                     </span>
@@ -485,14 +494,14 @@ useSeoMeta({
                 </NuxtLink>
               </li>
             </ul>
-            <EmptyState v-else :title="$t('units.empty')" :hint="$t('units.emptyHint')">
+            <EmptyState v-else :title="$t('units.empty')" :hint="emptyHint">
               <button v-if="active.length" type="button" class="btn btn--ghost" @click="reset">
                 {{ $t('units.clearFilters') }}
               </button>
               <NuxtLink :to="`/search?q=${encodeURIComponent(query)}`" class="btn btn--ghost">
                 {{ $t('units.searchEverything') }}
               </NuxtLink>
-              <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+              <NuxtLink v-if="!cnReadonly" to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
             </EmptyState>
           </div>
 

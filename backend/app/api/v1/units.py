@@ -84,7 +84,11 @@ def list_units(
     )
     # Student ratings ride along so a card can show its stars without a
     # second request. Null when nobody has rated the unit yet.
-    stars = ratings.summaries(db, [u.unit_code for u in units])
+    stars = (
+        {}
+        if get_settings().cn_readonly_mode
+        else ratings.summaries(db, [u.unit_code for u in units])
+    )
     return {
         "total": total,
         "limit": limit,
@@ -137,8 +141,11 @@ def unit_filters(
     years = db.scalars(
         select(distinct(Unit.academic_year)).order_by(Unit.academic_year.desc())
     ).all()
+    campuses = by_count(UnitOffering.campus, offering=True)
+    if get_settings().cn_readonly_mode and "Malaysia" in campuses:
+        campuses = ["Malaysia", *[c for c in campuses if c != "Malaysia"]]
     values = {
-        "campuses": by_count(UnitOffering.campus, offering=True),
+        "campuses": campuses,
         "teaching_periods": by_count(UnitOffering.teaching_period, offering=True),
         "levels": list(levels),
         "prefixes": by_count(Unit.subject_prefix),

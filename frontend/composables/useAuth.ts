@@ -39,6 +39,7 @@ function writeToken(token: string | null) {
 }
 
 export function useAuth() {
+  const { cnReadonly } = useSiteMode()
   const user = useState<SessionUser | null>('auth-user', () => null)
   const ready = useState<boolean>('auth-ready', () => false)
 
@@ -51,6 +52,10 @@ export function useAuth() {
   async function restore() {
     if (!import.meta.client || ready.value) return
     ready.value = true
+    if (cnReadonly.value) {
+      user.value = null
+      return
+    }
     if (!readToken()) return
     try {
       user.value = await apiFetch<SessionUser>('/v1/auth/me')

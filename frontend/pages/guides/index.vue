@@ -2,14 +2,17 @@
 const route = useRoute()
 const router = useRouter()
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 const query = ref((route.query.q as string) || '')
 const category = ref((route.query.category as string) || '')
 // Monash Australia and Monash Malaysia publish different rules for the same
 // things - fees, visas and student passes, exams - so a reader can keep to the
 // pages for their own campus. "all" pages appear under both.
-const CAMPUSES = ['australia', 'malaysia'] as const
+const CAMPUSES = computed(() =>
+  (cnReadonly.value ? ['malaysia', 'australia'] : ['australia', 'malaysia']) as readonly ('malaysia' | 'australia')[]
+)
 const initialCampus = route.query.campus as string
-const campus = ref(CAMPUSES.includes(initialCampus as any) ? initialCampus : '')
+const campus = ref(CAMPUSES.value.includes(initialCampus as any) ? initialCampus : '')
 const PAGE = 60
 const limit = ref(PAGE)
 
@@ -102,7 +105,20 @@ useSeoMeta({
         </button>
       </div>
       <EmptyState v-else :title="$t('guides.empty')" :hint="$t('guides.emptyHint')">
-        <NuxtLink to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
+        <template v-if="cnReadonly">
+          <button
+            v-if="query || category || campus"
+            type="button"
+            class="btn btn--ghost"
+            @click="query = ''; category = ''; campus = ''"
+          >
+            {{ $t('units.clearFilters') }}
+          </button>
+          <NuxtLink :to="query ? `/search?q=${encodeURIComponent(query)}` : '/search'" class="btn">
+            {{ $t('units.searchEverything') }}
+          </NuxtLink>
+        </template>
+        <NuxtLink v-else to="/community" class="btn">{{ $t('units.askCommunity') }}</NuxtLink>
       </EmptyState>
     </template>
   </div>

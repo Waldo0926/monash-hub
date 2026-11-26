@@ -4,6 +4,7 @@ import { MONASH_SYSTEMS } from '~/data/systems'
 const EVERY_CAMPUS_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo !== 'malaysia')
 const MALAYSIA_SYSTEMS = MONASH_SYSTEMS.filter(s => s.appliesTo === 'malaysia')
 const sectionLinks = useSectionNavigation()
+const { cnReadonly, icpNumber } = useSiteMode()
 const { locale } = useLocale()
 const { $t } = useNuxtApp()
 const route = useRoute()
@@ -27,7 +28,7 @@ const featuresHeading = computed(() => {
 </script>
 
 <template>
-  <footer class="footer">
+  <footer class="footer" :class="{ 'footer--readonly': cnReadonly }">
     <div class="container">
       <div class="top">
         <div class="about">
@@ -60,39 +61,74 @@ const featuresHeading = computed(() => {
             <a href="https://handbook.monash.edu" rel="noopener external" target="_blank">
               {{ $t('footer.handbookLink') }} <span class="ext" aria-hidden="true">↗</span>
             </a>
-            <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
-              {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
-            </a>
-            <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
-              {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
-            </a>
+            <template v-if="cnReadonly">
+              <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+                {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+              <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
+                {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+            </template>
+            <template v-else>
+              <a href="https://www.monash.edu/students" rel="noopener external" target="_blank">
+                {{ $t('footer.monashStudents') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+              <a href="https://www.monash.edu.my/student-services" rel="noopener external" target="_blank">
+                {{ $t('footer.monashMalaysia') }} <span class="ext" aria-hidden="true">↗</span>
+              </a>
+            </template>
           </nav>
 
           <!-- The systems a student logs into, apart from the reference sites
                because these are things you do, not things you read. Which campus
                a system belongs to is what a reader checks, so each campus has its
                own column rather than a label on every row. -->
-          <nav class="col" :aria-label="$t('footer.systems')">
-            <h2 class="heading">{{ $t('footer.systems') }}</h2>
-            <a
-              v-for="system in EVERY_CAMPUS_SYSTEMS"
-              :key="system.url"
-              :href="system.url"
-              rel="noopener external"
-              target="_blank"
-            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
-          </nav>
+          <template v-if="cnReadonly">
+            <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+              <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
+              <a
+                v-for="system in MALAYSIA_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
 
-          <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
-            <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
-            <a
-              v-for="system in MALAYSIA_SYSTEMS"
-              :key="system.url"
-              :href="system.url"
-              rel="noopener external"
-              target="_blank"
-            >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
-          </nav>
+            <nav class="col" :aria-label="$t('footer.systems')">
+              <h2 class="heading">{{ $t('footer.systems') }}</h2>
+              <a
+                v-for="system in EVERY_CAMPUS_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+          </template>
+          <template v-else>
+            <nav class="col" :aria-label="$t('footer.systems')">
+              <h2 class="heading">{{ $t('footer.systems') }}</h2>
+              <a
+                v-for="system in EVERY_CAMPUS_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+
+            <nav class="col" :aria-label="$t('footer.systemsMalaysia')">
+              <h2 class="heading">{{ $t('footer.systemsMalaysia') }}</h2>
+              <a
+                v-for="system in MALAYSIA_SYSTEMS"
+                :key="system.url"
+                :href="system.url"
+                rel="noopener external"
+                target="_blank"
+              >{{ system.name }} <span class="ext" aria-hidden="true">↗</span></a>
+            </nav>
+          </template>
         </div>
       </div>
 
@@ -118,7 +154,16 @@ const featuresHeading = computed(() => {
       </div>
 
       <div class="bottom tiny">
-        <p class="copyright">{{ $t('footer.copyright') }}</p>
+        <p class="copyright">
+          <span>{{ $t('footer.copyright') }}</span>
+          <a
+            v-if="icpNumber"
+            href="https://beian.miit.gov.cn/"
+            rel="noopener external"
+            target="_blank"
+            class="icp"
+          >{{ icpNumber }}</a>
+        </p>
         <p class="credits">
           <span>{{ $t('footer.conceptBy') }} <a href="https://github.com/Laceyxinx" rel="noopener external" target="_blank">@Laceyxinx</a></span>
           <span>{{ $t('footer.builtMaintainedBy') }} <a href="https://github.com/Waldo0926" rel="noopener external" target="_blank">@Waldo0926</a></span>
@@ -136,6 +181,9 @@ const featuresHeading = computed(() => {
   background: var(--footer-bg);
   border-top: 1px solid var(--footer-border);
   color: var(--footer-text);
+}
+.footer--readonly {
+  margin-top: var(--s4);
 }
 
 .top {
@@ -216,6 +264,8 @@ const featuresHeading = computed(() => {
   border-top: 1px solid var(--footer-border);
 }
 .bottom p { margin: 0; }
+.copyright { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
+.icp { color: var(--muted); }
 .credits { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
 .credits a { font-weight: 600; }
 

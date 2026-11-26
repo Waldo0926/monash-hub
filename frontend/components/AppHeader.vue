@@ -3,12 +3,20 @@
 // A missing avatar file must not leave a broken-image icon in the header. It
 // falls back to the name alone, which is what was there before pictures.
 const avatarBroken = ref(false)
+const { cnReadonly } = useSiteMode()
 const { user, restore, signOut } = useAuth()
 const { unread, start, stop } = useNotifications()
 const route = useRoute()
 const { $t } = useNuxtApp()
+const { locale } = useLocale()
+const searchPlaceholder = computed(() => (
+  cnReadonly.value
+    ? (locale.value === 'zh' ? '搜课程、学位或指南…' : 'Search units, degrees or guides…')
+    : $t('search.placeholderShort')
+))
 
 onMounted(async () => {
+  if (cnReadonly.value) return
   await restore()
   start()
 })
@@ -45,14 +53,14 @@ function search(value: string) {
 </script>
 
 <template>
-  <header class="header">
+  <header class="header" :class="{ 'header--readonly': cnReadonly }">
     <div class="inner">
       <NuxtLink to="/" class="brand">
         <AppLogo :size="30" tone="onLight" />
         <span class="brand-text">Monash Hub</span>
       </NuxtLink>
 
-      <nav ref="menuRoot" class="nav" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
+      <nav ref="menuRoot" class="nav" :class="{ 'nav--readonly': cnReadonly }" :aria-label="$t('nav.mainLabel')" @keydown.esc="openMenu = null">
         <template v-for="link in links" :key="link.label">
           <NuxtLink
             v-if="link.to"
@@ -84,7 +92,7 @@ function search(value: string) {
         <SearchInput
           v-model="query"
           inset
-          :placeholder="$t('search.placeholderShort')"
+          :placeholder="searchPlaceholder"
           @submit="search"
         />
       </div>
@@ -92,27 +100,29 @@ function search(value: string) {
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
            group instead of a row of separate boxes. -->
-      <div class="account">
+      <div class="account" :class="{ 'account--readonly': cnReadonly }">
         <LanguageSwitcher />
-        <template v-if="user">
-          <NuxtLink to="/notifications" class="icon-btn bell" :aria-label="$t('nav.notifications')">
-            <PlanIcon name="bell" :size="18" />
-            <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
-          </NuxtLink>
-          <!-- Your own name goes to your own page. It used to go to the
-               community, which answered a question nobody was asking. -->
-          <NuxtLink to="/profile" class="chip nickname" :aria-label="user.nickname">
-            <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
-                 class="avatar" alt="" @error="avatarBroken = true">
-            <span v-else class="avatar avatar--initial" aria-hidden="true">{{ initial }}</span>
-            <span class="nickname-text">{{ user.nickname }}</span>
-          </NuxtLink>
-          <button type="button" class="icon-btn sign-out" :aria-label="$t('nav.signOut')"
-                  :title="$t('nav.signOut')" @click="signOut">
-            <PlanIcon name="logout" :size="18" />
-          </button>
+        <template v-if="!cnReadonly">
+          <template v-if="user">
+            <NuxtLink to="/notifications" class="icon-btn bell" :aria-label="$t('nav.notifications')">
+              <PlanIcon name="bell" :size="18" />
+              <span v-if="unread > 0" class="dot">{{ unread > 99 ? '99+' : unread }}</span>
+            </NuxtLink>
+            <!-- Your own name goes to your own page. It used to go to the
+                 community, which answered a question nobody was asking. -->
+            <NuxtLink to="/profile" class="chip nickname" :aria-label="user.nickname">
+              <img v-if="user.avatar_url && !avatarBroken" :src="user.avatar_url"
+                   class="avatar" alt="" @error="avatarBroken = true">
+              <span v-else class="avatar avatar--initial" aria-hidden="true">{{ initial }}</span>
+              <span class="nickname-text">{{ user.nickname }}</span>
+            </NuxtLink>
+            <button type="button" class="icon-btn sign-out" :aria-label="$t('nav.signOut')"
+                    :title="$t('nav.signOut')" @click="signOut">
+              <PlanIcon name="logout" :size="18" />
+            </button>
+          </template>
+          <NuxtLink v-else to="/login" class="chip">{{ $t('nav.signIn') }}</NuxtLink>
         </template>
-        <NuxtLink v-else to="/login" class="chip">{{ $t('nav.signIn') }}</NuxtLink>
       </div>
     </div>
   </header>
@@ -233,6 +243,11 @@ function search(value: string) {
   padding: 4px;
   border-radius: var(--radius-pill);
   background: var(--surface-2);
+}
+.account--readonly {
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .parents-link {

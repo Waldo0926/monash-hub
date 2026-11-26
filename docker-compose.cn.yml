@@ -1,0 +1,115 @@
+# Monash Hub China mainland read-only stack (Tencent Cloud Guangzhou).
+#
+# Strict loopback-only binding for ICP-pending preview and behind-Nginx hosting:
+# - PostgreSQL publishes NO host port at all.
+# - API binds strictly to 127.0.0.1:${CN_API_PORT:-18100}.
+# - Web binds strictly to 127.0.0.1:${CN_WEB_PORT:-18101}.
+# - CN_READONLY_MODE / NUXT_PUBLIC_CN_READONLY_MODE disable auth, community,
+#   reviews, ask/SiteAssistant, avatar uploads and notifications.
+
+name: monash-hub-cn
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-monashhub_cn}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-monashhub_cn}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    volumes:
+      - postgres-cn-data:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-monashhub_cn} -d ${POSTGRES_DB:-monashhub_cn}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        APP_COMMIT: ${APP_COMMIT:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.cloud.tencent.com/pypi/simple}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub_cn}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub_cn}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      CN_READONLY_MODE: "true"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://mumguide.cn,http://127.0.0.1:18080}
+      SITE_URL: ${SITE_URL:-https://mumguide.cn}
+      CURRENT_ACADEMIC_YEAR: ${CURRENT_ACADEMIC_YEAR:-2026}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1/32,172.16.0.0/12}
+      EMAIL_PROVIDER: console
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      WXBOT_URL: ""
+      WXBOT_WEB_SECRET: ""
+    ports:
+      - "127.0.0.1:${CN_API_PORT:-18100}:8000"
+    networks: [internal]
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://mirrors.cloud.tencent.com/npm/}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NUXT_API_BASE: http://api:8000/api
+      NUXT_PUBLIC_API_BASE: /api
+      NUXT_PUBLIC_SITE_URL: ${SITE_URL:-https://mumguide.cn}
+      NUXT_PUBLIC_CN_READONLY_MODE: "true"
+      NUXT_PUBLIC_ICP_NUMBER: ${ICP_NUMBER:-}
+    ports:
+      - "127.0.0.1:${CN_WEB_PORT:-18101}:3000"
+    networks: [internal]
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        APP_COMMIT: ${APP_COMMIT:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.cloud.tencent.com/pypi/simple}
+    profiles: [tools]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-monashhub_cn}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-monashhub_cn}
+      SECRET_KEY: ${SECRET_KEY:-migration-only}
+      CN_READONLY_MODE: "true"
+    command: ["alembic", "upgrade", "head"]
+    networks: [internal]
+
+volumes:
+  postgres-cn-data:
+    name: monash-hub-cn-postgres-data
+
+networks:
+  internal:
+    name: monash-hub-cn-internal

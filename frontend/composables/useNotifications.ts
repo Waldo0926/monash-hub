@@ -9,11 +9,12 @@
 const POLL_MS = 60_000
 
 export function useNotifications() {
+  const { cnReadonly } = useSiteMode()
   const unread = useState<number>('notifications-unread', () => 0)
   const timer = useState<number | null>('notifications-timer', () => null)
 
   async function refresh() {
-    if (!readToken()) {
+    if (cnReadonly.value || !readToken()) {
       unread.value = 0
       return
     }
@@ -27,7 +28,7 @@ export function useNotifications() {
   }
 
   function start() {
-    if (!import.meta.client || timer.value !== null) return
+    if (!import.meta.client || cnReadonly.value || timer.value !== null) return
     refresh()
     timer.value = window.setInterval(() => {
       if (document.visibilityState === 'visible') refresh()

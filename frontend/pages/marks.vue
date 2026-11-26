@@ -40,6 +40,7 @@ import {
 } from '~/utils/marks'
 
 const { $t } = useNuxtApp()
+const { cnReadonly } = useSiteMode()
 
 const { data: reference } = await useApiFetch<MarksReference>('/v1/marks/reference')
 
@@ -450,7 +451,7 @@ useSeoMeta({
             <button class="btn btn--small" type="button" :disabled="!pasted.trim()" @click="applyPaste">
               {{ $t('marks.pasteApply') }}
             </button>
-            <label class="btn btn--ghost btn--small file">
+            <label v-if="!cnReadonly" class="btn btn--ghost btn--small file">
               {{ $t('marks.screenshot') }}
               <input type="file" accept="image/*" @change="onScreenshot">
             </label>

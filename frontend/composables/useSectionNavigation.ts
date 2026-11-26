@@ -1,18 +1,24 @@
 export function useSectionNavigation() {
   const { $t } = useNuxtApp()
+  const { cnReadonly } = useSiteMode()
 
-  return computed(() => [
-    { to: '/guides', label: $t('nav.guides'), icon: '□' },
-    { to: '/units', label: $t('nav.units'), icon: '▤' },
-    { to: '/courses', label: $t('nav.courses'), icon: '◇' },
-    { to: '/plan', label: $t('nav.plan'), icon: '☷' },
-    { to: '/tree', label: $t('nav.tree'), icon: '⑂' },
-    { to: '/electives', label: $t('nav.electives'), icon: '✦' },
-    { to: '/marks', label: $t('nav.marks'), icon: '%' },
-    { to: '/fees', label: $t('nav.fees'), icon: '¤' },
-    { to: '/mamo', label: $t('nav.mamo'), icon: 'M' },
-    { to: '/community', label: $t('nav.community'), icon: '☰' }
-  ])
+  return computed(() => {
+    const items = [
+      { to: '/guides', label: $t('nav.guides'), icon: '□' },
+      { to: '/units', label: $t('nav.units'), icon: '▤' },
+      { to: '/courses', label: $t('nav.courses'), icon: '◇' },
+      { to: '/plan', label: $t('nav.plan'), icon: '☷' },
+      { to: '/tree', label: $t('nav.tree'), icon: '⑂' },
+      { to: '/electives', label: $t('nav.electives'), icon: '✦' },
+      { to: '/marks', label: $t('nav.marks'), icon: '%' },
+      { to: '/fees', label: $t('nav.fees'), icon: '¤' },
+      { to: '/mamo', label: $t('nav.mamo'), icon: 'M' }
+    ]
+    if (!cnReadonly.value) {
+      items.push({ to: '/community', label: $t('nav.community'), icon: '☰' })
+    }
+    return items
+  })
 }
 
 export interface HeaderNavItem {
@@ -29,11 +35,12 @@ export interface HeaderNavItem {
  */
 export function useHeaderNavigation() {
   const { $t } = useNuxtApp()
+  const { cnReadonly } = useSiteMode()
   const { locale } = useLocale()
 
   return computed<HeaderNavItem[]>(() => {
     const zh = locale.value === 'zh'
-    return [
+    const items: HeaderNavItem[] = [
       { to: '/guides', label: $t('nav.guides') },
       { to: '/units', label: $t('nav.units') },
       { to: '/courses', label: $t('nav.courses') },
@@ -47,9 +54,12 @@ export function useHeaderNavigation() {
       },
       { to: '/marks', label: 'WAM/GPA' },
       { to: '/fees', label: zh ? $t('nav.fees') : 'Fees' },
-      { to: '/mamo', label: $t('nav.mamo') },
-      { to: '/community', label: $t('nav.community') },
-      { to: '/parents', label: zh ? $t('nav.parents') : 'Parents', accent: true }
+      { to: '/mamo', label: $t('nav.mamo') }
     ]
+    if (!cnReadonly.value) {
+      items.push({ to: '/community', label: $t('nav.community') })
+    }
+    items.push({ to: '/parents', label: zh ? $t('nav.parents') : 'Parents', accent: true })
+    return items
   })
 }

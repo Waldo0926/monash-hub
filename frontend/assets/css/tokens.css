@@ -127,7 +127,7 @@
      Noto Serif SC are the same family (Source Han Serif) drawn for Latin and
      CJK, so a mixed Chinese-English heading stays one voice. Unit codes and
      dates use the mono, where digits line up. */
-  --font-display: 'Source Serif 4', 'Noto Serif SC', 'Songti SC', Georgia, serif;
+  --font-display: 'Source Serif 4', 'Noto Serif SC', 'Songti SC', 'STSong', 'PingFang SC', Georgia, serif;
   --font: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
