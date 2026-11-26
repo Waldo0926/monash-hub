@@ -297,7 +297,7 @@ const sections = computed(() => {
     !cnReadonly.value && { id: 'reviews', label: $t('reviews.title') },
     { id: 'faq', label: $t('unit.commonQuestions') },
     { id: 'details', label: $t('unit.moreDetails') },
-    cnReadonly.value && { id: 'next-tools', label: locale.value === 'zh' ? '继续规划' : 'Plan next' },
+    { id: 'next-tools', label: locale.value === 'zh' ? '继续规划' : 'Plan next' },
     !cnReadonly.value && { id: 'ask', label: $t('unit.askAbout', { code: u.unit_code }) },
     !cnReadonly.value && { id: 'community', label: $t('nav.community') }
   ].filter(Boolean) as { id: string; label: string }[]
@@ -642,11 +642,11 @@ useHead(() => ({
             </dl>
           </section>
 
-          <section v-if="cnReadonly" id="next-tools" class="card section next-tools">
+          <section id="next-tools" class="card section next-tools">
             <SectionHead icon="plan" :title="locale === 'zh' ? `用 ${unit.unit_code} 继续规划` : `Plan with ${unit.unit_code}`" />
             <p class="small muted">
               {{ locale === 'zh'
-                ? '在先修关系图里查看前后置链路，把这门课放进学期计划，或对照不同年份的 Handbook 变化。'
+                ? '在先修关系图里查看前后置链路，把这门课放进学期计划，或对照不同年份的 Handbook 变化'
                 : 'Inspect prerequisites and unlocks on the graph, add this unit to your semester plan, or compare Handbook editions.' }}
             </p>
             <div class="tool-actions">

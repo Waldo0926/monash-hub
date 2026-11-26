@@ -88,7 +88,7 @@ function search(value: string) {
         </template>
       </nav>
 
-      <div class="header-search" :class="{ 'header-search--readonly': cnReadonly }">
+      <div class="header-search">
         <SearchInput
           v-model="query"
           inset
@@ -96,8 +96,6 @@ function search(value: string) {
           @submit="search"
         />
       </div>
-
-      <NuxtLink v-if="!cnReadonly" to="/parents" class="parents-link">{{ $t('nav.parents') }}</NuxtLink>
 
       <!-- One tray for language and account. The controls inside are flat until
            hovered and only the main action is raised, so the corner reads as one
@@ -165,11 +163,11 @@ function search(value: string) {
 .nav {
   display: flex;
   align-items: stretch;
-  justify-content: space-evenly;
-  flex: 1 1 560px;
-  max-width: 680px;
+  justify-content: flex-start;
+  flex: 0 0 auto;
   min-width: 0;
-  gap: clamp(10px, 1vw, 24px);
+  gap: clamp(10px, 1vw, 18px);
+  margin-left: var(--s2);
   padding-inline: clamp(2px, 0.35vw, 8px);
 }
 .nav-link {
@@ -234,17 +232,8 @@ function search(value: string) {
 .nav-menu a:hover { background: var(--surface-2); text-decoration: none; }
 .nav-menu .router-link-active { color: var(--brand); }
 
-/* Search can give up a little width before the navigation does. This keeps long
-   destinations such as WAM/GPA calculator visually separate from Community. */
-.nav--readonly {
-  flex: 0 0 auto;
-  max-width: none;
-  justify-content: flex-start;
-  gap: clamp(12px, 1.15vw, 20px);
-  margin-left: var(--s3);
-}
-.header-search { flex: 1 1 360px; min-width: 170px; max-width: 520px; }
-.header-search--readonly { margin-left: auto; flex: 1 1 200px; min-width: 170px; max-width: 300px; }
+/* Search can give up a little width before the navigation does. */
+.header-search { margin-left: auto; flex: 1 1 200px; min-width: 150px; max-width: 300px; }
 .account {
   display: flex;
   align-items: center;

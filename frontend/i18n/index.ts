@@ -102,6 +102,7 @@ const en: Messages = {
   'nav.mamo': 'MUM Guide',
   // --- unit tree ----------------------------------------------------------
   'nav.tree': 'Unit tree',
+  'nav.electives': 'Electives',
   'nav.marks': 'WAM/GPA calculator',
 
   // --- WAM and GPA calculator ---------------------------------------------
@@ -552,6 +553,7 @@ const en: Messages = {
   'home.toolHint.tree': 'What comes before and after a unit',
   'home.toolHint.plan': 'Plan by semester, prerequisites checked',
   'home.toolHint.courses': 'Core units, majors, structure',
+  'home.toolHint.electives': 'No exam, no prerequisite filters',
   'home.toolHint.marks': 'Type marks in or upload a screenshot',
   'home.toolHint.community': 'Ask other students',
   'home.toolHint.mamo': 'Life and admin at the Malaysia campus',
@@ -1309,12 +1311,13 @@ const zh: Messages = {
   'translation.viewOriginal': '查看官方英文原页 ↗',
   'translation.partial': '仍显示为英文的部分尚未翻译',
 
-  'nav.units': '课程',
+  'nav.units': '课程查询',
   'nav.guides': '官方指南',
   'nav.community': '社区',
   'nav.mamo': '马莫百科',
   // --- 先修图 -------------------------------------------------------------
   'nav.tree': '先修图',
+  'nav.electives': '找选修课',
   'nav.marks': 'WAM/GPA计算',
   'nav.short.marks': 'WAM/GPA',
 
@@ -1403,11 +1406,11 @@ const zh: Messages = {
   'marks.undo': '撤销',
   // --- 学位 ---------------------------------------------------------------
   'nav.courses': '专业与学位',
-  'nav.fees': '马莫学费',
+  'nav.fees': '学费查询',
   // --- 课程规划 -----------------------------------------------------------
   'nav.plan': '选课规划',
   'nav.tools': '选课工具',
-  'nav.parents': '给家长看',
+  'nav.parents': '家长入口',
   'plans.title': '我的规划',
   'plans.lede': '这台设备上保存的所有选课规划。点“打开”在选课规划页里编辑，也可以另存一份试试换专业',
   'plans.untitled': '未命名规划',
@@ -1754,6 +1757,7 @@ const zh: Messages = {
   'home.toolHint.tree': '前后要修哪些课',
   'home.toolHint.plan': '按学期排课、自动检查先修条件',
   'home.toolHint.courses': '必修课、专业方向、学位结构',
+  'home.toolHint.electives': '无考试、无先修条件筛选',
   'home.toolHint.marks': '输成绩或传截图',
   'home.toolHint.community': '问问同学',
   'home.toolHint.mamo': '马来西亚校区的生活和办事',
@@ -1763,7 +1767,7 @@ const zh: Messages = {
   'home.season.enrol': '选明年的课',
   'home.season.start': '开学这几周',
   'home.season.term': '这学期常用',
-  'home.systems': '常用系统',
+  'home.systems': '常用系统入口',
   'home.mamoLatest': '马莫百科最近更新',
   'home.mamoJoin': '进群提问',
   'home.facultyUnits': '{faculty}的全部课程',

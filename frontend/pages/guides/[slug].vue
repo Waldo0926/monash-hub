@@ -61,16 +61,6 @@ useHead(() => ({
           </p>
         </header>
 
-        <section v-if="hasOutline && !cnReadonly" class="card section">
-          <h2>{{ $t('guides.covers') }}</h2>
-          <ul class="outline">
-            <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">
-              <a v-if="heading.id" :href="`#${heading.id}`">{{ heading.text }}</a>
-              <template v-else>{{ heading.text }}</template>
-            </li>
-          </ul>
-        </section>
-
         <!-- A page behind Monash sign-in is listed, never copied: the words
              here are ours, and the page itself needs a Monash login. -->
         <section v-if="guide.requires_sign_in" class="card section signin" role="note">
@@ -99,7 +89,7 @@ useHead(() => ({
       </article>
 
       <aside v-if="hasSidebar" class="side stack">
-        <nav v-if="cnReadonly && hasOutline" class="card section toc-card" :aria-label="$t('guides.covers')">
+        <nav v-if="hasOutline" class="card section toc-card" :aria-label="$t('guides.covers')">
           <h2 class="small">{{ $t('guides.covers') }}</h2>
           <ul class="outline outline--toc">
             <li v-for="(heading, i) in guide.headings" :key="i" :class="`lvl-${heading.level}`">

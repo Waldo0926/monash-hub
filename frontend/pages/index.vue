@@ -62,11 +62,11 @@ const atCampus = (campusRaw: string | null | undefined) =>
   campus.value === 'malaysia' ? campusRaw === 'Malaysia' : AUSTRALIA.has(campusRaw ?? '')
 
 // The dates use the same path as KeyDatesCard, so both read one fetch.
-const datesListed = computed(() => (cnReadonly.value ? 6 : 4))
-const datesFetchLimit = computed(() => Math.max(8, datesListed.value + 4))
+const DATES_LISTED = 6
+const DATES_FETCH_LIMIT = Math.max(8, DATES_LISTED + 4)
 const datesFetch = useLocalisedApiFetch<KeyDates>(
-  () => `/v1/key-dates?campus=${campus.value}&limit=${datesFetchLimit.value}`,
-  { watch: [campus, datesFetchLimit] }
+  () => `/v1/key-dates?campus=${campus.value}&limit=${DATES_FETCH_LIMIT}`,
+  { watch: [campus] }
 )
 const popularFetch = useApiFetch<any>('/v1/search/popular?limit=20')
 const [{ data: dates }, { data: searched }] = await Promise.all([datesFetch, popularFetch])
@@ -176,24 +176,13 @@ const entries = computed(() => {
 
 // One phrase per line under each entry title.
 /** A shorter name for the four-across phone grid, where "WAM/GPA计算" wraps mid-word. */
-const entryLabel = (key: string) => {
-  if (key === 'electives') return locale.value === 'zh' ? '找选修课' : 'Electives'
-  if (cnReadonly.value && locale.value === 'zh') {
-    if (key === 'units') return '课程查询'
-    if (key === 'fees') return '学费查询'
-  }
-  return $t(`nav.${key}`)
-}
+const entryLabel = (key: string) => $t(`nav.${key}`)
 const shortLabel = (key: string) => {
   if (key === 'electives') return locale.value === 'zh' ? '选修课' : 'Electives'
   const text = $t(`nav.short.${key}`)
   return text === `nav.short.${key}` ? null : text
 }
 const hintLines = (key: string) => {
-  if (key === 'electives') {
-    const text = locale.value === 'zh' ? '无考试、无先修条件筛选' : 'Filter by no exam or no prereqs'
-    return text.split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
-  }
   if (cnReadonly.value && key === 'marks') {
     const fallback = locale.value === 'zh' ? '输成绩、粘贴WES算分' : 'Type marks or paste from WES'
     return fallback.split(/[、，]|, /).map(l => l.trim()).filter(Boolean)
@@ -204,11 +193,6 @@ const hintLines = (key: string) => {
 const systems = computed(() =>
   campus.value === 'malaysia' ? MONASH_SYSTEMS : MONASH_SYSTEMS.filter(s => s.appliesTo === 'all')
 )
-const systemsHeading = computed(() => (
-  cnReadonly.value && locale.value === 'zh' ? '常用系统入口' : $t('home.systems')
-))
-const systemHint = (hint?: { zh: string; en: string }) =>
-  hint ? (locale.value === 'zh' ? hint.zh : hint.en) : ''
 
 const exampleTerms = computed(() => [
   { query: 'C2001', text: 'C2001', code: true },
@@ -286,19 +270,14 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
         </nav>
       </div>
       <div class="hero-side" :class="{ 'hero-side--cn': cnReadonly }">
-        <KeyDatesCard v-model:campus="campus" :show-sources="false" :listed="datesListed" />
+        <KeyDatesCard v-model:campus="campus" :show-sources="false" :listed="DATES_LISTED" />
         <section class="systems-box" aria-labelledby="systems-title">
-          <h2 id="systems-title">{{ systemsHeading }}</h2>
-          <ul class="systems" :class="{ 'systems--cn': cnReadonly }">
+          <h2 id="systems-title">{{ $t('home.systems') }}</h2>
+          <ul class="systems">
             <li v-for="s in systems" :key="s.url">
               <a :href="s.url" target="_blank" rel="noopener external">
-                <span class="sys-head">
-                  <span class="sys-name">{{ s.name }}</span>
-                  <PlanIcon name="external" :size="13" />
-                </span>
-                <span v-if="cnReadonly && systemHint(s.hint)" class="sys-hint tiny muted">
-                  {{ systemHint(s.hint) }}
-                </span>
+                <span class="sys-head">{{ s.name }}<PlanIcon name="external" :size="13" /></span>
+                <span v-if="s.hint" class="sys-hint tiny muted">{{ locale === 'zh' ? s.hint.zh : s.hint.en }}</span>
               </a>
             </li>
           </ul>
@@ -469,51 +448,48 @@ useHead({ link: [{ rel: 'canonical', href: config.public.siteUrl }] })
   background: var(--surface);
 }
 .systems-box h2 { margin: 0 0 var(--s3); font-family: var(--font); font-size: 0.95rem; font-weight: 600; }
-.systems { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0; padding: 0; list-style: none; }
-.systems a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 var(--s3);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
-  color: var(--text);
-  font-size: 0.875rem;
-}
-.systems a:hover { border-color: var(--brand); color: var(--brand); text-decoration: none; }
-.systems a .icon { color: var(--muted-2); }
-.sys-head { display: inline-flex; align-items: center; gap: 6px; }
-.systems--cn {
+.systems {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.systems--cn a {
-  display: grid;
+.systems a {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 2px;
   min-height: 0;
-  padding: var(--s2) var(--s3);
+  padding: 9px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.875rem;
   transition: background-color 0.15s, border-color 0.15s;
 }
-.systems--cn a:hover {
+.systems a:hover {
   background: var(--blue-50);
   border-color: var(--brand);
+  color: var(--brand);
+  text-decoration: none;
 }
-.systems--cn .sys-head {
+.sys-head {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 6px;
   font-weight: 600;
-  font-size: 0.875rem;
 }
-.systems--cn .sys-hint {
+.sys-hint {
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.systems a .icon { color: var(--muted-2); flex: none; }
 
 .mamo-block { margin-bottom: var(--s7); }
 

@@ -3,7 +3,7 @@
 # WARNING: DO NOT ENABLE BEFORE ICP FILING IS APPROVED AND DNS IS POINTED.
 #
 # Activation steps AFTER ICP approval:
-#   1. Point mumguide.cn (and www.mumguide.cn if desired) A record to 175.178.176.51.
+#   1. Point mumguide.cn (and www.mumguide.cn if desired) A record to <YOUR_CN_VPS_IP>.
 #   2. Issue SSL certificate (e.g. certbot certonly --webroot or Tencent Cloud SSL)
 #      and place fullchain.pem / privkey.pem at the paths below.
 #   3. Copy this file to /etc/nginx/sites-available/mumguide.cn and create symlink:
